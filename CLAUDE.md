@@ -50,7 +50,7 @@ Goal: replace `src/decks.txt` with top finishers from Modern events of the last 
 Colour-code archetype names from MTGGoldfish (WU, UR, WBG) may be replaced with a plain name only when the list makes it obvious.
 
 ## Feedback
-The game links to a Google Form ("Send feedback" on the front page and in the table menu), pre-filling the version and game details. Responses go to a Google Sheet in the maintainer's Drive, which the maintainer reviews before asking for changes. The form URL and field ids are constants near the top of `src/app.src.html` (`FEEDBACK_FORM`, `FB_VERSION`, `FB_DETAILS`).
+The game links to a Google Form ("Send feedback" on the front page and in the table menu), pre-filling the version and game details. The form (since v3.28) belongs to the project's own Google account, not a personal one; responses go to a Google Sheet in that account's Drive, which the maintainer reviews before asking for changes. The form URL and field ids are constants near the top of `src/app.src.html` (`FEEDBACK_FORM`, `FB_VERSION`, `FB_DETAILS`).
 
 ## Auto-pay (v3.0)
 With `S.autoPay` on (the default; ☰ menu toggle), `castSpellNow` and `activate` work out the cost (`castSyms`/`abilSyms`), plan it from the pool (`payPlan`) and either pay at once or open `#payPanel`, which waits while lands are tapped; the card stays in its zone until paid. Alternative costs pass `payCost` (warp, dash, flashback, madness, bestow, harmonize with `less`, Mystical Dispute), `castAlt` pays first, free casts pass `nm`. Mana with a restriction or rider goes to `G.me.smana` (its own row under the pool) and is spent only where `specRule` allows. Old tests that cast by hand should set `S.autoPay=false` after the page loads.
