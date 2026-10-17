@@ -422,10 +422,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v3.29';
+const VERSION = 'v3.30';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v3.30','Oct 17',"Maximum hand size: when your opponent clicks Start my turn and you have more than seven cards in hand, you choose cards to discard down to seven, and their turn starts once you have. Reliquary Tower and Tamiyo, Seasoned Scholar's emblem remove the limit (her −7 also draws the cards now)."],
   ['v3.29','Oct 17',"Amulet Titan works. Amulet of Vigor's untap goes on the stack, so you can tap a bounce land before returning a land. Gruul Turf, Simic Growth Chamber and Crumbling Vestige do their jobs, Spelunking makes your lands enter untapped, and Arboreal Grazer, Cultivator Colossus, Malevolent Rumble, Scapeshift, Aftermath Analyst, Tolaria West's transmute, Roiling Canopy (with Yavimaya), Six's attack and retrace, and Hanweir Battlements' haste all resolve. The log counts your land plays (second land this turn, and so on). Trinisphere raises what you pay, and Cursed Totem warns before a creature's ability is used."],
   ['v3.28','Oct 17',"Send feedback opens a new form. It works the same way: the version and your game details are filled in for you."],
   ['v3.27','Oct 17',"The front page now says where things come from: card images and data from Scryfall, decklists from MTGGoldfish, and that this is an unofficial fan project, not made by Wizards of the Coast."],
@@ -668,7 +669,7 @@ const cname = c => c.fd ? 'a face-down card' : '[['+(cdata(c).n||'a card')+'|'+(
 function pub(){
   const m=G.me, p = c => c.fd ? Object.assign({}, c, {k:null, cu:null, note:''}) : c;
   return { name:m.name, deck:m.deck, life:m.life, ctr:m.ctr, libN:m.lib.length, handN:m.hand.length, sideN:m.side.length,
-    hand:(m.reveal || m.ctl) ? m.hand : null, comp:m.side.filter(c=>c.comp), compDone:!!m.compDone, skipRoll:!!m.skipRoll, wonGame:m.wonGame||0, ctl:!!m.ctl, ctlNext:!!m.ctlNext, city:!!m.city, sbing:!!m.sbing, bf:m.bf.map(p), gy:m.gy, ex:m.ex.map(p), st:m.st.map(p), arrows:m.arrows, mull:m.mull, wins:m.wins||0, roll:m.roll||null, dealt:!!m.dealt, kept:!!m.kept, mana:m.mana||noMana(), smana:m.smana||[], energySeen:!!m.energySeen, cast:m.cast||{n:0,is:0}, cares:m.cares||null, gtg:m.gtg||[], baub:m.baub||[], trk:m.trk||null };
+    hand:(m.reveal || m.ctl) ? m.hand : null, noMax:!!m.noMax, comp:m.side.filter(c=>c.comp), compDone:!!m.compDone, skipRoll:!!m.skipRoll, wonGame:m.wonGame||0, ctl:!!m.ctl, ctlNext:!!m.ctlNext, city:!!m.city, sbing:!!m.sbing, bf:m.bf.map(p), gy:m.gy, ex:m.ex.map(p), st:m.st.map(p), arrows:m.arrows, mull:m.mull, wins:m.wins||0, roll:m.roll||null, dealt:!!m.dealt, kept:!!m.kept, mana:m.mana||noMana(), smana:m.smana||[], energySeen:!!m.energySeen, cast:m.cast||{n:0,is:0}, cares:m.cares||null, gtg:m.gtg||[], baub:m.baub||[], trk:m.trk||null };
 }
 /* undo: a snapshot of my own side is kept before each change. Shuffles and anything that crosses to the other player close the history. */
 const UNDO=[]; let lastSnap=null, lastLogi=0;
@@ -760,6 +761,8 @@ function onMsg(m){
   else if(m.t==='tot'){ const nm=String(m.name||'').slice(0,80); send({t:'totz', name:nm, by:String(m.by||'').slice(0,60), gy:G.me.gy, hand:G.me.hand, lib:G.me.lib}); log(`${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'A spell').slice(0,60)}: ${G.me.name} shows their graveyard, hand and library to search for ${nm}.`); }
   else if(m.t==='totz'){ const z={gy:(m.gy||[]).slice(0,200), hand:(m.hand||[]).slice(0,60), lib:(m.lib||[]).slice(0,200)}; ensureCards([...z.gy,...z.hand,...z.lib].map(c=>c.k).filter(Boolean)).then(()=>totWin(z, String(m.name||''), String(m.by||'Test of Talents'), false)); }
   else if(m.t==='totx'){ totExile((m.ids||[]).slice(0,200).map(String), String(m.name||'').slice(0,80), String(m.by||'A spell').slice(0,60), String(m.who||'Opponent').slice(0,40)); }
+  else if(m.t==='cleanup'){ cleanupDiscard(()=>send({t:'cleandone'})); }
+  else if(m.t==='cleandone'){ if(G.waitClean){ G.waitClean=0; const t=G.turn; if(t.passed && t.active!==G.myId) nextPhase(); } }
   else if(m.t==='drew'){ oppDrew(Math.max(0,Math.min(30,+m.n||0)), +m.first?1:0); }
   else if(m.t==='lock'){ G.me.lock={n:G.turn.n, nc:!!m.nc, by:String(m.by||'An effect').slice(0,60)}; changed(); }
   else if(m.t==='extract'){ extractName(String(m.name||'').slice(0,80), String(m.by||'A spell').slice(0,60), String(m.who||'Opponent').slice(0,40)); }
@@ -1441,10 +1444,19 @@ async function discard(ids, note){
   }
 }
 function discardRandom(n){ const m=G.me; if(!m.hand.length){ toast('Your hand is empty.'); return; } const ids=shuffle(m.hand.map(c=>c.id)).slice(0, Math.max(1,n)); discard(m.hand.filter(c=>ids.includes(c.id)).map(c=>c.id), ' at random'); }
-function discardPicker(n){   // n: a spell says "discard two cards", so exactly that many (or the whole hand if smaller)
-  const m=G.me; if(!m.hand.length){ toast('Your hand is empty.'); return; } const sel=new Set(), need = n ? Math.min(n, m.hand.length) : 0;
-  const el=modal(need ? `Discard ${['','a','two','three','four','five','six','seven'][need]||need} card${need>1?'s':''}` : 'Discard cards', `<span class="hint">Click each card you are discarding, then confirm. They are discarded together.</span><div class="grid" id="dcGrid">${m.hand.map(c=>cardHTML(c,'hand',true)).join('')}</div>`,
-    [...(need ? [] : [['Cancel',()=>closeModal(),'ghost']]),['Discard',()=>{ const ids=m.hand.filter(c=>sel.has(c.id)).map(c=>c.id); if(!ids.length || (need && ids.length!==need)) return; closeModal(); discard(ids); },'go']], {wide:true});
+/* Maximum hand size (seven), checked when the next player starts their turn. "You have no maximum hand size." (Reliquary Tower, Tamiyo's emblem) removes it. */
+const NOMAX=/You have no maximum hand size/i;
+const noMaxMe = () => G.me.noMax ? "Tamiyo's emblem" : (x=>x ? cdata(x).n.split(',')[0] : null)(G.me.bf.find(x=>!x.fd && (x.k||x.cu) && NOMAX.test(frontText(x)||'')));
+const noMaxOpp = () => !!(G.opp && (G.opp.noMax || (G.opp.bf||[]).some(x=>!x.fd && (x.k||x.cu) && NOMAX.test(frontText(x)||''))));
+function cleanupDiscard(then){ const m=G.me, over=m.hand.length-7, nm=noMaxMe();
+  if(over<=0 || nm){ if(over>0) log(`${m.name} keeps ${m.hand.length} cards (no maximum hand size: ${nm}).`); then(); return; }
+  if(!$('#modal').hidden && $('#dcGrid')) return;   // already choosing
+  toast(`You have ${m.hand.length} cards: discard down to seven.`);
+  discardPicker(over, ids=>{ log(`${m.name} discards down to seven cards at the end of the turn.`); then(); }, `End of turn: discard ${over} card${over>1?'s':''} (down to seven)`); }
+function discardPicker(n, done, why){   // n: a spell says "discard two cards", so exactly that many (or the whole hand if smaller); done: called after the discard
+  const m=G.me; if(!m.hand.length){ toast('Your hand is empty.'); if(done) done(); return; } const sel=new Set(), need = n ? Math.min(n, m.hand.length) : 0;
+  const el=modal(why ? why : need ? `Discard ${['','a','two','three','four','five','six','seven'][need]||need} card${need>1?'s':''}` : 'Discard cards', `<span class="hint">Click each card you are discarding, then confirm. They are discarded together.</span><div class="grid" id="dcGrid">${m.hand.map(c=>cardHTML(c,'hand',true)).join('')}</div>`,
+    [...(need ? [] : [['Cancel',()=>closeModal(),'ghost']]),['Discard',()=>{ const ids=m.hand.filter(c=>sel.has(c.id)).map(c=>c.id); if(!ids.length || (need && ids.length!==need)) return; closeModal(); Promise.resolve(discard(ids)).then(()=>{ if(done) done(ids); }); },'go']], Object.assign({wide:true}, done ? {noClose:true} : {}));
   const goB=$('footer button.go', el), upd=()=>{ goB.disabled = need ? sel.size!==need : !sel.size; goB.textContent = sel.size ? `Discard ${sel.size} card${sel.size>1?'s':''}` : 'Discard'; }; upd();
   $('#dcGrid').onclick=e=>{ const cd=e.target.closest('.card[data-id]'); if(!cd) return; const id=cd.dataset.id; if(sel.has(id)) sel.delete(id); else sel.add(id); cd.classList.toggle('sel', sel.has(id)); upd(); };
 }
@@ -1740,6 +1752,8 @@ async function simpleEffects(c, text, srcId){
     if(/^copy target instant or sorcery spell you control\.?$/i.test(sen)){ for(const t of tg){ const f=find(t); if(!f || f.z!=='st'){ log(`${by}: that spell is no longer on the stack.`); continue; } const x=f.c; m.st.push(mk(x.k, Object.assign({tok:true, ts:Date.now()}, x.md ? {md:x.md.slice()} : {}, x.x!=null ? {x:x.x} : {}))); log(`${by}: ${m.name} copies ${cname(x)}. Right-drag from the copy to give it new targets.`); } if(!tg.length) log(`${by}: no target was chosen.`); changed(); continue; }
     if(/^you may choose new targets for the copy\.?$/i.test(sen)) continue;
     if(/^target creature gains haste until end of turn\.?$/i.test(sen)){ for(const t of tg){ const f=find(t); if(f && f.z==='bf'){ f.c.hst=G.turn.n||1; log(`${by}: ${cname(f.c)} gains haste until end of turn.`); } else log(`${by}: only your own creatures can be given haste here; mark it by hand.`); } if(!tg.length) log(`${by}: no target was chosen.`); changed(); continue; }
+    if(/^draw cards equal to half the number of cards in your library, rounded up\.?$/i.test(sen)){ draw(Math.ceil(m.lib.length/2)); changed(); continue; }
+    if((r=sen.match(/^you get an emblem with ["“](.+?)["”]\.?$/i))){ log(`${by}: ${m.name} gets an emblem: "${r[1]}"`); if(NOMAX.test(r[1])) m.noMax=1; changed(); continue; }
     if(/^sacrifice any number of lands\.?$/i.test(sen)){ waited=true; const ls=m.bf.filter(x=>isLand(x)); const ids=ls.length ? await pickManyP(`${by}: sacrifice any number of lands`, ls, 'Sacrifice them') : []; const nms=[];
       for(const i of ids){ const f=find(i); if(f && f.z==='bf'){ nms.push(cname(f.c)); move(i,'gy',{silent:true}); } } sacPow=nms.length; log(`${by}: ${m.name} sacrifices ${nms.length ? nms.join(', ') : 'no lands'}.`); changed(); continue; }
     if(/^search your library for up to that many land cards, put them onto the battlefield tapped, then shuffle\.?$/i.test(sen)){ const k=sacPow||0; if(k>0){ waited=true; await new Promise(res=>{ searchGate(()=>{ landSearch(k, by); const iv=setInterval(()=>{ if($('#modal').hidden){ clearInterval(iv); res(); } }, 150); }, by); }); } else { shuffleLib(true); log(`${by}: nothing was sacrificed, so ${m.name} finds no lands and shuffles.`); } continue; }
@@ -2895,7 +2909,7 @@ function nextPhase(){
   const t=G.turn; if(!t.n){ return; }
   if(blockStep()){ doneBlocking(); return; }
   if(iControl()){ send({t:'cmd', op:'next'}); return; }
-  if(t.passed && t.active!==G.myId){ G.turn={active:G.myId, phase:0, n:t.n+1}; startMyTurn(); return; }
+  if(t.passed && t.active!==G.myId){ if(G.opp && (G.opp.handN||0)>7 && !noMaxOpp()){ G.waitClean=1; send({t:'cleanup'}); toast(`Waiting for ${G.opp.name||'your opponent'} to discard down to seven cards.`); return; } G.waitClean=0; G.turn={active:G.myId, phase:0, n:t.n+1}; startMyTurn(); return; }
   if(t.active!==G.myId || t.passed) return;
   if(t.phase===0 && G.me.st.some(c=>c.pact)){ leaveUpkeep(); return; }
   if(G.me.gate && t.phase===1){ toast(`Waiting for ${G.opp?G.opp.name:'your opponent'} to answer about the pact trigger.`); return; }
@@ -2903,6 +2917,7 @@ function nextPhase(){
   if(t.phase < PH.length-1){ const p=t.phase+1; if(p===3){ log(`${G.me.name} moves to combat.`); const ma=mustAttack(); if(ma.length){ log(`Must attack this combat if able: ${ma.join(', ')}.`); toast(unlink(`${ma.join(', ')} ${ma.length>1?'attack':'attacks'} this combat if able.`)); } } setTurn({...t, phase:p}); return; }
   G.me.bf.forEach(c=>c.atk=false); G.me.arrows=[]; G.noUndo=true;
   if(G.me.ctl){ G.me.ctl=false; log(`The controlled turn ends. ${G.me.name} takes an extra turn under their own control.`); G.turn={active:G.myId, phase:0, n:t.n+1}; startMyTurn(); return; }
+  if((G.solo || !G.opp) && G.me.hand.length>7 && !noMaxMe() && !G.cleanDone){ cleanupDiscard(()=>{ G.cleanDone=1; nextPhase(); G.cleanDone=0; }); return; }
   if(G.solo || !G.opp){ log(`${G.me.name} ends the turn.`); G.turn={active:G.myId, phase:0, n:t.n+1}; startMyTurn(); }
   else { log(`${G.me.name} passes the turn. ${G.opp.name} starts their turn when ready.`); setTurn({...t, passed:true}); changed(); }
 }
@@ -2918,7 +2933,7 @@ function newMatch(){ G.me.wins=0; G.me.wonGame=0; send({t:'newmatch'}); log(`${G
 function gather(){
   const m=G.me; G.noUndo=true;
   for(const z of ['hand','bf','gy','ex','st']){ for(const c of m[z].splice(0)){ if(c.tok || c.made) continue; if(c.o!==G.myId){ send({t:'give', card:Object.assign(c,{tap:false,c:0,att:null,atk:false,fd:false,flip:false}), zone:'lib'}); continue; } Object.assign(c,{tap:false,c:0,att:null,atk:false,fd:false,flip:false,note:'',row:null}); m.lib.push(c); } }
-  m.life=20; m.lastLife=20; delete m.gain; delete m.city; delete m.wya; delete m.atkC; delete m.lock; m.ctr={poison:0,energy:0}; m.arrows=[]; m.reveal=false; m.mull=0; m.roll=null; m.compDone=false; m.skipRoll=false; m.dealt=false; m.kept=false; m.mana=noMana(); m.smana=[]; m.energySeen=false; m.drew=0; m.ctl=false; m.ctlNext=false; m.cast={n:0,is:0}; m.pacts=[]; m.baub=[]; m.trk=null; for(const c of m.side) delete c.comp; for(const c of m.lib){ delete c.by; delete c.warp; delete c.wp; delete c.fl; delete c.bt; delete c.ent; delete c.offer; delete c.pl; delete c.kw; delete c.lt; delete c.sick; delete c.lft; delete c.cp; }
+  m.life=20; m.lastLife=20; delete m.noMax; delete m.gain; delete m.city; delete m.wya; delete m.atkC; delete m.lock; m.ctr={poison:0,energy:0}; m.arrows=[]; m.reveal=false; m.mull=0; m.roll=null; m.compDone=false; m.skipRoll=false; m.dealt=false; m.kept=false; m.mana=noMana(); m.smana=[]; m.energySeen=false; m.drew=0; m.ctl=false; m.ctlNext=false; m.cast={n:0,is:0}; m.pacts=[]; m.baub=[]; m.trk=null; for(const c of m.side) delete c.comp; for(const c of m.lib){ delete c.by; delete c.warp; delete c.wp; delete c.fl; delete c.bt; delete c.ent; delete c.offer; delete c.pl; delete c.kw; delete c.lt; delete c.sick; delete c.lft; delete c.cp; }
 }
 function newGame(remote){
   gather(); G.turn={active:null, phase:2, n:0};
