@@ -1,0 +1,51 @@
+name: Announce new version on Discord
+
+# Posts the newest "What's new" line(s) to the Discord #announcements webhook
+# whenever a push to main changes VERSION in src/app.src.html.
+# Deck refreshes don't change VERSION, so they are not announced.
+# "Run workflow" on the Actions tab re-posts the newest entry (for testing).
+
+on:
+  push:
+    branches: [main]
+    paths: [src/app.src.html]
+  workflow_dispatch:
+
+jobs:
+  announce:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Get the source as it was before this push
+        if: github.event_name == 'push'
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: |
+          OLD="$RUNNER_TEMP/old.src.html"
+          : > "$OLD"
+          if [ -n "$BEFORE" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ]; then
+            git fetch --depth=1 origin "$BEFORE" && git show "$BEFORE:src/app.src.html" > "$OLD" || : > "$OLD"
+          fi
+
+      - name: Wait for GitHub Pages to publish
+        if: github.event_name == 'push'
+        run: sleep 90
+
+      - name: Post to Discord
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            OLD="-"
+          else
+            OLD="$RUNNER_TEMP/old.src.html"
+            if [ ! -s "$OLD" ]; then
+              echo "Could not read the previous version; not announcing."
+              exit 0
+            fi
+          fi
+          python3 .github/scripts/announce.py "$OLD" src/app.src.html

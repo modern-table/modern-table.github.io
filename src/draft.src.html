@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Draft Table</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,800&display=swap">
+<style>
+/* Same type and layout as the Modern Table, in mahogany instead of green felt so you can tell the two apart at a glance. */
+:root{
+  --felt:#5e3a2e; --felt2:#4e3026; --rail:#3c231b; --line:#8a5d4c; --ink:#fbf4ef; --dim:#dcc6ba;
+  --brass:#e0a66a; --go:#d9683c; --bad:#e2574c; --good:#5fc98d; --opp:#7fb3ff;
+  --display:"Marcellus",Georgia,serif; --ui:"Nunito Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--rail);color:var(--ink);font:14px/1.4 var(--ui);overflow:hidden;user-select:none;-webkit-user-select:none}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;background:#71483a;border:1px solid var(--line);border-radius:6px;padding:7px 12px}
+button:hover{border-color:var(--brass)}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--brass);outline-offset:1px}
+button.go{background:var(--go);border-color:var(--go);color:#1c0c05;font-weight:800}
+button.ghost{background:transparent}
+button.sm{font-size:12px;padding:3px 8px}
+button.on{border-color:var(--brass);color:var(--brass)}
+button:disabled{opacity:.45;cursor:default}button:disabled:hover{border-color:var(--line)}
+input,select{background:#391f17;border:1px solid var(--line);border-radius:6px;padding:8px 10px}
+input{user-select:text;-webkit-user-select:text}
+a{color:var(--brass)}
+h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
+[hidden]{display:none!important}
+.screen{height:100%}
+.hint{color:var(--dim)}
+
+#lobby{position:relative;display:grid;place-items:center;background:radial-gradient(120% 90% at 50% 0%,#7d4c3b,var(--rail) 70%);overflow:auto;padding:24px 16px}
+.lobbybox{width:min(560px,100%);display:flex;flex-direction:column;gap:18px}
+.lobbybox h1{font-size:44px;letter-spacing:.02em}
+.lobbybox p{margin:0;color:var(--dim);max-width:60ch}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.choices{display:grid;gap:10px}
+.choice{display:flex;gap:12px;align-items:center;justify-content:space-between;text-align:left;padding:14px 16px;background:#5d382b}
+.choice b{display:block;font-size:16px}.choice span{color:var(--dim);font-size:13px}
+/* the way back to the Modern Table wears the Modern Table's colours */
+.corner{position:absolute;top:16px;right:20px;border:1px solid #d9b25f;border-radius:99px;padding:6px 14px;text-decoration:none;font-weight:800;color:#d9b25f;background:#16272b;box-shadow:0 2px 8px #0006}
+.corner:hover{background:#1c3238;color:#f0cf85}
+.joinrow{display:flex;gap:8px}.joinrow input{flex:1;text-transform:uppercase;letter-spacing:.2em;font-weight:800;min-width:0}
+
+#room{display:flex;flex-direction:column;background:var(--felt2)}
+.topbar{display:flex;gap:10px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--rail);flex-wrap:wrap}
+.topbar h2{font-size:22px;margin-right:auto}
+.pill{font-size:12px;padding:3px 9px;border-radius:99px;border:1px solid var(--line);color:var(--dim);white-space:nowrap}
+.pill.ok{color:var(--good);border-color:var(--good)}.pill.warn{color:var(--go);border-color:var(--go)}
+.pill b{color:var(--ink);letter-spacing:.15em;user-select:text;-webkit-user-select:text}
+.body{flex:1;min-height:0;display:grid;grid-template-columns:230px 1fr}
+#rail{border-right:1px solid var(--line);background:var(--rail);overflow:auto;padding:12px;display:flex;flex-direction:column;gap:6px}
+#rail h3{font-size:12px;font-family:var(--ui);font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin:4px 0}
+.seat{display:grid;grid-template-columns:18px 1fr auto;gap:6px;align-items:center;padding:6px 8px;border:1px solid transparent;border-radius:6px}
+.seat.me{border-color:var(--brass);background:#5d382b}
+.seat .dot{width:9px;height:9px;border-radius:50%;background:var(--line)}
+.seat.on .dot{background:var(--good)}.seat.busy .dot{background:var(--go)}.seat.off .dot{background:var(--bad)}
+.seat small{color:var(--dim);display:block}
+.seat .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.arrow{color:var(--dim);font-size:12px;text-align:center}
+#main{overflow:auto;padding:16px 20px;display:flex;flex-direction:column;gap:14px;min-width:0}
+#main>*{flex:none}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.bar h3{font-size:22px}
+.clock{font:800 18px var(--ui);font-variant-numeric:tabular-nums;color:var(--brass);min-width:3ch}
+.clock.low{color:var(--bad)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.grid.sm{grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px}
+.grid.xs{grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:4px}
+.c{position:relative;aspect-ratio:488/680;border-radius:4.6%/3.3%;background:#7a5445;box-shadow:0 2px 6px #0008;cursor:pointer;overflow:hidden;transition:transform .12s,box-shadow .12s}
+.c:hover{transform:translateY(-3px)}
+.c img{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+.c .txt{position:absolute;inset:0;padding:7%;display:flex;flex-direction:column;gap:3px;font-size:11px;line-height:1.15;border:1px solid var(--line);border-radius:inherit;pointer-events:none;overflow:hidden}
+.c .txt i{color:var(--dim);font-style:normal}
+.c.sel{box-shadow:0 0 0 3px var(--go),0 6px 16px #000a;transform:translateY(-6px)}
+.c.foil::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 20%,#7fd4ff33 38%,#ffd87a40 50%,#ff8ad033 62%,transparent 80%);mix-blend-mode:screen}
+.c .tag{position:absolute;left:4%;bottom:3%;font-size:9px;font-weight:800;letter-spacing:.1em;background:#000c;color:var(--brass);padding:1px 5px;border-radius:3px;pointer-events:none}
+.sec{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin:6px 0 2px}
+.panes{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+.pane .bar h3{font-size:18px}
+.sec b{color:var(--brass);font-size:13px;margin-left:4px}.sec span{text-transform:none;letter-spacing:0}
+.regions{--w:clamp(76px,6.6vw,124px);display:flex;flex-wrap:wrap;gap:4px 26px;align-items:flex-start}
+.cols{display:flex;gap:6px;align-items:flex-start;padding:4px 2px 8px}
+.col{width:var(--w);flex:none;display:flex;flex-direction:column}
+.col .c + .c{margin-top:calc(var(--w) * -1.2)}
+.col .c:hover{transform:none;box-shadow:0 0 0 2px var(--brass)}
+.colh{font-size:11px;font-weight:800;color:var(--ink);text-align:center;margin-bottom:4px}.colh span{color:var(--dim);font-weight:600}
+.pane{background:#391f17;border:1px solid var(--line);border-radius:8px;padding:12px;min-height:120px}
+.lands{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.land{display:flex;gap:4px;align-items:center;border:1px solid var(--line);border-radius:6px;padding:3px 6px}
+.land b{min-width:2ch;text-align:center;font-variant-numeric:tabular-nums}
+.land button{padding:1px 8px}
+table{border-collapse:collapse;width:100%;max-width:640px}
+th,td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--line)}
+th{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);font-weight:800}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.match{border:1px solid var(--line);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px;max-width:640px;background:#391f17}
+.match.mine{border-color:var(--brass)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.setrow{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
+#zoom{position:fixed;z-index:80;pointer-events:none;display:flex;gap:6px}
+#zoom img{width:300px;border-radius:14px;box-shadow:0 10px 30px #000c}
+#toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#000d;border:1px solid var(--brass);padding:8px 16px;border-radius:99px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:90}
+@media (max-width:760px){ .regions{--w:76px} .body{grid-template-columns:1fr} #rail{border-right:0;border-bottom:1px solid var(--line);max-height:26vh} .panes{grid-template-columns:1fr} .grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))} }
+</style>
+</head>
+<body>
+<div id="lobby" class="screen">
+  <a class="corner" href="../">Modern Table →</a>
+  <div class="lobbybox">
+    <h1>Draft Table <small id="verTag" style="font:600 13px var(--ui);color:var(--dim);letter-spacing:.08em"></small></h1>
+    <p>Booster draft for up to eight, with packs built to each set's real odds. Draft, build a 40-card deck, then play your matches on the <a href="../">Modern Table</a>.</p>
+    <div class="field"><label for="nameIn">Your name</label><input id="nameIn" maxlength="20" placeholder="Planeswalker"></div>
+    <div class="choices">
+      <button class="choice" id="hostBtn"><div><b>Host a draft</b><span>Pick the set, get a six-letter code for your friends. Bots fill empty seats.</span></div><span>→</span></button>
+      <div class="choice" style="border:1px solid var(--line);border-radius:6px">
+        <div style="flex:1;min-width:0"><b>Join a draft</b><div class="joinrow" style="margin-top:6px"><input id="codeIn" maxlength="6" placeholder="CODE" aria-label="Draft code"><button id="joinBtn" class="go">Join</button></div></div>
+      </div>
+      <button class="choice" id="resumeBtn" hidden><div><b>Return to your draft</b><span id="resumeTxt"></span></div><span>→</span></button>
+    </div>
+    <p id="lobbyMsg" style="color:var(--go)"></p>
+  </div>
+</div>
+
+<div id="room" class="screen" hidden>
+  <div class="topbar"><h2>Draft Table</h2><span class="pill" id="setPill"></span><span class="pill" id="codePill" title="Click to copy"></span><span class="pill" id="netPill"></span><button id="leaveBtn" class="ghost sm">Leave</button></div>
+  <div class="body"><div id="rail"></div><div id="main"></div></div>
+</div>
+<div id="zoom" hidden></div>
+<div id="toast"></div>
+
+<script src="../src/peerjs.min.js"></script>
+<script>
+"use strict";
+const VERSION = 'v0.9';
+const SETS = /*__SETS__*/[];
+const PREFIX = 'draft-table-v1-';
+const $ = (s, el=document) => el.querySelector(s), $$ = (s, el=document) => [...el.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const store = { get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } }, set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }, del(k){ try{ localStorage.removeItem(k); }catch(e){} } };
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function toast(t, ms=2600){ const el=$('#toast'); el.textContent=t; el.style.opacity=1; clearTimeout(toast.t); toast.t=setTimeout(()=>el.style.opacity=0, ms); }
+
+/* Saved data brought over from the old address (used before 2026-10-17).
+   The forwarding page there sends #import=<base64url JSON of mt_decks, mt_settings, mt_dview>. */
+const IMPORTED = (()=>{ const m = location.hash.match(/^#import=([A-Za-z0-9_-]+)$/); if(!m) return null;
+  try{ history.replaceState(null, '', location.pathname + location.search); }catch(e){}
+  try{
+    const b = atob(m[1].replace(/-/g,'+').replace(/_/g,'/')), d = JSON.parse(new TextDecoder().decode(Uint8Array.from(b, ch => ch.charCodeAt(0))));
+    let n = 0;
+    if(Array.isArray(d.mt_decks)){ const have = store.get('mt_decks', []), seen = new Set(have.map(x => x && x.name + '\n' + x.text));
+      for(const x of d.mt_decks){ if(x && typeof x.name === 'string' && typeof x.text === 'string' && !seen.has(x.name + '\n' + x.text)){ have.push({name:x.name, text:x.text}); seen.add(x.name + '\n' + x.text); n++; } }
+      store.set('mt_decks', have); }
+    for(const k of ['mt_settings','mt_dview']) if(d[k] != null && store.get(k, null) == null) store.set(k, d[k]);
+    return {n};
+  }catch(e){ return {err:1}; } })();
+if(IMPORTED) setTimeout(() => toast(IMPORTED.err ? 'Welcome to the new address. Your saved decks could not be brought over.' : IMPORTED.n ? `Welcome to the new address. ${IMPORTED.n} saved deck${IMPORTED.n === 1 ? '' : 's'} brought over.` : 'Welcome to the new address.'), 900);
+function setHTML(el, h){ if(el._h!==h){ el._h=h; el.innerHTML=h; } }
+const randCode = () => { const A='ABCDEFGHJKLMNPQRSTUVWXYZ'; let c=''; for(let i=0;i<6;i++) c+=A[Math.floor(Math.random()*A.length)]; return c; };
+const SETTINGS = store.get('mt_settings', {});            // shared with the Modern Table, so your name carries over
+let PID = store.get('dt_pid', null); if(!PID){ PID = Math.random().toString(36).slice(2,12); store.set('dt_pid', PID); }
+const setName = code => (SETS.find(s=>s.code===code)||{}).name || code;
+
+/* ================= card data (Scryfall), cached for the set being drafted ================= */
+let CARDS = {}, cardSet = '';
+const pendingIds = new Set(), missed = {};
+function useCache(set){ if(cardSet===set) return; const c=store.get('dt_cards', null); CARDS = c && c.set===set ? c.cards : {}; cardSet=set; }
+function toCard(c){
+  const f=c.card_faces, im=c.image_uris || (f && f[0].image_uris) || {};
+  return { n:c.name, mc:c.mana_cost || (f ? f.map(x=>x.mana_cost).filter(Boolean).join(' // ') : ''), t:c.type_line||'',
+    o:(c.oracle_text || (f ? f.map(x=>x.oracle_text||'').join('\n') : '')).slice(0,600),
+    pt:c.power!=null ? c.power+'/'+c.toughness : (f && f[0].power!=null ? f[0].power+'/'+f[0].toughness : ''),
+    img:im.normal||'', back:(!c.image_uris && f && f[1] && f[1].image_uris) ? f[1].image_uris.normal : '',
+    sid:c.id, r:c.rarity||'', c:(c.colors || (f && f[0].colors) || []).join(''), cmc:c.cmc||0 };
+}
+/* Cube cards are listed by name ("n|Force of Will"). Scryfall answers with the full name, so two-faced and split cards are matched on either face. */
+const nameKey = n => String(n).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s*\/\/?\s*/g,' // ').trim();
+async function ensureNames(chunk){
+  try{
+    const r=await fetch('https://api.scryfall.com/cards/collection', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ identifiers:chunk.map(x=>({name:x.slice(2)})) }) });
+    if(!r.ok) throw new Error(r.status);
+    const j=await r.json(), want=new Map(chunk.map(x=>[nameKey(x.slice(2)), x]));
+    for(const c of j.data||[]){ const keys=[c.name, ...(c.card_faces||[]).map(f=>f.name), (c.name||'').split(' // ')[0]].map(nameKey); for(const k of keys){ const x=want.get(k); if(x && !CARDS[x]){ CARDS[x]=toCard(c); break; } } }
+  }catch(e){ console.warn('Scryfall lookup failed', e); }
+}
+async function ensure(ids, onProgress){
+  const now=Date.now(), want=[...new Set(ids)].filter(i => !CARDS[i] && !pendingIds.has(i) && !(missed[i] > now-30000));
+  if(!want.length) return;
+  want.forEach(i=>pendingIds.add(i));
+  let done=0;
+  for(let i=0;i<want.length;i+=75){
+    const chunk=want.slice(i,i+75);
+    if(chunk[0].startsWith('n|')){ await ensureNames(chunk); for(const x of chunk){ pendingIds.delete(x); if(!CARDS[x]) missed[x]=Date.now(); } done+=chunk.length; onProgress && onProgress(done, want.length); if(i+75<want.length) await sleep(110); continue; }
+    /* The odds data numbers two-faced, adventure and split cards "151a"; Scryfall calls the same card "151". Ask for the plain number first, then the number as written. */
+    for(const strip of [true, false]){
+      const ask={}; for(const x of chunk){ if(CARDS[x]) continue; const p=x.split(':'), n=strip ? p[1].replace(/^(\d+)a$/, '$1') : p[1]; if(!strip && n===p[1].replace(/^(\d+)a$/, '$1')) continue; ask[p[0]+':'+n]=x; }
+      const keys=Object.keys(ask); if(!keys.length) continue;
+      try{
+        const r=await fetch('https://api.scryfall.com/cards/collection', { method:'POST', headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({ identifiers:keys.map(k=>{ const p=k.split(':'); return {set:p[0], collector_number:p[1]}; }) }) });
+        if(!r.ok) throw new Error(r.status);
+        const j=await r.json();
+        for(const c of j.data||[]){ const x=ask[c.set+':'+c.collector_number]; if(x) CARDS[x]=toCard(c); }
+      }catch(e){ console.warn('Scryfall lookup failed', e); }
+    }
+    for(const x of chunk){ pendingIds.delete(x); if(!CARDS[x]) missed[x]=Date.now(); }
+    done+=chunk.length; onProgress && onProgress(done, want.length);
+    if(i+75<want.length) await sleep(110);
+  }
+  store.set('dt_cards', {set:cardSet, cards:CARDS});
+}
+let SET = null;
+async function loadSet(code){ if(SET && SET.code===code) return SET; const r=await fetch('sets/'+code+'.json'); if(!r.ok) throw new Error('set file '+r.status); SET=await r.json(); if(SET.cube) SET.ids=SET.names.map(n=>'n|'+n); return SET; }
+const baseId = id => id.replace(/:(foil|etched)$/,'');
+const allIds = set => [...new Set(set.ids.map(baseId))];
+
+/* ================= pack generation (host only) ================= */
+function weighted(flat, skip){
+  let tot=0; for(let i=0;i<flat.length;i+=2) if(!skip(flat[i])) tot+=flat[i+1];
+  if(tot<=0) return -1;
+  let r=Math.random()*tot;
+  for(let i=0;i<flat.length;i+=2){ if(skip(flat[i])) continue; r-=flat[i+1]; if(r<0) return flat[i]; }
+  return -1;
+}
+/* Take n cards from one sheet. No two cards with the same name come from the same sheet, as on a real print sheet. */
+function fromSheet(set, sh, n){
+  const out=[];
+  if(sh.f){ for(let i=0;i<sh.c.length;i+=2) for(let k=0;k<sh.c[i+1];k++) out.push(sh.c[i]); return out; }
+  const names=new Set(), nameOf=ix=>{ const b=baseId(set.ids[ix]); return (CARDS[b]||{}).n || b; };
+  const take=ok=>{ const ix=weighted(sh.c, i=>names.has(nameOf(i)) || (ok && !ok(i))); if(ix<0) return false; names.add(nameOf(ix)); out.push(ix); return true; };
+  if(sh.b && n>=5) for(const col of 'WUBRG') take(i=>{ const d=CARDS[baseId(set.ids[i])]; return d && d.c===col; });   // one of each colour first
+  while(out.length<n && take());
+  return sh.b ? shuffle(out) : out;
+}
+function genPack(set, nextUid){
+  let tot=0; for(const b of set.boosters) tot+=b[0];
+  let r=Math.random()*tot, lay=set.boosters[0];
+  for(const b of set.boosters){ r-=b[0]; if(r<0){ lay=b; break; } }
+  const out=[];
+  for(const [name,n] of Object.entries(lay[1])) for(const ix of fromSheet(set, set.sheets[name], n)){ const id=set.ids[ix]; out.push({u:nextUid(), id:baseId(id), f:id!==baseId(id)?1:0}); }
+  return out;
+}
+
+/* ================= bot picks (also used when a player's clock runs out) ================= */
+const isLandCard = d => /\bLand\b/.test((d.t||'').split(' // ')[0]);
+function mainColors(pool){
+  if(pool.length<4) return null;
+  const n={W:0,U:0,B:0,R:0,G:0};
+  for(const c of pool){ const d=CARDS[c.id]; if(d) for(const x of d.c) n[x]+=1; }
+  return Object.keys(n).sort((a,b)=>n[b]-n[a]).slice(0,2);
+}
+function rate(c, cols){
+  const d=CARDS[c.id]; if(!d) return Math.random();
+  let s=(SET && SET.cube) ? 3 : ({mythic:4.3, rare:3.9, uncommon:2.6, common:1.9})[d.r] || 3;   // rarity means nothing in a cube
+  if(isLandCard(d)) s = /\bBasic\b/.test(d.t) ? .1 : 1.2;
+  else {
+    if(/Creature/.test(d.t)) s+=.25;
+    if(/(destroy|exile) target|damage to (any target|target creature)|target creature gets -/i.test(d.o)) s+=.9;
+    if(cols){ const cc=[...d.c]; if(!cc.length) s+=.3; else if(cc.every(x=>cols.includes(x))) s+=1.6; else if(cc.some(x=>cols.includes(x))) s+=.3; else s-=.4; }
+  }
+  return s+Math.random()*.7;
+}
+function choice(seat){ const cols=mainColors(seat.pool); let best=null, bs=-1e9; for(const c of seat.queue[0]){ const s=rate(c, cols); if(s>bs){ bs=s; best=c; } } return best; }
+
+/* ================= host: the draft itself ================= */
+let H = null;                       // full draft state; only the host has it
+let ROLE = '', CODE = '', V = null; // V is this player's own view; the only thing the screen is drawn from
+const conns = new Map();            // pid -> open connection (host)
+const BOTS = ['Bolas (bot)','Urza (bot)','Karn (bot)','Teferi (bot)','Liliana (bot)','Ajani (bot)','Nissa (bot)','Tezzeret (bot)'];
+const isOn = s => !!s.bot || s.pid===PID || (conns.get(s.pid) && conns.get(s.pid).open);
+const dirOf = round => round===2 ? -1 : 1;
+function setDue(s){ s.due = (H.timer && !s.bot && s.queue.length) ? Date.now()+H.timer*1000 : 0; }
+function view(i){
+  const s=H.seats[i], p=s.queue[0]||null;
+  return { t:'v', code:H.code, gen:H.gen||0, set:H.set, pod:H.pod, timer:H.timer, phase:H.phase, round:H.round, me:i, size:H.size||0, busy:H.busy||'',
+    seats:H.seats.map(x=>({name:x.name, bot:x.bot?1:0, on:isOn(x)?1:0, q:x.queue.length, n:x.pool.length, ready:x.ready?1:0, host:x.pid===PID?1:0})),
+    pack:p, pool:s.pool, left:s.due ? Math.max(0, s.due-Date.now()) : 0, tour:H.tour||null };
+}
+function sync(){
+  if(ROLE!=='host') return;
+  store.set('dt_host', H);
+  H.seats.forEach((s,i)=>{ const c=conns.get(s.pid); if(!s.bot && c && c.open){ try{ c.send(view(i)); }catch(e){} } });
+  const me=H.seats.findIndex(s=>s.pid===PID); gotView(view(me<0?0:me));
+}
+function nextRound(){
+  H.round++;
+  if(H.round>3){ H.phase='build'; H.packs=null; H.seats.forEach(s=>{ s.queue=[]; s.due=0; s.ready=!!s.bot; }); return; }
+  H.seats.forEach((s,i)=>{ s.queue=[H.packs[H.round-1][i]]; setDue(s); });
+  H.packs[H.round-1]=null;
+}
+function doPick(i, u){
+  const s=H.seats[i], p=s.queue[0]; if(H.phase!=='draft' || !p) return false;
+  const k=p.findIndex(c=>c.u===u); if(k<0) return false;
+  s.pool.push(p.splice(k,1)[0]); s.queue.shift();
+  if(p.length){ const n=H.seats.length, t=H.seats[(i+dirOf(H.round)+n)%n]; t.queue.push(p); if(t.queue.length===1) setDue(t); }
+  setDue(s);
+  return true;
+}
+function pump(){
+  while(H.phase==='draft'){
+    let did=false;
+    H.seats.forEach((s,i)=>{ while(s.bot && s.queue.length){ doPick(i, choice(s).u); did=true; } });
+    if(H.seats.every(s=>!s.queue.length)){ nextRound(); did=true; }
+    if(!did) return;
+  }
+}
+async function startDraft(){
+  if(H.phase!=='lobby' || H.busy) return;
+  H.busy='Loading the set…'; sync();
+  let set;
+  try{ set=await loadSet(H.set); }catch(e){ H.busy=''; sync(); toast('Could not load that set. Check your connection and try again.'); return; }
+  useCache(H.set);
+  await ensure(allIds(set), (a,t)=>{ H.busy=`Loading cards ${a}/${t}…`; sync(); });
+  if(set.cube){ const miss=set.ids.filter(i=>!CARDS[i]); if(miss.length){ const nm=miss.map(x=>x.slice(2)); console.warn('Cube cards not found on Scryfall:', nm); setTimeout(()=>toast(`${nm.length} cube card${nm.length>1?'s were':' was'} not found on Scryfall and left out: ${nm.slice(0,8).join(', ')}${nm.length>8?'…':''}`, 12000), 400); } if(set.ids.length-miss.length < set.size*3){ H.busy=''; sync(); toast('Could not load the cube cards. Check your connection and try again.'); return; } }
+  while(H.seats.length<H.pod) H.seats.push({pid:'bot'+H.seats.length, name:BOTS[H.seats.length%BOTS.length], bot:1, pool:[], queue:[]});
+  shuffle(H.seats);
+  H.uid=0; H.size=set.size; H.gen=(H.gen||0)+1;
+  if(set.cube){ let pile=[]; const deal=()=>{ const out=[]; while(out.length<set.size){ if(!pile.length) pile=shuffle(set.ids.filter(id=>CARDS[id])); if(!pile.length) break; out.push({u:++H.uid, id:pile.pop(), f:0}); } return out; };
+    H.packs=[0,1,2].map(()=>H.seats.map(deal)); }
+  else H.packs=[0,1,2].map(()=>H.seats.map(()=>genPack(set, ()=>++H.uid)));
+  H.seats.forEach(s=>{ s.pool=[]; s.queue=[]; s.ready=false; });
+  H.phase='draft'; H.round=0; H.busy=''; H.tour=null;
+  nextRound(); pump(); sync();
+}
+/* --- tournament: Swiss, three rounds, humans only --- */
+function standings(tour, seats){
+  const st={}; for(const p of tour.players) st[p]={p, name:seats[p].name, pts:0, w:0, l:0, d:0, gw:0, gl:0};
+  for(const r of tour.rounds){
+    if(r.bye!=null && st[r.bye]){ st[r.bye].pts+=3; st[r.bye].w++; st[r.bye].gw+=2; }
+    for(const t of r.tables){ if(!t.res) continue; const [x,y]=t.res, A=st[t.a], B=st[t.b];
+      A.gw+=x; A.gl+=y; B.gw+=y; B.gl+=x;
+      if(x>y){ A.pts+=3; A.w++; B.l++; } else if(y>x){ B.pts+=3; B.w++; A.l++; } else { A.pts++; B.pts++; A.d++; B.d++; } }
+  }
+  const pct=s=>s.gw+s.gl ? s.gw/(s.gw+s.gl) : 0;
+  return Object.values(st).sort((a,b)=>b.pts-a.pts || pct(b)-pct(a) || a.name.localeCompare(b.name));
+}
+function pairRound(){
+  const T=H.tour, played=new Set(), hadBye=new Set();
+  for(const r of T.rounds){ if(r.bye!=null) hadBye.add(r.bye); for(const t of r.tables) played.add(t.a+'-'+t.b).add(t.b+'-'+t.a); }
+  let order = T.rounds.length ? standings(T, H.seats).map(s=>s.p) : shuffle(T.players.slice());
+  let bye=null;
+  if(order.length%2){ bye=[...order].reverse().find(p=>!hadBye.has(p)); if(bye==null) bye=order[order.length-1]; order=order.filter(p=>p!==bye); }
+  const solve=(left, strict)=>{ if(!left.length) return []; const a=left[0];
+    for(let k=1;k<left.length;k++){ const b=left[k]; if(strict && played.has(a+'-'+b)) continue; const rest=solve(left.filter((_,j)=>j!==0&&j!==k), strict); if(rest) return [[a,b],...rest]; }
+    return null; };
+  const pairs=solve(order,true) || solve(order,false) || [];
+  return { bye, tables:pairs.map(([a,b])=>({a, b, code:randCode(), res:null})) };
+}
+function startRound(){
+  const T=H.tour || (H.tour={ players:H.seats.map((s,i)=>s.bot?-1:i).filter(i=>i>=0), rounds:[], total:0, done:false });
+  if(!T.rounds.length) T.total = T.players.length<2 ? 0 : T.players.length===2 ? 1 : 3;
+  H.phase='play';
+  if(T.rounds.length>=T.total) T.done=true; else T.rounds.push(pairRound());
+  sync();
+}
+/* --- things players ask the host to do --- */
+function handle(i, m){
+  if(!m || typeof m!=='object' || i<0) return;
+  if(m.t==='pick'){ if(doPick(i, m.u)){ pump(); sync(); } }
+  else if(m.t==='ready'){ H.seats[i].ready=!!m.v; sync(); }
+  else if(m.t==='result' && H.tour){ const r=H.tour.rounds[m.r], t=r && r.tables[m.k]; if(!t || m.r!==H.tour.rounds.length-1) return;
+    if(i!==t.a && i!==t.b && H.seats[i].pid!==PID) return;
+    const x=m.res; t.res = Array.isArray(x) && x.length===2 && x.every(n=>n===0||n===1||n===2) ? [x[0],x[1]] : null; sync(); }
+}
+function act(m){ if(ROLE==='host') handle(H.seats.findIndex(s=>s.pid===PID), m); else if(conn && conn.open){ try{ conn.send(m); }catch(e){} } }
+setInterval(()=>{                    // host: pick for anyone whose clock ran out
+  if(ROLE==='host' && H && H.phase==='draft' && H.timer){ let did=false; const now=Date.now();
+    H.seats.forEach((s,i)=>{ if(!s.bot && s.queue.length && s.due && now>s.due){ doPick(i, choice(s).u); did=true; } });
+    if(did){ pump(); sync(); } }
+  tickClock();
+}, 1000);
+
+/* ================= networking: the host's browser is the hub ================= */
+let peer=null, conn=null, NET='';
+function peerOpts(){
+  const q=new URLSearchParams(location.search), h=q.get('peerhost'); if(!h) return {};
+  const [host, port]=h.split(':'); return { host, port:+port||443, path:q.get('peerpath')||'/', secure:q.get('peersecure')!=='0' };
+}
+function setNet(s){ NET=s; drawTop(); }
+function hostPeer(){
+  if(typeof Peer==='undefined'){ setNet('offline'); return; }
+  if(peer){ try{ peer.destroy(); }catch(e){} }
+  const p=peer=new Peer(PREFIX+CODE, peerOpts()); setNet('opening');
+  p.on('open', ()=>setNet('open'));
+  p.on('connection', c=>{
+    c.on('data', m=>{
+      if(!m || typeof m!=='object') return;
+      if(m.t==='join'){
+        const pid=String(m.pid||'').slice(0,24), name=String(m.name||'Player').slice(0,20); if(!pid) return;
+        let s=H.seats.find(x=>x.pid===pid && !x.bot);
+        if(!s){
+          if(H.phase!=='lobby' || H.seats.length>=H.pod){ try{ c.send({t:'no', why:H.phase==='lobby'?'full':'started'}); }catch(e){} setTimeout(()=>c.close(), 400); return; }
+          s={pid, name, bot:0, pool:[], queue:[]}; H.seats.push(s);
+        } else if(H.phase==='lobby') s.name=name;
+        const old=conns.get(pid); if(old && old!==c){ try{ old.close(); }catch(e){} }
+        c._pid=pid; conns.set(pid, c); sync();
+      } else if(c._pid) handle(H.seats.findIndex(x=>x.pid===c._pid && !x.bot), m);
+    });
+    c.on('close', ()=>{ if(c._pid && conns.get(c._pid)===c){ conns.delete(c._pid); sync(); } });
+    c.on('error', e=>console.warn('conn error', e));
+  });
+  p.on('disconnected', ()=>{ if(!p.destroyed) setTimeout(()=>{ try{ p.reconnect(); }catch(e){} }, 1500); });
+  p.on('error', e=>{ if(p!==peer) return;
+    if(e.type==='unavailable-id'){ setNet('retry'); setTimeout(()=>{ if(p===peer) hostPeer(); }, 3000); }
+    else if(['network','server-error','socket-error','socket-closed'].includes(e.type)){ setNet('error'); setTimeout(()=>{ if(p===peer) hostPeer(); }, 5000); }
+    else console.warn('peer error', e.type, e); });
+}
+function guestPeer(){
+  if(typeof Peer==='undefined'){ setNet('offline'); return; }
+  if(peer){ try{ peer.destroy(); }catch(e){} }
+  const p=peer=new Peer(peerOpts()); setNet('joining');
+  const dial=()=>{ if(p!==peer || p.destroyed || p.disconnected) return;
+    const c=p.connect(PREFIX+CODE, {reliable:true, serialization:'json'});
+    c.on('open', ()=>{ conn=c; setNet('connected'); c.send({t:'join', pid:PID, name:SETTINGS.name||'Player'}); });
+    c.on('data', m=>{ if(!m || typeof m!=='object') return;
+      if(m.t==='v') gotView(m);
+      else if(m.t==='no'){ store.del('dt_guest'); try{ p.destroy(); }catch(e){} peer=null; showLobby(m.why==='full' ? 'That draft is full.' : 'That draft has already started.'); } });
+    c.on('close', ()=>{ if(conn===c){ conn=null; setNet('joining'); setTimeout(dial, 2000); } });
+    c.on('error', e=>console.warn('conn error', e)); };
+  p.on('open', dial);
+  p.on('disconnected', ()=>{ if(!p.destroyed) setTimeout(()=>{ try{ p.reconnect(); }catch(e){} }, 1500); });
+  p.on('error', e=>{ if(p!==peer) return;
+    if(e.type==='peer-unavailable'){ setNet('nohost'); setTimeout(()=>{ if(p===peer && !(conn&&conn.open)) dial(); }, 3000); }
+    else if(['network','server-error','socket-error','socket-closed'].includes(e.type)){ setNet('error'); setTimeout(()=>{ if(p===peer && !(conn&&conn.open)) guestPeer(); }, 5000); }
+    else console.warn('peer error', e.type, e); });
+}
+
+/* ================= this player's screen ================= */
+let sel=null, tabNow='deck', B=null, lastRound=0, preloaded='', lastStage='';
+const LANDS=[['W','Plains'],['U','Island'],['B','Swamp'],['R','Mountain'],['G','Forest']];
+function gotView(v){
+  v._at=Date.now(); V=v; useCache(v.set);
+  if(v.phase==='draft' && preloaded!==v.set){ preloaded=v.set; if(ROLE!=='host') loadSet(v.set).then(s=>ensure(allIds(s))).then(render).catch(()=>{}); }
+  const need=[...(v.pack||[]), ...v.pool].map(c=>c.id).filter(id=>!CARDS[id]);
+  if(need.length) ensure(need).then(render);
+  if(v.phase==='draft' && v.round!==lastRound){ lastRound=v.round; if(v.round>1) toast(`Pack ${v.round}: passing ${v.round===2?'right':'left'}`); }
+  if(v.phase!=='draft') lastRound=0;
+  const stage=v.phase+':'+(v.tour ? v.tour.rounds.length+(v.tour.done?'d':'') : '');
+  if(stage!==lastStage){ if(v.phase==='play' && lastStage) tabNow='tour'; if(v.phase==='build' && lastStage.startsWith('draft')) tabNow='deck'; lastStage=stage; }
+  if(sel!=null && !(v.pack||[]).some(c=>c.u===sel)) sel=null;
+  render();
+}
+function cardHTML(c, cls=''){
+  const d=CARDS[c.id];
+  return `<div class="c ${cls}${c.f?' foil':''}" data-u="${c.u}" data-id="${esc(c.id)}">${d && d.img ? `<img src="${esc(d.img)}" alt="${esc(d.n)}" loading="lazy" draggable="false">` : `<div class="txt"><b>${esc(d?d.n:c.id)}</b><i>${esc(d?d.t:missed[c.id]?'No card data yet':'Loading…')}</i><span>${esc(d?d.o:'')}</span></div>`}${c.f?'<span class="tag">FOIL</span>':''}</div>`;
+}
+const RANK={mythic:0, rare:1, uncommon:2, common:3};
+const colourKey = d => !d ? 9 : isLandCard(d) ? 7 : d.c.length>1 ? 5 : d.c.length===0 ? 6 : 'WUBRG'.indexOf(d.c);
+const byColour = (a,b) => { const x=CARDS[a.id], y=CARDS[b.id]; return colourKey(x)-colourKey(y) || ((x&&x.cmc)||0)-((y&&y.cmc)||0) || String(x&&x.n).localeCompare(String(y&&y.n)); };
+const byRarity = (a,b) => { const x=CARDS[a.id], y=CARDS[b.id]; return ((x&&RANK[x.r])??1)-((y&&RANK[y.r])??1) || byColour(a,b); };
+function drawTop(){
+  if(!V && !CODE) return;
+  $('#setPill').textContent = V ? setName(V.set) : '';
+  $('#codePill').innerHTML = 'Code <b>'+esc(CODE)+'</b>';
+  const map={ opening:['Opening…','warn'], open:['Hosting','ok'], retry:['Reclaiming code…','warn'], error:['Connection problem, retrying','warn'], offline:['Offline','warn'], joining:['Connecting…','warn'], connected:['Connected','ok'], nohost:['Host not found yet, retrying','warn'] };
+  const m=map[NET]||['','']; const el=$('#netPill'); el.textContent=m[0]; el.className='pill '+m[1]; el.hidden=!m[0];
+}
+function tickClock(){
+  const el=$('#clock'); if(!el || !V) return;
+  if(!V.left){ el.textContent=''; return; }
+  const s=Math.max(0, Math.ceil((V.left-(Date.now()-V._at))/1000)); el.textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); el.classList.toggle('low', s<=10);
+}
+function render(){
+  if(!V) return;
+  drawTop();
+  const host=ROLE==='host', me=V.seats[V.me];
+  /* ---- left rail: the pod ---- */
+  let r=`<h3>${V.phase==='lobby' ? 'Players' : 'The pod'}</h3>`;
+  const dir = V.phase==='draft' ? (V.round===2 ? '↑ passing' : '↓ passing') : '';
+  V.seats.forEach((s,i)=>{
+    const busy=V.phase==='draft' && s.q>0;
+    const note = V.phase==='draft' ? `${s.n} picked${s.q>1?` · ${s.q} packs waiting`:''}` : V.phase==='build' ? (s.bot?'bot':s.ready?'deck ready':'building') : s.bot?'bot':s.host?'host':'';
+    r+=`<div class="seat ${i===V.me?'me ':''}${!s.on?'off':busy?'busy':'on'}"><span class="dot"></span><span class="nm">${esc(s.name)}${i===V.me?' (you)':''}<small>${esc(note)}${!s.on?' · disconnected':''}</small></span><span>${host && !s.bot && i!==V.me && V.phase==='draft' ? `<button class="sm" data-force="${i}" title="Pick for this player now"${busy?'':' disabled'}>Pick</button>` : ''}</span></div>`;
+    if(dir && i<V.seats.length-1) r+=`<div class="arrow">${dir[0]}</div>`;
+  });
+  if(V.phase==='lobby'){ const open=V.pod-V.seats.length; if(open>0) r+=`<p class="hint">${open} open seat${open>1?'s':''}. Bots take any that are still empty when the draft starts.</p>`; }
+  if(dir) r+=`<p class="hint">${V.round===2 ? 'Pack 2 passes right (up this list).' : `Pack ${V.round} passes left (down this list).`}</p>`;
+  setHTML($('#rail'), r);
+
+  /* ---- main ---- */
+  let h='';
+  if(V.phase==='lobby'){
+    const groups=[...new Set(SETS.map(s=>s.group))];
+    h+=`<div class="bar"><h3>${host ? 'Set up the draft' : 'Waiting for the host to start'}</h3></div>
+      <p class="hint" style="max-width:62ch;margin:0">Send your friends the code <b style="color:var(--ink);letter-spacing:.15em">${esc(CODE)}</b>. They open this page and choose Join a draft. Each player gets three packs of ${esc(setName(V.set))}; you pick one card and pass the rest.</p>`;
+    if(host) h+=`<div class="setrow">
+        <div class="field"><label for="setSel">Set</label><select id="setSel">${groups.map(g=>`<optgroup label="${esc(g)}">${SETS.filter(s=>s.group===g).map(s=>`<option value="${s.code}"${s.code===V.set?' selected':''}>${esc(s.name)}</option>`).join('')}</optgroup>`).join('')}</select></div>
+        <div class="field"><label for="podSel">Seats</label><select id="podSel">${[2,3,4,5,6,7,8].map(n=>`<option${n===V.pod?' selected':''}>${n}</option>`).join('')}</select></div>
+        <div class="field"><label for="timeSel">Pick timer</label><select id="timeSel">${[[0,'Off'],[45,'45 seconds'],[75,'75 seconds'],[120,'2 minutes']].map(([n,l])=>`<option value="${n}"${n===V.timer?' selected':''}>${l}</option>`).join('')}</select></div>
+        <button class="go" id="startBtn"${V.busy?' disabled':''}>Start the draft</button></div><p class="hint" id="busyMsg" style="margin:0">${esc(V.busy)}</p>`;
+    else h+=`<p class="hint" style="margin:0">${esc(V.busy || `${setName(V.set)} · ${V.pod} seats · ${V.timer ? V.timer+' second pick timer' : 'no pick timer'}`)}</p>`;
+  }
+  else if(V.phase==='draft'){
+    const n=V.seats.length, from=V.seats[(V.me-dirOf(V.round)+n)%n];
+    if(V.pack){
+      const pk=V.pack.slice().sort(byRarity), s=V.pack.find(c=>c.u===sel), sd=s && CARDS[s.id];
+      h+=`<div class="bar"><h3>Pack ${V.round}, pick ${V.size-V.pack.length+1}</h3><span class="clock" id="clock"></span><span style="margin-left:auto"></span><button class="go" id="takeBtn"${s?'':' disabled'}>${s ? 'Take '+esc(sd?sd.n:'this card') : 'Choose a card'}</button></div>
+        <div class="grid" id="pack">${pk.map(c=>cardHTML(c, c.u===sel?'sel':'')).join('')}</div><p class="hint" style="margin:0">Click a card, then Take. Double-click takes it straight away.</p>`;
+    } else h+=`<div class="bar"><h3>Pack ${V.round}</h3></div><p class="hint" style="margin:0">Waiting for ${esc(from.name)} to pass you a pack.</p>`;
+    loadBuild(); const deck=V.pool.filter(inMain), side=V.pool.filter(c=>!inMain(c));
+    h+=`<div class="pane" data-zone="deck"><div class="bar"><h3>Your picks: deck <b style="color:var(--brass)">${deck.length}</b></h3><span class="hint">new picks land here · click a card to move it to the sideboard</span></div>${regionsHTML(deck, 0) || '<p class="hint">Your picks will show up here, sorted by type and mana value.</p>'}</div>
+      ${side.length ? `<div class="pane" data-zone="side"><div class="bar"><h3>Sideboard <b style="color:var(--brass)">${side.length}</b></h3><span class="hint">click a card to put it back in your deck</span></div>${regionsHTML(side, 0)}</div>` : ''}`;
+  }
+  else h+=buildHTML(host, me);
+  setHTML($('#main'), h);
+  tickClock();
+}
+/* ---------- after the draft: deck building and the tournament ---------- */
+function loadBuild(){ const key=V.code+':'+V.gen; if(B && B.code===key) return; B=store.get('dt_build', null); if(!B || B.code!==key) B={code:key, side:[], lands:{Plains:0,Island:0,Swamp:0,Mountain:0,Forest:0}};
+  if(!B.side){ const d=B.deck||[]; B.side=d.length ? (V.pool||[]).filter(c=>!d.includes(c.u)).map(c=>c.u) : []; delete B.deck; } }   // builds saved before v0.7 listed the deck instead
+const inMain = c => !B.side.includes(c.u);
+const saveBuild = () => store.set('dt_build', B);
+const landTotal = () => LANDS.reduce((a,[,n])=>a+(B.lands[n]||0), 0);
+function suggestLands(){
+  const deck=V.pool.filter(inMain), n={W:0,U:0,B:0,R:0,G:0}; let tot=0;
+  for(const c of deck){ const d=CARDS[c.id]; if(d) for(const m of d.mc.matchAll(/\{([^}]+)\}/g)) for(const k of 'WUBRG') if(m[1].includes(k)){ n[k]++; tot++; } }
+  const want=Math.max(0, 40-deck.length); let given=0; const parts=LANDS.map(([k,name])=>{ const x=tot ? want*n[k]/tot : 0, f=Math.floor(x); given+=f; return {name, f, rem:x-f}; });
+  parts.sort((a,b)=>b.rem-a.rem); for(let i=0; given<want && tot && i<parts.length; i++){ parts[i].f++; given++; }
+  for(const p of parts) B.lands[p.name]=p.f;
+  saveBuild(); render(); if(!tot) toast('Add some spells first, then ask again.');
+}
+function deckText(){
+  const lines=list=>{ const m=new Map(); for(const c of list){ const d=CARDS[c.id]; if(!d) continue; const k=d.n+' [id:'+d.sid+']'; m.set(k, (m.get(k)||0)+1); } return [...m].map(([k,n])=>n+' '+k); };
+  const deck=V.pool.filter(inMain), side=V.pool.filter(c=>!inMain(c));
+  const basics=LANDS.filter(([,n])=>B.lands[n]>0).map(([,n])=>B.lands[n]+' '+n);
+  return [...lines(deck), ...basics].join('\n') + '\n\nSideboard\n' + lines(side).join('\n');
+}
+const deckName = () => `Draft: ${setName(V.set)} (${V.code})`;
+function saveDeck(quiet){
+  const name=deckName(), sv=store.get('mt_decks', []).filter(d=>d.name!==name);
+  sv.unshift({name, text:deckText()}); store.set('mt_decks', sv);
+  if(!quiet) toast('Saved to your Modern Table decks');
+}
+function playLink(role, code){
+  const q=new URLSearchParams(location.search), o=new URLSearchParams();
+  for(const k of ['peerhost','peerpath','peersecure']) if(q.get(k)!=null) o.set(k, q.get(k));
+  if(code) o.set('t', code); o.set('r', role); o.set('d', '1');
+  return '../?'+o.toString();
+}
+/* Cards laid out the way players sort a draft deck: creatures, other spells, lands; each in columns by mana value, cheapest on the left. */
+function regionsHTML(cards, basics){
+  const kind=c=>{ const d=CARDS[c.id]; return !d ? 1 : isLandCard(d) ? 2 : /\bCreature\b/.test(d.t.split(' // ')[0]) ? 0 : 1; };
+  const groups=[[],[],[]]; for(const c of cards) groups[kind(c)].push(c);
+  const cols=list=>{ const m=new Map(); for(const c of list){ const d=CARDS[c.id], v=Math.min(7, Math.floor((d&&d.cmc)||0)); if(!m.has(v)) m.set(v, []); m.get(v).push(c); }
+    return [...m].sort((x,y)=>x[0]-y[0]).map(([v,l])=>`<div class="col"><div class="colh">${v>=7?'7+':v} <span>· ${l.length}</span></div>${l.sort(byColour).map(c=>cardHTML(c)).join('')}</div>`).join(''); };
+  let h='';
+  [['Creatures',0],['Non-creature spells',1],['Lands',2]].forEach(([label,k])=>{
+    const g=groups[k], n=g.length+(k===2?basics:0); if(!n) return;
+    h+=`<div class="region"><div class="sec">${label} <b>${n}</b></div>`;
+    if(g.length) h+= k===2 ? `<div class="cols"><div class="col"><div class="colh">${basics ? `<span>${g.length} picked</span>` : '&nbsp;'}</div>${g.sort(byColour).map(c=>cardHTML(c)).join('')}</div></div>` : `<div class="cols">${cols(g)}</div>`;
+    if(k===2 && basics) h+=`<div class="hint" style="font-size:12px">+ ${basics} basic</div>`;
+    h+='</div>';
+  });
+  return h ? `<div class="regions">${h}</div>` : '';
+}
+function buildHTML(host, me){
+  loadBuild();
+  const T=V.tour, deck=V.pool.filter(inMain).sort(byColour), side=V.pool.filter(c=>!inMain(c)).sort(byColour), lt=landTotal(), total=deck.length+lt;
+  let h=`<div class="bar"><button class="${tabNow==='deck'?'on':''}" data-tab="deck">Your deck</button><button class="${tabNow==='tour'?'on':''}" data-tab="tour">Tournament</button><span style="margin-left:auto"></span>${V.phase==='build' ? `<button class="${me.ready?'on':'go'}" id="readyBtn">${me.ready?'Ready ✓ (click to keep building)':'My deck is ready'}</button>` : ''}</div>`;
+  if(tabNow==='deck'){
+    h+=`<div class="bar"><h3>${total} cards</h3><span class="hint">${deck.length} from your picks + ${lt} basic land${lt===1?'':'s'}${total<40?' · a draft deck needs at least 40':''}</span><span style="margin-left:auto"></span><button id="saveBtn">Save to my Modern Table decks</button><button id="copyBtn">Copy list</button></div>
+      <div class="lands">${LANDS.map(([k,n])=>`<span class="land">${n}<button class="sm" data-land="${n}" data-d="-1" aria-label="Remove a ${n}">−</button><b>${B.lands[n]||0}</b><button class="sm" data-land="${n}" data-d="1" aria-label="Add a ${n}">+</button></span>`).join('')}<button id="sugBtn">Suggest lands</button></div>
+      <div class="pane" data-zone="deck"><div class="bar"><h3>Deck</h3><span class="hint">click a card to take it out</span></div>${regionsHTML(deck, lt) || '<p class="hint">Everything is in the sideboard. Click cards below to put them back in your deck.</p>'}</div>
+      <div class="pane" data-zone="side"><div class="bar"><h3>Sideboard</h3><span class="hint">${side.length} card${side.length===1?'':'s'} · click a card to add it to your deck</span></div>${regionsHTML(side, 0) || '<p class="hint">Empty. Click a card in your deck to move it here.</p>'}</div>`;
+  } else {
+    if(!T){ const wait=V.seats.filter(s=>!s.bot && !s.ready).map(s=>s.name);
+      h+=`<p class="hint" style="margin:0">${wait.length ? 'Still building: '+esc(wait.join(', '))+'.' : 'Everyone is ready.'}</p>${host ? `<div><button class="go" id="roundBtn">Start round 1</button></div>` : '<p class="hint" style="margin:0">The host starts round 1 when everyone is ready.</p>'}`;
+    } else if(!T.total){
+      h+=`<p class="hint" style="margin:0">You drafted against bots, so there is no bracket.</p><div><a href="${playLink('s','')}" target="_blank" rel="noopener" id="soloLink"><button class="go">Practise with this deck on the Modern Table</button></a></div>`;
+    } else {
+      const R=T.rounds.length-1, rd=T.rounds[R], st=standings(T, V.seats);
+      h+=`<div class="bar"><h3>${T.done ? 'Final standings' : `Round ${R+1} of ${T.total}`}</h3></div>`;
+      if(T.done) h+=`<p style="margin:0;color:var(--brass);font:400 20px var(--display)">${esc(st[0].name)} wins the draft.</p>`;
+      else {
+        rd.tables.forEach((t,k)=>{ const mine=t.a===V.me || t.b===V.me, A=V.seats[t.a].name, Bn=V.seats[t.b].name, can=mine||host, is=(x,y)=>t.res && t.res[0]===x && t.res[1]===y;
+          const chip=(x,y,l)=>`<button class="sm ${is(x,y)?'on':''}" data-res="${k}" data-x="${x}" data-y="${y}"${can?'':' disabled'}>${esc(l)}</button>`;
+          h+=`<div class="match ${mine?'mine':''}"><div><b>${esc(A)}</b> <span class="hint">vs</span> <b>${esc(Bn)}</b>${t.res ? ` <span class="pill ok">${t.res[0]}–${t.res[1]}</span>` : ' <span class="pill">playing</span>'}</div>
+            ${mine ? `<div><a href="${playLink(t.a===V.me?'h':'g', t.code)}" target="_blank" rel="noopener" data-play="1"><button class="go">Open my match on the Modern Table</button></a> <span class="hint">Table code ${esc(t.code)}. Keep this page open.</span></div>` : ''}
+            ${can ? `<div class="chips">${chip(2,0,A+' 2–0')}${chip(2,1,A+' 2–1')}${chip(1,1,'Draw 1–1')}${chip(1,2,Bn+' 2–1')}${chip(0,2,Bn+' 2–0')}</div>` : ''}</div>`; });
+        if(rd.bye!=null) h+=`<p class="hint" style="margin:0">${esc(V.seats[rd.bye].name)} has the bye this round.</p>`;
+        if(host){ const open=rd.tables.filter(t=>!t.res).length; h+=`<div><button class="${open?'':'go'}" id="roundBtn">${R+1>=T.total ? 'Finish the draft' : 'Start round '+(R+2)}</button>${open?` <span class="hint">${open} match${open>1?'es':''} not reported yet.</span>`:''}</div>`; }
+      }
+      h+=`<table><thead><tr><th>#</th><th>Player</th><th class="n">Points</th><th class="n">Matches</th><th class="n">Games</th></tr></thead><tbody>${st.map((s,i)=>`<tr><td>${i+1}</td><td>${esc(s.name)}</td><td class="n">${s.pts}</td><td class="n">${s.w}–${s.l}${s.d?'–'+s.d:''}</td><td class="n">${s.gw}–${s.gl}</td></tr>`).join('')}</tbody></table>`;
+    }
+    if(host && V.phase!=='lobby') h+=`<div><button class="ghost sm" id="againBtn">Start a new draft with these players</button></div>`;
+  }
+  return h;
+}
+
+/* ================= clicks ================= */
+function toggleSide(u){ loadBuild(); const i=B.side.indexOf(u); if(i>=0) B.side.splice(i,1); else B.side.push(u); saveBuild(); hideZoom(); render(); }
+$('#main').addEventListener('click', e=>{
+  if(!V) return;
+  const t=e.target, card=t.closest('.c'), id=t.closest('button') && t.closest('button').id;
+  if(V.phase==='draft'){
+    if(card && card.closest('#pack')){ const u=+card.dataset.u; if(sel===u && e.detail>1){ act({t:'pick', u}); sel=null; } else { sel=u; render(); } return; }
+    if(id==='takeBtn' && sel!=null){ act({t:'pick', u:sel}); sel=null; return; }
+    if(card && card.closest('[data-zone]')) toggleSide(+card.dataset.u);
+    return;
+  }
+  if(id==='startBtn'){ startDraft(); return; }
+  const tb=t.closest('[data-tab]'); if(tb){ tabNow=tb.dataset.tab; render(); return; }
+  if(card && card.closest('[data-zone]')){ toggleSide(+card.dataset.u); return; }
+  const lb=t.closest('[data-land]'); if(lb){ const n=lb.dataset.land; B.lands[n]=Math.max(0, (B.lands[n]||0)+(+lb.dataset.d)); saveBuild(); render(); return; }
+  if(id==='sugBtn'){ suggestLands(); return; }
+  if(id==='saveBtn'){ saveDeck(); return; }
+  if(id==='copyBtn'){ const tx=deckText().replace(/ \[id:[^\]]+\]/g,''); (navigator.clipboard ? navigator.clipboard.writeText(tx) : Promise.reject()).then(()=>toast('Decklist copied'), ()=>toast('Could not copy; save it to your decks instead.')); return; }
+  if(id==='readyBtn'){ const me=V.seats[V.me]; if(!me.ready) saveDeck(true); act({t:'ready', v:!me.ready}); return; }
+  if(id==='roundBtn' && ROLE==='host'){ startRound(); tabNow='tour'; render(); return; }
+  if(id==='againBtn' && ROLE==='host'){ if(confirm('Start a new draft with these players? The current one ends.')){ H.seats=H.seats.filter(s=>!s.bot); H.seats.forEach(s=>{ s.pool=[]; s.queue=[]; s.ready=false; }); H.phase='lobby'; H.round=0; H.tour=null; H.packs=null; tabNow='deck'; sync(); } return; }
+  const rb=t.closest('[data-res]'); if(rb){ act({t:'result', r:V.tour.rounds.length-1, k:+rb.dataset.res, res:[+rb.dataset.x, +rb.dataset.y]}); return; }
+  if(t.closest('[data-play]') || t.closest('#soloLink')) saveDeck(true);     // the Modern Table opens the newest saved deck
+});
+$('#main').addEventListener('change', e=>{
+  if(ROLE!=='host' || !H || H.phase!=='lobby') return;
+  if(e.target.id==='setSel') H.set=e.target.value; else if(e.target.id==='podSel') H.pod=Math.max(+e.target.value, H.seats.length); else if(e.target.id==='timeSel') H.timer=+e.target.value; else return;
+  sync();
+});
+$('#rail').addEventListener('click', e=>{ const b=e.target.closest('[data-force]'); if(!b || ROLE!=='host') return; const i=+b.dataset.force, s=H.seats[i]; if(s && s.queue.length){ doPick(i, choice(s).u); pump(); sync(); } });
+$('#codePill').onclick=()=>{ if(navigator.clipboard) navigator.clipboard.writeText(CODE).then(()=>toast('Code copied'), ()=>{}); };
+$('#leaveBtn').onclick=()=>{ if(!confirm(ROLE==='host' ? 'Leave? You are the host, so this ends the draft for everyone.' : 'Leave this draft?')) return; store.del(ROLE==='host'?'dt_host':'dt_guest'); location.href=location.pathname+location.search; };
+/* hover: a readable copy of the card */
+function hideZoom(){ $('#zoom').hidden=true; }
+document.addEventListener('mouseover', e=>{
+  const c=e.target.closest && e.target.closest('.c'); if(!c){ hideZoom(); return; }
+  const d=CARDS[c.dataset.id]; if(!d || !d.img){ hideZoom(); return; }
+  const z=$('#zoom'), r=c.getBoundingClientRect(), w=d.back?612:300, h=420;
+  z.innerHTML=`<img src="${esc(d.img)}" alt="">${d.back?`<img src="${esc(d.back)}" alt="">`:''}`;
+  let x=r.right+10; if(x+w>innerWidth) x=r.left-w-10; if(x<4) x=4;
+  z.style.left=x+'px'; z.style.top=Math.max(4, Math.min(innerHeight-h-4, r.top+r.height/2-h/2))+'px'; z.hidden=false;
+});
+
+/* ================= lobby ================= */
+const nameIn=$('#nameIn'); nameIn.value=SETTINGS.name||''; $('#verTag').textContent=VERSION;
+function saveName(){ SETTINGS.name=(nameIn.value.trim()||'Player').slice(0,20); store.set('mt_settings', Object.assign(store.get('mt_settings',{}), {name:SETTINGS.name})); }
+function showLobby(msg){ ROLE=''; V=null; $('#room').hidden=true; $('#lobby').hidden=false; $('#lobbyMsg').textContent=msg||''; }
+function showRoom(){ $('#lobby').hidden=true; $('#room').hidden=false; drawTop(); }
+function beginHost(saved){
+  saveName(); ROLE='host';
+  H = saved || { code:randCode(), set:SETS.length?SETS[0].code:'', pod:8, timer:75, phase:'lobby', round:0, uid:0, size:0, busy:'', tour:null, packs:null, seats:[{pid:PID, name:SETTINGS.name, bot:0, pool:[], queue:[]}] };
+  H.busy=''; CODE=H.code; conns.clear();
+  if(saved){ useCache(H.set); if(H.phase==='draft'){ loadSet(H.set).catch(()=>{}); H.seats.forEach(setDue); } }
+  showRoom(); hostPeer(); sync();
+}
+function beginGuest(code){ saveName(); ROLE='guest'; CODE=code; store.set('dt_guest', {code, at:Date.now()}); showRoom(); setHTML($('#rail'), ''); setHTML($('#main'), '<p class="hint">Connecting to the draft…</p>'); guestPeer(); }
+$('#hostBtn').onclick=()=>beginHost(null);
+$('#joinBtn').onclick=()=>{ const c=$('#codeIn').value.trim().toUpperCase(); if(c.length<4){ $('#lobbyMsg').textContent='Type the code your host sent you.'; return; } beginGuest(c); };
+$('#codeIn').onkeydown=e=>{ if(e.key==='Enter') $('#joinBtn').click(); };
+{ const h=store.get('dt_host', null), g=store.get('dt_guest', null);
+  if(h && h.seats && h.seats.some(s=>s.pid===PID)){ $('#resumeBtn').hidden=false; $('#resumeTxt').textContent=`You are hosting ${h.code} · ${setName(h.set)}`; $('#resumeBtn').onclick=()=>beginHost(h); }
+  else if(g && g.code && Date.now()-g.at < 864e5){ $('#resumeBtn').hidden=false; $('#resumeTxt').textContent='Draft '+g.code; $('#resumeBtn').onclick=()=>beginGuest(g.code); } }
+window.__D = { get H(){ return H; }, get V(){ return V; }, genPack, loadSet, ensure, useCache, get CARDS(){ return CARDS; } };
+</script>
+</body>
+</html>
