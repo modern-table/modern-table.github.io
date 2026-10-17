@@ -96,6 +96,7 @@ textarea#paste{width:100%;min-height:300px;font-family:ui-monospace,Menlo,Consol
 /* each row has see-through room above and below (--rp) that overlaps its neighbours, so tapped cards, attackers and glows are not cut off; the layout height is unchanged */
 .row{--rp:calc(var(--ch)*.22);height:calc(var(--ch) + 2*var(--rp));display:flex;align-items:center;gap:6px;padding:var(--rp) 10px;margin:calc(-1*var(--rp)) 0;background-clip:content-box;overflow-x:auto;overflow-y:hidden;flex:none;scrollbar-width:thin}
 #mid>*{position:relative;z-index:4}
+#loopBtn{position:absolute;left:12px;z-index:30;padding:8px 12px;border-radius:8px}
 #blockBar{position:absolute;left:12px;z-index:30;display:flex;flex-direction:column;gap:6px;align-items:stretch;width:178px;padding:8px 10px;background:#0b1417f2;border:1px solid var(--brass);border-radius:10px;box-shadow:0 8px 24px #000a}#blockBar span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);font-weight:800;text-align:center}#blockBar button{font-size:12.5px}
 .row .gap{flex:1;min-width:12px}
 .row.front{justify-content:safe center}
@@ -395,7 +396,7 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
         <button id="menuBtn" title="Table menu">☰</button>
       </div>
     </div>
-    <div id="blockBar" hidden></div>
+    <div id="blockBar" hidden></div><button id="loopBtn" class="go" hidden>Repeat the loop…</button>
     <div id="myFront" class="row front" data-drop="bf"></div>
     <div id="myBack" class="row" data-drop="bf"></div>
     <div id="myHand" class="handrow" data-drop="hand"></div>
@@ -430,10 +431,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 </script>
 <script>
 "use strict";
-const VERSION = 'v3.30';
+const VERSION = 'v3.31';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v3.31','Oct 17',"Broodscale combo works. Basking Broodscale adapts, and its Spawn trigger asks yes, no or always for the rest of the game. Click a Spawn to sacrifice it for {C}. Blade of the Bloodchief triggers whenever a creature dies. With the pieces out, a Repeat the loop button does it as many times as you say (Glaring Fleshraker's damage included). 'When you cast this spell' triggers now go on the stack: Sowing Mycospawn (with kicker), Devourer of Destiny, both Emrakuls, Thief of Existence and Ugin. Also new: Glaring Fleshraker, Thought-Knot Seer exiling from the revealed hand, Ugin's Labyrinth imprint, and Springleaf Drum tapping a creature."],
   ['v3.30','Oct 17',"Maximum hand size: when your opponent clicks Start my turn and you have more than seven cards in hand, you choose cards to discard down to seven, and their turn starts once you have. Reliquary Tower and Tamiyo, Seasoned Scholar's emblem remove the limit (her −7 also draws the cards now)."],
   ['v3.29','Oct 17',"Amulet Titan works. Amulet of Vigor's untap goes on the stack, so you can tap a bounce land before returning a land. Gruul Turf, Simic Growth Chamber and Crumbling Vestige do their jobs, Spelunking makes your lands enter untapped, and Arboreal Grazer, Cultivator Colossus, Malevolent Rumble, Scapeshift, Aftermath Analyst, Tolaria West's transmute, Roiling Canopy (with Yavimaya), Six's attack and retrace, and Hanweir Battlements' haste all resolve. The log counts your land plays (second land this turn, and so on). Trinisphere raises what you pay, and Cursed Totem warns before a creature's ability is used."],
   ['v3.28','Oct 17',"Send feedback opens a new form. It works the same way: the version and your game details are filled in for you."],
@@ -694,7 +696,7 @@ function undo(){
   log(`${G.me.name} undid: ${what}.`); changed();
 }
 let syncT=0;
-function changed(){ dedupeIds(); if(G.me.ctr.energy>0) G.me.energySeen=true; checkHeld(); pruneGtg(); pruneArrows(); checkpoint(); render(); clearTimeout(syncT); syncT=setTimeout(()=>{ send({t:'state', s:pub()}); save(); }, 40); }
+function changed(){ dedupeIds(); try{ ctrWatch(); }catch(e){} if(G.me.ctr.energy>0) G.me.energySeen=true; checkHeld(); pruneGtg(); pruneArrows(); checkpoint(); render(); clearTimeout(syncT); syncT=setTimeout(()=>{ send({t:'state', s:pub()}); save(); }, 40); }
 function save(){ if(G.code || G.solo) store.set('mt_session', {code:G.code, solo:G.solo, myId:G.myId, me:G.me, turn:G.turn, idc:G.idc, at:Date.now()}); }
 function log(text, cls){ addLog(text, cls||'m'); send({t:'log', text}); }
 function addLog(text, cls){ G.log.push({text, cls}); if(G.log.length>300) G.log.shift(); renderLog(); }
@@ -753,7 +755,7 @@ function onMsg(m){
     if(G.hvOpen){ G.hvOpen=false; closeModal(); }
     modal(`${src}: ${who}'s hand`, `<span class="hint">${pk ? `${esc(who)} discarded ${esc(pk)}.` : `${esc(who)} chose nothing to discard.`}${rest.length ? ` ${rest.length} card${rest.length>1?'s':''} still there: ${rest.map(x=>esc(x.n)).join(', ')}. A notepad next to your hand can list them; both players can see it.` : ' Their hand is now empty.'}</span>`,
       rest.length ? [['No need to track these cards',()=>closeModal(),'ghost'], ['I would like to track these cards',()=>{ closeModal(); G.me.trk={who, pid:oppId(), src, n:G.turn.n||0, list:rest}; log(`${G.me.name} starts a notepad of ${who}'s hand (${rest.length} card${rest.length>1?'s':''}).`); changed(); },'go']] : [['OK',()=>closeModal(),'go']]); }
-  else if(m.t==='discardpick'){ const f=find(m.id); if(f && f.z==='hand') discard([m.id]); }
+  else if(m.t==='discardpick'){ const f=find(m.id); if(f && f.z==='hand'){ if(m.ex){ move(m.id,'ex',{silent:true}); log(`${String(m.src||'').slice(0,60)}: ${G.me.name}'s ${cname(f.c)} is exiled from their hand.`); changed(); } else discard([m.id]); } }
   else if(m.t==='peek'){ const top=G.me.lib[0]; send({t:'peektop', src:String(m.src||'').slice(0,80), card: top ? {k:top.k, cu:top.cu||null} : null}); }
   else if(m.t==='peekhand'){ const h=G.me.hand, c=h[Math.floor(Math.random()*h.length)]; send({t:'peektop', hand:1, src:String(m.src||'').slice(0,80), card: c ? {k:c.k, cu:c.cu||null} : null}); }
   else if(m.t==='peektop'){ const cd=m.card, src=String(m.src||'').slice(0,80), on=G.opp?G.opp.name:'Opponent'; if(!cd){ toast(`${on}'s ${m.hand?'hand':'library'} is empty.`); } else ensureCards(cd.k ? [cd.k] : []).then(()=>showCard({id:'peek-'+Date.now(), k:cd.k, cu:cd.cu}, m.hand ? `${src}: a random card from ${on}'s hand` : `${src}: top of ${on}'s library`)); }
@@ -769,6 +771,8 @@ function onMsg(m){
   else if(m.t==='tot'){ const nm=String(m.name||'').slice(0,80); send({t:'totz', name:nm, by:String(m.by||'').slice(0,60), gy:G.me.gy, hand:G.me.hand, lib:G.me.lib}); log(`${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'A spell').slice(0,60)}: ${G.me.name} shows their graveyard, hand and library to search for ${nm}.`); }
   else if(m.t==='totz'){ const z={gy:(m.gy||[]).slice(0,200), hand:(m.hand||[]).slice(0,60), lib:(m.lib||[]).slice(0,200)}; ensureCards([...z.gy,...z.hand,...z.lib].map(c=>c.k).filter(Boolean)).then(()=>totWin(z, String(m.name||''), String(m.by||'Test of Talents'), false)); }
   else if(m.t==='totx'){ totExile((m.ids||[]).slice(0,200).map(String), String(m.name||'').slice(0,80), String(m.by||'A spell').slice(0,60), String(m.who||'Opponent').slice(0,40)); }
+  else if(m.t==='ctlnext'){ if(G.me.ctl || G.me.ctlNext) return; G.me.ctlNext=true; log(`${String(m.by||'Emrakul').slice(0,60)}: ${G.opp?G.opp.name:'The opponent'} will control ${G.me.name}'s next turn. ${G.me.name} takes an extra turn afterwards.`); changed(); }
+  else if(m.t==='cdied'){ creatureDied(String(m.n||'a creature').slice(0,60)); changed(); }
   else if(m.t==='cleanup'){ cleanupDiscard(()=>send({t:'cleandone'})); }
   else if(m.t==='cleandone'){ if(G.waitClean){ G.waitClean=0; const t=G.turn; if(t.passed && t.active!==G.myId) nextPhase(); } }
   else if(m.t==='drew'){ oppDrew(Math.max(0,Math.min(30,+m.n||0)), +m.first?1:0); }
@@ -820,6 +824,7 @@ function move(id, zone, o={}){
   m[from].splice(f.i,1); if(from==='ex'){ delete c.offer; delete c.by; delete c.warp; delete c.pl; delete c.fl; } if(zone!=='st') delete c.bt;
   if(from==='bf' && zone==='gy' && isCreature(c) && /\bCat\b/.test(faceType(c))) catDied(c);
   if(from==='bf' && zone==='gy' && !c.fd && (c.k||c.cu)) diesTrig(c);
+  if(from==='bf' && zone==='gy' && !c.fd && isCreature(c)){ creatureDied(cname(c)); if(G.opp) send({t:'cdied', n:cdata(c).n}); }
   if(from==='bf' && zone!=='bf') G.me.leftT=G.turn.n;
   if(zone==='bf' && from!=='st' && from!=='bf' && !c.tok && !o.fd && !c.fd && /\bCreature\b/.test(faceTypeOf(c,0))){ const pr=priestOut(); if(pr){ zone='ex'; log(`${pr}: ${cname(c)} wasn't cast, so it is exiled instead of entering the battlefield.`); o=Object.assign({}, o, {silent:true}); } }
   const ebLeft = from==='bf' && !!c.eb && (zone==='gy' || zone==='ex');
@@ -851,7 +856,7 @@ function draw(n=1, quiet, step){ const m=G.me; let k=0; if(n>0 && m.hand.length<
 function shuffleLib(quiet){ G.noUndo=true; shuffle(G.me.lib); if(!quiet) log(`${G.me.name} shuffles their library.`); }
 const ORDW=['','first','second','third','fourth','fifth','sixth','seventh','eighth','ninth','tenth'];
 function playFromHand(id){ const f=find(id); if(!f) return; if(isLand(f.c)){ const m=G.me, n=G.turn.n||0; if(!m.lp || m.lp.n!==n) m.lp={n, k:0}; m.lp.k++; const k=m.lp.k;
-    move(id,'bf',{silent:true}); log(`${m.name} plays ${cname(f.c)}${k>1 ? ', '+(ORDW[k]||k+'th')+' land this turn' : ''}.`); changed(); landEnters(id); } else castSpell(id); }
+    move(id,'bf',{silent:true, later:true}); log(`${m.name} plays ${cname(f.c)}${k>1 ? ', '+(ORDW[k]||k+'th')+' land this turn' : ''}.`); entered(f.c); changed(); landEnters(id); } else castSpell(id); }
 function resolve(id){ const f=find(id); if(!f) return; const c=f.c;
   if(c.pact){ pactPanel(id); return; }
   gyResolve(c); blinkResolve(c);
@@ -862,12 +867,14 @@ function resolve(id){ const f=find(id); if(!f) return; const c=f.c;
 function manaAbilities(c){
   const lt = isLand(c) ? landTypes(c, G.me.bf.some(x=>x.id===c.id) ? G.myId : oppId(), landEffects()) : null;
   if(lt && lt.main) return [...lt.main, ...lt.plus].map(t=>({out:BASIC[t], cost:'', exert:false, rem:false}));
-  const out=[], cond=[], txt=cdata(c).o||'', add=(list,o,cost,exert,rem,only,rider)=>{ if(o && !list.some(a=>a.out===o && a.cost===cost)) list.push(Object.assign({out:o, cost, exert, rem}, only ? {only} : {}, rider ? {rider} : {})); };
+  let TCR=false; const out=[], cond=[], txt=cdata(c).o||'', add=(list,o,cost,exert,rem,only,rider)=>{ if(o && !list.some(a=>a.out===o && a.cost===cost)) list.push(Object.assign({out:o, cost, exert, rem}, only ? {only} : {}, rider ? {rider} : {}, TCR ? {tcr:1} : {})); };
   for(const m of txt.matchAll(/\badd ([^.\n]*)/gi)){ const cl=m[1];
     const pre=txt.slice(txt.lastIndexOf('\n', m.index)+1, m.index), ci=pre.lastIndexOf(':'), costPart=ci>=0 ? pre.slice(0,ci) : '';
     const cost=[...costPart.matchAll(/\{([WUBRGC]|\d+)\}/g)].map(x=>x[1]).join(','), exert=/\bexert\b/i.test(costPart), rem=/\bremove an? [\w+\/-]+ counter from\b/i.test(costPart);
     // "If it has a luck counter on it, instead add one mana of any color" (Gemstone Caverns): only with a counter, and then it replaces the plain ability
     const iff=/counters? on (?:it|him|her), instead $/i.test(pre), list=iff ? cond : out; if(iff && !(c.c>0)) continue;
+    if(/If a card is exiled with [^,]+, $/i.test(pre)){ const e=c.impId && find(c.impId); if(!(e && e.z==='ex')) continue; const syms2=[...cl.matchAll(/\{([WUBRGC])\}/g)].map(x=>x[1]); out.length=0; add(out, syms2.join(''), cost, exert, rem); continue; }
+    TCR=/Tap an untapped creature you control/i.test(costPart);
     const ln=txt.slice(txt.lastIndexOf('\n', m.index)+1, (txt.indexOf('\n', m.index)+1 || txt.length+1)-1), only=((ln.match(/Spend this mana only ([^.]+)/i)||[])[1]||''), rider=riderOf(ln);
     const nAny=cl.match(/^(one|two|three|four|five) mana of any (?:one )?colou?r/i), k2=nAny ? (NUMW2[nAny[1].toLowerCase()]||1) : 1;
     if(/any (one )?color|any type|any of/i.test(cl)){ 'WUBRG'.split('').forEach(k=>add(list,k.repeat(k2),cost,exert,rem,only,rider)); continue; }
@@ -892,6 +899,7 @@ function extraMana(c, quiet){ const add=[];
   for(const x of G.me.bf){ if(x.fd || (!x.k && !x.cu)) continue; for(const m of (frontText(x)||'').matchAll(/Whenever you tap a creature for mana, add (?:an )?additional ((?:\{[WUBRGC]\})+)/gi)){ const o=costSyms(m[1]).join(''); addMana(o); add.push(`${cdata(x).n.split(',')[0]} adds ${m[1]}`); } }
   if(add.length && !quiet) log(`${G.me.name} taps ${cname(c)} for mana; ${add.join(', ')} (a mana ability: it doesn't use the stack).`); return add; }
 function useAbility(c, a, noExtra){
+  if(a.tcr && !a.tcDone){ const cs=G.me.bf.filter(x=>isCreature(x) && !x.tap && !x.fd && x.id!==c.id); if(!cs.length){ toast('You need an untapped creature to tap for this.'); return false; } pickP(`${cdata(c).n}: tap an untapped creature you control`, cs, 'Cancel').then(p=>{ const g=p && find(p.id); if(!g || g.z!=='bf' || g.c.tap) return; g.c.tap=true; log(`${G.me.name} taps ${cname(g.c)} for ${cdata(c).n}.`); useAbility(c, Object.assign({}, a, {tcDone:1}), noExtra); changed(); }); return false; }
   if(!totemGate(c, ()=>{ if(useAbility(c, a, noExtra)) changed(); })) return false;
   if(a.rem && !(c.c>0)){ toast('It has no counters left to remove.'); return false; }
   if(!payCost(a.cost)){ toast(`That costs ${costLabel(a.cost)}. Put it in your mana pool first, then try again.`); return false; }
@@ -1002,6 +1010,7 @@ function entered(c){
   const trg=[], ev=c.ev; delete c.ev;
   if(isLand(c) && G.me.bf.includes(c)) trg.push(['landfall', ()=>landfall(c), 1]);
   if(isLand(c) && G.me.bf.includes(c)) trg.push(['Forest trigger', ()=>forestEnters(c), 1]);
+  if(isCreature(c) && G.me.bf.includes(c) && !cardColors(c).length) trg.push(['colorless creature enters', ()=>{ for(const x of G.me.bf){ if(x.id===c.id || x.fd || (!x.k && !x.cu)) continue; const m=(frontText(x)||'').match(/(?:^|\n)Whenever another colorless creature you control enters, ([^\n]+)/i); if(m){ pushTrig(x, m[1]); log(`${cdata(x).n.split(',')[0]}: ${cname(c)} entered, so its trigger goes on the stack.`); } } }, 1]);
   if(ev) trg.push(['evoke sacrifice', ()=>evokeSac(c), 1]);
   if(earthbendN(c) && /\bWhen (?:this creature|[^,\n]+) enters, earthbend/i.test(frontText(c)||'')){ const n=earthbendN(c), src=c; trg.push(['earthbend', ()=>setTimeout(()=>startEarthbend(src, n, 'enters'), 0)]); }
   if(etbLines(c).length) trg.push([etbLines(c).length>1 ? 'enter triggers' : 'enter trigger', ()=>etbTrigs(c), 1]);
@@ -1146,7 +1155,7 @@ function useGyAbil(id, i, pd){ const f=find(id); if(!f || f.z!=='gy') return; co
 /* Mystical Dispute: "This spell costs {2} less to cast if it targets a blue spell." offered as a cheaper cast in the hand menu */
 const targetDiscount = c => { const m=(frontText(c)||'').match(/This spell costs \{(\d+)\} less to cast if it targets (an? [^.]+)\./i); if(!m) return null; const mc=(cdata(c).mc||'').split(' // ')[0], syms=costSyms(mc), gen=syms.filter(k=>/^\d+$/.test(k)).reduce((a,k)=>a+(+k),0), rest=syms.filter(k=>!/^\d+$/.test(k)), g=Math.max(0, gen-(+m[1])); return {cost:(g?`{${g}}`:'')+rest.map(k=>`{${k}}`).join(''), what:m[2]}; };
 /* targets on resolution that fit a description ("artifact", "creature or planeswalker", "nonland permanent an opponent controls") */
-const descOf = d => (d||'').replace(/\b(?:an opponent controls|you control|you don't control|with (?:mana value|power|toughness)[^,]*)\b.*$/i,'').replace(/^(?:up to (?:one|two|three) |another |other )/i,'').trim();
+const descOf = d => (d||'').replace(/\b(\w+) that(?:'|’)s one or more colors\b/i,'colored $1').replace(/\b(?:an opponent controls|you control|you don't control|with (?:mana value|power|toughness)[^,]*)\b.*$/i,'').replace(/^(?:up to (?:one|two|three) |another |other )/i,'').trim();
 const fitTargets = (tg, d) => { const want=descOf(d); return tg.filter(t=>{ const a=findAny(t); return a && (a.z==='bf' || a.z==='st') && (!want || matchesDesc(a.c, want)); }); };
 /* damage from a spell or ability: a creature gets it marked (damage()), a planeswalker loses loyalty, a player loses life */
 function dealDamage(t, n, by){ const m=G.me; if(!(n>0)) return;
@@ -1552,22 +1561,22 @@ function pactAction(k){
 /* Hand disruption: "Target player/opponent reveals their hand. You choose a <desc> card from it [with …]. That player discards that card." (Thoughtseize,
    Inquisition, Duress, Grief). The target is the player the spell's arrow points at (else the opponent). The revealed hand is public: the caster picks a
    legal card, the owner discards it (madness respected), and the caster may start a notepad of the rest (m.trk, published; crossed off by hand). */
-const HANDRE=/target (player|opponent) reveals (?:their|his or her) hand\. You choose (?:a|an|up to one) ([^.]*?)card from it(?: with ([^.]+?))?\. That player discards that card/i;
+const HANDRE=/target (player|opponent) reveals (?:their|his or her) hand\. You choose (?:a|an|up to one) ([^.]*?)card from it(?: with ([^.]+?))?(\. That player discards that card| and exile that card)/i;
 function revealLegal(c, desc, wc){ const words=(desc||'').trim().split(/[\s,]+/).filter(w=>w && w!=='and'); const mv=(wc||'').match(/mana value (\d+) or less/i);
   if(mv && manaValue(c)>+mv[1]) return false; if(words.includes('or')) return matchesDesc(c, desc); return words.every(w=>matchesDesc(c, w)); }
 function handDisrupt(c, text){ const r=text.match(HANDRE); if(!r) return; const src=srcName(c), tl=c.tg || G.me.arrows.filter(x=>x.a===c.id).map(x=>x.b), a=tl.find(b=>b==='p1' || b==='p2');
-  const pid = a ? a : (G.opp ? oppId() : G.myId), info={src, desc:r[2], wc:r[3]||''};
+  const pid = a ? a : (G.opp ? oppId() : G.myId), info={src, desc:r[2], wc:r[3]||'', ex:/exile/i.test(r[4]||'')};
   if(pid===G.myId || !G.opp){ const cs=G.me.hand.map(x=>({id:x.id, k:x.k, cu:x.cu||null})); log(`${src}: ${G.me.name} reveals their hand: ${G.me.hand.map(cname).join(', ') || 'no cards'}.`);
     if(G.opp) send({t:'handview', who:G.me.name, src, cards:cs}); setTimeout(()=>openReveal(cs, G.myId, G.me.name, info), 0); }
   else { G.pendRv=info; send({t:'reveal', src, by:G.me.name}); } }
 function openReveal(cards, pid, who, info){ let pick=null; const own=pid===G.myId, d=x=>({id:x.id, k:x.k, cu:x.cu});
   const legal=x=>revealLegal(d(x), info.desc, info.wc), nLegal=cards.filter(legal).length;
-  const el=modal(`${info.src}: ${own?'your':who+"'s"} hand`, `<span class="hint">${nLegal ? `Choose a ${(info.desc||'').trim()} card${info.wc?' with '+esc(info.wc):''} to discard. Greyed cards can't be chosen.` : 'No card in this hand can be chosen.'}</span><div class="grid rv" id="rvGrid">${cards.map(x=>cardHTML(d(x),'gy',true, legal(x)?'':'dim')).join('')}</div>`,
-    [[nLegal ? 'Choose nothing' : 'Continue',()=>after(null),'ghost'], ['Discard it',()=>{ if(pick) after(pick); },'go']], {wide:true});
+  const el=modal(`${info.src}: ${own?'your':who+"'s"} hand`, `<span class="hint">${nLegal ? `Choose a ${(info.desc||'').trim()} card${info.wc?' with '+esc(info.wc):''} to ${info.ex?'exile':'discard'}. Greyed cards can't be chosen.` : 'No card in this hand can be chosen.'}</span><div class="grid rv" id="rvGrid">${cards.map(x=>cardHTML(d(x),'gy',true, legal(x)?'':'dim')).join('')}</div>`,
+    [[nLegal ? 'Choose nothing' : 'Continue',()=>after(null),'ghost'], [info.ex?'Exile it':'Discard it',()=>{ if(pick) after(pick); },'go']], {wide:true});
   const goB=$('footer button.go', el); goB.disabled=true; if(!nLegal) goB.hidden=true;
-  $('#rvGrid').onclick=e=>{ const cd=e.target.closest('.card[data-id]'); if(!cd || cd.classList.contains('dim')) return; pick=cards.find(x=>x.id===cd.dataset.id); [...$('#rvGrid').children].forEach(n=>n.classList.toggle('sel', n===cd)); goB.disabled=false; goB.textContent=`Discard ${cdata(d(pick)).n}`; };
+  $('#rvGrid').onclick=e=>{ const cd=e.target.closest('.card[data-id]'); if(!cd || cd.classList.contains('dim')) return; pick=cards.find(x=>x.id===cd.dataset.id); [...$('#rvGrid').children].forEach(n=>n.classList.toggle('sel', n===cd)); goB.disabled=false; goB.textContent=`${info.ex?'Exile':'Discard'} ${cdata(d(pick)).n}`; };
   function after(p){ closeModal();
-    if(p){ if(own){ log(`${info.src}: ${G.me.name} chooses ${cname(d(p))} from their own hand.`); discard([p.id]); } else { send({t:'discardpick', id:p.id, src:info.src, by:G.me.name}); log(`${info.src}: ${G.me.name} chooses ${cname(d(p))} for ${who} to discard.`); } }
+    if(p){ if(own){ log(`${info.src}: ${G.me.name} chooses ${cname(d(p))} from their own hand.`); if(info.ex) move(p.id,'ex'); else discard([p.id]); } else { send({t:'discardpick', id:p.id, src:info.src, by:G.me.name, ex:info.ex?1:0}); log(`${info.src}: ${G.me.name} chooses ${cname(d(p))} for ${who} to ${info.ex?'exile':'discard'}.`); } }
     else log(`${info.src}: ${G.me.name} chooses nothing.`);
     const rest=cards.filter(x=>!p || x.id!==p.id);
     if(own){ if(G.opp) send({t:'handdone', who:G.me.name, src:info.src, pick:p ? cdata(d(p)).n : '', rest:rest.map(x=>({k:x.k, n:cdata(d(x)).n}))}); return; }   // the opponent may track a hand that was public and is hidden again
@@ -1637,7 +1646,7 @@ const hasKw = (c, pid, k) => printedKw(c).includes(k) || (c.kw||[]).includes(k) 
 const giftsLine = (c, pid) => { const parts=[]; const ac=!c.fd && !isLand(c) && allColorsBy(pid); if(ac) parts.push(`All colors (${ac})`); const g=grantedKw(c, pid); if(g.length){ const by={}; for(const o of g) (by[o.src]=by[o.src]||[]).push(o.k); parts.push(Object.entries(by).map(([s,ks])=>`Has ${ks.join(', ')} (${s})`).join('\n')); } return parts.join('\n'); };
 function matchesDesc(c, desc){ if(!desc) return true; const tl=faceTypeOf(c,0), cols=cardColors(c);
   const one = w => { w=w.toLowerCase(); let m; if((m=w.match(/^non-?(.+)$/))) return !one(m[1]); if(w==='basic') return /\bBasic\b/.test(tl);
-    if(COLW[w]) return cols.includes(COLW[w]); if(w==='colorless') return !cols.length; if(w==='permanent') return !/\b(Instant|Sorcery)\b/.test(tl); if(w==='card') return true; return new RegExp('\\b'+w.replace(/s$/,'')+'s?\\b','i').test(tl); };
+    if(COLW[w]) return cols.includes(COLW[w]); if(w==='colorless') return !cols.length; if(w==='colored') return cols.length>0 && !isLand(c); if(w==='permanent') return !/\b(Instant|Sorcery)\b/.test(tl); if(w==='card') return true; return new RegExp('\\b'+w.replace(/s$/,'')+'s?\\b','i').test(tl); };
   return desc.split(/\s*,\s*(?:or\s+)?|\s+or\s+/i).filter(Boolean).some(alt => alt.split(/\s+/).filter(Boolean).every(one)); }
 /* Amulet of Vigor: "Whenever a permanent you control enters tapped, untap it." Each Amulet puts its own trigger on the stack.
    Spelunking: "Lands you control enter untapped." */
@@ -1646,6 +1655,41 @@ const untapLandsBy = () => { const x=G.me.bf.find(x=>!x.fd && (x.k||x.cu) && /(?
 function enteredTapped(c){ if(!c || !G.me.bf.includes(c) || !c.tap || c.fd) return; for(const a of amulets()){ const d=cdata(a), nm=d.n.split(',')[0];
     G.me.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:a.id, tr:true, amu:{id:c.id, ent:c.ent||''}}, cu:{n:`${nm}: trigger`, t:'Triggered ability', o:`Untap ${cdata(c).n}.`, img:d.img||''}}));
     log(`${nm}: ${cname(c)} entered tapped, so its trigger goes on the stack.`); } changed(); }
+/* Sacrifice-for-mana abilities ("Sacrifice this creature: Add {C}." on Eldrazi Spawn and Scion tokens) */
+const sacManaOf = c => { if(c.fd || (!c.k && !c.cu)) return null; const m=(cdata(c).o||'').match(/(?:^|\n|")Sacrifice (?:this (?:creature|artifact|token|permanent)|it): Add ((?:\{[WUBRGC]\})+)\./i); return m ? {out:[...m[1].matchAll(/\{([WUBRGC])\}/g)].map(x=>x[1]).join('')} : null; };
+function sacForMana(id){ const f=find(id); if(!f || f.z!=='bf') return; const c=f.c, a=sacManaOf(c); if(!a) return;
+  if(!totemGate(c, ()=>sacForMana(id))) return; addMana(a.out); log(`${G.me.name} sacrifices ${cname(c)}: adds ${[...a.out].map(k=>'{'+k+'}').join('')}.`); move(id,'gy',{silent:true}); changed(); }
+/* "Whenever a creature dies, …" (Blade of the Bloodchief): mine and the opponent's creatures */
+function creatureDied(name){ for(const x of G.me.bf){ if(x.fd || (!x.k && !x.cu)) continue; const m=(frontText(x)||'').match(/(?:^|\n)Whenever a creature dies, ([^\n]+)/i); if(!m) continue; const d=cdata(x), nm=d.n.split(',')[0];
+    G.me.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:x.id, tr:true}, cu:{n:`${nm}: trigger`, t:'Triggered ability', o:m[1].replace(/^p/,'P'), img:d.img||''}})); log(`${nm}: ${name} died, so its trigger goes on the stack.`); } }
+/* "Whenever one or more +1/+1 counters are put on <this creature>, …" (Basking Broodscale): a watcher compares each creature's counters with the last look */
+function ctrWatch(){ for(const c of G.me.bf){ if(c.fd || (!c.k && !c.cu)) continue; const nm=faceName(c,0), short=nm.split(',')[0];
+    const m=(frontText(c)||'').match(new RegExp('(?:^|\\n)Whenever one or more \\+1\\/\\+1 counters are put on (?:this creature|'+escRe(nm)+'|'+escRe(short)+'), ([^\\n]+)','i')); if(!m){ continue; }
+    const v=Math.max(0, c.c||0); if(c.pcw==null){ c.pcw=v; continue; } if(v>c.pcw){ const d=cdata(c), t=`${short}: +1/+1 counters were put on it, so its trigger goes on the stack.`; G.me.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:c.id, tr:true}, cu:{n:`${short}: trigger`, t:'Triggered ability', o:m[1].replace(/^y/,'Y'), img:d.img||''}})); addLog(t,'m'); send({t:'log', text:t}); } c.pcw=v; } }
+/* "you may create …": yes, no, or always for the rest of this game */
+function mayAsk(by, what){ return new Promise(res=>{ let done=false; const fin=v=>{ if(done) return; done=true; closeModal(); res(v); };
+  modal(by, `<p style="margin:0">You may ${esc(what)}.</p>`, [['No',()=>fin('no'),'ghost'], ['Always (rest of this game)',()=>fin('always'),'alt'], ['Yes',()=>fin('yes'),'go']], {onClose:()=>{ if(!done){ done=true; res('no'); } }}); }); }
+/* the Broodscale loop: a creature whose +1/+1-counter trigger makes a sacrifice-for-mana token, wearing equipment that puts a counter on it whenever a creature dies */
+function loopSpec(){ const m=G.me; for(const b of m.bf){ if(b.fd || !isCreature(b)) continue; const nm=faceName(b,0).split(',')[0];
+    const tr=(frontText(b)||'').match(new RegExp('Whenever one or more \\+1\\/\\+1 counters are put on (?:this creature|'+escRe(faceName(b,0))+'|'+escRe(nm)+'), (?:you may )?create an? (\\d+)\\/(\\d+) ([a-z ]+?) creature token with "([^"]+)"','i')); if(!tr) continue;
+    const e=m.bf.find(x=>x.att===b.id && /Whenever a creature dies, put a \+1\/\+1 counter on equipped creature/i.test(frontText(x)||'')); if(!e) continue;
+    const t=m.bf.find(x=>x.tok && isCreature(x) && sacManaOf(x)); if(!t) continue; return {b, e, t, tr}; } return null; }
+async function loopAsk(){ const sp=loopSpec(); if(!sp) { toast('The loop needs the creature, its equipment and a Spawn on the battlefield.'); return; } if(totemBy() && !(await new Promise(res=>{ if(totemGate(sp.t, ()=>res(true))) res(true); else { const iv=setInterval(()=>{ if($('#modal').hidden){ clearInterval(iv); res(false); } }, 200); } }))) return;
+  const n=await askN(`Repeat the loop how many times? Each time: sacrifice a ${cdata(sp.t).n} for mana, ${cdata(sp.e).n.split(',')[0]} puts a +1/+1 counter on ${cdata(sp.b).n.split(',')[0]}, and it makes a new ${cdata(sp.t).n}.`, 10); if(!(n>0)) return;
+  const b=sp.b, out=sacManaOf(sp.t).out, k=/\bVampire\b/.test(faceType(b)) && /If equipped creature is a Vampire, put two/i.test(frontText(sp.e)||'') ? 2 : 1;
+  addMana(out.repeat(n)); b.c=(b.c||0)+n*k; b.pcw=Math.max(0,b.c); sp.t.sick=true; sp.t.tokT=G.turn.n;
+  log(`${G.me.name} repeats the loop ${n} time${n>1?'s':''}: sacrifices ${n} ${cdata(sp.t).n} for ${[...out].map(x=>'{'+x+'}').join('')} each (${n*out.length} mana), ${cname(b)} gets ${n*k} +1/+1 counter${n*k>1?'s':''} (now ${b.c}), and a new ${cdata(sp.t).n} is made each time.`);
+  const fr=G.me.bf.filter(x=>!x.fd && x.id!==sp.t.id && /Whenever another colorless creature you control enters, [^\n]*deals 1 damage to each opponent/i.test(frontText(x)||'')); if(fr.length && G.opp){ dealDamage(oppId(), n*fr.length, fr.map(x=>cdata(x).n).join(', ')); }
+  changed(); }
+/* "When you cast this spell, …" (Sowing Mycospawn, Devourer of Destiny, Emrakul, Thief of Existence, Ugin) and "Whenever you cast a colorless spell, …" (Glaring Fleshraker, Ugin) */
+const kickerCost = c => { if(c.fd || (!c.k && !c.cu)) return ''; const m=(frontText(c)||'').match(/(?:^|\n)Kicker\s*((?:\{[^}]+\})+)/i); return m ? m[1] : ''; };
+function pushTrig(src, txt, label){ const d=cdata(src), nm=d.n.split(',')[0]; const mkr=mk(null,{tok:true, ts:Date.now(), ab:{id:src.id, tr:true}, cu:{n:`${nm}: ${label||'trigger'}`, t:'Triggered ability', o:txt.replace(/^([a-z])/, x=>x.toUpperCase()), img:d.img||''}}); G.me.st.push(mkr);
+  if(needsTarget(txt) || /\btarget opponent\b/i.test(txt)){ G.mode={type:'arrow', from:mkr.id}; toast(`${nm}: click its target (Esc for none).`); } return mkr; }
+function afterCast(id, o){ const f=find(id); if(!f || f.z!=='st') return; const c=f.c; if(c.fd || (!c.k && !c.cu)) return; c.kick=!!(o&&o.kick); const nm=cdata(c).n.split(',')[0];
+  for(const l of noRemind(c).split('\n')){ const m=l.trim().match(/^When you cast this spell, (.+)$/i); if(!m) continue; let e=m[1]; const k=e.match(/^if it was kicked, (.+)$/i); if(k){ if(!c.kick) continue; e=k[1]; }
+    pushTrig(c, e, 'cast trigger'); log(`${nm}: its cast trigger goes on the stack${k?' (kicked)':''}.`); }
+  if(!isLand(c) && !cardColors(c).length) for(const x of G.me.bf){ if(x.fd || (!x.k && !x.cu)) continue; const m=(frontText(x)||'').match(/(?:^|\n)Whenever you cast a colorless spell, ([^\n]+)/i); if(!m) continue; pushTrig(x, m[1]); log(`${cdata(x).n.split(',')[0]}: ${cname(c)} is a colorless spell, so its trigger goes on the stack.`); }
+  changed(); }
 /* Roiling Canopy: "Whenever a Forest you control enters, if you control at least five other Forests, target creature you control gets +3/+3 until end of turn." Yavimaya counts. */
 const isForestL = (x, fx) => { if(!isLand(x) || x.fd) return false; const lt=landTypes(x, G.myId, fx); if(lt && lt.main) return lt.main.some(t=>/forest/i.test(t)); return /\bForest\b/.test(faceType(x)) || !!(lt && lt.plus.some(t=>/forest/i.test(t))); };
 function forestEnters(c){ if(!isLand(c) || !G.me.bf.includes(c)) return; const fx=landEffects(); if(!isForestL(c, fx)) return;
@@ -1719,6 +1763,9 @@ async function simpleEffects(c, text, srcId){
   { const lt=lookTopSpec(text); if(lt){ waited=true; await lookTopWin(lt, by); text=text.replace(lt.src,' '); } }
   const self='(?:this creature|it|'+escRe(nm||'@@')+'|'+escRe((nm||'@@').split(',')[0])+')';
   for(let sen of (text||'').replace(/\([^)]*\)/g,'').split(/(?<=\.)\s+|\n/)){ sen=sen.trim().replace(/^[A-Z][A-Za-z' ]{2,30} — (?=(?:When|Whenever|At) )/,'').replace(/^(?:When|Whenever|At) (?!you attack this turn)(?!you do\b)[^,]+, /i,''); let r;
+    if((r=sen.match(/^target player (creates .+|scries (?:X|\d+), then draws a card\.?)$/i))){ const p=tg.find(x=>x==='p1'||x==='p2') || G.myId; if(p!==G.myId){ log(`${by}: ${G.opp?G.opp.name:'The opponent'} ${r[1].replace(/\.$/,'')} (on their side).`); continue; }
+      sen=r[1].replace(/^creates/i,'Create').replace(/^scries (X|\d+), then draws a card/i, (m0,x)=>`Scry ${/^x$/i.test(x) ? (c.x!=null?c.x:0) : x}, then draw a card`); }
+    if((r=sen.match(/^you may (create .+)$/i))){ const key=by; if(!(m.mayAlways||{})[key]){ waited=true; const v=await mayAsk(by, r[1].replace(/\.$/,'')); if(v==='no'){ log(`${by}: ${m.name} chooses not to ${r[1].replace(/\.$/,'')}.`); continue; } if(v==='always'){ m.mayAlways=Object.assign({}, m.mayAlways||{}, {[key]:1}); log(`${by}: ${m.name} will always say yes for the rest of this game.`); } } sen=r[1].replace(/^c/,'C'); }
     if((r=sen.match(/^you gain (\d+) life, (draw .+)$/i))){ m.life+=+r[1]; log(`${by}: ${m.name} gains ${r[1]} life (now ${m.life}).`); changed(); sen=r[2].replace(/^d/,'D'); }   // Faithful Mending: life first, then the draw/discard sentence
     if((r=sen.match(/^(scry|surveil) (\d+)(?:, then draw (a|one|two) cards?)?\.?$/i))){ waited=true; await scryWin(+r[2], r[1].toLowerCase(), by); if(r[3]) draw(NUMW2[r[3].toLowerCase()]||1); continue; }
     if(/^choose an exiled card an opponent owns with a void counter on it\.?$/i.test(sen)){ const n=((G.opp&&G.opp.ex)||[]).filter(x=>x.by && x.by.mode==='play' && x.by.pid===G.myId).length; log(`${by}: ${m.name} chooses an exiled card with a void counter (${n} available) to play this turn without paying its mana cost.`); toast(n ? 'Cast it from the Exiled by cards box on the right.' : 'There is no exiled card with a void counter.'); continue; }
@@ -1754,6 +1801,15 @@ async function simpleEffects(c, text, srcId){
     if(/^sacrifice (?:them|it|those tokens) at the beginning of the next end step\.?$/i.test(sen)){ for(const tk of made){ tk.sacEnd=1; tk.sacBy=String(by).split(":")[0]; } continue; }
     if((r=String(text).match(/^(?:[^\n]*?)Whenever you attack this turn, ([\s\S]+)$/i)) && /^whenever you attack this turn,/i.test(sen)){ (m.wya=(m.wya||[]).filter(e=>e.n===G.turn.n)).push({n:G.turn.n, src:by, txt:r[1].trim()}); log(`${by}: the next time ${m.name} attacks this turn, ${r[1].trim().replace(/\.$/,'')}.`); break; }
     if((r=sen.match(/^then if you have the city's blessing, for each token you control that entered (?:the battlefield )?this turn, create a token that's a copy of it\.?$/i))){ if(!m.city) continue; const ts=m.bf.filter(x=>x.tok && x.tokT===G.turn.n); const cps=[]; for(const x of ts){ const tk=mk(null,{tok:true, cu:Object.assign({}, x.cu||{}), k:x.k}); tk.tokT=G.turn.n; tk.sick=true; m.bf.push(tk); cps.push(tk); } for(const tk of cps) entered(tk); log(`${by}: city's blessing, ${m.name} copies ${ts.length} token${ts.length===1?'':'s'} that entered this turn.`); changed(); continue; }
+    if((r=sen.match(/^adapt (\d+)\.?$/i))){ const b=srcC; if(!b || !find(b.id) || find(b.id).z!=='bf'){ log(`${by}: the creature is gone.`); continue; } if((b.c||0)>0){ log(`${by}: ${cname(b)} already has +1/+1 counters, so adapt does nothing.`); continue; } b.c=+r[1]; log(`${by}: ${cname(b)} adapts: ${r[1]} +1/+1 counter${+r[1]>1?'s':''}.`); changed(); continue; }
+    if((r=sen.match(/^put a \+1\/\+1 counter on equipped creature\.?$/i))){ const eq=srcC && srcC.att ? find(srcC.att) : null; if(!eq || eq.z!=='bf'){ log(`${by}: it isn't attached to a creature, so nothing happens.`); continue; } const two=/\bVampire\b/.test(faceType(eq.c)) && /If equipped creature is a Vampire, put two/i.test(text); eq.c.c=(eq.c.c||0)+(two?2:1); log(`${by}: ${cname(eq.c)} gets ${two?'two +1/+1 counters':'a +1/+1 counter'} (now ${eq.c.c}).`); changed(); continue; }
+    if(/^if equipped creature is a vampire, put two \+1\/\+1 counters on it instead\.?$/i.test(sen)) continue;
+    if((r=sen.match(/^you may exile an? (.+?) card(?: with mana value (\d+) or greater)? from your hand\.?$/i))){ waited=true; const cs=m.hand.filter(x=>matchesDesc(x, r[1]) && (!r[2] || manaValue(x)>=+r[2])); if(!cs.length){ log(`${by}: ${m.name} has no ${r[1]} card${r[2]?' with mana value '+r[2]+' or greater':''} to exile.`); continue; }
+      const p=await pickP(`${by}: you may exile a ${r[1]} card${r[2]?' with mana value '+r[2]+' or greater':''} from your hand`, cs, "Don't"); if(p && find(p.id) && find(p.id).z==='hand'){ move(p.id,'ex',{silent:true}); if(srcC){ srcC.impId=p.id; } log(`${by}: ${m.name} exiles ${cname(p)} from their hand${srcC?' with '+cdata(srcC).n:''}.`); changed(); } continue; }
+    if(/^return the exiled card to its owner(?:'|’)s hand\.?$/i.test(sen)){ const e=srcC && srcC.impId ? find(srcC.impId) : null; if(e && e.z==='ex'){ move(e.c.id,'hand',{silent:true}); log(`${by}: ${m.name} returns ${cname(e.c)} from exile to their hand.`); } else log(`${by}: there is no exiled card to return.`); if(srcC) delete srcC.impId; changed(); continue; }
+    if(/^you gain control of target opponent during that player(?:'|’)s next turn\.?$/i.test(sen)){ if(G.opp){ send({t:'ctlnext', by}); log(`${by}: ${m.name} will control ${G.opp.name}'s next turn.`); } continue; }
+    if(/^after that turn, that player takes an extra turn\.?$/i.test(sen)) continue;
+    if(/^untap all lands you control\.?$/i.test(sen)){ let k=0; for(const x of m.bf) if(isLand(x) && x.tap){ x.tap=false; k++; } log(`${by}: ${m.name} untaps ${k} land${k===1?'':'s'}.`); changed(); continue; }
     if((r=sen.match(/^you may put an? (.+?) card from among them into your hand\.?$/i)) && G.lastMilled){ waited=true; const cs=G.lastMilled.map(i=>find(i)).filter(f=>f && f.z==='gy' && matchesDesc(f.c, r[1])).map(f=>f.c); G.lastMilled=null;
       if(!cs.length){ log(`${by}: no ${r[1]} card was milled.`); continue; } const p=await pickP(`${by}: you may put a ${r[1]} card from among them into your hand`, cs, "Don't"); if(p && find(p.id) && find(p.id).z==='gy'){ move(p.id,'hand',{silent:true}); log(`${by}: ${m.name} puts ${cname(p)} into their hand.`); changed(); } continue; }
     if(/^create a token that(?:'|’)s a copy of target creature you control\.?$/i.test(sen)){ for(const t of tg){ const f=find(t); if(!f || f.z!=='bf'){ log(`${by}: the target is gone, so no copy is made.`); continue; } const x=f.c, tk=mk(x.k,{tok:true, cu:x.cu, c:0, sick:!!G.turn.n}); tk.tokT=G.turn.n; m.bf.push(tk); log(`${by}: ${m.name} creates a token that's a copy of ${cname(x)}.`); entered(tk); } if(!tg.length) log(`${by}: no target was chosen.`); changed(); continue; }
@@ -2351,6 +2407,7 @@ function castSpellNow(id, o={}, after){
   { const f4=find(id); if(f4 && f4.z!=='st' && o.rep==null && !f4.c.fd && !G.me.ctl){ const rc=replicateCost(f4.c); if(rc){ askN(`${cdata(f4.c).n}: replicate how many times? (${rc} each; 0 for none)`, 0).then(n=>{ if(n==null || n<0) return; castSpellNow(id, Object.assign({}, o, {rep:n}), after); }); return; } } }
   { const f5=find(id); if(f5 && f5.z!=='st' && o.exw==null && !f5.c.fd && !G.me.ctl){ const ew=exileForLess(f5.c); if(ew){ const cs=G.me.hand.filter(x=>x.id!==id && !x.fd && matchesDesc(x, ew.desc)); if(!cs.length){ castSpellNow(id, Object.assign({}, o, {exw:[]}), after); return; }
         pickManyP(`${cdata(f5.c).n}: exile ${ew.desc} cards from your hand? Each makes it cost {${ew.n}} less. Pick none to pay full price.`, cs, 'Exile these').then(ids=>{ ids=ids||[]; castSpellNow(id, Object.assign({}, o, {exw:ids, less:(o.less||0)+ew.n*ids.length}), after); }); return; } } }
+  { const f7=find(id); if(f7 && f7.z!=='st' && o.kick==null && !f7.c.fd && !G.me.ctl){ const kc=kickerCost(f7.c); if(kc){ yesNo(cdata(f7.c).n, `Pay its kicker cost ${kc} as well?`, `Kick it (${kc})`, 'No kicker').then(v=>castSpellNow(id, Object.assign({}, o, {kick:!!v}), after)); return; } } }
   { const f2=find(id); if(f2 && f2.z!=='st' && !('md' in o)){ const c2=f2.c, md2=(!G.me.ctl && !c2.fd && isSpell(c2)) ? modesOf(c2) : null; if(md2){ pickModes(c2, md2, p=>castSpellNow(id, Object.assign({}, o, {md:p}), after)); return; } } }
   { const f6=find(id); if(f6 && f6.z!=='st' && o.gyt===undefined && !f6.c.fd && !G.me.ctl){ const gs=gyTargetSpec(f6.c); if(gs){ gyTargetPick(f6.c, gs).then(t=>{ if(t===null) return; castSpellNow(id, Object.assign({}, o, {gyt:t||''}), after); }); return; } } }
   { const f3=find(id); if(f3 && f3.z!=='st' && !o.paid && autoPayOn()){ const c3=f3.c, sy=castSyms(c3, o); if(sy){ payFor(sy, {spell:true, card:c3, id, from:f3.z}, {title:`Cast ${faceName(c3, c3.flip?1:0)}`, verb:'cast', done:r=>castSpellNow(id, Object.assign({}, o, {paid:r}), after), cancel:o.onCancel}); return; } } }
@@ -2359,7 +2416,7 @@ function castSpellNow(id, o={}, after){
   const f=find(id); if(!f || f.z==='st') return; const c=f.c, md=(!G.me.ctl && !c.fd && isSpell(c)) ? modesOf(c) : null;
   const cn = !c.fd ? costNow(c) : null, pd=o.paid, pnote = pd && !o.silent ? (pd.other ? ', paying for it another way' : pd.text ? `, paying ${pd.text}` : '') : '';
   const go=p=>{ move(id,'st',pnote ? Object.assign({}, o, {note:pnote}) : o); if(o.x!=null) c.x=o.x; if(o.spent && o.spent.length) c.spent=o.spent.slice(); else delete c.spent; if(!c.fd && (o.nm || noManaCast(c, o.x, cn) || (pd && pd.mana===0))) c.nm=1; { CHAL=chaliceWatch(); const ch=chaliceHit(c); if(ch) log(`${cname(c)} has mana value ${ch.n}, the number of charge counters on ${ch.name}.`); } if(!c.fd && HANDRE.test(stackText(c)||'')){ G.mode={type:'arrow', from:id}; toast(`${cdata(c).n}: click the player whose hand is revealed.`); } if(o.x!=null){ c.x=o.x; log(`${cname(c)} is cast with X=${o.x}.`); } if(cn && cn.delta) log(`${cname(c)} costs ${cn.cost} (printed ${cn.printed}; ${cn.why}).`); after&&after(); if(pd && o.silent && (pd.other || pd.text)) log(`${G.me.name} pays ${pd.other ? 'for it another way' : pd.text}.`); applyRiders(c, pd); if(pd && pd.cols) c.pc=['W','U','B','R','G'].filter(k=>pd.cols[k]>0).length; for(const x of o.exw||[]){ const g=find(x); if(g && g.z==='hand'){ move(x,'ex',{silent:true}); } } if((o.exw||[]).length) log(`${G.me.name} exiles ${o.exw.length} card${o.exw.length>1?'s':''} from their hand to pay {${2*o.exw.length}} less.`); if(o.rep>0){ for(let i=0;i<o.rep;i++) G.me.st.push(mk(c.k, {tok:true, ts:Date.now()+i+1, cu:c.cu||undefined})); log(`${cname(c)}: replicate ${o.rep} time${o.rep>1?'s':''}, so ${o.rep} cop${o.rep>1?'ies':'y'} go${o.rep>1?'':'es'} on the stack. Each can have its own target.`); } if(c.spent && c.spent.length) log(`${cname(c)}: ${G.me.name} spent ${c.spent.map(k=>`{${k}}{${k}}`).join(' and ')} to cast it.`); if(p && p.length){ c.md=p; log(modeLog(c, md, p)); } changed(); modalRefresh&&modalRefresh(); if(hasCascade(c)){ cascadeTrig(c); changed(); } if(o.gyt) addGyTarget(id, o.gyt, G.myId); if(!c.fd && isSpell(c) && !G.mode && o.gyt===undefined && needsTarget(stackText(c)||'') && !HANDRE.test(stackText(c)||'')){ G.mode={type:'arrow', from:id}; toast(`${cdata(c).n.split(' // ')[0]}: click its target (a player, a card, a spell on the stack, or a graveyard pile; Esc for none).`); render(); } };
-  go(md ? (o.md||null) : null);
+  go(md ? (o.md||null) : null); afterCast(id, o);
 }
 /* ===== Auto-pay (v3.0) =====
    With S.autoPay on, a spell or ability takes its cost from the mana pool (castSyms/abilSyms → payPlan → payApply). If the pool is short, the
@@ -2394,6 +2451,7 @@ function castSyms(c, o){
       const esk=txt.match(/(?:^|\n)Escalate\s*((?:\{[^}]+\})+)/i); if(esk) for(let j=1;j<o.md.length;j++) s=s.concat(costSyms(esk[1]));
       const ent=txt.match(/(?:^|\n)Entwine\s*((?:\{[^}]+\})+)/i); if(ent && md.modes.length>1 && o.md.length>=md.modes.length) s=s.concat(costSyms(ent[1])); } }
   if(o.rep>0){ const rc=replicateCost(c); if(rc) for(let i=0;i<o.rep;i++) s=s.concat(costSyms(rc)); }
+  if(o.kick){ const kc=kickerCost(c); if(kc) s=s.concat(costSyms(kc)); }
   const out=normSyms(s, o.x, o.less), tri=trinisphere(); if(tri){ const tot=out.reduce((a,k)=>a+(/^\d+$/.test(k) ? +k : 1), 0); if(tot<3){ const g=out.findIndex(k=>/^\d+$/.test(k)); if(g>=0) out[g]=String(+out[g]+3-tot); else out.unshift(String(3-tot)); } }
   return out;
 }
@@ -2794,6 +2852,7 @@ async function askEmpower(c, def){ const n=await askN(`${cname(c).replace(/\[\[(
 const empowerItems = c => empowers(c).map(e=>[`Empower Jace ${e.n==null?'X…':e.n}${e.tap?' (taps it)':''}`, ()=>{ if(e.tap) c.tap=true; if(e.n==null) askEmpower(c, 1); else { empowerJace(e.n, c); changed(); } }]);
 function toggleTap(id, x, y){
   const f=find(id); if(!f||f.z!=='bf') return; const c=f.c;
+  if(!c.fd && sacManaOf(c)){ const a=sacManaOf(c); if(x==null){ const el=$(`#table .card[data-id="${id}"]`), r=el?el.getBoundingClientRect():{left:200,top:200,width:0}; x=r.left+r.width/2; y=r.top+20; } menu(x, y, [[`Sacrifice it: add ${[...a.out].map(k=>'{'+k+'}').join('')}`, ()=>sacForMana(id)], '-', [c.tap?'Untap':'Tap', ()=>{ if(c.tap) untapCard(c); else c.tap=true; changed(); }]]); return; }
   if(c.tap){ untapCard(c); changed(); return; }
   const emp = c.fd ? [] : empowerItems(c);
   if(emp.length){ if(x==null){ const el=$(`#table .card[data-id="${id}"]`), r=el?el.getBoundingClientRect():{left:200,top:200,width:0}; x=r.left+r.width/2; y=r.top+20; }
@@ -2941,7 +3000,7 @@ function newMatch(){ G.me.wins=0; G.me.wonGame=0; send({t:'newmatch'}); log(`${G
 function gather(){
   const m=G.me; G.noUndo=true;
   for(const z of ['hand','bf','gy','ex','st']){ for(const c of m[z].splice(0)){ if(c.tok || c.made) continue; if(c.o!==G.myId){ send({t:'give', card:Object.assign(c,{tap:false,c:0,att:null,atk:false,fd:false,flip:false}), zone:'lib'}); continue; } Object.assign(c,{tap:false,c:0,att:null,atk:false,fd:false,flip:false,note:'',row:null}); m.lib.push(c); } }
-  m.life=20; m.lastLife=20; delete m.noMax; delete m.gain; delete m.city; delete m.wya; delete m.atkC; delete m.lock; m.ctr={poison:0,energy:0}; m.arrows=[]; m.reveal=false; m.mull=0; m.roll=null; m.compDone=false; m.skipRoll=false; m.dealt=false; m.kept=false; m.mana=noMana(); m.smana=[]; m.energySeen=false; m.drew=0; m.ctl=false; m.ctlNext=false; m.cast={n:0,is:0}; m.pacts=[]; m.baub=[]; m.trk=null; for(const c of m.side) delete c.comp; for(const c of m.lib){ delete c.by; delete c.warp; delete c.wp; delete c.fl; delete c.bt; delete c.ent; delete c.offer; delete c.pl; delete c.kw; delete c.lt; delete c.sick; delete c.lft; delete c.cp; }
+  m.life=20; m.lastLife=20; delete m.noMax; delete m.mayAlways; delete m.gain; delete m.city; delete m.wya; delete m.atkC; delete m.lock; m.ctr={poison:0,energy:0}; m.arrows=[]; m.reveal=false; m.mull=0; m.roll=null; m.compDone=false; m.skipRoll=false; m.dealt=false; m.kept=false; m.mana=noMana(); m.smana=[]; m.energySeen=false; m.drew=0; m.ctl=false; m.ctlNext=false; m.cast={n:0,is:0}; m.pacts=[]; m.baub=[]; m.trk=null; for(const c of m.side) delete c.comp; for(const c of m.lib){ delete c.by; delete c.warp; delete c.wp; delete c.fl; delete c.bt; delete c.ent; delete c.offer; delete c.pl; delete c.kw; delete c.lt; delete c.sick; delete c.lft; delete c.cp; }
 }
 function newGame(remote){
   gather(); G.turn={active:null, phase:2, n:0};
@@ -3112,6 +3171,7 @@ function render(){
   $('#drawBtn').textContent = gate ? (gateOld ? 'Draw anyway' : `Waiting for ${o?o.name:'opponent'}…`) : 'Draw a card'; $('#drawBtn').disabled = !!gate && !gateOld;
   { const bb=$('#blockBar'); if(blockStep()){ const n=G.me.arrows.filter(a=>a.blk).length; bb.hidden=false;
       const atks=(G.opp&&G.opp.bf||[]).filter(c=>c.atk), more=blockersLeft().some(b=>atks.some(a=>!blockIssues(b,a).length)), must=mustBlockNotes(); bb.innerHTML = `<span>${n ? n+' blocker'+(n>1?'s':'')+' declared' : 'You are being attacked'}</span>${must.map(x=>`<span style="text-transform:none;letter-spacing:0;color:var(--brass);font-weight:600">${esc(unlink(x))}</span>`).join('')}${more ? `<button class="go" data-bk="declare">${n?'Declare another blocker':'Declare a blocker'}</button>` : (n ? '' : '<span style="text-transform:none;letter-spacing:0;color:var(--dim);font-weight:400">None of your creatures can block these attackers</span>')}${n ? '<button data-bk="reset">Reset blockers</button><button class="go" data-bk="finish">Finish declaring blocks</button>' : '<button data-bk="finish">No blocks</button>'}`; const fr=$('#myFront'), mid=$('#mid'); bb.style.top=Math.max(mid.offsetTop + mid.offsetHeight + 8, fr.offsetTop + (fr.offsetHeight - bb.offsetHeight)/2)+'px'; } else if(!bb.hidden){ bb.hidden=true; bb.innerHTML=''; } }
+  { const lb=$('#loopBtn'); const ok=!blockStep() && !!loopSpec(); if(ok){ lb.hidden=false; const fr=$('#myFront'), mid=$('#mid'); lb.style.top=Math.max(mid.offsetTop + mid.offsetHeight + 8, fr.offsetTop + 8)+'px'; } else if(!lb.hidden) lb.hidden=true; }
   const nb=$('#next');
   if(!t.n){ nb.textContent='Waiting to start'; nb.disabled=true; }
   else if(t.passed){ nb.disabled=mine; nb.textContent = mine ? `Waiting for ${o&&o.name||'opponent'}` : 'Start my turn'; }
@@ -3529,6 +3589,7 @@ document.addEventListener('click', e=>{
   const pk=t.closest('[data-pk]'); if(pk){ if(!pk.disabled) pactAction(pk.dataset.pk); return; }
   const cy=t.closest('[data-cy]'); if(cy){ if(!cy.disabled) cycAction(cy.dataset.cy); return; }
   const py=t.closest('[data-pay]'); if(py){ if(!py.disabled) payAction(py.dataset.pay); return; }
+  if(t.closest('#loopBtn')){ loopAsk(); return; }
   const bk=t.closest('[data-bk]'); if(bk){ const k=bk.dataset.bk; if(!blockStep()) return; if(k==='declare'){ G.mode={type:'pickblocker'}; toast('Click one of your untapped creatures to block with.'); render(); } else if(k==='reset'){ const n=G.me.arrows.filter(a=>a.blk).length; G.me.arrows=G.me.arrows.filter(a=>!a.blk); G.mode=null; if(n) log(`${G.me.name} resets their blocks.`); changed(); } else if(k==='finish'){ G.mode=null; doneBlocking(); } return; }
   const smp=t.closest('[data-smana]'); if(smp){ spendSpecial(+smp.dataset.smana); return; }
   const lifeB=t.closest('[data-life]'); if(lifeB){ const d=(+lifeB.dataset.life)*(e.shiftKey?5:1); if(lifeB.dataset.pl===G.myId) setLife(d); else if(G.opp){ send({t:'adj', life:d}); log(`${G.me.name} changes ${G.opp.name}'s life by ${d>0?'+':''}${d}.`); } return; }
