@@ -38,6 +38,7 @@ h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
 .lobbybox{width:min(560px,100%);display:flex;flex-direction:column;gap:18px}
 .lobbybox h1{font-size:44px;letter-spacing:.02em}
 .lobbybox p{margin:0;color:var(--dim);max-width:60ch}
+.lobbybox p.legal{grid-column:1/-1;max-width:none;font:12px/1.55 var(--ui);color:var(--dim);border-top:1px solid var(--line);padding-top:12px;margin-top:4px}.lobbybox p.legal a{color:inherit;text-decoration:underline;text-underline-offset:2px}
 .field{display:flex;flex-direction:column;gap:6px}
 .field label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
 .choices{display:grid;gap:10px}
@@ -125,6 +126,7 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
       <button class="choice" id="resumeBtn" hidden><div><b>Return to your draft</b><span id="resumeTxt"></span></div><span>→</span></button>
     </div>
     <p id="lobbyMsg" style="color:var(--go)"></p>
+    <p class="legal">The Draft Table is unofficial Fan Content permitted under the <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Fan Content Policy</a>. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.<br>Card images and card data from <a href="https://scryfall.com/" target="_blank" rel="noopener">Scryfall</a>. Pack odds from <a href="https://github.com/taw/magic-sealed-data" target="_blank" rel="noopener">magic-sealed-data</a>. Free to use, with no ads, and not affiliated with any of these sites.</p>
   </div>
 </div>
 
@@ -138,7 +140,7 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 <script src="../src/peerjs.min.js"></script>
 <script>
 "use strict";
-const VERSION = 'v0.9';
+const VERSION = 'v0.10';
 const SETS = [{"code":"fra","name":"Reality Fracture","size":14,"group":"Recent"},{"code":"hob","name":"The Hobbit","size":14,"group":"Recent"},{"code":"msh","name":"Marvel Super Heroes","size":14,"group":"Recent"},{"code":"sos","name":"Secrets of Strixhaven","size":14,"group":"Recent"},{"code":"tmt","name":"Teenage Mutant Ninja Turtles","size":14,"group":"Recent"},{"code":"ecl","name":"Lorwyn Eclipsed","size":14,"group":"Recent"},{"code":"tla","name":"Avatar: The Last Airbender","size":14,"group":"Recent"},{"code":"spm","name":"Marvel's Spider-Man","size":14,"group":"Recent"},{"code":"eoe","name":"Edge of Eternities","size":14,"group":"Recent"},{"code":"fin","name":"Final Fantasy","size":14,"group":"Recent"},{"code":"tdm","name":"Tarkir: Dragonstorm","size":14,"group":"Favourites"},{"code":"fdn","name":"Foundations","size":14,"group":"Favourites"},{"code":"dsk","name":"Duskmourn: House of Horror","size":14,"group":"Favourites"},{"code":"blb","name":"Bloomburrow","size":14,"group":"Favourites"},{"code":"mh3","name":"Modern Horizons 3","size":14,"group":"Favourites"},{"code":"mom","name":"March of the Machine","size":15,"group":"Favourites"},{"code":"neo","name":"Kamigawa: Neon Dynasty","size":15,"group":"Favourites"},{"code":"mh2","name":"Modern Horizons 2","size":15,"group":"Favourites"},{"code":"eld","name":"Throne of Eldraine","size":15,"group":"Favourites"},{"code":"mh1","name":"Modern Horizons","size":15,"group":"Favourites"},{"code":"war","name":"War of the Spark","size":15,"group":"Favourites"},{"code":"dom","name":"Dominaria","size":15,"group":"Favourites"},{"code":"ktk","name":"Khans of Tarkir","size":15,"group":"Favourites"},{"code":"isd","name":"Innistrad","size":15,"group":"Favourites"},{"code":"roe","name":"Rise of the Eldrazi","size":15,"group":"Favourites"},{"code":"df07","name":"DF07's Legacy Cube","size":15,"group":"Cubes"},{"code":"mtgo-vintage","name":"MTGO Vintage Cube (Oct 2026)","size":15,"group":"Cubes"}];
 const PREFIX = 'draft-table-v1-';
 const $ = (s, el=document) => el.querySelector(s), $$ = (s, el=document) => [...el.querySelectorAll(s)];

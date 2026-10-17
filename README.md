@@ -23,4 +23,6 @@ Booster draft for up to eight players, with bots in the empty seats. Packs follo
 
 Version numbers look like v1.13. The second number goes up when features change. A decks-only refresh keeps the version.
 
-Unofficial fan project. Magic: The Gathering is a trademark of Wizards of the Coast; this project is not affiliated with or endorsed by them.
+Modern Table is unofficial Fan Content permitted under the [Fan Content Policy](https://company.wizards.com/en/legal/fancontentpolicy). Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.
+
+Card images and card data come from [Scryfall](https://scryfall.com/); tournament decklists from [MTGGoldfish](https://www.mtggoldfish.com/); booster odds from [taw/magic-sealed-data](https://github.com/taw/magic-sealed-data). The project is free, has no ads, and is not affiliated with any of them.

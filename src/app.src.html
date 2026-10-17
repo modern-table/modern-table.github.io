@@ -37,6 +37,7 @@ h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
 @media (max-width:920px){.lobbybox{grid-template-columns:minmax(0,1fr);width:min(560px,100%)}}
 .lobbybox h1{font-size:44px;letter-spacing:.02em}
 .lobbybox p{margin:0;color:var(--dim);max-width:60ch}
+.lobbybox p.legal{grid-column:1/-1;max-width:none;font:12px/1.55 var(--ui);color:var(--dim);border-top:1px solid var(--line);padding-top:12px;margin-top:4px}.lobbybox p.legal a{color:inherit;text-decoration:underline;text-underline-offset:2px}
 .field{display:flex;flex-direction:column;gap:6px}
 .field label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
 .choices{display:grid;gap:10px}
@@ -362,6 +363,7 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
     <p><a href="#" id="fbLink" style="color:var(--brass)">Send feedback</a> <span style="color:var(--dim)">· report a bug or suggest a change</span></p>
     </div>
     <aside class="news" id="news" aria-label="What's new"></aside>
+    <p class="legal">Modern Table is unofficial Fan Content permitted under the <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Fan Content Policy</a>. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.<br>Card images and card data from <a href="https://scryfall.com/" target="_blank" rel="noopener">Scryfall</a>. Tournament decklists from <a href="https://www.mtggoldfish.com/" target="_blank" rel="noopener">MTGGoldfish</a>. Free to use, with no ads, and not affiliated with any of these sites.</p>
   </div>
 </div>
 
@@ -420,10 +422,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v3.26';
+const VERSION = 'v3.27';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSf0cJmkNMBHo20umPjU7AZN9L3n4YF0OAdPcftA5Vgtpb0bzA/viewform', FB_VERSION = 'entry.424564323', FB_DETAILS = 'entry.2140001333';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v3.27','Oct 17',"The front page now says where things come from: card images and data from Scryfall, decklists from MTGGoldfish, and that this is an unofficial fan project, not made by Wizards of the Coast."],
   ['v3.26','Oct 17',"New address: modern-table.github.io. The old link forwards here and brings your saved decks with it, so update your bookmark."],
   ['v3.25','Oct 16',"Goryo's Vengeance gives the returned creature haste, so it can attack right away. When you choose its target, cards in your graveyard that aren't legendary creatures are greyed out."],
   ['v3.24','Oct 16',"Blocking knows evasion: flying and reach, menace, shadow, horsemanship, fear, intimidate, skulk, swampwalk and the other landwalks, protection, and cards that say they can't be blocked or can't block. Once you pick a blocker, attackers it can't block are dimmed. The table warns rather than stops you, so a block it thinks is illegal is flagged to both players, and Finish declaring blocks asks before handing back. At the start of combat and of blocks, the table reminds you of creatures that must attack or block. Dragon's Rage Channeler with delirium gets +2/+2 and flying."],

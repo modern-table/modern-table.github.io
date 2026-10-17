@@ -38,6 +38,7 @@ h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
 .lobbybox{width:min(560px,100%);display:flex;flex-direction:column;gap:18px}
 .lobbybox h1{font-size:44px;letter-spacing:.02em}
 .lobbybox p{margin:0;color:var(--dim);max-width:60ch}
+.lobbybox p.legal{grid-column:1/-1;max-width:none;font:12px/1.55 var(--ui);color:var(--dim);border-top:1px solid var(--line);padding-top:12px;margin-top:4px}.lobbybox p.legal a{color:inherit;text-decoration:underline;text-underline-offset:2px}
 .field{display:flex;flex-direction:column;gap:6px}
 .field label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
 .choices{display:grid;gap:10px}
@@ -125,6 +126,7 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
       <button class="choice" id="resumeBtn" hidden><div><b>Return to your draft</b><span id="resumeTxt"></span></div><span>→</span></button>
     </div>
     <p id="lobbyMsg" style="color:var(--go)"></p>
+    <p class="legal">The Draft Table is unofficial Fan Content permitted under the <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Fan Content Policy</a>. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.<br>Card images and card data from <a href="https://scryfall.com/" target="_blank" rel="noopener">Scryfall</a>. Pack odds from <a href="https://github.com/taw/magic-sealed-data" target="_blank" rel="noopener">magic-sealed-data</a>. Free to use, with no ads, and not affiliated with any of these sites.</p>
   </div>
 </div>
 
@@ -138,7 +140,7 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 <script src="../src/peerjs.min.js"></script>
 <script>
 "use strict";
-const VERSION = 'v0.9';
+const VERSION = 'v0.10';
 const SETS = /*__SETS__*/[];
 const PREFIX = 'draft-table-v1-';
 const $ = (s, el=document) => el.querySelector(s), $$ = (s, el=document) => [...el.querySelectorAll(s)];
