@@ -436,10 +436,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 </script>
 <script>
 "use strict";
-const VERSION = 'v3.41';
+const VERSION = 'v3.42';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v3.42','Oct 17',"The tournament decks now come with their cards built in, so opening one or playing it is instant, even the first time and on a new computer. Only the card pictures are still downloaded, and those have no limit."],
   ['v3.41','Oct 17',"Card images load more reliably: the table now asks Scryfall for cards at the pace Scryfall allows, and if Scryfall asks for a pause, it waits and tries again instead of giving up. Clicking quickly through the tournament decks no longer leaves them without images."],
   ['v3.40','Oct 17',"If Scryfall (where card images come from) stops answering, the deck screen no longer waits forever: it says so, offers Try again, and Play this deck still works, with cards shown as text until their images arrive."],
   ['v3.39','Oct 17',"Treasures, Clues, Food and other non-creature tokens now pile up too, and identical tokens stack even when their art differs. The cards under a pile show as plain edges."],
@@ -609,7 +610,11 @@ function toDB(c){
     pt:c.power!=null ? c.power+'/'+c.toughness : (f && f[0].power!=null ? f[0].power+'/'+f[0].toughness : ''),
     loy:c.loyalty || (f && f[0].loyalty) || '', lay:c.layout||'', loy2:(f && f[1] && f[1].loyalty) || '', cl:c.colors || (f && f[0].colors) || null, img:im.normal || '', back:(!c.image_uris && f && f[1] && f[1].image_uris) ? f[1].image_uris.normal : '', id:c.id, set:c.set||'', parts:(c.all_parts||[]).filter(p=>p.component==='token').map(p=>({id:p.id, n:p.name})) };
 }
-function saveDB(){ const o={}; let n=0; for(const k in DB){ if(!DB[k].tmp && n++<5000) o[k]=DB[k]; } store.set('mt_cards_v1', o); }
+function saveDB(){ const o={}; let n=0; for(const k in DB){ if(!DB[k].tmp && !DB[k].bk && n++<5000) o[k]=DB[k]; } store.set('mt_cards_v1', o); }
+/* Cards of the built-in decks come with the page (src/cards.json, refreshed weekly from Scryfall's bulk file by .github/workflows/cards.yml),
+   so showing and playing those decks needs no lookups. Only their images still come from Scryfall's image site, which has no rate limit. */
+const BAKED = {};
+if(!/[?&]nobake\b/.test(location.search)) for(const k in BAKED){ try{ const d=toDB(BAKED[k]); d.bk=1; DB[k]=d; }catch(e){} }
 /* Every request to Scryfall goes through one queue: at most one every 0.55 s (Scryfall allows 2 a second for card lookups),
    each gives up after 15 s, and if Scryfall says "too many requests" (or the request fails outright, which is how a refusal
    without the right headers looks to the page) the queue pauses for 31 s, as Scryfall asks, and then tries that request once more. */

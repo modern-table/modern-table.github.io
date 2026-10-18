@@ -1,0 +1,71 @@
+name: Build card data
+
+# Downloads Scryfall's "Oracle Cards" bulk file, writes src/cards.json (the cards of the built-in decks,
+# see tools/make_cards.py), rebuilds the pages and pushes them, so the tournament decks need no Scryfall lookups.
+# Runs when the decklists change, once a week (Mondays, after the weekly deck refresh), and from "Run workflow".
+# Scryfall asks for this approach instead of many card lookups: https://scryfall.com/docs/api/bulk-data
+
+on:
+  push:
+    branches: [main]
+    paths: [src/decks.txt, tools/make_cards.py, .github/workflows/cards.yml]
+  schedule:
+    - cron: '23 13 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: card-data
+  cancel-in-progress: false
+
+jobs:
+  cards:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Download Scryfall's Oracle Cards bulk file
+        run: |
+          UA="ModernTable/1.0 (+https://modern-table.github.io/)"
+          URI=$(curl -sSf -H "User-Agent: $UA" -H "Accept: application/json" https://api.scryfall.com/bulk-data/oracle-cards \
+                | python3 -c "import json,sys; print(json.load(sys.stdin)['download_uri'])")
+          echo "Downloading $URI"
+          curl -sSfL -H "User-Agent: $UA" -H "Accept: */*" "$URI" -o "$RUNNER_TEMP/oracle-cards.json"
+          ls -la "$RUNNER_TEMP/oracle-cards.json"
+
+      - name: Write src/cards.json and rebuild
+        run: |
+          python3 tools/make_cards.py "$RUNNER_TEMP/oracle-cards.json"
+          python3 build.py | tail -2
+
+      - name: Commit and push if anything changed
+        id: push
+        run: |
+          if git diff --quiet -- src/cards.json index.html && [ -z "$(git status --porcelain -- src/cards.json)" ]; then
+            echo "Card data unchanged."; exit 0
+          fi
+          echo "changed=1" >> "$GITHUB_OUTPUT"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/cards.json index.html draft/index.html
+          git commit -m "Card data from Scryfall's bulk file, $(date -u +%Y-%m-%d)"
+          for i in 1 2 3; do
+            git pull --rebase --strategy-option=theirs origin main && python3 build.py > /dev/null && git add index.html draft/index.html \
+              && (git diff --cached --quiet || git commit -m "Rebuild after rebase") && git push origin HEAD:main && exit 0
+            sleep 10
+          done
+          echo "Could not push."; exit 1
+
+      - name: Ask GitHub Pages to publish (pushes made by this job may not start a Pages build by themselves)
+        if: steps.push.outputs.changed == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sleep 5
+          curl -sS -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/pages/builds" || true

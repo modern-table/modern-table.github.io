@@ -28,10 +28,17 @@ if len(out)<10: sys.exit(f'Only {len(out)} valid decks; refusing to build.')
 src=open('src/app.src.html', encoding='utf-8').read()
 peer=re.sub(r'//# sourceMappingURL=.*','',open('src/peerjs.min.js', encoding='utf-8').read()).replace('</script','<\\/script')
 assert '/*__DECKS__*/[]' in src and '/*__PEERJS__*/' in src
-html=src.replace('/*__DECKS__*/[]',json.dumps(out,separators=(',',':'),ensure_ascii=False)).replace('/*__PEERJS__*/',peer)
+# card data for the built-in decks (tools/make_cards.py writes it from Scryfall's bulk file; .github/workflows/cards.yml keeps it current)
+import os
+cards=json.load(open('src/cards.json', encoding='utf-8')) if os.path.exists('src/cards.json') else {}
+assert '/*__CARDS__*/{}' in src
+need={n.strip().lower() for d in out for n,_ in d['main']+d['side']}
+have=need & set(cards)
+cards={k:v for k,v in cards.items() if k in need or k.startswith('id:')}
+html=src.replace('/*__DECKS__*/[]',json.dumps(out,separators=(',',':'),ensure_ascii=False)).replace('/*__CARDS__*/{}',json.dumps(cards,separators=(',',':'),ensure_ascii=False).replace('</','<\\/')).replace('/*__PEERJS__*/',peer)
 open('index.html','w', encoding='utf-8').write(html)
 ver=re.search(r"const VERSION = '([^']+)'", src).group(1)
-print(f'built index.html: {len(html)//1024} KB, {len(out)} decks, {bad} dropped, version {ver}')
+print(f'built index.html: {len(html)//1024} KB, {len(out)} decks, {bad} dropped, version {ver}, cards built in for {len(have)} of {len(need)} names')
 
 # Draft Table: small page that loads PeerJS from ../src and one odds file per set from draft/sets/ (see tools/make_draft_sets.py)
 dsrc=open('src/draft.src.html', encoding='utf-8').read()
