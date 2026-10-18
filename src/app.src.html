@@ -132,7 +132,7 @@ textarea#paste{width:100%;min-height:300px;font-family:ui-monospace,Menlo,Consol
 .card.atk.tap{transform:translateY(-14%) rotate(18deg) scale(.94)}
 .card.opp.atk.tap{transform:translateY(14%) rotate(18deg) scale(.94)}
 .card.under{margin-right:calc(var(--cw)*-.74)}
-.card.tokunder{margin-right:calc(var(--cw)*-.9)}.card.tokhide{display:none}
+.card.tokunder{margin-right:calc(var(--cw)*-.86)}.card.tokhide{display:none}.card.tokunder>:not(img){visibility:hidden}
 .tokn{position:absolute;right:4%;top:40%;padding:1px 6px;font:800 calc(var(--cw)*.16)/1.2 var(--ui);color:#fff;background:#000d;border:1px solid #fff;border-radius:3px;pointer-events:none;font-variant-numeric:tabular-nums}
 .card.fdmine img,.card.fdmine .txt{opacity:.45}
 .card.sel{box-shadow:0 0 0 3px var(--brass)}
@@ -428,10 +428,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v3.38';
+const VERSION = 'v3.39';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v3.39','Oct 17',"Treasures, Clues, Food and other non-creature tokens now pile up too, and identical tokens stack even when their art differs. The cards under a pile show as plain edges."],
   ['v3.38','Oct 17',"A crowded row of permanents scrolls: turn the mouse wheel over it, or drag its scroll bar (it now comes to the front when you point at the row)."],
   ['v3.37','Oct 17',"Identical tokens stack: tokens with the same name and size, in the same state (tapped or not, attacking, summoning sick, counters, damage), sit in one pile with a ×N count, a few edges showing. Clicking the pile uses the top token, so the next one comes up."],
   ['v3.36','Oct 17',"Ajani, Nacatl Pariah: when another Cat dies, only his trigger goes on the stack; the question whether to transform comes when you resolve it (the old pop-up that appeared straight away is gone)."],
@@ -3185,11 +3186,11 @@ function rowsHTML(bf, mine){
   let L=''; lands.forEach((c,i)=>{ const n=lands[i+1]; const same = n && n.k===c.k && n.tap===c.tap && !c.c && !c.lft && !n.lft && !host.has(c.id) && !host.has(n.id); L += same ? cardHTML(c,'bf',mine,'under') : one(c); });
   // identical tokens share a pile: same token, same state, nothing attached, not part of an arrow
   const arrowed=new Set(); for(const p of [G.me, G.opp]) for(const a of ((p&&p.arrows)||[])){ arrowed.add(a.a); arrowed.add(a.b); }
-  const tkey = c => c.tok && !c.fd && !host.has(c.id) && !arrowed.has(c.id) && !c.cp ? [c.k||'', (c.cu&&c.cu.n)||'', (c.cu&&c.cu.pt)||'', (c.cu&&c.cu.img)||'', !!c.tap, !!c.atk, !!showSick(c), c.c||0, c.dmg||0, c.tp||0, c.tt||0, (c.kw||[]).join(','), c.hst||0, c.gainLtb||''].join('|') : null;
-  const groups=[], byKey=new Map(); for(const c of front){ const k=tkey(c); if(k && byKey.has(k)){ byKey.get(k).push(c); continue; } const g=[c]; if(k) byKey.set(k,g); groups.push(g); }
-  const F = groups.map(g=>{ if(g.length===1) return one(g[0]); const top=g[g.length-1], rest=g.slice(0,-1);
-    return rest.map((c,i)=>cardHTML(c,'bf',mine, i>=rest.length-3 ? 'tokunder' : 'tokunder tokhide')).join('') + cardHTML(top,'bf',mine,'tokpile').replace(/<\/div>$/, `<span class="tokn" title="${g.length} identical tokens">×${g.length}</span></div>`); }).join('');
-  return { front: F, back: L + '<span class="gap"></span>' + other.map(one).join('') };
+  const tkey = c => c.tok && !c.fd && !host.has(c.id) && !arrowed.has(c.id) && !c.cp ? [c.k||'', (c.cu&&c.cu.n)||'', (c.cu&&c.cu.pt)||'', (c.cu&&c.cu.t)||'', (c.cu&&c.cu.o)||'', !!c.tap, !!c.atk, !!showSick(c), c.c||0, c.dmg||0, c.tp||0, c.tt||0, (c.kw||[]).join(','), c.hst||0, c.gainLtb||''].join('|') : null;
+  const piles = list => { const groups=[], byKey=new Map(); for(const c of list){ const k=tkey(c); if(k && byKey.has(k)){ byKey.get(k).push(c); continue; } const g=[c]; if(k) byKey.set(k,g); groups.push(g); }
+    return groups.map(g=>{ if(g.length===1) return one(g[0]); const top=g[g.length-1], rest=g.slice(0,-1);
+      return rest.map((c,i)=>cardHTML(c,'bf',mine, i>=rest.length-3 ? 'tokunder' : 'tokunder tokhide')).join('') + cardHTML(top,'bf',mine,'tokpile').replace(/<\/div>$/, `<span class="tokn" title="${g.length} identical tokens">×${g.length}</span></div>`); }).join(''); };
+  return { front: piles(front), back: L + '<span class="gap"></span>' + piles(other) };
 }
 function pileHTML(z, label, cards, n, mine, top){
   const still = !mine && (z==='lib' || z==='hand'), tip = still ? '' : mine ? (z==='lib' ? 'Click to draw, right-click for more' : 'Click to look through') : 'Click to look through';
