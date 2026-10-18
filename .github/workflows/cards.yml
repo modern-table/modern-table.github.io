@@ -31,13 +31,17 @@ jobs:
 
       - name: Download Scryfall's Oracle Cards bulk file
         run: |
+          set +e
+          trap 'echo "::error::Download step failed at line $LINENO (exit $?)"' ERR
           UA="ModernTable/1.0 (+https://modern-table.github.io/)"
           META="$RUNNER_TEMP/meta.json"
           CODE=$(curl -sS -o "$META" -w '%{http_code}' -H "User-Agent: $UA" -H "Accept: application/json" https://api.scryfall.com/bulk-data/oracle-cards || echo "000")
           if [ "$CODE" != "200" ]; then
             echo "::error::Scryfall bulk-data list answered HTTP $CODE: $(head -c 300 "$META" 2>/dev/null | tr '\n' ' ')"; exit 1
           fi
-          URI=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['download_uri'])" "$META")
+          echo "::notice::Bulk-data list: HTTP $CODE, $(head -c 200 "$META" | tr '\n' ' ')"
+          URI=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['download_uri'])" "$META" 2>&1)
+          case "$URI" in https://*) ;; *) echo "::error::Could not read download_uri: $URI"; exit 1;; esac
           echo "::notice::Downloading $URI"
           CODE=$(curl -sSL -o "$RUNNER_TEMP/oracle-cards.json" -w '%{http_code}' -H "User-Agent: $UA" -H "Accept: */*" "$URI" || echo "000")
           SIZE=$(stat -c %s "$RUNNER_TEMP/oracle-cards.json" 2>/dev/null || echo 0)
