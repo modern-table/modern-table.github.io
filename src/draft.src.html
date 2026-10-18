@@ -140,7 +140,7 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 <script src="../src/peerjs.min.js"></script>
 <script>
 "use strict";
-const VERSION = 'v0.10';
+const VERSION = 'v0.11';
 const SETS = /*__SETS__*/[];
 const PREFIX = 'draft-table-v1-';
 const $ = (s, el=document) => el.querySelector(s), $$ = (s, el=document) => [...el.querySelectorAll(s)];
@@ -184,9 +184,11 @@ function toCard(c){
 }
 /* Cube cards are listed by name ("n|Force of Will"). Scryfall answers with the full name, so two-faced and split cards are matched on either face. */
 const nameKey = n => String(n).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s*\/\/?\s*/g,' // ').trim();
+/* Scryfall requests give up after a while, so a request that never gets an answer cannot freeze the deck screen or the Play button */
+const sfetch = (u, o={}, ms=15000) => { const ac=new AbortController(); setTimeout(()=>ac.abort(), ms); return fetch(u, Object.assign({}, o, {signal:ac.signal})); };
 async function ensureNames(chunk){
   try{
-    const r=await fetch('https://api.scryfall.com/cards/collection', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ identifiers:chunk.map(x=>({name:x.slice(2)})) }) });
+    const r=await sfetch('https://api.scryfall.com/cards/collection', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ identifiers:chunk.map(x=>({name:x.slice(2)})) }) });
     if(!r.ok) throw new Error(r.status);
     const j=await r.json(), want=new Map(chunk.map(x=>[nameKey(x.slice(2)), x]));
     for(const c of j.data||[]){ const keys=[c.name, ...(c.card_faces||[]).map(f=>f.name), (c.name||'').split(' // ')[0]].map(nameKey); for(const k of keys){ const x=want.get(k); if(x && !CARDS[x]){ CARDS[x]=toCard(c); break; } } }
@@ -205,7 +207,7 @@ async function ensure(ids, onProgress){
       const ask={}; for(const x of chunk){ if(CARDS[x]) continue; const p=x.split(':'), n=strip ? p[1].replace(/^(\d+)a$/, '$1') : p[1]; if(!strip && n===p[1].replace(/^(\d+)a$/, '$1')) continue; ask[p[0]+':'+n]=x; }
       const keys=Object.keys(ask); if(!keys.length) continue;
       try{
-        const r=await fetch('https://api.scryfall.com/cards/collection', { method:'POST', headers:{'Content-Type':'application/json'},
+        const r=await sfetch('https://api.scryfall.com/cards/collection', { method:'POST', headers:{'Content-Type':'application/json'},
           body:JSON.stringify({ identifiers:keys.map(k=>{ const p=k.split(':'); return {set:p[0], collector_number:p[1]}; }) }) });
         if(!r.ok) throw new Error(r.status);
         const j=await r.json();

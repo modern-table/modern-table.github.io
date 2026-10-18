@@ -436,10 +436,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 </script>
 <script>
 "use strict";
-const VERSION = 'v3.39';
+const VERSION = 'v3.40';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v3.40','Oct 17',"If Scryfall (where card images come from) stops answering, the deck screen no longer waits forever: it says so, offers Try again, and Play this deck still works, with cards shown as text until their images arrive."],
   ['v3.39','Oct 17',"Treasures, Clues, Food and other non-creature tokens now pile up too, and identical tokens stack even when their art differs. The cards under a pile show as plain edges."],
   ['v3.38','Oct 17',"A crowded row of permanents scrolls: turn the mouse wheel over it, or drag its scroll bar (it now comes to the front when you point at the row)."],
   ['v3.37','Oct 17',"Identical tokens stack: tokens with the same name and size, in the same state (tapped or not, attacking, summoning sick, counters, damage), sit in one pile with a ×N count, a few edges showing. Clicking the pile uses the top token, so the next one comes up."],
@@ -608,6 +609,9 @@ function toDB(c){
     loy:c.loyalty || (f && f[0].loyalty) || '', lay:c.layout||'', loy2:(f && f[1] && f[1].loyalty) || '', cl:c.colors || (f && f[0].colors) || null, img:im.normal || '', back:(!c.image_uris && f && f[1] && f[1].image_uris) ? f[1].image_uris.normal : '', id:c.id, set:c.set||'', parts:(c.all_parts||[]).filter(p=>p.component==='token').map(p=>({id:p.id, n:p.name})) };
 }
 function saveDB(){ const o={}; let n=0; for(const k in DB){ if(!DB[k].tmp && n++<5000) o[k]=DB[k]; } store.set('mt_cards_v1', o); }
+/* Scryfall requests give up after a while, so a request that never gets an answer cannot freeze the deck screen or the Play button */
+const sfetch = (u, o={}, ms=15000) => { const ac=new AbortController(); setTimeout(()=>ac.abort(), ms); return fetch(u, Object.assign({}, o, {signal:ac.signal})); };
+let SCRY_DOWN=0;   // when Scryfall last failed to answer
 /* a load already under way for some of these cards is waited for too, so callers that render afterwards see the data */
 const pendProm={};
 async function ensureCards(names, onProgress){
@@ -622,18 +626,18 @@ async function ensureCards0(names, onProgress){
   for(let i=0;i<want.length;i+=75){
     const chunk = want.slice(i,i+75);
     try{
-      const r = await fetch('https://api.scryfall.com/cards/collection', { method:'POST', headers:{'Content-Type':'application/json'},
+      const r = await sfetch('https://api.scryfall.com/cards/collection', { method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ identifiers: chunk.map(n => n.startsWith('id:') ? {id:n.slice(3)} : {name:n.split(' // ')[0]}) }) });
       if(!r.ok) throw new Error(r.status);
-      const j = await r.json();
+      const j = await r.json(); SCRY_DOWN=0;
       const store1 = c => { const d=toDB(c), full=plainName(c.name), front=plainName(c.name.split(' // ')[0]);
         for(const n of chunk){ const k=keyOf(n), p=plainName(k); if(k==='id:'+c.id || p===full || p.split(' // ')[0]===front) DB[k]=d; } };
       for(const c of j.data || []) store1(c);
       // names Scryfall did not recognise exactly (a missing accent, a slightly different spelling): ask its fuzzy name search, one at a time
       for(const nf of (j.not_found || [])){ if(!nf || !nf.name) continue;
-        try{ await sleep(110); const r2=await fetch('https://api.scryfall.com/cards/named?fuzzy='+encodeURIComponent(nf.name)); if(r2.ok){ const c=await r2.json(); const d=toDB(c);
+        try{ await sleep(110); const r2=await sfetch('https://api.scryfall.com/cards/named?fuzzy='+encodeURIComponent(nf.name)); if(r2.ok){ const c=await r2.json(); const d=toDB(c);
           for(const n of chunk){ const k=keyOf(n); if(!n.startsWith('id:') && plainName(k.split(' // ')[0])===plainName(nf.name)) DB[k]=d; } } }catch(e){} }
-    }catch(e){ console.warn('Scryfall lookup failed', e); }
+    }catch(e){ console.warn('Scryfall lookup failed', e); SCRY_DOWN=Date.now(); }
     for(const n of chunk){ const k=keyOf(n); pending.delete(k); if(!DB[k]) DB[k]={n:n.startsWith('id:')?'Unknown card':n, t:'', o:'', img:'', tmp:1}; }
     done += chunk.length; onProgress && onProgress(done, want.length);
     if(i+75 < want.length) await sleep(120);
@@ -641,7 +645,7 @@ async function ensureCards0(names, onProgress){
   saveDB();
 }
 async function scrySearch(q, extras){
-  const r = await fetch('https://api.scryfall.com/cards/search?order=name&unique=cards'+(extras?'&include_extras=true':'')+'&q='+encodeURIComponent(q));
+  const r = await sfetch('https://api.scryfall.com/cards/search?order=name&unique=cards'+(extras?'&include_extras=true':'')+'&q='+encodeURIComponent(q));
   if(r.status===404) return [];
   if(!r.ok) throw new Error('Scryfall '+r.status);
   const j = await r.json();
@@ -3130,6 +3134,10 @@ function pregameModal(){
   paint();
 }
 function mulligan(){ const m=G.me; if(G.turn.n && !m.kept && !canDecide()){ notYourDecision(); return; } m.lib.push(...m.hand.splice(0)); m.mull++; shuffleLib(true); draw(7,true); log(`${m.name} mulligans (number ${m.mull}) and must put ${m.mull} on the bottom.`); toast(`Right-click ${m.mull} card${m.mull>1?'s':''} in hand → Bottom of library.`); changed(); }
+/* cards whose data could not be loaded (Scryfall not answering) are asked for again every half minute, for up to ten minutes */
+const missingCards = () => { const ks=new Set(); for(const p of [G.me, G.opp]) if(p) for(const z of ['lib','hand','bf','gy','ex','st','side']) for(const c of (p[z]||[])) if(c && c.k && DB[c.k] && DB[c.k].tmp) ks.add(c.k); return [...ks]; };
+let retryT=null;
+function retryMissing(n=0){ clearTimeout(retryT); if(n>=20) return; retryT=setTimeout(async()=>{ const ks=missingCards(); if(!ks.length) return; await ensureCards(ks); if(missingCards().length<ks.length) render(); if(missingCards().length) retryMissing(n+1); else toast('Card images loaded.'); }, 30000); }
 async function loadDeck(d, name, onProgress){
   const art=d.art||{}, kk=n=>art[keyOf(n)]||keyOf(n);
   await ensureCards([...d.main, ...d.side].map(x=>kk(x[0])), onProgress);
@@ -3802,12 +3810,12 @@ function viewDeck(d, name, sub, link, canSave, savedIdx){
   const tok=v.dataset.tok=String(Math.random());
   const paint=()=>{ if(v.dataset.tok!==tok) return; const b=$('#dvBody'); if(!b) return; const msg=$('#dvMsg');
     if(dvMode()==='list'){ b.innerHTML=listHTML; if(msg) msg.textContent=''; return; }
-    if(!ready()){ b.innerHTML=listHTML; if(msg) msg.textContent='Loading card images…'; return; }
+    if(!ready()){ b.innerHTML=listHTML; if(msg){ if(loading) msg.textContent='Loading card images…'; else { msg.innerHTML='Scryfall, where card images come from, is not answering right now. You can still play; cards show as text until it answers. <a href="#" id="dvRetry" style="color:var(--brass)">Try again</a>'; const rt=$('#dvRetry'); if(rt) rt.onclick=e=>{ e.preventDefault(); load(); }; } } return; }
     if(msg) msg.textContent='';
     b.innerHTML=`<div class="sbwrap"><div class="sbmain"><h4>Main deck<b>${nm}</b></h4>${sbDeckHTML(pseudo(d.main), true)}</div><div class="sbside"><h4>Sideboard<b>${ns}</b></h4><div class="sbcol">${pseudo(d.side).sort(sideSort).map(c=>cardHTML(c,'lib',false)).join('') || '<span class="hint">None</span>'}</div></div></div>`; };
   v.querySelector('.dvtabs').onclick=e=>{ const t=e.target.closest('[data-dv]'); if(!t) return; store.set('mt_dview', t.dataset.dv); v.querySelectorAll('[data-dv]').forEach(x=>x.classList.toggle('on', x===t)); paint(); };
-  paint(); ensureCards([...d.main,...d.side].map(x=>kk(x[0]))).then(paint);
-  $('#useDeck').onclick=async()=>{ const b=$('#useDeck'); b.disabled=true; await loadDeck(d, name, (a,t)=>{ $('#deckMsg').textContent=`Fetching cards ${a}/${t}…`; }); showTable(); changed(); };
+  let loading=true; const load=()=>{ loading=true; paint(); ensureCards([...d.main,...d.side].map(x=>kk(x[0]))).finally(()=>{ loading=false; paint(); }); }; load();
+  $('#useDeck').onclick=async()=>{ const b=$('#useDeck'); b.disabled=true; $('#deckMsg').textContent='Fetching cards…'; await loadDeck(d, name, (a,t)=>{ $('#deckMsg').textContent=`Fetching cards ${a}/${t}…`; }); showTable(); changed(); if(missingCards().length){ toast('Scryfall is not answering, so some cards show as text for now. Their images will fill in when it answers.'); retryMissing(); } };
   const sb=$('#saveDeck'); if(sb) sb.onclick=()=>{ const sv=store.get('mt_decks',[]); sv.unshift({name, text:deckText(d)}); store.set('mt_decks',sv); toast('Saved'); };
   const db=$('#delDeck'); if(db) db.onclick=()=>{ const sv=store.get('mt_decks',[]); sv.splice(savedIdx,1); store.set('mt_decks',sv); renderTab(); };
 }
