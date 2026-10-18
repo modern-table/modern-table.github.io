@@ -3,7 +3,7 @@
 can show those decks without asking Scryfall's card-lookup service (limited to 2 requests a second).
 
 Run: python3 tools/make_cards.py /path/to/oracle-cards.json
-The input is Scryfall's "Oracle Cards" bulk file (https://scryfall.com/docs/api/bulk-data), which
+The input is Scryfall's "Oracle Cards" bulk file (a JSON list or JSON Lines) (https://scryfall.com/docs/api/bulk-data), which
 .github/workflows/cards.yml downloads once a week and whenever src/decks.txt changes.
 
 src/cards.json maps the decklist name (lower case, as the game's keyOf() makes it) to a trimmed
@@ -44,9 +44,21 @@ def deck_names(path='src/decks.txt'):
         if m: names.add(m.group(2).strip())
     return sorted(names)
 
+def load_bulk(path):
+    """The bulk file is either one JSON list or JSON Lines (one card per line, Scryfall's format since 2026)."""
+    with open(path, encoding='utf-8') as f:
+        head = f.read(1024).lstrip(); f.seek(0)
+        if head.startswith('['): return json.load(f)
+        out = []
+        for line in f:
+            line = line.strip().rstrip(',')
+            if line and line not in ('[', ']'): out.append(json.loads(line))
+        return out
+
 def main():
     if len(sys.argv) < 2: sys.exit(__doc__)
-    bulk = json.load(open(sys.argv[1], encoding='utf-8'))
+    bulk = load_bulk(sys.argv[1])
+    if not bulk: sys.exit('No cards read from ' + sys.argv[1])
     by_name, tokens = {}, {}
     for c in bulk:
         lay = c.get('layout', '')
