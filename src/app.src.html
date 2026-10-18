@@ -424,10 +424,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v3.35';
+const VERSION = 'v3.36';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v3.36','Oct 17',"Ajani, Nacatl Pariah: when another Cat dies, only his trigger goes on the stack; the question whether to transform comes when you resolve it (the old pop-up that appeared straight away is gone)."],
   ['v3.35','Oct 17',"Urza's Saga's second chapter ability makes its Construct token again; the token grows with your artifacts."],
   ['v3.34','Oct 17',"Equip works: activate Equip, click the creature, and when the ability resolves the equipment is attached (it sits with the creature). Blade of the Bloodchief and other equipment then affect that creature."],
   ['v3.33','Oct 17',"Samwise Gamgee combo works. Samwise makes a Food when another nontoken creature enters, Cauldron Familiar drains and comes back from the graveyard by sacrificing a Food, Gilded Goose sacrifices a Food for mana, and a Repeat the loop button runs it with the sacrifice outlet you pick. Also: Young Wolf's undying (and persist), Birthing Ritual's end-step swap, convoke (click your creatures while paying for Chord of Calling), Ajani transforming when another Cat dies, Gaddock Teeg's warning, and Urza's Saga is sacrificed as its last chapter resolves."],
@@ -820,7 +821,6 @@ function move(id, zone, o={}){
   if(from==='gy') delete c.fbk;
   if(zone!=='st'){ delete c.md; delete c.nm; delete c.unc; delete c.pc; } if(zone!=='st' && zone!=='bf'){ delete c.ev; delete c.spent; delete c.dash; delete c.hst; } if(zone!=='bf') delete c.exEnd;
   m[from].splice(f.i,1); if(from==='ex'){ delete c.offer; delete c.by; delete c.warp; delete c.pl; delete c.fl; } if(zone!=='st') delete c.bt;
-  if(from==='bf' && zone==='gy' && isCreature(c) && /\bCat\b/.test(faceType(c))) catDied(c);
   if(from==='bf' && zone==='gy' && !c.fd && (c.k||c.cu)) diesTrig(c);
   if(from==='bf' && zone!=='bf') ltbTrig(c); if(zone!=='bf' && zone!=='st') delete c.gainLtb;
   if(from==='bf' && zone==='gy' && !c.fd && isCreature(c)){ undying(c); creatureDied(cname(c), c); if(G.opp) send({t:'cdied', n:cdata(c).n}); }
