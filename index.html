@@ -130,6 +130,8 @@ textarea#paste{width:100%;min-height:300px;font-family:ui-monospace,Menlo,Consol
 .card.atk.tap{transform:translateY(-14%) rotate(18deg) scale(.94)}
 .card.opp.atk.tap{transform:translateY(14%) rotate(18deg) scale(.94)}
 .card.under{margin-right:calc(var(--cw)*-.74)}
+.card.tokunder{margin-right:calc(var(--cw)*-.9)}.card.tokhide{display:none}
+.tokn{position:absolute;right:4%;top:40%;padding:1px 6px;font:800 calc(var(--cw)*.16)/1.2 var(--ui);color:#fff;background:#000d;border:1px solid #fff;border-radius:3px;pointer-events:none;font-variant-numeric:tabular-nums}
 .card.fdmine img,.card.fdmine .txt{opacity:.45}
 .card.sel{box-shadow:0 0 0 3px var(--brass)}
 .card.hov{outline:1px solid #fff8}
@@ -432,10 +434,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 </script>
 <script>
 "use strict";
-const VERSION = 'v3.36';
+const VERSION = 'v3.37';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v3.37','Oct 17',"Identical tokens stack: tokens with the same name and size, in the same state (tapped or not, attacking, summoning sick, counters, damage), sit in one pile with a ×N count, a few edges showing. Clicking the pile uses the top token, so the next one comes up."],
   ['v3.36','Oct 17',"Ajani, Nacatl Pariah: when another Cat dies, only his trigger goes on the stack; the question whether to transform comes when you resolve it (the old pop-up that appeared straight away is gone)."],
   ['v3.35','Oct 17',"Urza's Saga's second chapter ability makes its Construct token again; the token grows with your artifacts."],
   ['v3.34','Oct 17',"Equip works: activate Equip, click the creature, and when the ability resolves the equipment is attached (it sits with the creature). Blade of the Bloodchief and other equipment then affect that creature."],
@@ -1870,7 +1873,7 @@ async function simpleEffects(c, text, srcId){
     if((r=sen.match(/^(?:when you do, )?put (a|an|one|two|three|\d+) \+1\/\+1 counters?(?: and an? ([a-z ]+?) counter)? on target attacking creature\.?$/i))){ if(!sacPow) continue; const cs=m.bf.filter(x=>x.atk && isCreature(x)); if(!cs.length){ log(`${by}: no attacking creature.`); continue; } waited=true; const pk = cs.length===1 ? cs[0] : await pickP(`${by}: choose the attacking creature`, cs, 'None');
       if(pk && find(pk.id)){ const k=NUMW2[r[1].toLowerCase()]||+r[1]||1; pk.c=(pk.c||0)+k; if(r[2] && KW.includes(r[2].toLowerCase()) && !(pk.kw||[]).includes(r[2].toLowerCase())) pk.kw=[...(pk.kw||[]), r[2].toLowerCase()]; log(`${by}: ${cname(pk)} gets ${k} +1/+1 counter${k>1?'s':''}${r[2]?' and a '+r[2]+' counter':''}.`); changed(); } continue; }
     if(/^it becomes an? [A-Z][a-z]+ in addition to its other types\.?$/i.test(sen)) continue;
-    if((r=sen.match(/^create (a|an|one|two|three|four|five|X|\d+) (tapped and attacking )?(\d+)\/(\d+) ([a-z ]+?) (artifact )?creature tokens?( that are tapped and attacking)?(?: with ([a-z ,]+?|"[^"]+"|'[^']+'))?\.?$/i))){
+    if((r=sen.match(/^create (a|an|one|two|three|four|five|six|seven|eight|nine|ten|X|\d+) (tapped and attacking )?(\d+)\/(\d+) ([a-z ]+?) (artifact )?creature tokens?( that are tapped and attacking)?(?: with ([a-z ,]+?|"[^"]+"|'[^']+'))?\.?$/i))){
       const n=r[1].toUpperCase()==='X' ? (c.x||0) : (NUMW2[r[1].toLowerCase()]||+r[1]||1); made=makeCreatureTokens(n, r[3], r[4], r[5], {tapatk:!!(r[2]||r[7]), art:!!r[6], kw:r[8] ? r[8].replace(/^["']|["']$/g,'').replace(/^([a-z])/, x=>x.toUpperCase()) : '', src:srcCard(srcId)||srcCard(c.id)}, by); continue; }
     if(/^sacrifice (?:them|it|those tokens) at the beginning of the next end step\.?$/i.test(sen)){ for(const tk of made){ tk.sacEnd=1; tk.sacBy=String(by).split(":")[0]; } continue; }
     if((r=String(text).match(/^(?:[^\n]*?)Whenever you attack this turn, ([\s\S]+)$/i)) && /^whenever you attack this turn,/i.test(sen)){ (m.wya=(m.wya||[]).filter(e=>e.n===G.turn.n)).push({n:G.turn.n, src:by, txt:r[1].trim()}); log(`${by}: the next time ${m.name} attacks this turn, ${r[1].trim().replace(/\.$/,'')}.`); break; }
@@ -3182,7 +3185,13 @@ function rowsHTML(bf, mine){
   for(const c of free){ const r = c.row || ((c.fd || (isCreature(c) && !c.imp)) ? 'f' : 'b'); if(r==='f') front.push(c); else if(isLand(c) && !c.row) lands.push(c); else other.push(c); }
   lands.sort((a,b)=> (cdata(a).n||'').localeCompare(cdata(b).n||'') || (a.tap-b.tap));
   let L=''; lands.forEach((c,i)=>{ const n=lands[i+1]; const same = n && n.k===c.k && n.tap===c.tap && !c.c && !c.lft && !n.lft && !host.has(c.id) && !host.has(n.id); L += same ? cardHTML(c,'bf',mine,'under') : one(c); });
-  return { front: front.map(one).join(''), back: L + '<span class="gap"></span>' + other.map(one).join('') };
+  // identical tokens share a pile: same token, same state, nothing attached, not part of an arrow
+  const arrowed=new Set(); for(const p of [G.me, G.opp]) for(const a of ((p&&p.arrows)||[])){ arrowed.add(a.a); arrowed.add(a.b); }
+  const tkey = c => c.tok && !c.fd && !host.has(c.id) && !arrowed.has(c.id) && !c.cp ? [c.k||'', (c.cu&&c.cu.n)||'', (c.cu&&c.cu.pt)||'', (c.cu&&c.cu.img)||'', !!c.tap, !!c.atk, !!showSick(c), c.c||0, c.dmg||0, c.tp||0, c.tt||0, (c.kw||[]).join(','), c.hst||0, c.gainLtb||''].join('|') : null;
+  const groups=[], byKey=new Map(); for(const c of front){ const k=tkey(c); if(k && byKey.has(k)){ byKey.get(k).push(c); continue; } const g=[c]; if(k) byKey.set(k,g); groups.push(g); }
+  const F = groups.map(g=>{ if(g.length===1) return one(g[0]); const top=g[g.length-1], rest=g.slice(0,-1);
+    return rest.map((c,i)=>cardHTML(c,'bf',mine, i>=rest.length-3 ? 'tokunder' : 'tokunder tokhide')).join('') + cardHTML(top,'bf',mine,'tokpile').replace(/<\/div>$/, `<span class="tokn" title="${g.length} identical tokens">×${g.length}</span></div>`); }).join('');
+  return { front: F, back: L + '<span class="gap"></span>' + other.map(one).join('') };
 }
 function pileHTML(z, label, cards, n, mine, top){
   const still = !mine && (z==='lib' || z==='hand'), tip = still ? '' : mine ? (z==='lib' ? 'Click to draw, right-click for more' : 'Click to look through') : 'Click to look through';
