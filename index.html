@@ -99,6 +99,8 @@ textarea#paste{width:100%;min-height:300px;font-family:ui-monospace,Menlo,Consol
 #loopBtn{position:absolute;left:12px;z-index:30;padding:8px 12px;border-radius:8px}
 #blockBar{position:absolute;left:12px;z-index:30;display:flex;flex-direction:column;gap:6px;align-items:stretch;width:178px;padding:8px 10px;background:#0b1417f2;border:1px solid var(--brass);border-radius:10px;box-shadow:0 8px 24px #000a}#blockBar span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);font-weight:800;text-align:center}#blockBar button{font-size:12.5px}
 .row .gap{flex:1;min-width:12px}
+.row{position:relative}.row.ovf:hover{z-index:6}
+.row::-webkit-scrollbar{height:9px}.row::-webkit-scrollbar-thumb{background:#d9b25f99;border-radius:5px}.row::-webkit-scrollbar-track{background:#0004}
 .row.front{justify-content:safe center}
 #oppBack,#oppFront{background:#0000001c}
 .handrow{display:flex;justify-content:center;align-items:flex-end;flex:1;min-height:0;padding:0 12px;overflow:hidden}
@@ -434,10 +436,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 </script>
 <script>
 "use strict";
-const VERSION = 'v3.37';
+const VERSION = 'v3.38';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v3.38','Oct 17',"A crowded row of permanents scrolls: turn the mouse wheel over it, or drag its scroll bar (it now comes to the front when you point at the row)."],
   ['v3.37','Oct 17',"Identical tokens stack: tokens with the same name and size, in the same state (tapped or not, attacking, summoning sick, counters, damage), sit in one pile with a ×N count, a few edges showing. Clicking the pile uses the top token, so the next one comes up."],
   ['v3.36','Oct 17',"Ajani, Nacatl Pariah: when another Cat dies, only his trigger goes on the stack; the question whether to transform comes when you resolve it (the old pop-up that appeared straight away is gone)."],
   ['v3.35','Oct 17',"Urza's Saga's second chapter ability makes its Construct token again; the token grows with your artifacts."],
@@ -3176,6 +3179,9 @@ function cardHTML(c, z, mine, cls=''){
   return `<div class="card ${mine?'':'opp'} ${c.tap?'tap':''} ${c.atk?'atk':''} ${!mine && c.atk && z==='bf' && blkDim(c) ? 'nblk' : ''} ${c.fd&&mine?'fdmine':''} ${cls}" data-id="${c.id}" data-z="${z}" data-o="${mine?'me':'opp'}">${inner}${b}${extra}</div>`;
 }
 const markerHTML = (n, pid) => `<div class="card marker" data-ctr="energy" data-pl="${pid}" title="Energy reserve. Click to add energy, right-click to remove."><span class="mkt">Energy reserve</span><img src="${ENERGY_IMG}" alt="" draggable="false" referrerpolicy="no-referrer" onerror="this.remove()"><span class="mkn">${n}</span></div>`;
+/* a row wider than the board scrolls sideways: the mouse wheel moves it, and its scroll bar is brought to the front while the pointer is on the row */
+document.addEventListener('wheel', e=>{ const r=e.target.closest && e.target.closest('.row'); if(!r || r.scrollWidth<=r.clientWidth+1 || Math.abs(e.deltaX)>Math.abs(e.deltaY)) return; r.scrollLeft+=e.deltaY; e.preventDefault(); }, {passive:false});
+function markOverflow(){ for(const r of document.querySelectorAll('.row')) r.classList.toggle('ovf', r.scrollWidth>r.clientWidth+1); }
 function rowsHTML(bf, mine){
   const host = new Map(); for(const c of bf) if(c.att && bf.some(x=>x.id===c.att)){ if(!host.has(c.att)) host.set(c.att,[]); host.get(c.att).push(c); }
   const attached = new Set([...host.values()].flat().map(c=>c.id));
@@ -3260,6 +3266,7 @@ function render(){
   { const bb=$('#blockBar'); if(blockStep()){ const n=G.me.arrows.filter(a=>a.blk).length; bb.hidden=false;
       const atks=(G.opp&&G.opp.bf||[]).filter(c=>c.atk), more=blockersLeft().some(b=>atks.some(a=>!blockIssues(b,a).length)), must=mustBlockNotes(); bb.innerHTML = `<span>${n ? n+' blocker'+(n>1?'s':'')+' declared' : 'You are being attacked'}</span>${must.map(x=>`<span style="text-transform:none;letter-spacing:0;color:var(--brass);font-weight:600">${esc(unlink(x))}</span>`).join('')}${more ? `<button class="go" data-bk="declare">${n?'Declare another blocker':'Declare a blocker'}</button>` : (n ? '' : '<span style="text-transform:none;letter-spacing:0;color:var(--dim);font-weight:400">None of your creatures can block these attackers</span>')}${n ? '<button data-bk="reset">Reset blockers</button><button class="go" data-bk="finish">Finish declaring blocks</button>' : '<button data-bk="finish">No blocks</button>'}`; const fr=$('#myFront'), mid=$('#mid'); bb.style.top=Math.max(mid.offsetTop + mid.offsetHeight + 8, fr.offsetTop + (fr.offsetHeight - bb.offsetHeight)/2)+'px'; } else if(!bb.hidden){ bb.hidden=true; bb.innerHTML=''; } }
   { const lb=$('#loopBtn'); const ok=!blockStep() && (!!loopSpec() || !!samSpec()); if(ok){ lb.hidden=false; const fr=$('#myFront'), mid=$('#mid'); lb.style.top=Math.max(mid.offsetTop + mid.offsetHeight + 8, fr.offsetTop + 8)+'px'; } else if(!lb.hidden) lb.hidden=true; }
+  markOverflow();
   const nb=$('#next');
   if(!t.n){ nb.textContent='Waiting to start'; nb.disabled=true; }
   else if(t.passed){ nb.disabled=mine; nb.textContent = mine ? `Waiting for ${o&&o.name||'opponent'}` : 'Start my turn'; }
