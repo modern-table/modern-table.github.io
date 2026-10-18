@@ -35,6 +35,16 @@ assert '/*__CARDS__*/{}' in src
 need={n.strip().lower() for d in out for n,_ in d['main']+d['side']}
 have=need & set(cards)
 cards={k:v for k,v in cards.items() if k in need or k.startswith('id:')}
+import unicodedata
+def _plain(n): return ''.join(ch for ch in unicodedata.normalize('NFD', n) if unicodedata.category(ch)!='Mn').lower().strip()
+aliases={}
+if os.path.exists('src/aliases.txt'):
+    for line in open('src/aliases.txt', encoding='utf-8'):
+        line=line.strip()
+        if line and not line.startswith('#') and '=' in line:
+            a,b_=(x.strip() for x in line.split('=',1)); aliases[_plain(a)]=b_
+assert '/*__ALIASES__*/{}' in src
+src=src.replace('/*__ALIASES__*/{}', json.dumps(aliases, ensure_ascii=False).replace('</','<\\/'))
 html=src.replace('/*__DECKS__*/[]',json.dumps(out,separators=(',',':'),ensure_ascii=False)).replace('/*__CARDS__*/{}',json.dumps(cards,separators=(',',':'),ensure_ascii=False).replace('</','<\\/')).replace('/*__PEERJS__*/',peer)
 open('index.html','w', encoding='utf-8').write(html)
 ver=re.search(r"const VERSION = '([^']+)'", src).group(1)

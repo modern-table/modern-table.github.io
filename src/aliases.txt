@@ -1,0 +1,3 @@
+# Card names that decklists (MTGGoldfish's Arena download) give under another name than Scryfall's.
+# Marvel cards on Arena use their "Through the Omenpaths" names. One per line:  Name in decklists = Scryfall name
+Kavaero, Mind-Bitten = Superior Spider-Man

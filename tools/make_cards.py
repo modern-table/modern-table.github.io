@@ -55,6 +55,17 @@ def load_bulk(path):
             if line and line not in ('[', ']'): out.append(json.loads(line))
         return out
 
+def aliases(path='src/aliases.txt'):
+    """Decklist name -> Scryfall name, for cards a decklist calls by another name (src/aliases.txt)."""
+    out = {}
+    try:
+        for line in open(path, encoding='utf-8'):
+            line = line.strip()
+            if line and not line.startswith('#') and '=' in line:
+                a, b = (x.strip() for x in line.split('=', 1)); out[plain(a)] = b
+    except FileNotFoundError: pass
+    return out
+
 def main():
     if len(sys.argv) < 2: sys.exit(__doc__)
     bulk = load_bulk(sys.argv[1])
@@ -69,7 +80,8 @@ def main():
             by_name.setdefault(plain(n), c)     # the bulk file has one object per card; the full name and the front face both find it
     out, missing = {}, []
     for n in deck_names():
-        c = by_name.get(plain(n)) or by_name.get(plain(n.split(' // ')[0]))
+        al = aliases().get(plain(n))
+        c = (al and by_name.get(plain(al))) or by_name.get(plain(n)) or by_name.get(plain(n.split(' // ')[0]))
         if not c: missing.append(n); continue
         out[n.strip().lower()] = trim(c)
         for p in c.get('all_parts') or []:

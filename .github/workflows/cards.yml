@@ -8,7 +8,7 @@ name: Build card data
 on:
   push:
     branches: [main]
-    paths: [src/decks.txt, tools/make_cards.py, .github/workflows/cards.yml, .github/scripts/bulk_uri.py]
+    paths: [src/decks.txt, src/aliases.txt, tools/make_cards.py, .github/workflows/cards.yml, .github/scripts/bulk_uri.py]
   schedule:
     - cron: '23 13 * * *'
   workflow_dispatch:

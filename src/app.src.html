@@ -428,10 +428,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v3.42';
+const VERSION = 'v3.43';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v3.43','Oct 17',"Decklists that use a Marvel card's in-universe name (like Kavaero, Mind-Bitten for Superior Spider-Man) now find the right card."],
   ['v3.42','Oct 17',"The tournament decks now come with their cards built in, so opening one or playing it is instant, even the first time and on a new computer. Only the card pictures are still downloaded, and those have no limit."],
   ['v3.41','Oct 17',"Card images load more reliably: the table now asks Scryfall for cards at the pace Scryfall allows, and if Scryfall asks for a pause, it waits and tries again instead of giving up. Clicking quickly through the tournament decks no longer leaves them without images."],
   ['v3.40','Oct 17',"If Scryfall (where card images come from) stops answering, the deck screen no longer waits forever: it says so, offers Try again, and Play this deck still works, with cards shown as text until their images arrive."],
@@ -606,6 +607,9 @@ function saveDB(){ const o={}; let n=0; for(const k in DB){ if(!DB[k].tmp && !DB
 /* Cards of the built-in decks come with the page (src/cards.json, refreshed weekly from Scryfall's bulk file by .github/workflows/cards.yml),
    so showing and playing those decks needs no lookups. Only their images still come from Scryfall's image site, which has no rate limit. */
 const BAKED = /*__CARDS__*/{};
+/* names a decklist gives under another name than Scryfall's (src/aliases.txt), e.g. Arena's "Through the Omenpaths" names for Marvel cards */
+const ALIASES = /*__ALIASES__*/{};
+const sfName = n => ALIASES[plainName(n)] || n;
 if(!/[?&]nobake\b/.test(location.search)) for(const k in BAKED){ try{ const d=toDB(BAKED[k]); d.bk=1; DB[k]=d; }catch(e){} }
 /* Every request to Scryfall goes through one queue: at most one every 0.55 s (Scryfall allows 2 a second for card lookups),
    each gives up after 15 s, and if Scryfall says "too many requests" (or the request fails outright, which is how a refusal
@@ -637,11 +641,11 @@ async function ensureCards0(names, onProgress){
     const chunk = want.slice(i,i+75);
     try{
       const r = await sfetch('https://api.scryfall.com/cards/collection', { method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ identifiers: chunk.map(n => n.startsWith('id:') ? {id:n.slice(3)} : {name:n.split(' // ')[0]}) }) });
+        body: JSON.stringify({ identifiers: chunk.map(n => n.startsWith('id:') ? {id:n.slice(3)} : {name:sfName(n).split(' // ')[0]}) }) });
       if(!r.ok) throw new Error(r.status);
       const j = await r.json(); SCRY_DOWN=0;
       const store1 = c => { const d=toDB(c), full=plainName(c.name), front=plainName(c.name.split(' // ')[0]);
-        for(const n of chunk){ const k=keyOf(n), p=plainName(k); if(k==='id:'+c.id || p===full || p.split(' // ')[0]===front) DB[k]=d; } };
+        for(const n of chunk){ const k=keyOf(n), p=plainName(sfName(k)); if(k==='id:'+c.id || p===full || p.split(' // ')[0]===front) DB[k]=d; } };
       for(const c of j.data || []) store1(c);
       // names Scryfall did not recognise exactly (a missing accent, a slightly different spelling): ask its fuzzy name search, one at a time
       for(const nf of (j.not_found || [])){ if(!nf || !nf.name) continue;
