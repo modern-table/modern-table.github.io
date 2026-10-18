@@ -179,6 +179,7 @@ textarea#paste{width:100%;min-height:300px;font-family:ui-monospace,Menlo,Consol
 .pile .dtag.on{color:#1b1205;background:var(--brass);border-color:var(--brass)}.pile .dtag.low{top:26px}
 #stormTag{cursor:pointer;color:var(--ink);border-color:var(--brass)}#stormTag b{color:var(--brass);letter-spacing:0;font-variant-numeric:tabular-nums;margin-left:3px}
 .playbox{flex:none;align-self:center;height:calc(var(--ch) - 8px);margin:4px 0;padding:2px 7px 4px;border:1px solid var(--brass);border-radius:8px;background:#d9b25f14;box-shadow:0 0 14px 3px #d9b25f99,inset 0 0 12px #d9b25f2e;display:flex;flex-direction:column;gap:2px;--cw:calc(var(--ch)*.55)}
+#mbGrid .card[data-ord]:not([data-ord=''])::after{content:attr(data-ord);position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:var(--brass);color:#1a1408;font:800 12px/22px var(--ui);text-align:center}
 .playbox.this,.playbox.next{margin-left:auto}.row.front:has(>.playbox.this)>:first-child{margin-left:auto}
 .playbox.next{border-style:dashed;box-shadow:0 0 10px 1px #d9b25f55,inset 0 0 10px #d9b25f1c}
 .playbox h6{margin:0;font:800 9.500px var(--ui);letter-spacing:.1em;color:var(--brass);white-space:nowrap;text-align:center}
@@ -438,10 +439,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 </script>
 <script>
 "use strict";
-const VERSION = 'v3.55';
+const VERSION = 'v3.56';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v3.56','Oct 18',"After a mulligan, keeping your hand opens a box to choose that many cards for the bottom of your library, in the order you click them."],
   ['v3.55','Oct 18',"Ral, Monsoon Mage: the first coin flip asks you to call heads or tails for the rest of the game, and each flip shows how it landed. Lose and Ral deals 1 damage to you; win and you're asked whether to flip him. He comes back as a planeswalker with 2 loyalty plus one for each instant and sorcery you cast this turn, and his +1, −2 and −8 work. Fixed: once Ral had flipped, the table stopped updating, which left spells like Wrenn's Resolve stuck on the stack. The 'may be played until end of this turn / next turn' boxes now sit at the right end of their row."],
   ['v3.54','Oct 18',"Last cards from the review: Razorgrass Ambush hits an attacking or blocking creature, Chandra's +1 returns a surveilled spell to your hand, Kaito's 0 draws only if your opponent lost life, Twinned Vision draws two from the graveyard, flashback that costs a sacrifice or a discard works (Lava Dart, Twinned Vision), Emry lets you cast an artifact from your graveyard, Kappa Cannoneer can't be blocked after it grows, Fear of Missing Out untaps and gives an extra combat, Molten Collapse offers both modes only after you descend, Creeping Chill drains when milled, and The Filigree Sylex destroys exactly its oil count."],
   ['v3.53','Oct 18',"Xenagos doubles a creature's power at the start of combat, Fable of the Mirror-Breaker works through all three chapters (the Goblin Shaman's Treasure, the chapter II loot, and Kiki-Jiki's hasty copies), Cityscape Leveler triggers when it attacks, Emperor of Bones brings back what it exiled (finality counter, haste, sacrificed at the end step), Necrodominance skips your draw, limits your hand to five, exiles your cards instead of the graveyard and lets you pay life to draw, Icetill Explorer plays lands from your graveyard, Wan Shi Tong grows when your opponent searches, and the table warns when Ensnaring Bridge or Ketramose stops an attack."],
@@ -3626,7 +3628,15 @@ function highRoll(){ const m=G.me; m.roll=1+Math.floor(Math.random()*20); const 
 /* London mulligan in turn order: the player on the play decides (keep or mulligan) first, then the player on the draw, round by round */
 function canDecide(){ const m=G.me, o=G.opp, t=G.turn; if(alone() || !o || !t.n || m.kept) return true; const ro=(o.mull||0)+(o.kept?1:0), mine=(m.mull||0); return t.active===G.myId ? (o.kept || ro>=mine) : (o.kept || ro>mine); }
 function notYourDecision(){ toast(`${G.turn.active===G.myId ? 'Wait' : 'The player on the play decides first. Wait'} for ${G.opp?G.opp.name:'your opponent'} to keep or mulligan.`); }
-function keepHand(){ const m=G.me; if(G.turn.n && !m.kept && !canDecide()){ notYourDecision(); return; } m.kept=true; log(`${m.name} keeps${m.mull ? ` after ${m.mull} mulligan${m.mull>1?'s':''}` : ''}.`); changed(); pregameModal(); }
+function keepHand(){ const m=G.me; if(G.turn.n && !m.kept && !canDecide()){ notYourDecision(); return; } m.kept=true; log(`${m.name} keeps${m.mull ? ` after ${m.mull} mulligan${m.mull>1?'s':''}` : ''}.`); changed(); const n=Math.min(m.mull||0, m.hand.length); if(n>0) bottomPick(n, pregameModal); else pregameModal(); }
+/* London mulligan: after keeping, choose as many cards as mulligans taken; they go to the bottom of the library in the order clicked */
+function bottomPick(n, then){ const m=G.me, sel=[]; let done=false;
+  const fin=ids=>{ if(done) return; done=true; closeModal(); for(const id of ids){ const f=find(id); if(f && f.z==='hand') move(id,'lib',{silent:true, pos:'bottom'}); } G.noUndo=true;
+    if(ids.length) log(`${m.name} puts ${ids.length===1?'a card':ids.length+' cards'} from their hand on the bottom of their library (${m.mull} mulligan${m.mull>1?'s':''}).`); changed(); if(then) then(); };
+  const el=modal(`Mulligan: put ${n} card${n>1?'s':''} on the bottom`, `<span class="hint">You took ${m.mull} mulligan${m.mull>1?'s':''}. Click ${n===1?'the card':n+' cards'} to put on the bottom of your library. The first one you click goes to the bottom first; click again to take a card back.</span><div class="grid" id="mbGrid">${m.hand.map(c=>cardHTML(c,'hand',true)).join('')}</div>`,
+    [["I'll do it by hand",()=>fin([]),'ghost'], ['Put them on the bottom',()=>{ if(sel.length===n) fin(sel.slice()); },'go']], {wide:true, noClose:true});
+  const g=$('#mbGrid', el), gb=$('footer button.go', el); const upd=()=>{ g.querySelectorAll('.card').forEach(k=>{ const i=sel.indexOf(k.dataset.id); k.classList.toggle('sel', i>=0); k.dataset.ord = i>=0 ? i+1 : ''; }); gb.disabled=sel.length!==n; gb.textContent = sel.length===n ? `Put ${n===1?'it':'them'} on the bottom` : `Choose ${n-sel.length} more`; };
+  g.onclick=e=>{ const d=e.target.closest('.card[data-id]'); if(!d) return; const i=sel.indexOf(d.dataset.id); if(i>=0) sel.splice(i,1); else if(sel.length<n) sel.push(d.dataset.id); upd(); }; upd(); }
 const pregameCards = () => G.me.hand.filter(c => /opening hand/i.test(cdata(c).o||''));
 function pregameModal(){
   if(!pregameCards().length && !compCandidates().length) return;
@@ -3641,7 +3651,7 @@ function pregameModal(){
     else { log(`${G.me.name} reveals ${cname(f.c)} from their opening hand.`); b.disabled=true; b.textContent='Revealed'; } };
   paint();
 }
-function mulligan(){ const m=G.me; if(G.turn.n && !m.kept && !canDecide()){ notYourDecision(); return; } m.lib.push(...m.hand.splice(0)); m.mull++; shuffleLib(true); draw(7,true); log(`${m.name} mulligans (number ${m.mull}) and must put ${m.mull} on the bottom.`); toast(`Right-click ${m.mull} card${m.mull>1?'s':''} in hand → Bottom of library.`); changed(); }
+function mulligan(){ const m=G.me; if(G.turn.n && !m.kept && !canDecide()){ notYourDecision(); return; } m.lib.push(...m.hand.splice(0)); m.mull++; shuffleLib(true); draw(7,true); log(`${m.name} mulligans (number ${m.mull}) and must put ${m.mull} on the bottom.`); toast(`When you keep, you'll choose ${m.mull} card${m.mull>1?'s':''} to put on the bottom.`); changed(); }
 /* cards whose data could not be loaded (Scryfall not answering) are asked for again every half minute, for up to ten minutes */
 const missingCards = () => { const ks=new Set(); for(const p of [G.me, G.opp]) if(p) for(const z of ['lib','hand','bf','gy','ex','st','side']) for(const c of (p[z]||[])) if(c && c.k && DB[c.k] && DB[c.k].tmp) ks.add(c.k); return [...ks]; };
 let retryT=null;
