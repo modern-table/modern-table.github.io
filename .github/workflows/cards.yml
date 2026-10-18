@@ -32,15 +32,24 @@ jobs:
       - name: Download Scryfall's Oracle Cards bulk file
         run: |
           UA="ModernTable/1.0 (+https://modern-table.github.io/)"
-          URI=$(curl -sSf -H "User-Agent: $UA" -H "Accept: application/json" https://api.scryfall.com/bulk-data/oracle-cards \
-                | python3 -c "import json,sys; print(json.load(sys.stdin)['download_uri'])")
-          echo "Downloading $URI"
-          curl -sSfL -H "User-Agent: $UA" -H "Accept: */*" "$URI" -o "$RUNNER_TEMP/oracle-cards.json"
-          ls -la "$RUNNER_TEMP/oracle-cards.json"
+          META="$RUNNER_TEMP/meta.json"
+          CODE=$(curl -sS -o "$META" -w '%{http_code}' -H "User-Agent: $UA" -H "Accept: application/json" https://api.scryfall.com/bulk-data/oracle-cards || echo "000")
+          if [ "$CODE" != "200" ]; then
+            echo "::error::Scryfall bulk-data list answered HTTP $CODE: $(head -c 300 "$META" 2>/dev/null | tr '\n' ' ')"; exit 1
+          fi
+          URI=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['download_uri'])" "$META")
+          echo "::notice::Downloading $URI"
+          CODE=$(curl -sSL -o "$RUNNER_TEMP/oracle-cards.json" -w '%{http_code}' -H "User-Agent: $UA" -H "Accept: */*" "$URI" || echo "000")
+          SIZE=$(stat -c %s "$RUNNER_TEMP/oracle-cards.json" 2>/dev/null || echo 0)
+          if [ "$CODE" != "200" ]; then
+            echo "::error::Bulk file download answered HTTP $CODE ($SIZE bytes): $(head -c 300 "$RUNNER_TEMP/oracle-cards.json" | tr '\n' ' ')"; exit 1
+          fi
+          echo "::notice::Bulk file: $SIZE bytes"
 
       - name: Write src/cards.json and rebuild
         run: |
-          python3 tools/make_cards.py "$RUNNER_TEMP/oracle-cards.json"
+          python3 tools/make_cards.py "$RUNNER_TEMP/oracle-cards.json" | tee "$RUNNER_TEMP/cards.txt"
+          echo "::notice::$(head -1 "$RUNNER_TEMP/cards.txt"); $(grep 'not found' "$RUNNER_TEMP/cards.txt" | tail -n +2 | head -20 | tr '\n' ';')"
           python3 build.py | tail -2
 
       - name: Commit and push if anything changed
