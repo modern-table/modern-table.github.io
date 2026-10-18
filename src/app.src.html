@@ -332,7 +332,7 @@ textarea#paste{width:100%;min-height:300px;font-family:ui-monospace,Menlo,Consol
 .sheet .body>*{flex:none}
 #zfilter{position:sticky;top:-14px;z-index:3;box-shadow:0 6px 10px var(--felt2)}
 .sheet footer{padding:10px 16px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
-.grid{display:flex;flex-wrap:wrap;gap:8px;--cw:132px}
+.grid{display:flex;flex-wrap:wrap;gap:8px;--cw:132px;align-items:flex-start}
 .grid .card{width:132px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 .two h4{margin:0 0 6px;font:400 17px var(--display)}
@@ -431,10 +431,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v3.56';
+const VERSION = 'v3.57';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v3.57','Oct 18',"Search windows (fetchlands and the like) show every card at its proper shape: one-of cards are no longer stretched next to cards with an '×N in library' count. The scry and surveil window is only as wide as the cards it shows."],
   ['v3.56','Oct 18',"After a mulligan, keeping your hand opens a box to choose that many cards for the bottom of your library, in the order you click them."],
   ['v3.55','Oct 18',"Ral, Monsoon Mage: the first coin flip asks you to call heads or tails for the rest of the game, and each flip shows how it landed. Lose and Ral deals 1 damage to you; win and you're asked whether to flip him. He comes back as a planeswalker with 2 loyalty plus one for each instant and sorcery you cast this turn, and his +1, −2 and −8 work. Fixed: once Ral had flipped, the table stopped updating, which left spells like Wrenn's Resolve stuck on the stack. The 'may be played until end of this turn / next turn' boxes now sit at the right end of their row."],
   ['v3.54','Oct 18',"Last cards from the review: Razorgrass Ambush hits an attacking or blocking creature, Chandra's +1 returns a surveilled spell to your hand, Kaito's 0 draws only if your opponent lost life, Twinned Vision draws two from the graveyard, flashback that costs a sacrifice or a discard works (Lava Dart, Twinned Vision), Emry lets you cast an artifact from your graveyard, Kappa Cannoneer can't be blocked after it grows, Fear of Missing Out untaps and gives an extra combat, Molten Collapse offers both modes only after you descend, Creeping Chill drains when milled, and The Filigree Sylex destroys exactly its oil count."],
@@ -1585,7 +1586,7 @@ function scryWin(n, kind, by){ return new Promise(res=>{ const m=G.me, cards=m.l
     m.lib=[...tops, ...m.lib.filter(c=>!ids.has(c.id)), ...(sv ? [] : rest)]; G.noUndo=true;
     G.lastSurv = sv ? rest.map(c=>c.id) : []; if(sv){ m.lib.push(...rest); for(const c of rest) move(c.id,'gy',{silent:true}); }
     log(`${by}: ${m.name} ${sv?'surveils':'scries'} ${cards.length}: ${tops.length} on top${rest.length ? ', '+(sv ? `${rest.length===1?'':rest.length+' '}into the graveyard (${rest.map(cname).join(', ')})` : rest.length+' on the bottom') : ''}.`); changed(); res(); };
-  const el=modal(`${by}: ${kind} ${cards.length}`, `<span class="hint">Choose where each card goes${sv?'':', and the order of the ones on top'}.</span><div id="scryBox"></div>`, [['Done',done,'go']], {wide:true, noClose:true});
+  const el=modal(`${by}: ${kind} ${cards.length}`, `<span class="hint">Choose where each card goes${sv?'':', and the order of the ones on top'}.</span><div id="scryBox"></div>`, [['Done',done,'go']], {width:Math.max(440, Math.min(1100, cards.length*196+40)), noClose:true});
   paint();
   $('#scryBox', el).onclick=e=>{ const b=e.target.closest('button[data-s]'); if(!b) return; const id=b.closest('.scryt').dataset.id, i=st.findIndex(x=>x.id===id), s=b.dataset.s, x=st[i];
     if(s==='t' || s==='b'){ x.top = s==='t'; st.splice(i,1); if(x.top){ const li=st.map(y=>y.top).lastIndexOf(true); st.splice(li+1,0,x); } else st.push(x); }
@@ -3875,7 +3876,7 @@ const closeMenu = () => { $('#ctx').hidden=true; };
 let modalRefresh=null;
 function modal(title, bodyHTML, buttons=[], opts={}){
   const el=$('#modal'); el.hidden=false;
-  el.innerHTML = `<div class="sheet" style="${opts.wide?'width:1100px':''}"><header><h3>${esc(title)}</h3>${opts.noClose?'':'<button class="ghost" data-x>Close</button>'}</header><div class="body">${bodyHTML}</div>${buttons.length?'<footer></footer>':''}</div>`;
+  el.innerHTML = `<div class="sheet" style="${opts.wide?'width:1100px':opts.width?'width:'+opts.width+'px':''}"><header><h3>${esc(title)}</h3>${opts.noClose?'':'<button class="ghost" data-x>Close</button>'}</header><div class="body">${bodyHTML}</div>${buttons.length?'<footer></footer>':''}</div>`;
   const f=$('footer',el); buttons.forEach(([label,fn,cls])=>{ const b=document.createElement('button'); b.textContent=label; if(cls) b.className=cls; b.onclick=fn; f.appendChild(b); });
   const x=$('[data-x]',el); if(x) x.onclick=()=>closeModal(); el._onclose=opts.onClose; el._noClose=opts.noClose;
   return el;
