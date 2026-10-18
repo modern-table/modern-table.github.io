@@ -140,7 +140,7 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 <script src="../src/peerjs.min.js"></script>
 <script>
 "use strict";
-const VERSION = 'v0.11';
+const VERSION = 'v0.12';
 const SETS = /*__SETS__*/[];
 const PREFIX = 'draft-table-v1-';
 const $ = (s, el=document) => el.querySelector(s), $$ = (s, el=document) => [...el.querySelectorAll(s)];
@@ -184,8 +184,19 @@ function toCard(c){
 }
 /* Cube cards are listed by name ("n|Force of Will"). Scryfall answers with the full name, so two-faced and split cards are matched on either face. */
 const nameKey = n => String(n).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s*\/\/?\s*/g,' // ').trim();
-/* Scryfall requests give up after a while, so a request that never gets an answer cannot freeze the deck screen or the Play button */
-const sfetch = (u, o={}, ms=15000) => { const ac=new AbortController(); setTimeout(()=>ac.abort(), ms); return fetch(u, Object.assign({}, o, {signal:ac.signal})); };
+/* Every request to Scryfall goes through one queue: at most one every 0.55 s (Scryfall allows 2 a second for card lookups),
+   each gives up after 15 s, and if Scryfall says "too many requests" (or the request fails outright, which is how a refusal
+   without the right headers looks to the page) the queue pauses for 31 s, as Scryfall asks, and then tries that request once more. */
+let SF_NEXT=0, SF_HOLD=0, sfBusy=false; const SF_Q=[];
+function sfetch(u, o={}, ms=15000){ return new Promise((res, rej)=>{ SF_Q.push({u, o, ms, res, rej, tries:0}); sfPump(); }); }
+async function sfPump(){ if(sfBusy) return; sfBusy=true;
+  try{ while(SF_Q.length){ const wait=Math.max(SF_NEXT, SF_HOLD)-Date.now(); if(wait>0){ await sleep(wait); continue; }
+    const j=SF_Q.shift(); SF_NEXT=Date.now()+550; const ac=new AbortController(), tm=setTimeout(()=>ac.abort(), j.ms);
+    let r=null, err=null; try{ r=await fetch(j.u, Object.assign({}, j.o, {signal:ac.signal})); }catch(e){ err=e; } clearTimeout(tm);
+    const refused = (r && r.status===429) || (err && err.name!=='AbortError');
+    if(refused){ SF_HOLD=Date.now()+31000; if(j.tries++ < 1){ SF_Q.unshift(j); continue; } }
+    if(r) j.res(r); else j.rej(err || new Error('Scryfall did not answer')); } }
+  finally{ sfBusy=false; } }
 async function ensureNames(chunk){
   try{
     const r=await sfetch('https://api.scryfall.com/cards/collection', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ identifiers:chunk.map(x=>({name:x.slice(2)})) }) });
