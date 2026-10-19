@@ -441,10 +441,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 </script>
 <script>
 "use strict";
-const VERSION = 'v3.70';
+const VERSION = 'v3.71';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v3.71','Oct 19',"Starting a new match asks each player whether to keep their deck. Keep it and you are back at the table with the deck as you first brought it (sideboarding undone), waiting for your opponent; or choose another deck."],
   ['v3.70','Oct 19',"Cori-Steel Cutter: when flurry makes the Monk, you're asked whether to attach the Cutter to it. Equipment and Auras that give keywords (trample and haste from the Cutter, for example) now show them on the creature they're attached to."],
   ['v3.69','Oct 19',"Fiery Islet, Sunbaked Canyon, Horizon Canopy, Nurturing Peatland and other lands with \"Pay 1 life: Add …\" take the life as you tap them for coloured mana."],
   ['v3.68','Oct 19',"Casting a prepared creature's spell (and a paradigm copy) now counts as casting a spell, so prowess and other cast triggers fire. Guide of Souls and other \"whenever you attack\" triggers show on the stack as soon as you attack."],
@@ -907,7 +908,7 @@ function onMsg(m){
   else if(m.t==='clrarrow'){ const n=G.me.arrows.length; G.me.arrows=G.me.arrows.filter(a=>a.a!==m.id && a.b!==m.id); if(G.me.arrows.length!==n) changed(); }
   else if(m.t==='show'){ const c={id:'s:'+(m.k||''), k:m.k, cu:m.cu}; ensureCards(m.k?[m.k]:[]).then(()=>showCard(c, `${G.opp?G.opp.name:'Your opponent'} shows you ${m.what}`)); }
   else if(m.t==='adj'){ G.noUndo=true; if(m.life<0 && G.me.palm && G.me.palm.n===G.turn.n){ const pv=G.me.palm, n=-m.life; G.me.palm=null; yesNo(`${pv.by}`, `${G.opp?G.opp.name:'Your opponent'} deals ${n} damage to you. Prevent it with ${pv.by} and deal ${n} damage to them?`, 'Prevent and reflect', 'Take it').then(y=>{ if(y){ log(`${pv.by}: ${G.me.name} prevents ${n} damage and deals ${n} damage to ${G.opp?G.opp.name:'the opponent'}.`); send({t:'adj', life:-n}); } else { G.me.life-=n; log(`${G.me.name} takes ${n} damage (${pv.by} not used).`); } changed(); }); return; } if(m.win){ applyWin(m.win); if(m.concede && (G.me.wins||0)<2) nextGamePrompt(`${G.opp?G.opp.name:'Your opponent'} conceded the game`); return; } if(m.life){ G.me.life += m.life; } if(m.ctr){ G.me.ctr[m.ctr] = Math.max(0,(G.me.ctr[m.ctr]||0)+m.d); } changed(); }
-  else if(m.t==='newmatch'){ G.noUndo=true; G.me.wins=0; G.me.wonGame=0; changed(); }
+  else if(m.t==='newmatch'){ toast((G.opp&&G.opp.name||'Opponent')+' started a new match.'); newMatch(true); }
   else if(m.t==='setroll'){ G.me.roll=+m.v||null; changed(); }
   else if(m.t==='newgame'){ toast((G.opp&&G.opp.name||'Opponent')+' started a new game.'); newGame(true); }
   else if(m.t==='full'){ $('#lobbyMsg').textContent='That table already has two players.'; setNet('full'); }
@@ -3874,7 +3875,14 @@ function applyWin(d){
   changed();
 }
 function markWin(pl, d){ if(pl===G.myId) applyWin(d); else if(G.opp) send({t:'adj', win:d}); }
-function newMatch(){ G.me.wins=0; G.me.wonGame=0; send({t:'newmatch'}); log(`${G.me.name} started a new match.`); newGame(); }
+/* a new match: each player keeps their deck (rebuilt as first brought, so sideboarding is undone) or goes to choose another */
+function newMatch(remote){ const m=G.me; G.noUndo=true; m.wins=0; m.wonGame=0; G.turn={active:null, phase:2, n:0};
+  if(!remote){ send({t:'newmatch'}); log(`${m.name} started a new match.`); } changed(); matchDeckAsk(); }
+function matchDeckAsk(){ const m=G.me, sp=m.deckSpec, on=G.opp?G.opp.name:'your opponent';
+  const other=()=>{ closeModal(); gather(); m.deck=null; for(const z of ['lib','side']) m[z]=[]; log(`${m.name} is choosing a deck for the new match.`); changed(); showDecks(); };
+  if(!sp || !sp.d || !sp.name){ other(); return; }
+  modal('New match', `<p>Play <b>${esc(sp.name)}</b> again? It comes back as you first brought it, with any sideboarding undone.</p><span class="hint">Or pick another deck; ${esc(on)} decides for themselves.</span>`,
+    [['Choose another deck', other, 'ghost'], ['Keep this deck', async ()=>{ closeModal(); await loadDeck(sp.d, sp.name); showTable(); changed(); }, 'go']], {noClose:true}); }
 function gather(){
   const m=G.me; G.noUndo=true;
   for(const z of ['hand','bf','gy','ex','st']){ for(const c of m[z].splice(0)){ if(c.tok || c.made) continue; if(c.sideOrig && c.o===G.myId){ delete c.sideOrig; Object.assign(c,{tap:false,c:0,att:null,atk:false,fd:false,flip:false,note:'',row:null}); m.side.push(c); continue; } if(c.o!==G.myId){ send({t:'give', card:Object.assign(c,{tap:false,c:0,att:null,atk:false,fd:false,flip:false}), zone:'lib'}); continue; } Object.assign(c,{tap:false,c:0,att:null,atk:false,fd:false,flip:false,note:'',row:null}); m.lib.push(c); } }
@@ -3942,6 +3950,7 @@ async function loadDeck(d, name, onProgress){
   for(const [n,c] of d.main) for(let i=0;i<c;i++) m.lib.push(mk(kk(n)));
   for(const [n,c] of d.side) for(let i=0;i<c;i++) m.side.push(mk(kk(n)));
   m.deck=name; m.life=20; m.ctr={poison:0,energy:0}; m.mull=0; m.arrows=[]; m.roll=null; m.compDone=false; m.skipRoll=false; m.dealt=false; m.kept=false; m.mana=noMana(); m.smana=[]; m.energySeen=false; m.drew=0; m.cast={n:0,is:0}; m.pacts=[]; m.baub=[]; m.trk=null; setCares();
+  m.deckSpec={d:{main:d.main, side:d.side, art:d.art||{}}, name};   // for a new match with the same deck (kept with my side, not shared)
   log(`${m.name} brought ${name}.`); shuffleUp();
 }
 
