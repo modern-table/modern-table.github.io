@@ -1324,7 +1324,7 @@ async function topBottom(id, by, who){ const f=find(id); if(!f || f.z!=='st'){ l
 const TOKTXT={Powerstone:['Token Artifact — Powerstone',"{T}: Add {C}. This mana can't be spent to cast a nonartifact spell."], Food:['Token Artifact — Food','{2}, {T}, Sacrifice this artifact: You gain 3 life.'], Treasure:['Token Artifact — Treasure','{T}, Sacrifice this artifact: Add one mana of any color.'], Clue:['Token Artifact — Clue','{2}, Sacrifice this artifact: Draw a card.'], Blood:['Token Artifact — Blood','{1}, {T}, Discard a card, Sacrifice this artifact: Draw a card.']};
 /* token art: the token Scryfall links to the source card (all_parts), else a Scryfall search for a token with that name, colour and P/T,
    the source card's token set first ("t" + its set code). What is found is remembered per set in mt_tokart; nothing found keeps the plain token. */
-const TOKART = store.get('mt_tokart', {});
+const TOKART = store.get('mt_tokart2', {}); try{ localStorage.removeItem('mt_tokart'); }catch(e){}   // v3.65: the old list held the white Warrior picture for mobilize's red tokens
 async function tokenArt(made, src, name, pt, cl){
   if(!made || !made.length || !name) return; const sd=src ? cdata(src) : null, set=(sd && sd.set)||'', key=[set, name, pt||'', cl ? cl.join('')||'c' : ''].join('|').toLowerCase(), nm=name.toLowerCase();
   let img=TOKART[key];
@@ -1334,7 +1334,7 @@ async function tokenArt(made, src, name, pt, cl){
       if(!img){ const [p,t]=(pt||'').split('/'), q=`t:token t:"${name}"`+(pt ? ` pow=${p} tou=${t}` : '')+(cl ? (cl.length ? ` c=${cl.join('')}` : ' c=c') : '');
         for(const qq of (set ? [q+` e:t${set}`, q] : [q])){ const ks=await scrySearch(qq, true).catch(()=>{ err=true; return []; }), ok=k=>DB[k] && DB[k].img; const k=ks.find(k=>ok(k) && String(DB[k].n).toLowerCase()===nm) || ks.find(ok); if(k){ img=DB[k].img; break; } await sleep(110); } }
     }catch(e){ err=true; console.warn('token art', e); }
-    if(img || !err){ TOKART[key]=img; store.set('mt_tokart', TOKART); } }
+    if(img || !err){ TOKART[key]=img; store.set('mt_tokart2', TOKART); } }
   if(!img) return; const t0=made[0].cu||{}, same=G.me.bf.filter(x=>x.tok && x.cu && x.cu.n===t0.n && x.cu.pt===t0.pt && x.cu.t===t0.t);   // copies made meanwhile (Ocelot Pride with the city's blessing)
   let ch=false; for(const tk of [...made, ...same]){ if(find(tk.id) && tk.cu && !tk.cu.img){ tk.cu.img=img; ch=true; } } if(ch) changed(); }
 const srcCard = id => { const f=id && findAny(id); return f ? f.c : null; };
