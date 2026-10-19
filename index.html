@@ -439,10 +439,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 </script>
 <script>
 "use strict";
-const VERSION = 'v3.64';
+const VERSION = 'v3.65';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v3.65','Oct 19',"Mobilize tokens (Voice of Victory and others) show the red Warrior token picture instead of the white one with vigilance. Tokens now use the picture of the token the card actually makes."],
   ['v3.64','Oct 19',"Pick Your Poison is the printed card now (choose one: your opponent sacrifices an artifact, an enchantment, or a creature with flying, their choice). Last version used a test card of the same name by mistake."],
   ['v3.63','Oct 19',"This week's new decks: Eidolon of the Great Revel, Kor Firewalker and Roiling Vortex trigger on any player's spells; Goblin Guide, Archon of Cruelty, Searing Blood, Searing Blaze, Smash to Smithereens, Vapor Snag, Wasteland Strangler, Sanctifier en-Vec, Chandra, Awakened Inferno, Ob Nixilis, Valakut, Talismans, Stormscale Scion's Dragon bonus, Skullcrack, Flare of Fortitude, Bitter Reunion, Untimely Malfunction, Sundering Eruption and Ifnir Deadlands work. Spells: Stock Up, spectacle (Light Up the Stage, Skewer the Critics), Irencrag Feat, Legion Leadership, March of Reckless Joy, Pick Your Poison, Press the Enemy, Scout for Survivors, Dewdrop Cure, Secret Identity, Shatterskull Smashing, Toxic Deluge, Unearth, Persist, End of the Hunt, Commandeer, Deflecting Palm, Goblin Charbelcher, Ba Sing Se, Thrun, and Brazen Borrower's adventure."],
   ['v3.62','Oct 18',"Ready for a Darklight Phoenix sacrifice deck: Buried Alive puts creatures into your graveyard, Darklight Phoenix comes back at the start of combat after two creatures died, Spymaster's Vault connives for each creature that died this turn, Culling Ritual adds its mana, Malevolent Rumble shows what it revealed in the log right away, True Ancestry returns its target, Ozai's Cruelty makes the player discard two, and Decorum Dissertation draws, drains and comes back each turn with paradigm. Also: 'gains indestructible until end of turn' now protects the creature from destroy effects, and a creature you sacrifice to cast a spell puts its death trigger above the spell, as the rules say."],
@@ -1329,7 +1330,7 @@ async function tokenArt(made, src, name, pt, cl){
   let img=TOKART[key];
   if(img===undefined){ img=''; let err=false;
     try{ const part=sd && (sd.parts||[]).find(p=>String(p.n).toLowerCase()===nm);
-      if(part){ await ensureCards(['id:'+part.id]); const d=DB['id:'+part.id]; if(d && d.img && (!pt || !d.pt || d.pt===pt)) img=d.img; }
+      if(part){ await ensureCards(['id:'+part.id]); const d=DB['id:'+part.id]; if(d && d.img && (!pt || !d.pt || d.pt===pt) && (!cl || !d.cl || [...d.cl].sort().join('')===[...cl].sort().join(''))) img=d.img; }
       if(!img){ const [p,t]=(pt||'').split('/'), q=`t:token t:"${name}"`+(pt ? ` pow=${p} tou=${t}` : '')+(cl ? (cl.length ? ` c=${cl.join('')}` : ' c=c') : '');
         for(const qq of (set ? [q+` e:t${set}`, q] : [q])){ const ks=await scrySearch(qq, true).catch(()=>{ err=true; return []; }), ok=k=>DB[k] && DB[k].img; const k=ks.find(k=>ok(k) && String(DB[k].n).toLowerCase()===nm) || ks.find(ok); if(k){ img=DB[k].img; break; } await sleep(110); } }
     }catch(e){ err=true; console.warn('token art', e); }

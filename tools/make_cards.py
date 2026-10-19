@@ -43,6 +43,25 @@ def odd(c):
     if not any(v != 'not_legal' for v in (c.get('legalities') or {}).values()): bad += 1
     return bad
 
+COLW = {'white': 'W', 'blue': 'U', 'black': 'B', 'red': 'R', 'green': 'G'}
+
+def token_fit(t, part, card):
+    """How well a token object fits a card's token part: exact id, then the "N/N colour Name" its text describes."""
+    score = 100 if t.get('id') == part.get('id') else 0
+    text = (card.get('oracle_text') or '') + ' ' + ' '.join(f.get('oracle_text') or '' for f in card.get('card_faces') or [])
+    name = part['name'].split(' // ')[0].lower()
+    for m in re.finditer(r'(\d+|X)/(\d+|X) ([a-z ]+?) (?:artifact |enchantment )*creature tokens?((?: with [a-z, ]+)?)', text, re.I):
+        words = m.group(3).lower().split()
+        if not set(name.split()) <= set(words): continue
+        cols = sorted(COLW[w] for w in words if w in COLW)
+        if sorted(t.get('colors') or []) == cols: score += 8
+        if (t.get('power'), t.get('toughness')) == (m.group(1), m.group(2)): score += 4
+        kws = m.group(4).strip()
+        if bool(kws) == bool((t.get('oracle_text') or '').strip()): score += 2
+        break
+    if t.get('type_line') == part.get('type_line'): score += 1
+    return score
+
 def deck_names(path='src/decks.txt'):
     names = set()
     for line in open(path, encoding='utf-8'):
@@ -101,8 +120,9 @@ def main():
         for p in c.get('all_parts') or []:
             if p.get('component') != 'token': continue
             cands = tokens.get(plain(p['name'])) or []
-            # the same token name can come in several sizes and colours: prefer the one whose type line matches the part's
-            best = next((t for t in cands if t.get('type_line') == p.get('type_line')), cands[0] if cands else None)
+            # the same token name can come in several sizes and colours (Warrior: a red 1/1 from mobilize, a white 1/1 with
+            # vigilance): prefer the exact printing, then the one the card's own text describes
+            best = max(cands, key=lambda t: token_fit(t, p, c), default=None)
             if best: out['id:' + p['id']] = trim(best)
     json.dump(out, open('src/cards.json', 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'), sort_keys=True)
     ncards = sum(1 for k in out if not k.startswith('id:'))
