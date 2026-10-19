@@ -441,10 +441,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 </script>
 <script>
 "use strict";
-const VERSION = 'v3.67';
+const VERSION = 'v3.68';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v3.68','Oct 19',"Casting a prepared creature's spell (and a paradigm copy) now counts as casting a spell, so prowess and other cast triggers fire. Guide of Souls and other \"whenever you attack\" triggers show on the stack as soon as you attack."],
   ['v3.67','Oct 19',"A prepared creature (Pompous Battlemage and others) carries a purple PREPARED! banner until you cast its spell."],
   ['v3.66','Oct 19',"New Pause button in the middle bar: ask to stop your opponent's next turn in their upkeep, or in their draw step before or after they draw. Their turn stops there and you get the gold button to cast spells, then pass priority back. Also fixed: when an upkeep trigger (rebound, for example) stopped the turn in the upkeep, moving on skipped the turn's draw."],
   ['v3.65','Oct 19',"Mobilize tokens (Voice of Victory and others) show the red Warrior token picture instead of the white one with vigilance. Tokens now use the picture of the token the card actually makes."],
@@ -2156,9 +2157,11 @@ const stationN = c => { if(c.fd || (!c.k && !c.cu)) return 0; const m=(cdata(c).
 async function stationIt(id){ const f=find(id); if(!f || f.z!=='bf') return; const c=f.c, cs=G.me.bf.filter(x=>x.id!==id && !x.fd && isCreature(x) && !x.tap); if(!cs.length){ toast('Station needs another untapped creature you control.'); return; }
   const p=await pickP(`${cdata(c).n}: station. Tap which creature?`, cs, 'Cancel'); if(!p) return; const pw=Math.max(0, powerOf(p)); p.tap=true; c.c=(c.c||0)+pw;
   log(`${G.me.name} stations ${cname(c)}: taps ${cname(p)} and puts ${pw} charge counter${pw===1?'':'s'} on it (${c.c} now${stationN(c) && c.c>=stationN(c) ? ', it is an artifact creature' : ''}).`); if(stationN(c) && c.c>=stationN(c)) c.row='f'; changed(); }
-const prepSpell = c => { const fs=splitFaces(c); return cdata(c).lay==='prepare' && fs[1] ? {n:fs[1].n, o:fs[1].o, mc:((cdata(c).mc||'').split(' // ')[1]||'')} : null; };
+const prepSpell = c => { const fs=splitFaces(c); return cdata(c).lay==='prepare' && fs[1] ? {n:fs[1].n, o:fs[1].o, mc:((cdata(c).mc||'').split(' // ')[1]||''), t:((cdata(c).t||'').split(' // ')[1]||'Sorcery').trim()} : null; };
+/* a copy cast onto the stack (prepared spells, paradigm): counted as a cast, and "whenever you cast" triggers (prowess) see it */
+function copyCast(cp){ noteCast(cp); castTriggers(cp); castTrigs(cp); }
 function castPrepared(id){ const f=find(id); if(!f || f.z!=='bf' || !f.c.prep) return; const c=f.c, sp=prepSpell(c); if(!sp) return;
-  const go=pd=>{ const g=find(id); if(!g || !g.c.prep) return; delete g.c.prep; G.me.st.push(mk(null,{tok:true, ts:Date.now(), cu:{n:sp.n, t:'Sorcery', o:sp.o, img:cdata(c).img||''}})); noteCast({fd:false, k:null, cu:{n:sp.n, t:'Sorcery'}}); log(`${G.me.name} casts a copy of ${sp.n} from ${cname(c)} (${sp.mc||'free'}); it is no longer prepared.`); changed(); };
+  const go=pd=>{ const g=find(id); if(!g || !g.c.prep) return; delete g.c.prep; const cp=mk(null,{tok:true, ts:Date.now(), cu:{n:sp.n, t:sp.t, o:sp.o, mc:sp.mc, img:cdata(c).img||''}}); G.me.st.push(cp); copyCast(cp); log(`${G.me.name} casts a copy of ${sp.n} from ${cname(c)} (${sp.mc||'free'}); it is no longer prepared.`); changed(); };
   if(sp.mc && autoPayOn()) payFor(normSyms(costSyms(sp.mc)), {abil:true, card:c, id, from:'bf'}, {title:`Cast a copy of ${sp.n}`, verb:'cast', done:go}); else { if(sp.mc){ const cv=pactCover(sp.mc); if(cv.all) payCost(cv.syms.join(',')); } go(); } }
 const devotionTo = (cols, side) => { let n=0; for(const x of (side&&side.bf)||[]){ if(x.fd || (!x.k && !x.cu)) continue; for(const mm of (cdata(x).mc||'').matchAll(/\{([^}]+)\}/g)){ if(mm[1].split('/').some(k=>cols.includes(k))) n++; } } return n; };
 const devoNot = c => { if(c.fd || (!c.k && !c.cu)) return false; const o=cdata(c).o||''; if(!/isn't a creature/i.test(o)) return false; const m=o.match(/As long as your devotion to (\w+)(?: and (\w+))? is less than (\w+), [^.]+? isn't a creature/i); if(!m) return false;
@@ -3648,7 +3651,7 @@ function attack(id, vig){
     const kt=(frontText(c)||'').match(/can(?:'|’)t attack or block unless there are (\w+) or more cards in exile/i); if(kt){ const need=NUMW[kt[1].toLowerCase()]||+kt[1]||7, ex=G.me.ex.length+((G.opp&&G.opp.ex)||[]).length; if(ex<need) w.push(`${cname(c)} can't attack unless there are ${need} or more cards in exile (there are ${ex})`); }
     if(w.length){ log(w.join('. ')+'.'); toast(unlink(w[0]+'.')); } }
   c.atk=true; if(!vig) c.tap=true; log(`${G.me.name} attacks with ${cname(c)}${vig?' (vigilance, stays untapped)':''}.`); changed();
-  atkTrigs(c); youAttack(); { const mb=(frontText(c)||'').match(/(?:^|\n)Mobilize (\d+)/i); if(mb){ const d=cdata(c), sn=d.n.split(',')[0]; G.me.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:c.id, tr:true}, cu:{n:`${sn}: mobilize ${mb[1]}`, t:'Triggered ability', o:`Create ${mb[1]} tapped and attacking 1/1 red Warrior creature tokens. Sacrifice them at the beginning of the next end step.`, img:d.img||''}})); log(`${sn} attacks: mobilize ${mb[1]} goes on the stack.`); changed(); } }
+  atkTrigs(c); youAttack(); changed(); { const mb=(frontText(c)||'').match(/(?:^|\n)Mobilize (\d+)/i); if(mb){ const d=cdata(c), sn=d.n.split(',')[0]; G.me.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:c.id, tr:true}, cu:{n:`${sn}: mobilize ${mb[1]}`, t:'Triggered ability', o:`Create ${mb[1]} tapped and attacking 1/1 red Warrior creature tokens. Sacrifice them at the beginning of the next end step.`, img:d.img||''}})); log(`${sn} attacks: mobilize ${mb[1]} goes on the stack.`); changed(); } }
   { const pws=((G.opp&&G.opp.bf)||[]).filter(x=>!x.fd && isPW(x)); if(pws.length) pickP(`${cdata(c).n.split(',')[0]} attacks: whom?`, pws, `${G.opp.name} (the player)`).then(pk=>{ if(!pk || !find(id) || !c.atk) return; G.me.arrows=G.me.arrows.filter(a=>!(a.atk && a.a===id)); G.me.arrows.push({a:id, b:pk.id, atk:1}); log(`${cname(c)} attacks ${G.opp.name}'s ${cname(pk)}.`); changed(); }); }
   { const b=blinkTrig(c); if(b && b.when==='attacks') toast(`${srcName(c)} attacks: right-drag its arrow onto ${b.upto?'up to one':'a'} ${b.other?'other ':''}${b.phrase} to put its trigger on the stack.`); }
 }
@@ -3709,7 +3712,7 @@ function setLife(d){ G.me.life+=d; clearTimeout(setLife.t); setLife.acc=(setLife
 function setTurn(t, fresh){ if(t.phase!==3 && 'cs' in t){ t=Object.assign({}, t); delete t.cs; } const prev=G.turn; G.turn=t; send({t:'turn', turn:t, fresh:!!fresh}); if(turnCleanup(prev, t)) changed(); else { render(); save(); } }
 function paradigmAsk(){ const m=G.me; if(!(m.para||[]).length || m.paraT===G.turn.n) return; m.paraT=G.turn.n;
   setTimeout(async ()=>{ for(const e of m.para){ const f=find(e.id); if(!f) continue; const yes=await yesNo(`${e.n}: paradigm`, `Cast a copy of ${e.n} without paying its mana cost?`, 'Cast a copy', 'Not now'); if(!yes) continue;
-    const cp=mk(f.c.k, Object.assign({tok:true, ts:Date.now(), nm:1}, f.c.cu ? {cu:f.c.cu} : {})); m.st.push(cp); noteCast(cp); log(`${m.name} casts a copy of ${e.n} (paradigm) without paying its mana cost.`); if(needsTarget(stackText(cp)||cdata(cp).o||'') && !G.mode){ G.mode={type:'arrow', from:cp.id}; toast(`${e.n}: click its target.`); } changed(); } }, 300); }
+    const cp=mk(f.c.k, Object.assign({tok:true, ts:Date.now(), nm:1}, f.c.cu ? {cu:f.c.cu} : {})); m.st.push(cp); copyCast(cp); log(`${m.name} casts a copy of ${e.n} (paradigm) without paying its mana cost.`); if(needsTarget(stackText(cp)||cdata(cp).o||'') && !G.mode){ G.mode={type:'arrow', from:cp.id}; toast(`${e.n}: click its target.`); } changed(); } }, 300); }
 /* Pause (v3.66): the player who is not active asks to stop the other player's next turn in the upkeep ('up'), in the draw step before
    the draw ('pre') or after it ('post'). The request travels as {t:'pause'} and waits on the active side as G.me.pauseReq; when the turn
    reaches that point it stops with G.turn.hold={pid, at}: the asker gets the gold button ("Pass priority back" → {t:'resume'}), the
