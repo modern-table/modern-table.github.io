@@ -431,10 +431,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v3.59';
+const VERSION = 'v3.60';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v3.60','Oct 18',"Vehicles can be crewed: pick untapped creatures with enough total power, they tap, and the Vehicle is a creature until end of turn. Phoenix Fleet Airship copies itself at your end step if you sacrificed a permanent this turn, and becomes a creature by itself once you control eight of them."],
   ['v3.59','Oct 18',"Cards brought into a game from your sideboard (Lessons you learned, Wish, Karn) go back to your sideboard when the game ends. Overlord of the Balemurk and other impending cards: casting for the impending cost asks you to pay it, and their enter trigger (mill four, return a creature) now happens."],
   ['v3.58','Oct 18',"Fabricate works (Marionette Apprentice): when the creature enters, choose +1/+1 counters or 1/1 Servo tokens. Marionette Apprentice and other 'whenever another creature or artifact you control dies' cards trigger. Learn works: reveal a Lesson from your sideboard into your hand, or discard a card to draw a card. Treasures (and other 'tap, sacrifice' mana) are sacrificed when you take their mana instead of only tapping. Shambling Ghast asks for its mode when it dies, and Boggart Trawler targets a player's whole graveyard (click the graveyard or the player)."],
   ['v3.57','Oct 18',"Search windows (fetchlands and the like) show every card at its proper shape: one-of cards are no longer stretched next to cards with an '×N in library' count. The scry and surveil window is only as wide as the cards it shows."],
@@ -686,7 +687,7 @@ async function scrySearch(q, extras){
 }
 const cdata = c => { let b=(c.cp && (c.cp.cu || DB[c.cp.k])) || c.cu || DB[c.k] || {n:c.k||'', t:'', o:'', img:''}; if(c.bc){ const f=String(b.t||'').split(' // '), mt=f[0].split(' — '); for(const w of String(c.bc.add||'').split(' ').filter(Boolean)) if(!new RegExp('\\b'+w+'\\b').test(mt[0])) mt[0]+=' '+w; f[0]=mt.join(' — '); b=Object.assign({}, b, {t:f.join(' // ')}, c.bc.pt ? {pt:c.bc.pt} : {}); } if(c.cp && (c.cp.name || c.cp.pt)) b=Object.assign({}, b, c.cp.name ? {n:c.cp.name} : {}, c.cp.pt ? {pt:c.cp.pt} : {}); return (c.cp && c.cp.add && b.t && !new RegExp('\\b'+c.cp.add+'\\b').test(b.t)) ? Object.assign({}, b, {t: b.t + (b.t.includes('—') ? ' ' : ' — ') + c.cp.add}) : b; };   // c.cp: this permanent is a copy of another card (Vesuva, Shifting Woodland)
 const faceType = c => { const t=(cdata(c).t||'').split(' // '); return (c.flip && t[1]) ? t[1] : t[0]; };
-const isLand = c => /\bLand\b/.test(faceType(c)), isCreature = c => ((/\bCreature\b/.test(faceType(c)) && !devoNot(c)) || !!c.eb || stationCre(c)) && !c.bw;   // c.bw: cast for bestow / attached as an Aura
+const isLand = c => /\bLand\b/.test(faceType(c)), isCreature = c => ((/\bCreature\b/.test(faceType(c)) && !devoNot(c)) || !!c.eb || stationCre(c) || vehicleCre(c)) && !c.bw;   // c.bw: cast for bestow / attached as an Aura
 const isSpell = c => /\b(Instant|Sorcery)\b/.test(faceType(c));
 
 /* ================= deck text ================= */
@@ -748,7 +749,18 @@ function undo(){
 let syncT=0;
 function changed(){ dedupeIds(); try{ ctrWatch(); }catch(e){} try{ kaitoWatch(); }catch(e){} if(G.me.ctr.energy>0) G.me.energySeen=true; checkHeld(); pruneGtg(); pruneArrows(); checkpoint(); render(); clearTimeout(syncT); syncT=setTimeout(()=>{ send({t:'state', s:pub()}); save(); }, 40); }
 function save(){ if(G.code || G.solo) store.set('mt_session', {code:G.code, solo:G.solo, myId:G.myId, me:G.me, turn:G.turn, idc:G.idc, at:Date.now()}); }
-function log(text, cls){ addLog(text, cls||'m'); send({t:'log', text}); }
+function log(text, cls){ addLog(text, cls||'m'); send({t:'log', text}); if(G.me && G.turn && G.turn.n && /\bsacrific(?:es|ed)\b/i.test(text) && String(text).includes(G.me.name) && !/sacrifices nothing|nothing is sacrificed/i.test(text)) G.me.sacT=G.turn.n; }
+/* Vehicles: crewed this turn (c.crew = turn), or "As long as you control eight or more permanents named X, this Vehicle is an artifact creature" (Phoenix Fleet Airship) */
+function vehicleCre(c){ if(!c || c.fd || (!c.k && !c.cu)) return false; const t=faceType(c); if(!/\bVehicle\b/.test(t)) return false; if(c.crew && G.turn && c.crew===G.turn.n) return true;
+  const m=(frontText(c)||'').match(/As long as you control (\w+) or more permanents named ([^,]+), this Vehicle is an artifact creature/i); if(!m) return false;
+  const need=NUMW[m[1].toLowerCase()]||+m[1]||8, bf=(G.me && G.me.bf.includes(c)) ? G.me.bf : ((G.opp&&G.opp.bf)||[]); return bf.filter(x=>!x.fd && (x.k||x.cu) && cdata(x).n===m[2].trim()).length>=need; }
+/* Crew N: tap untapped creatures with total power N or more; the ability goes on the stack and the Vehicle becomes an artifact creature until end of turn */
+async function crewIt(id, n){ const f=find(id); if(!f || f.z!=='bf') return; const v=f.c, m=G.me, nm=cdata(v).n.split(',')[0];
+  const cs=m.bf.filter(x=>x.id!==id && !x.fd && isCreature(x) && !x.tap); if(!cs.length){ toast('You have no untapped creature to crew it with.'); return; }
+  const ids=await pickManyP(`${nm}: crew ${n}. Tap creatures with total power ${n} or more`, cs, 'Tap them to crew'); if(!ids || !ids.length) return;
+  const pw=ids.reduce((a,i)=>a+Math.max(0, powerOf(find(i).c)), 0); if(pw<n){ toast(`Those have total power ${pw}; crew ${n} needs ${n}.`); return; }
+  for(const i of ids){ const g=find(i); if(g) g.c.tap=true; } log(`${m.name} crews ${nm} with ${ids.map(i=>cname(find(i).c)).join(', ')} (total power ${pw}).`);
+  m.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id, tr:true}, cu:{n:`${nm}: crew ${n}`, t:'Activated ability', o:'This Vehicle becomes an artifact creature until end of turn.', img:cdata(v).img||''}})); changed(); }
 function addLog(text, cls){ G.log.push({text, cls}); if(G.log.length>300) G.log.shift(); renderLog(); }
 
 /* ================= networking (PeerJS, peer to peer) ================= */
@@ -1000,7 +1012,7 @@ function turnCleanup(prev, next){
   if(warpTick(prev, next)) ch=true; if(flTick(prev, next)) ch=true; if(next.n>prev.n && next.active!==G.myId && baubTick(next.n)) ch=true;
   if(((next.passed && !prev.passed) || next.n!==prev.n) && clearDamage()) ch=true;   // damage wears off as the turn ends
   if(next.active===G.myId && !next.passed && next.n>0 && next.phase>=2 && sagaTick(next.n)) ch=true;
-  if(next.n!==prev.n){ for(const c of m.bf) if(c.bc && next.n>=c.bc.till){ const was=cname(c); delete c.bc; if(c.row==='f' && !isCreature(c)) c.row=null; ch=true; log(`${was} is no longer changed by the effect.`); } if(expirePlayable()) ch=true; if(endCopies()) ch=true; for(const c of m.bf) if(c.lft){ delete c.lft; ch=true; } if(m.cast && (m.cast.n||m.cast.is)) ch=true; m.cast={n:0,is:0}; for(const c of m.ex) if(c.offer){ delete c.offer; ch=true; } for(const c of m.bf) if(c.anim){ c.anim=false; c.row=null; ch=true; } if(clearBoosts()) ch=true; for(const c of m.gy) if(c.fbk){ delete c.fbk; ch=true; } }
+  if(next.n!==prev.n){ for(const c of m.bf) if(c.crew){ delete c.crew; if(c.row==='f' && !isCreature(c)) c.row=null; ch=true; } for(const c of m.bf) if(c.bc && next.n>=c.bc.till){ const was=cname(c); delete c.bc; if(c.row==='f' && !isCreature(c)) c.row=null; ch=true; log(`${was} is no longer changed by the effect.`); } if(expirePlayable()) ch=true; if(endCopies()) ch=true; for(const c of m.bf) if(c.lft){ delete c.lft; ch=true; } if(m.cast && (m.cast.n||m.cast.is)) ch=true; m.cast={n:0,is:0}; for(const c of m.ex) if(c.offer){ delete c.offer; ch=true; } for(const c of m.bf) if(c.anim){ c.anim=false; c.row=null; ch=true; } if(clearBoosts()) ch=true; for(const c of m.gy) if(c.fbk){ delete c.fbk; ch=true; } }
   return ch;
 }
 const sgn = n => (n<0?'−':'+')+Math.abs(n), boostText = c => sgn(c.tp||0)+'/'+sgn(c.tt||0);
@@ -1793,6 +1805,7 @@ function phaseTrigs(kind, mineTurn){ const re = kind==='end' && !mineTurn ? PHAS
     for(const l of (frontText(c)||'').split('\n').map(x=>x.trim())){ const m=l.match(re); if(!m || /time counter|lore counter/i.test(l)) continue;
       { const g1=m[1].match(/^if you gained life this turn, (.+)$/i), g2=m[1].match(/^(.+?) if you've gained (\d+) or more life this turn\.?$/i);
         if(g1 || g2){ const ok = g1 ? gainedThisTurn()>0 : gainedThisTurn()>=+g2[2]; if(!ok){ continue; } G.me.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:c.id, ph:kind}, cu:{n:`${nm}: trigger`, t:'Triggered ability', o:(g1?g1[1]:g2[1]+'.'), img:d.img||''}})); out.push(nm); continue; } }
+      { const sq=m[1].match(/^if you sacrificed a permanent this turn, (.+)$/i); if(sq){ if(G.me.sacT!==G.turn.n) continue; G.me.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:c.id, ph:kind}, cu:{n:`${nm}: trigger`, t:'Triggered ability', o:sq[1].replace(/^([a-z])/, x=>x.toUpperCase()), img:d.img||''}})); out.push(nm); continue; } }
       { const cy=m[1].match(/^if you control an? (creature|artifact|enchantment|planeswalker|land), (.+)$/i); if(cy){ if(!G.me.bf.some(x=>!x.fd && matchesDesc(x, cy[1]))) continue; G.me.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:c.id, ph:kind}, cu:{n:`${nm}: trigger`, t:'Triggered ability', o:cy[2].replace(/^([a-z])/, x=>x.toUpperCase()), img:d.img||''}})); out.push(nm); continue; } }
       if(/^if\b/i.test(m[1]) || /, if /i.test(l.slice(0, l.indexOf(m[1])+3))){ rem.push(nm); continue; }
       const tr=mk(null,{tok:true, ts:Date.now(), ab:{id:c.id, ph:kind}, cu:{n:`${nm}: trigger`, t:'Triggered ability', o:l, img:d.img||''}}); G.me.st.push(tr); out.push(nm);
@@ -2104,6 +2117,9 @@ async function simpleEffects(c, text, srcId){
   for(let sen of (text||'').replace(/\([^)]*\)/g,'').split(/(?<=\.)\s+|\n/)){ sen=sen.trim().replace(nm && /,/.test(nm) ? new RegExp('^((?:When|Whenever) )'+escRe(nm)+'\\b','i') : /^\b$/, '$1it').replace(/^[A-Z][A-Za-z' ]{2,30} — (?=(?:When|Whenever|At) )/,'').replace(/^(?:When|Whenever|At) (?!you attack this turn)(?!you do\b)[^,]+, /i,''); let r;
     if((r=sen.match(new RegExp('^return (?:this card|'+escRe(nm||'@@')+'|'+escRe((nm||'@@').split(',')[0])+') from your graveyard to (the battlefield|your hand)( tapped)?\\.?$','i'))) && srcC){ const g=find(srcC.id); if(g && g.z==='gy'){ move(srcC.id, /hand/i.test(r[1]) ? 'hand' : 'bf', {silent:true, tap:!!r[2]}); log(`${by}: ${m.name} returns ${cname(srcC)} from their graveyard to ${/hand/i.test(r[1]) ? 'their hand' : 'the battlefield'+(r[2]?' tapped':'')}.`); changed(); } else log(`${by}: it is no longer in the graveyard.`); continue; }
     if((r=sen.match(/^if you do, (.+)$/i)) && didIt!==undefined){ if(!didIt){ log(`${by}: nothing happened, so the rest doesn't either.`); didIt=undefined; continue; } didIt=undefined; sen=r[1].replace(/^([a-z])/, x=>x.toUpperCase()); }
+    // Vehicles: crew resolution; Phoenix Fleet Airship's copy of itself
+    if(/^this vehicle becomes an artifact creature until end of turn\.?$/i.test(sen)){ const b=srcC || (c.ab && find(c.ab.id) && find(c.ab.id).c); if(b && find(b.id) && find(b.id).z==='bf'){ b.crew=G.turn.n||1; b.row='f'; log(`${by}: ${cname(b)} becomes an artifact creature until end of turn.`); changed(); } continue; }
+    if(/^create a token that(?:'|’)s a copy of this (?:vehicle|creature|artifact|permanent|enchantment)\.?$/i.test(sen)){ const b=srcC || (c.ab && find(c.ab.id) && find(c.ab.id).c); if(!b){ log(`${by}: it is gone, so there is nothing to copy.`); continue; } const tk=mk(b.k,{tok:true, cu:b.cu, c:0}); tk.tokT=G.turn.n; m.bf.push(tk); log(`${by}: ${m.name} creates a token that's a copy of ${cname(b)}.`); entered(tk); changed(); continue; }
     // Fabricate N: N +1/+1 counters on it, or N 1/1 colorless Servo artifact creature tokens (tokens only if it has left the battlefield)
     if((r=sen.match(/^fabricate (\d+)\.?$/i))){ const n=+r[1], b=srcC || (c.ab && find(c.ab.id) && find(c.ab.id).c), on=b && find(b.id) && find(b.id).z==='bf'; let ctr=false;
       if(on){ waited=true; ctr=await yesNo(`${by}: fabricate ${n}`, `Put ${n===1?'a +1/+1 counter':n+' +1/+1 counters'} on ${cname(b)}, or create ${n===1?'a 1/1 colorless Servo artifact creature token':n+' 1/1 colorless Servo artifact creature tokens'}?`, n===1?'+1/+1 counter':`${n} +1/+1 counters`, n===1?'Servo token':`${n} Servo tokens`); }
@@ -2852,6 +2868,7 @@ const abText = a => a.kw ? a.eff+' '+a.cost : a.cost+': '+a.eff;
 const fetchOf = a => { if(!/\bsacrifice\b/i.test(a.cost) || !/\{T\}/.test(a.cost)) return null; const sp=searchSpec(a.eff); return sp && sp.dest==='bf' && /\b(land|plains|island|swamp|mountain|forest)\b/i.test(sp.desc) ? sp : null; };
 const abLabel = a => { const fs=fetchOf(a); if(fs){ const l=a.cost.match(/pay (\d+) life/i); return `Fetch (${fs.desc}${fs.tapped?', enters tapped':''}${l?', pay '+l[1]+' life':''})`; } const t='Activate  '+abText(a); return t.length>84 ? t.slice(0,82)+'…' : t; };
 function activate(id, a, evDone, extra){
+  if(a && a.kw && /^Crew$/i.test(a.eff)){ crewIt(id, parseInt(a.cost,10)||1); return; }
   { const f0=find(id); if(f0 && f0.z==='bf' && !(extra&&extra.totem) && !totemGate(f0.c, ()=>activate(id, a, evDone, Object.assign({}, extra||{}, {totem:1})))) return; }
   { const f0=find(id); if(f0 && f0.z==='bf'){ const c0=f0.c, ex=extra||{};
       if(!a.kw && /^[−-]X$/.test(a.cost) && ex.x==null){ askN(`${faceName(c0,0)}: remove how many loyalty counters (X)?`, Math.min(1, c0.c||0)).then(n=>{ if(n==null || n<0) return; if(n>(c0.c||0)){ toast('It does not have that much loyalty.'); return; } activate(id, a, evDone, Object.assign({}, ex, {x:n})); }); return; }
