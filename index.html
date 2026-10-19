@@ -441,10 +441,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 </script>
 <script>
 "use strict";
-const VERSION = 'v3.68';
+const VERSION = 'v3.69';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v3.69','Oct 19',"Fiery Islet, Sunbaked Canyon, Horizon Canopy, Nurturing Peatland and other lands with \"Pay 1 life: Add …\" take the life as you tap them for coloured mana."],
   ['v3.68','Oct 19',"Casting a prepared creature's spell (and a paradigm copy) now counts as casting a spell, so prowess and other cast triggers fire. Guide of Souls and other \"whenever you attack\" triggers show on the stack as soon as you attack."],
   ['v3.67','Oct 19',"A prepared creature (Pompous Battlemage and others) carries a purple PREPARED! banner until you cast its spell."],
   ['v3.66','Oct 19',"New Pause button in the middle bar: ask to stop your opponent's next turn in their upkeep, or in their draw step before or after they draw. Their turn stops there and you get the gold button to cast spells, then pass priority back. Also fixed: when an upkeep trigger (rebound, for example) stopped the turn in the upkeep, moving on skipped the turn's draw."],
@@ -991,14 +992,14 @@ function resolve(id){ const f=find(id); if(!f) return; const c=f.c; if(!c.ab && 
 function manaAbilities(c){
   const lt = isLand(c) ? landTypes(c, G.me.bf.some(x=>x.id===c.id) ? G.myId : oppId(), landEffects()) : null;
   if(lt && lt.main) return [...lt.main, ...lt.plus].map(t=>({out:BASIC[t], cost:'', exert:false, rem:false}));
-  let TCR=false, SACO='', SACS=false, DMG=0; const out=[], cond=[], txt=cdata(c).o||'', add=(list,o,cost,exert,rem,only,rider)=>{ if(o && !list.some(a=>a.out===o && a.cost===cost)) list.push(Object.assign({out:o, cost, exert, rem}, only ? {only} : {}, rider ? {rider} : {}, TCR ? {tcr:1} : {}, SACS ? {sacs:1} : {}, DMG ? {dmg:DMG} : {}, SACO && !/^(this|it)$/i.test(SACO) ? {saco:SACO} : {})); };
+  let TCR=false, SACO='', SACS=false, DMG=0, LIFE=0; const out=[], cond=[], txt=cdata(c).o||'', add=(list,o,cost,exert,rem,only,rider)=>{ if(o && !list.some(a=>a.out===o && a.cost===cost)) list.push(Object.assign({out:o, cost, exert, rem}, only ? {only} : {}, rider ? {rider} : {}, TCR ? {tcr:1} : {}, SACS ? {sacs:1} : {}, DMG ? {dmg:DMG} : {}, LIFE ? {life:LIFE} : {}, SACO && !/^(this|it)$/i.test(SACO) ? {saco:SACO} : {})); };
   for(const m of txt.matchAll(/\badd ([^.\n]*)/gi)){ const cl=m[1];
     const pre=txt.slice(txt.lastIndexOf('\n', m.index)+1, m.index), ci=pre.lastIndexOf(':'), costPart=ci>=0 ? pre.slice(0,ci) : '';
     const cost=[...costPart.matchAll(/\{([WUBRGC]|\d+)\}/g)].map(x=>x[1]).join(','), exert=/\bexert\b/i.test(costPart), rem=/\bremove an? [\w+\/-]+ counter from\b/i.test(costPart);
     // "If it has a luck counter on it, instead add one mana of any color" (Gemstone Caverns): only with a counter, and then it replaces the plain ability
     const iff=/counters? on (?:it|him|her), instead $/i.test(pre), list=iff ? cond : out; if(iff && !(c.c>0)) continue;
     if(/If a card is exiled with [^,]+, $/i.test(pre)){ const e=c.impId && find(c.impId); if(!(e && e.z==='ex')) continue; const syms2=[...cl.matchAll(/\{([WUBRGC])\}/g)].map(x=>x[1]); out.length=0; add(out, syms2.join(''), cost, exert, rem); continue; }
-    TCR=/Tap an untapped creature you control/i.test(costPart); SACS=new RegExp('\\bSacrifice (?:this (?:artifact|token|creature|permanent|land|enchantment)|it|'+escRe(faceName(c,0))+')(?![\\w])','i').test(costPart); SACO=(costPart.match(/\bSacrifice an? ([A-Za-z]+)\b/i)||[])[1]||'';
+    TCR=/Tap an untapped creature you control/i.test(costPart); LIFE=+((costPart.match(/\bPay (\d+) life\b/i)||[])[1]||0); SACS=new RegExp('\\bSacrifice (?:this (?:artifact|token|creature|permanent|land|enchantment)|it|'+escRe(faceName(c,0))+')(?![\\w])','i').test(costPart); SACO=(costPart.match(/\bSacrifice an? ([A-Za-z]+)\b/i)||[])[1]||'';
     const ln=txt.slice(txt.lastIndexOf('\n', m.index)+1, (txt.indexOf('\n', m.index)+1 || txt.length+1)-1); DMG=+((ln.match(/deals (\d+) damage to you/i)||[])[1]||0); const only=((ln.match(/Spend this mana only ([^.]+)/i)||[])[1]||''), rider=riderOf(ln);
     const nAny=cl.match(/^(one|two|three|four|five) mana of any (?:one )?colou?r/i), k2=nAny ? (NUMW2[nAny[1].toLowerCase()]||1) : 1;
     if(/any (one )?color|any type|any of/i.test(cl)){ 'WUBRG'.split('').forEach(k=>add(list,k.repeat(k2),cost,exert,rem,only,rider)); continue; }
@@ -1011,7 +1012,7 @@ function manaAbilities(c){
 }
 const manaOptions = c => [...new Set(manaAbilities(c).map(a=>a.out))];
 const costLabel = cost => cost.split(',').map(k=>MNAME[k]||k).join(' + ');
-const abilityLabel = a => (a.cost ? 'Pay '+costLabel(a.cost)+', tap for ' : 'Tap for ')+manaLabel(a.out)+(a.exert ? ' (exerts)' : '')+(a.rem ? ' (removes a counter)' : '')+(a.sacs ? ', then sacrifice it' : '')+(a.dmg ? ` (${a.dmg} damage to you)` : '')+(a.rider==='haste' ? ' (a creature spell paid with it gains haste)' : '');
+const abilityLabel = a => (a.cost ? 'Pay '+costLabel(a.cost)+', tap for ' : 'Tap for ')+manaLabel(a.out)+(a.exert ? ' (exerts)' : '')+(a.rem ? ' (removes a counter)' : '')+(a.sacs ? ', then sacrifice it' : '')+(a.dmg ? ` (${a.dmg} damage to you)` : '')+(a.life ? ` (pay ${a.life} life)` : '')+(a.rider==='haste' ? ' (a creature spell paid with it gains haste)' : '');
 function payCost(cost){
   if(!cost) return true; const m=G.me; if(!m.mana) m.mana=noMana(); const pool=Object.assign({}, m.mana);
   for(const k of cost.split(',')){ if(MANA.includes(k)){ if(pool[k]<1) return false; pool[k]--; } }
@@ -1030,7 +1031,7 @@ function useAbility(c, a, noExtra){
   if(!totemGate(c, ()=>{ if(useAbility(c, a, noExtra)) changed(); })) return false;
   if(a.rem && !(c.c>0)){ toast('It has no counters left to remove.'); return false; }
   if(!payCost(a.cost)){ toast(`That costs ${costLabel(a.cost)}. Put it in your mana pool first, then try again.`); return false; }
-  c.tap=true; if(a.only || a.rider){ const m=G.me, src=cdata(c).n.split(',')[0]; m.smana=m.smana||[]; for(const k of a.out) if(MANA.includes(k)) m.smana.push({k, src, only:a.only||'', rider:a.rider||'', chosen:c.chosen||''}); if(!noExtra) log(`${G.me.name} taps ${cname(c)} for ${[...a.out].map(k=>'{'+k+'}').join('')}${a.only ? `: spend ${a.out.length>1?'this mana':'it'} only ${a.only}` : ''}${a.rider==='haste' ? ' (a creature spell paid with it gains haste)' : ''}.`); } else addMana(a.out); if(!noExtra && (isCreature(c) || c.anim)) extraMana(c); if(a.rem) c.c--; if(a.dmg){ G.me.life-=a.dmg; log(`${cname(c)} deals ${a.dmg} damage to ${G.me.name} (now ${G.me.life}).`); } if(a.sacs){ const g=find(c.id); if(g && g.z==='bf'){ log(`${G.me.name} taps and sacrifices ${cname(c)} for ${[...a.out].map(k=>'{'+k+'}').join('')}.`); move(c.id,'gy',{silent:true}); } } if(a.exert){ c.exert=true; log(`${G.me.name} exerts ${cname(c)}. It will not untap next turn.`); } return true;
+  c.tap=true; if(a.only || a.rider){ const m=G.me, src=cdata(c).n.split(',')[0]; m.smana=m.smana||[]; for(const k of a.out) if(MANA.includes(k)) m.smana.push({k, src, only:a.only||'', rider:a.rider||'', chosen:c.chosen||''}); if(!noExtra) log(`${G.me.name} taps ${cname(c)} for ${[...a.out].map(k=>'{'+k+'}').join('')}${a.only ? `: spend ${a.out.length>1?'this mana':'it'} only ${a.only}` : ''}${a.rider==='haste' ? ' (a creature spell paid with it gains haste)' : ''}.`); } else addMana(a.out); if(!noExtra && (isCreature(c) || c.anim)) extraMana(c); if(a.rem) c.c--; if(a.dmg){ G.me.life-=a.dmg; log(`${cname(c)} deals ${a.dmg} damage to ${G.me.name} (now ${G.me.life}).`); } if(a.life){ G.me.life-=a.life; log(`${G.me.name} pays ${a.life} life for ${cname(c)}'s mana (now ${G.me.life}).`); } if(a.sacs){ const g=find(c.id); if(g && g.z==='bf'){ log(`${G.me.name} taps and sacrifices ${cname(c)} for ${[...a.out].map(k=>'{'+k+'}').join('')}.`); move(c.id,'gy',{silent:true}); } } if(a.exert){ c.exert=true; log(`${G.me.name} exerts ${cname(c)}. It will not untap next turn.`); } return true;
 }
 const manaLabel = o => MANA.filter(k=>o.includes(k)).map(k=>{ const n=o.split(k).length-1; return (n>1?n+' ':'')+MNAME[k]; }).join(' + ');
 function addMana(o){ const m=G.me; if(!m.mana) m.mana=noMana(); for(const ch of o) if(ch in m.mana) m.mana[ch]++; }
