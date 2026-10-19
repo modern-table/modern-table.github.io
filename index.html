@@ -439,10 +439,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 </script>
 <script>
 "use strict";
-const VERSION = 'v3.60';
+const VERSION = 'v3.61';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v3.61','Oct 18',"Waterbend works as an additional cost (Ruinous Waterbending): you're asked whether to pay it, can tap artifacts and creatures for {1} each, and the rest is added to the spell's cost. Ruinous Waterbending gives all creatures -2/-2 and, if waterbent, you gain 1 life whenever a creature dies this turn."],
   ['v3.60','Oct 18',"Vehicles can be crewed: pick untapped creatures with enough total power, they tap, and the Vehicle is a creature until end of turn. Phoenix Fleet Airship copies itself at your end step if you sacrificed a permanent this turn, and becomes a creature by itself once you control eight of them."],
   ['v3.59','Oct 18',"Cards brought into a game from your sideboard (Lessons you learned, Wish, Karn) go back to your sideboard when the game ends. Overlord of the Balemurk and other impending cards: casting for the impending cost asks you to pay it, and their enter trigger (mill four, return a creature) now happens."],
   ['v3.58','Oct 18',"Fabricate works (Marionette Apprentice): when the creature enters, choose +1/+1 counters or 1/1 Servo tokens. Marionette Apprentice and other 'whenever another creature or artifact you control dies' cards trigger. Learn works: reveal a Lesson from your sideboard into your hand, or discard a card to draw a card. Treasures (and other 'tap, sacrifice' mana) are sacrificed when you take their mana instead of only tapping. Shambling Ghast asks for its mode when it dies, and Boggart Trawler targets a player's whole graveyard (click the graveyard or the player)."],
@@ -1890,7 +1891,7 @@ function othersDie(c){ const cr=!c.fd && isCreature(c) || !!c.fd, art=!c.fd && /
     const m=(frontText(x)||'').match(/(?:^|\n)Whenever (?:another |a |an )(nontoken )?(creature or artifact|artifact or creature|creature|artifact) you control (?:dies|is put into a graveyard from the battlefield), ([^\n]+)/i); if(!m) continue;
     if(m[1] && c.tok) continue; if(!((/creature/i.test(m[2]) && cr) || (/artifact/i.test(m[2]) && art))) continue; out.push(trigPush(x, m[3])); }
   if(out.length) log(`${cname(c)} went to the graveyard: ${out.join(', ')} trigger${out.length>1?'s go':' goes'} on the stack.`); }
-function creatureDied(name, dead){ if(dead && G.me.bf.length) catsDied(dead); for(const x of G.me.bf){ if(x.fd || (!x.k && !x.cu)) continue; const m=(frontText(x)||'').match(/(?:^|\n)Whenever (?:a|another) creature dies, ([^\n]+)/i); if(!m) continue; const d=cdata(x), nm=d.n.split(',')[0];
+function creatureDied(name, dead){ if(dead && G.me.bf.length) catsDied(dead); for(const e of (G.me.dieT||[]).filter(e=>e.n===G.turn.n)){ G.me.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:null, tr:true}, cu:{n:`${e.src}: delayed trigger`, t:'Triggered ability', o:e.txt, img:''}})); log(`${e.src}: ${name} died, so its delayed trigger goes on the stack.`); } for(const x of G.me.bf){ if(x.fd || (!x.k && !x.cu)) continue; const m=(frontText(x)||'').match(/(?:^|\n)Whenever (?:a|another) creature dies, ([^\n]+)/i); if(!m) continue; const d=cdata(x), nm=d.n.split(',')[0];
     G.me.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:x.id, tr:true}, cu:{n:`${nm}: trigger`, t:'Triggered ability', o:m[1].replace(/^p/,'P'), img:d.img||''}})); log(`${nm}: ${name} died, so its trigger goes on the stack.`); } }
 /* "Whenever one or more +1/+1 counters are put on <this creature>, …" (Basking Broodscale): a watcher compares each creature's counters with the last look */
 function ctrWatch(){ for(const c of G.me.bf){ if(c.fd || (!c.k && !c.cu)) continue; const nm=faceName(c,0), short=nm.split(',')[0];
@@ -2125,6 +2126,10 @@ async function simpleEffects(c, text, srcId){
   for(let sen of (text||'').replace(/\([^)]*\)/g,'').split(/(?<=\.)\s+|\n/)){ sen=sen.trim().replace(nm && /,/.test(nm) ? new RegExp('^((?:When|Whenever) )'+escRe(nm)+'\\b','i') : /^\b$/, '$1it').replace(/^[A-Z][A-Za-z' ]{2,30} — (?=(?:When|Whenever|At) )/,'').replace(/^(?:When|Whenever|At) (?!you attack this turn)(?!you do\b)[^,]+, /i,''); let r;
     if((r=sen.match(new RegExp('^return (?:this card|'+escRe(nm||'@@')+'|'+escRe((nm||'@@').split(',')[0])+') from your graveyard to (the battlefield|your hand)( tapped)?\\.?$','i'))) && srcC){ const g=find(srcC.id); if(g && g.z==='gy'){ move(srcC.id, /hand/i.test(r[1]) ? 'hand' : 'bf', {silent:true, tap:!!r[2]}); log(`${by}: ${m.name} returns ${cname(srcC)} from their graveyard to ${/hand/i.test(r[1]) ? 'their hand' : 'the battlefield'+(r[2]?' tapped':'')}.`); changed(); } else log(`${by}: it is no longer in the graveyard.`); continue; }
     if((r=sen.match(/^if you do, (.+)$/i)) && didIt!==undefined){ if(!didIt){ log(`${by}: nothing happened, so the rest doesn't either.`); didIt=undefined; continue; } didIt=undefined; sen=r[1].replace(/^([a-z])/, x=>x.toUpperCase()); }
+    // "If this spell's additional cost was paid, …" (Ruinous Waterbending, Requiting Hex)
+    if((r=sen.match(/^if this spell(?:'|’)s additional cost was paid, (.+)$/i)) && !/^you gain \d+ life\.?$/i.test(r[1])){ if(!c.addPaid){ log(`${by}: the additional cost wasn't paid, so that part does nothing.`); continue; } sen=r[1].replace(/^([a-z])/, x=>x.toUpperCase()); }
+    // "whenever a creature dies this turn, …": a delayed trigger for the rest of the turn
+    if((r=sen.match(/^whenever a creature dies this turn, (.+)$/i))){ (m.dieT=(m.dieT||[]).filter(e=>e.n===G.turn.n)).push({n:G.turn.n, src:String(by).split(':')[0], txt:r[1].replace(/^([a-z])/, x=>x.toUpperCase())}); log(`${by}: for the rest of this turn, whenever a creature dies, ${r[1].replace(/\.$/,'')}.`); changed(); continue; }
     // Vehicles: crew resolution; Phoenix Fleet Airship's copy of itself
     if(/^this vehicle becomes an artifact creature until end of turn\.?$/i.test(sen)){ const b=srcC || (c.ab && find(c.ab.id) && find(c.ab.id).c); if(b && find(b.id) && find(b.id).z==='bf'){ b.crew=G.turn.n||1; b.row='f'; log(`${by}: ${cname(b)} becomes an artifact creature until end of turn.`); changed(); } continue; }
     if(/^create a token that(?:'|’)s a copy of this (?:vehicle|creature|artifact|permanent|enchantment)\.?$/i.test(sen)){ const b=srcC || (c.ab && find(c.ab.id) && find(c.ab.id).c); if(!b){ log(`${by}: it is gone, so there is nothing to copy.`); continue; } const tk=mk(b.k,{tok:true, cu:b.cu, c:0}); tk.tokT=G.turn.n; m.bf.push(tk); log(`${by}: ${m.name} creates a token that's a copy of ${cname(b)}.`); entered(tk); changed(); continue; }
@@ -2511,6 +2516,7 @@ const addlCostOf = c => { if(c.fd || (!c.k && !c.cu)) return null; const o=front
   if((m=o.match(/As an additional cost to cast this spell, exile (\w+) cards from your graveyard\./i))) return {k:'exgy', n:NUMW2[m[1].toLowerCase()]||+m[1]||1};
   if((m=o.match(/As an additional cost to cast this spell, discard (a|one|two) cards?\./i))) return {k:'disc', n:NUMW2[m[1].toLowerCase()]||1};
   if((m=o.match(/As an additional cost to cast this spell, you may blight (\d+)\./i))) return {k:'blight', n:+m[1], may:true};
+  if((m=o.match(/As an additional cost to cast this spell, you may waterbend \{(\d+)\}/i))) return {k:'waterbend', n:+m[1], may:true};
   return null; };
 async function payAddl(id, ac){ const m=G.me, nm=cdata(find(id).c).n.split(' // ')[0];
   if(ac.k==='sac'){ const cs=m.bf.filter(x=>!x.fd && matchesDesc(x, ac.desc)); if(!cs.length){ toast(`${nm}: you have no ${ac.desc} to sacrifice.`); return null; }
@@ -2518,6 +2524,9 @@ async function payAddl(id, ac){ const m=G.me, nm=cdata(find(id).c).n.split(' // 
   if(ac.k==='exgy'){ if(m.gy.length<ac.n){ toast(`${nm}: you need ${ac.n} cards in your graveyard to exile.`); return null; } const ids=m.gy.length===ac.n ? m.gy.map(x=>x.id) : await pickManyP(`${nm}: exile ${ac.n} cards from your graveyard (additional cost)`, m.gy, 'Exile them');
     if(!ids || ids.length!==ac.n){ toast(`${nm}: choose exactly ${ac.n} cards.`); return null; } for(const x of ids) move(x,'ex',{silent:true}); log(`${m.name} exiles ${ac.n} cards from their graveyard to cast ${nm}.`); changed(); return {}; }
   if(ac.k==='disc'){ const cs=m.hand.filter(x=>x.id!==id); if(cs.length<ac.n){ toast(`${nm}: you need a card to discard.`); return null; } const p=await pickP(`${nm}: discard a card (additional cost)`, cs, 'Cancel'); if(!p) return null; await discard([p.id]); return {}; }
+  if(ac.k==='waterbend'){ const yes=await yesNo(`${nm}: waterbend {${ac.n}}?`, `Pay the optional additional cost: {${ac.n}} more. You can tap untapped artifacts and creatures you control to help; each pays for {1}, and the rest is added to the spell's cost.`, `Waterbend {${ac.n}}`, "Don't"); if(!yes) return {};
+    const cs=m.bf.filter(x=>!x.fd && !x.tap && (isCreature(x) || /\bArtifact\b/.test(faceType(x)))); let ids=cs.length ? (await pickManyP(`${nm}: waterbend {${ac.n}}. Tap artifacts and creatures to pay {1} each (or none)`, cs, 'Tap these') || []) : []; if(ids.length>ac.n) ids=ids.slice(0, ac.n);
+    for(const i of ids){ const g=find(i); if(g) g.c.tap=true; } const more=ac.n-ids.length; log(`${m.name} waterbends {${ac.n}} for ${nm}${ids.length ? `, tapping ${ids.map(i=>cname(find(i).c)).join(', ')}` : ''}${more ? `; {${more}} more is added to its cost` : ''}.`); changed(); return {addPaid:true, more}; }
   if(ac.k==='blight'){ const cs=m.bf.filter(x=>!x.fd && isCreature(x)); if(!cs.length) return {}; const p=await pickP(`${nm}: blight ${ac.n}? Put ${ac.n} -1/-1 counter${ac.n>1?'s':''} on a creature you control (optional additional cost)`, cs, "Don't"); if(!p) return {};
     p.c=(p.c||0)-ac.n; log(`${m.name} blights ${ac.n}: ${cname(p)} gets ${ac.n} -1/-1 counter${ac.n>1?'s':''}.`); changed(); return {addPaid:true}; }
   return {}; }
@@ -3082,6 +3091,7 @@ function castSyms(c, o){
       const esk=txt.match(/(?:^|\n)Escalate\s*((?:\{[^}]+\})+)/i); if(esk) for(let j=1;j<o.md.length;j++) s=s.concat(costSyms(esk[1]));
       const ent=txt.match(/(?:^|\n)Entwine\s*((?:\{[^}]+\})+)/i); if(ent && md.modes.length>1 && o.md.length>=md.modes.length) s=s.concat(costSyms(ent[1])); } }
   if(o.rep>0){ const rc=replicateCost(c); if(rc) for(let i=0;i<o.rep;i++) s=s.concat(costSyms(rc)); }
+  if(o.addl && o.addl.more>0) s=s.concat(costSyms('{'+o.addl.more+'}'));
   if(o.kick){ const kc=kickerCost(c); if(kc) s=s.concat(costSyms(kc)); }
   const out=normSyms(s, o.x, o.less), tri=trinisphere(); if(tri){ const tot=out.reduce((a,k)=>a+(/^\d+$/.test(k) ? +k : 1), 0); if(tot<3){ const g=out.findIndex(k=>/^\d+$/.test(k)); if(g>=0) out[g]=String(+out[g]+3-tot); else out.unshift(String(3-tot)); } }
   return out;
