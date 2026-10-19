@@ -441,10 +441,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 </script>
 <script>
 "use strict";
-const VERSION = 'v3.69';
+const VERSION = 'v3.70';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v3.70','Oct 19',"Cori-Steel Cutter: when flurry makes the Monk, you're asked whether to attach the Cutter to it. Equipment and Auras that give keywords (trample and haste from the Cutter, for example) now show them on the creature they're attached to."],
   ['v3.69','Oct 19',"Fiery Islet, Sunbaked Canyon, Horizon Canopy, Nurturing Peatland and other lands with \"Pay 1 life: Add …\" take the life as you tap them for coloured mana."],
   ['v3.68','Oct 19',"Casting a prepared creature's spell (and a paradigm copy) now counts as casting a spell, so prowess and other cast triggers fire. Guide of Souls and other \"whenever you attack\" triggers show on the stack as soon as you attack."],
   ['v3.67','Oct 19',"A prepared creature (Pompous Battlemage and others) carries a purple PREPARED! banner until you cast its spell."],
@@ -1900,6 +1901,8 @@ const allColorsBy = pid => { for(const x of sideOf(pid).bf||[]){ if(!x.fd && (x.
    and plain anthems ("Creatures you control have flying", "Other creatures you control have …") → [{k, src}] */
 function grantedKw(c, pid){ if(c.fd || !isCreature(c) || !pid) return []; const out=[], cols=cardColors(c);
   if(c.tkw && c.tkw.n===G.turn.n) for(const k of c.tkw.k) out.push({k, src:'until end of turn'});   // "<this creature> gains flying until end of turn"
+  for(const bf of [G.me.bf, (G.opp&&G.opp.bf)||[]]) for(const x of bf){ if(x.att!==c.id || x.fd || (!x.k && !x.cu)) continue; const src=cdata(x).n.split(',')[0];   // "Equipped creature gets +1/+1 and has trample and haste."
+    for(const m of (frontText(x)||'').matchAll(/(?:^|\n)(?:Equipped|Enchanted) creature (?:gets [^.\n]*? and )?has ([^.\n"]+)\./gi)) for(const it of m[1].split(/,\s*(?:and\s+)?|\s+and\s+/)){ const k=it.trim().toLowerCase(); if(KW.includes(k) && !out.some(o=>o.k===k)) out.push({k, src}); } }
   for(const x of sideOf(pid).bf||[]){ if(x.fd || (!x.k && !x.cu)) continue; const src=cdata(x).n.split(',')[0];
     for(const m of (frontText(x)||'').matchAll(/(?:^|\n|\.\s)(Other )?(?:Each creature you control has|Creatures you control have) ([^.\n]+)\./gi)){ if(m[1] && x.id===c.id) continue;
       for(const it of m[2].split(/,\s*(?:and\s+)?|\s+and\s+/)){ const q=it.trim().match(/^([a-z ]+?)(?: if it's (white|blue|black|red|green))?$/i); if(!q) continue; const k=q[1].toLowerCase().trim();
@@ -2184,6 +2187,12 @@ async function simpleEffects(c, text, srcId){
   for(let sen of (text||'').replace(/\([^)]*\)/g,'').split(/(?<=\.)\s+|\n/)){ sen=sen.trim().replace(nm && /,/.test(nm) ? new RegExp('^((?:When|Whenever) )'+escRe(nm)+'\\b','i') : /^\b$/, '$1it').replace(/^[A-Z][A-Za-z' ]{2,30} — (?=(?:When|Whenever|At) )/,'').replace(/^(?:When|Whenever|At) (?!you attack this turn)(?!you do\b)(?!that creature dies this turn)(?!a creature dies this turn)[^,]+, /i,''); let r;
     if((r=sen.match(new RegExp('^return (?:this card|'+escRe(nm||'@@')+'|'+escRe((nm||'@@').split(',')[0])+') from your graveyard to (the battlefield|your hand)( tapped)?\\.?$','i'))) && srcC){ const g=find(srcC.id); if(g && g.z==='gy'){ move(srcC.id, /hand/i.test(r[1]) ? 'hand' : 'bf', {silent:true, tap:!!r[2]}); log(`${by}: ${m.name} returns ${cname(srcC)} from their graveyard to ${/hand/i.test(r[1]) ? 'their hand' : 'the battlefield'+(r[2]?' tapped':'')}.`); changed(); } else log(`${by}: it is no longer in the graveyard.`); continue; }
     if((r=sen.match(/^if you do, (.+)$/i)) && didIt!==undefined){ if(!didIt){ log(`${by}: nothing happened, so the rest doesn't either.`); didIt=undefined; continue; } didIt=undefined; sen=r[1].replace(/^([a-z])/, x=>x.toUpperCase()); }
+    // Cori-Steel Cutter's flurry: "create a 1/1 white Monk creature token with prowess. You may attach this Equipment to it."
+    if(/^you may attach this equipment to (?:it|that token|that creature)\.?$/i.test(sen)){ const tk=(made||[]).find(x=>find(x.id) && find(x.id).z==='bf'), eq=srcC && find(srcC.id);
+      if(!tk || !eq || eq.z!=='bf'){ log(`${by}: ${!tk ? 'no token was made' : 'the equipment is gone'}, so nothing is attached.`); continue; }
+      waited=true; const ok=await yesNo(by, `Attach ${cname(srcC)} to the new ${cname(tk)}?`, 'Attach it', 'Leave it where it is');
+      if(ok){ const was=srcC.att && find(srcC.att); srcC.att=tk.id; m.arrows=m.arrows.filter(a=>a.a!==srcC.id); log(`${by}: ${cname(srcC)} is attached to ${cname(tk)}${was && was.z==='bf' && was.c.id!==tk.id ? ` (moved from ${cname(was.c)})` : ''}.`); }
+      else log(`${by}: ${cname(srcC)} stays ${srcC.att && find(srcC.att) ? 'on '+cname(find(srcC.att).c) : 'unattached'}.`); changed(); continue; }
     // ---- v3.63 spells ----
     // Irencrag Feat
     if((r=sen.match(/^add (two|three|four|five|six|seven|eight|nine|ten|\d+) \{([WUBRGC])\}\.?$/i))){ const k=NUMW2[r[1].toLowerCase()]||+r[1]||1; addMana(r[2].repeat(k)); log(`${by}: ${m.name} adds ${k} {${r[2]}}.`); changed(); continue; }
