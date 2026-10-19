@@ -33,6 +33,10 @@ import os
 cards=json.load(open('src/cards.json', encoding='utf-8')) if os.path.exists('src/cards.json') else {}
 assert '/*__CARDS__*/{}' in src
 need={n.strip().lower() for d in out for n,_ in d['main']+d['side']}
+if os.path.exists('src/extra.txt'):   # cards from decks we paste and play (see src/extra.txt)
+    for line in open('src/extra.txt', encoding='utf-8'):
+        mm=re.match(r'\s*(\d+)\s+(.+)', line)
+        if mm and not line.lstrip().startswith('#'): need.add(mm.group(2).strip().lower())
 have=need & set(cards)
 cards={k:v for k,v in cards.items() if k in need or k.startswith('id:')}
 import unicodedata
