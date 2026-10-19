@@ -431,10 +431,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v3.63';
+const VERSION = 'v3.64';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v3.64','Oct 19',"Pick Your Poison is the printed card now (choose one: your opponent sacrifices an artifact, an enchantment, or a creature with flying, their choice). Last version used a test card of the same name by mistake."],
   ['v3.63','Oct 19',"This week's new decks: Eidolon of the Great Revel, Kor Firewalker and Roiling Vortex trigger on any player's spells; Goblin Guide, Archon of Cruelty, Searing Blood, Searing Blaze, Smash to Smithereens, Vapor Snag, Wasteland Strangler, Sanctifier en-Vec, Chandra, Awakened Inferno, Ob Nixilis, Valakut, Talismans, Stormscale Scion's Dragon bonus, Skullcrack, Flare of Fortitude, Bitter Reunion, Untimely Malfunction, Sundering Eruption and Ifnir Deadlands work. Spells: Stock Up, spectacle (Light Up the Stage, Skewer the Critics), Irencrag Feat, Legion Leadership, March of Reckless Joy, Pick Your Poison, Press the Enemy, Scout for Survivors, Dewdrop Cure, Secret Identity, Shatterskull Smashing, Toxic Deluge, Unearth, Persist, End of the Hunt, Commandeer, Deflecting Palm, Goblin Charbelcher, Ba Sing Se, Thrun, and Brazen Borrower's adventure."],
   ['v3.62','Oct 18',"Ready for a Darklight Phoenix sacrifice deck: Buried Alive puts creatures into your graveyard, Darklight Phoenix comes back at the start of combat after two creatures died, Spymaster's Vault connives for each creature that died this turn, Culling Ritual adds its mana, Malevolent Rumble shows what it revealed in the log right away, True Ancestry returns its target, Ozai's Cruelty makes the player discard two, and Decorum Dissertation draws, drains and comes back each turn with paradigm. Also: 'gains indestructible until end of turn' now protects the creature from destroy effects, and a creature you sacrifice to cast a spell puts its death trigger above the spell, as the rules say."],
   ['v3.61','Oct 18',"Waterbend works as an additional cost (Ruinous Waterbending): you're asked whether to pay it, can tap artifacts and creatures for {1} each, and the rest is added to the spell's cost. Ruinous Waterbending gives all creatures -2/-2 and, if waterbent, you gain 1 life whenever a creature dies this turn."],
@@ -2099,7 +2100,7 @@ function endTheTurn(by){ const m=G.me, gone=m.st.filter(x=>!x.tok || x.ab || x.c
   setTurn(Object.assign({}, G.turn, {phase:PH.length-1})); log(`${by}: the turn ends${gone.length?' (the rest of the stack is exiled)':''}. ${m.name}'s turn moves to its end.`); changed(); }
 /* the opponent's side of an edict: choose one that fits and sacrifice it */
 async function edictPick(e){ const m=G.me, d=String(e.desc||'creature'), by=`${String(e.who||'Opponent').slice(0,40)}'s ${String(e.by||'An effect').slice(0,60)}`;
-  let cs=m.bf.filter(x=>!x.fd && (d==='nontoken creature' ? isCreature(x) && !x.tok : d==='creature token' ? isCreature(x) && x.tok : d==='creature or planeswalker' ? (isCreature(x) || isPW(x)) : matchesDesc(x, d)));
+  let cs=m.bf.filter(x=>!x.fd && (d==='nontoken creature' ? isCreature(x) && !x.tok : d==='creature token' ? isCreature(x) && x.tok : d==='creature or planeswalker' ? (isCreature(x) || isPW(x)) : /^creature with (\w+)$/.test(d) ? isCreature(x) && kwOn(x, d.split(' ').pop()) : matchesDesc(x, d)));
   if(e.greatest && cs.length){ const mx=Math.max(...cs.map(manaValue)); cs=cs.filter(x=>manaValue(x)===mx); }
   if(!cs.length){ log(`${by}: ${m.name} has no ${d} to sacrifice.`); return; }
   let p=cs.length===1 ? cs[0] : await pickP(`${by}: sacrifice a ${d}${e.greatest?' (greatest mana value)':''}`, cs, null); if(!p) p=cs[0];
@@ -2419,7 +2420,7 @@ async function simpleEffects(c, text, srcId){
       const all=[...m.bf, ...((G.opp&&G.opp.bf)||[])].filter(x=>isCreature(x) && !x.fd && (!cols.length || cardColors(x).some(k=>cols.includes(k))));
       for(const x of all){ const a=findAny(x.id); if(a && a.mine) applyMod(x, {p, q}); else send({t:'mod', id:x.id, o:{p, q}, by, who:m.name}); } log(`${by}: ${all.length} creature${all.length===1?'':'s'} get${all.length===1?'s':''} ${r[4]}/${r[5]} until end of turn.`); changed(); continue; }
     // edicts: "Each opponent sacrifices a nontoken creature of their choice." / Flare of Malice's "… with the greatest mana value among …"
-    if((r=sen.match(/^each opponent sacrifices an? (nontoken creature|creature token|planeswalker|creature|creature or planeswalker)(?: of their choice)?( with the greatest mana value among creatures and planeswalkers they control)?\.?$/i))){ if(G.opp){ send({t:'edict', desc:r[1].toLowerCase(), greatest:!!r[2], by, who:m.name}); log(`${by}: ${G.opp.name} sacrifices a ${r[1].toLowerCase()}${r[2]?' with the greatest mana value':''} of their choice.`); } continue; }
+    if((r=sen.match(/^each opponent sacrifices an? (nontoken creature|creature token|planeswalker|creature with flying|creature|creature or planeswalker|artifact|enchantment)(?: of their choice)?( with the greatest mana value among creatures and planeswalkers they control)?\.?$/i))){ if(G.opp){ send({t:'edict', desc:r[1].toLowerCase(), greatest:!!r[2], by, who:m.name}); log(`${by}: ${G.opp.name} sacrifices a ${r[1].toLowerCase()}${r[2]?' with the greatest mana value':''} of their choice.`); } continue; }
     // "Return all artifacts target player owns to their hand." (Hurkyl's Recall)
     if((r=sen.match(/^return all (artifacts|creatures|nonland permanents) target player owns to their hand\.?$/i))){ const p=tg.find(x=>x==='p1'||x==='p2') || G.myId;
       if(p===G.myId) bounceAll(r[1], by); else { send({t:'bounceall', desc:r[1], by, who:m.name}); log(`${by}: ${G.opp?G.opp.name:'the opponent'} returns all ${r[1]} they own to their hand.`); } continue; }
