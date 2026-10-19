@@ -439,10 +439,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 </script>
 <script>
 "use strict";
-const VERSION = 'v3.57';
+const VERSION = 'v3.58';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v3.58','Oct 18',"Fabricate works (Marionette Apprentice): when the creature enters, choose +1/+1 counters or 1/1 Servo tokens. Marionette Apprentice and other 'whenever another creature or artifact you control dies' cards trigger. Learn works: reveal a Lesson from your sideboard into your hand, or discard a card to draw a card. Treasures (and other 'tap, sacrifice' mana) are sacrificed when you take their mana instead of only tapping. Shambling Ghast asks for its mode when it dies, and Boggart Trawler targets a player's whole graveyard (click the graveyard or the player)."],
   ['v3.57','Oct 18',"Search windows (fetchlands and the like) show every card at its proper shape: one-of cards are no longer stretched next to cards with an '×N in library' count. The scry and surveil window is only as wide as the cards it shows."],
   ['v3.56','Oct 18',"After a mulligan, keeping your hand opens a box to choose that many cards for the bottom of your library, in the order you click them."],
   ['v3.55','Oct 18',"Ral, Monsoon Mage: the first coin flip asks you to call heads or tails for the rest of the game, and each flip shows how it landed. Lose and Ral deals 1 damage to you; win and you're asked whether to flip him. He comes back as a planeswalker with 2 loyalty plus one for each instant and sorcery you cast this turn, and his +1, −2 and −8 work. Fixed: once Ral had flipped, the table stopped updating, which left spells like Wrenn's Resolve stuck on the stack. The 'may be played until end of this turn / next turn' boxes now sit at the right end of their row."],
@@ -896,6 +897,7 @@ function move(id, zone, o={}){
   if(zone!=='st'){ delete c.md; delete c.half; delete c.sacMV; delete c.addPaid; delete c.gift; delete c.nm; delete c.unc; delete c.pc; } if(zone!=='st' && zone!=='bf'){ delete c.ev; delete c.spent; delete c.dash; delete c.hst; } if(zone!=='bf') delete c.exEnd;
   m[from].splice(f.i,1); if(from==='ex'){ delete c.plot; delete c.offer; delete c.by; delete c.warp; delete c.pl; delete c.plFree; delete c.fl; } if(zone!=='st') delete c.bt;
   if(from==='bf' && zone==='gy' && !c.fd && (c.k||c.cu)) diesTrig(c);
+  if(from==='bf' && zone==='gy') othersDie(c);
   if(from==='bf' && zone!=='bf') ltbTrig(c); if(zone!=='bf' && zone!=='st') delete c.gainLtb;
   if(from==='bf' && zone==='gy' && !c.fd && isCreature(c)){ undying(c); creatureDied(cname(c), c); if(G.opp) send({t:'cdied', n:cdata(c).n}); }
   if(from==='bf' && zone!=='bf') G.me.leftT=G.turn.n;
@@ -947,14 +949,14 @@ function resolve(id){ const f=find(id); if(!f) return; const c=f.c; if(!c.ab && 
 function manaAbilities(c){
   const lt = isLand(c) ? landTypes(c, G.me.bf.some(x=>x.id===c.id) ? G.myId : oppId(), landEffects()) : null;
   if(lt && lt.main) return [...lt.main, ...lt.plus].map(t=>({out:BASIC[t], cost:'', exert:false, rem:false}));
-  let TCR=false, SACO=''; const out=[], cond=[], txt=cdata(c).o||'', add=(list,o,cost,exert,rem,only,rider)=>{ if(o && !list.some(a=>a.out===o && a.cost===cost)) list.push(Object.assign({out:o, cost, exert, rem}, only ? {only} : {}, rider ? {rider} : {}, TCR ? {tcr:1} : {}, SACO && !/^(this|it)$/i.test(SACO) ? {saco:SACO} : {})); };
+  let TCR=false, SACO='', SACS=false; const out=[], cond=[], txt=cdata(c).o||'', add=(list,o,cost,exert,rem,only,rider)=>{ if(o && !list.some(a=>a.out===o && a.cost===cost)) list.push(Object.assign({out:o, cost, exert, rem}, only ? {only} : {}, rider ? {rider} : {}, TCR ? {tcr:1} : {}, SACS ? {sacs:1} : {}, SACO && !/^(this|it)$/i.test(SACO) ? {saco:SACO} : {})); };
   for(const m of txt.matchAll(/\badd ([^.\n]*)/gi)){ const cl=m[1];
     const pre=txt.slice(txt.lastIndexOf('\n', m.index)+1, m.index), ci=pre.lastIndexOf(':'), costPart=ci>=0 ? pre.slice(0,ci) : '';
     const cost=[...costPart.matchAll(/\{([WUBRGC]|\d+)\}/g)].map(x=>x[1]).join(','), exert=/\bexert\b/i.test(costPart), rem=/\bremove an? [\w+\/-]+ counter from\b/i.test(costPart);
     // "If it has a luck counter on it, instead add one mana of any color" (Gemstone Caverns): only with a counter, and then it replaces the plain ability
     const iff=/counters? on (?:it|him|her), instead $/i.test(pre), list=iff ? cond : out; if(iff && !(c.c>0)) continue;
     if(/If a card is exiled with [^,]+, $/i.test(pre)){ const e=c.impId && find(c.impId); if(!(e && e.z==='ex')) continue; const syms2=[...cl.matchAll(/\{([WUBRGC])\}/g)].map(x=>x[1]); out.length=0; add(out, syms2.join(''), cost, exert, rem); continue; }
-    TCR=/Tap an untapped creature you control/i.test(costPart); SACO=(costPart.match(/\bSacrifice an? ([A-Za-z]+)\b/i)||[])[1]||'';
+    TCR=/Tap an untapped creature you control/i.test(costPart); SACS=new RegExp('\\bSacrifice (?:this (?:artifact|token|creature|permanent|land|enchantment)|it|'+escRe(faceName(c,0))+')(?![\\w])','i').test(costPart); SACO=(costPart.match(/\bSacrifice an? ([A-Za-z]+)\b/i)||[])[1]||'';
     const ln=txt.slice(txt.lastIndexOf('\n', m.index)+1, (txt.indexOf('\n', m.index)+1 || txt.length+1)-1), only=((ln.match(/Spend this mana only ([^.]+)/i)||[])[1]||''), rider=riderOf(ln);
     const nAny=cl.match(/^(one|two|three|four|five) mana of any (?:one )?colou?r/i), k2=nAny ? (NUMW2[nAny[1].toLowerCase()]||1) : 1;
     if(/any (one )?color|any type|any of/i.test(cl)){ 'WUBRG'.split('').forEach(k=>add(list,k.repeat(k2),cost,exert,rem,only,rider)); continue; }
@@ -967,7 +969,7 @@ function manaAbilities(c){
 }
 const manaOptions = c => [...new Set(manaAbilities(c).map(a=>a.out))];
 const costLabel = cost => cost.split(',').map(k=>MNAME[k]||k).join(' + ');
-const abilityLabel = a => (a.cost ? 'Pay '+costLabel(a.cost)+', tap for ' : 'Tap for ')+manaLabel(a.out)+(a.exert ? ' (exerts)' : '')+(a.rem ? ' (removes a counter)' : '')+(a.rider==='haste' ? ' (a creature spell paid with it gains haste)' : '');
+const abilityLabel = a => (a.cost ? 'Pay '+costLabel(a.cost)+', tap for ' : 'Tap for ')+manaLabel(a.out)+(a.exert ? ' (exerts)' : '')+(a.rem ? ' (removes a counter)' : '')+(a.sacs ? ', then sacrifice it' : '')+(a.rider==='haste' ? ' (a creature spell paid with it gains haste)' : '');
 function payCost(cost){
   if(!cost) return true; const m=G.me; if(!m.mana) m.mana=noMana(); const pool=Object.assign({}, m.mana);
   for(const k of cost.split(',')){ if(MANA.includes(k)){ if(pool[k]<1) return false; pool[k]--; } }
@@ -986,7 +988,7 @@ function useAbility(c, a, noExtra){
   if(!totemGate(c, ()=>{ if(useAbility(c, a, noExtra)) changed(); })) return false;
   if(a.rem && !(c.c>0)){ toast('It has no counters left to remove.'); return false; }
   if(!payCost(a.cost)){ toast(`That costs ${costLabel(a.cost)}. Put it in your mana pool first, then try again.`); return false; }
-  c.tap=true; if(a.only || a.rider){ const m=G.me, src=cdata(c).n.split(',')[0]; m.smana=m.smana||[]; for(const k of a.out) if(MANA.includes(k)) m.smana.push({k, src, only:a.only||'', rider:a.rider||'', chosen:c.chosen||''}); if(!noExtra) log(`${G.me.name} taps ${cname(c)} for ${[...a.out].map(k=>'{'+k+'}').join('')}${a.only ? `: spend ${a.out.length>1?'this mana':'it'} only ${a.only}` : ''}${a.rider==='haste' ? ' (a creature spell paid with it gains haste)' : ''}.`); } else addMana(a.out); if(!noExtra && (isCreature(c) || c.anim)) extraMana(c); if(a.rem) c.c--; if(a.exert){ c.exert=true; log(`${G.me.name} exerts ${cname(c)}. It will not untap next turn.`); } return true;
+  c.tap=true; if(a.only || a.rider){ const m=G.me, src=cdata(c).n.split(',')[0]; m.smana=m.smana||[]; for(const k of a.out) if(MANA.includes(k)) m.smana.push({k, src, only:a.only||'', rider:a.rider||'', chosen:c.chosen||''}); if(!noExtra) log(`${G.me.name} taps ${cname(c)} for ${[...a.out].map(k=>'{'+k+'}').join('')}${a.only ? `: spend ${a.out.length>1?'this mana':'it'} only ${a.only}` : ''}${a.rider==='haste' ? ' (a creature spell paid with it gains haste)' : ''}.`); } else addMana(a.out); if(!noExtra && (isCreature(c) || c.anim)) extraMana(c); if(a.rem) c.c--; if(a.sacs){ const g=find(c.id); if(g && g.z==='bf'){ log(`${G.me.name} taps and sacrifices ${cname(c)} for ${[...a.out].map(k=>'{'+k+'}').join('')}.`); move(c.id,'gy',{silent:true}); } } if(a.exert){ c.exert=true; log(`${G.me.name} exerts ${cname(c)}. It will not untap next turn.`); } return true;
 }
 const manaLabel = o => MANA.filter(k=>o.includes(k)).map(k=>{ const n=o.split(k).length-1; return (n>1?n+' ':'')+MNAME[k]; }).join(' + ');
 function addMana(o){ const m=G.me; if(!m.mana) m.mana=noMana(); for(const ch of o) if(ch in m.mana) m.mana[ch]++; }
@@ -1152,6 +1154,7 @@ function entered(c){
   if(isCreature(c) && G.me.bf.includes(c) && !cardColors(c).length) trg.push(['colorless creature enters', ()=>{ for(const x of G.me.bf){ if(x.id===c.id || x.fd || (!x.k && !x.cu)) continue; const m=(frontText(x)||'').match(/(?:^|\n)Whenever another colorless creature you control enters, ([^\n]+)/i); if(m){ pushTrig(x, m[1]); log(`${cdata(x).n.split(',')[0]}: ${cname(c)} entered, so its trigger goes on the stack.`); } } }, 1]);
   if(ev) trg.push(['evoke sacrifice', ()=>evokeSac(c), 1]);
   if(earthbendN(c) && /\bWhen (?:this creature|[^,\n]+) enters, earthbend/i.test(frontText(c)||'')){ const n=earthbendN(c), src=c; trg.push(['earthbend', ()=>setTimeout(()=>startEarthbend(src, n, 'enters'), 0)]); }
+  { const fb=(frontText(c)||'').match(/(?:^|\n)Fabricate (\d+)/i); if(fb && G.me.bf.includes(c)) trg.push(['fabricate', ()=>{ pushTrig(c, `Fabricate ${fb[1]}.`, 'fabricate'); log(`${cname(c)} enters: fabricate ${fb[1]} goes on the stack.`); }, 1]); }
   if(etbLines(c).length) trg.push([etbLines(c).length>1 ? 'enter triggers' : 'enter trigger', ()=>etbTrigs(c), 1]);
   { const b=blinkTrig(c); if(b && b.when==='enters') trg.push(['flicker trigger', ()=>toast(`${srcName(c)} enters: right-drag its arrow onto ${b.upto?'up to one':'a'} ${b.phrase.replace(/\s*\byou control\b/,'')} to put its trigger on the stack.`)]); }
   { const oe=othersEnter(c); if(oe.length) trg.push([oe.length>1?'enter triggers of other permanents':'an enter trigger of another permanent', ()=>oe.forEach(f=>f()), 1]); }
@@ -1385,7 +1388,10 @@ function ltbTrig(c){ if(c.fd || (!c.k && !c.cu)) return; const d=cdata(c), nm=fa
   const re=new RegExp('(?:^|\\n)When (?:this (?:artifact|creature|permanent|enchantment|token)|'+escRe(nm)+'|'+escRe(sn)+') leaves the battlefield, ([^\\n]+)','i'), m=(frontText(c)||'').match(re); if(m) out.push(m[1]); if(c.gainLtb) out.push(c.gainLtb);
   for(const e of out){ G.me.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:c.id, tr:true}, cu:{n:`${sn}: leaves trigger`, t:'Triggered ability', o:e.replace(/^t/,'T'), img:d.img||''}})); log(`${sn} leaves the battlefield: its trigger goes on the stack.`); } }
 function diesTrig(c){ const d=cdata(c), nm=faceName(c,0), sn=nm.split(',')[0], re=new RegExp('(?:^|\\n)When (?:this (?:artifact|creature|permanent|enchantment)|'+escRe(nm)+'|'+escRe(sn)+') (?:is put into a graveyard from the battlefield|dies), ([^\\n]+)','i'), m=(frontText(c)||'').match(re); if(!m) return;
-  G.me.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:c.id, tr:true}, cu:{n:`${sn}: trigger`, t:'Triggered ability', o:m[0].trim(), img:d.img||''}})); log(`${sn} goes to the graveyard: its trigger goes on the stack.`); }
+  const push=txt=>{ const t=mk(null,{tok:true, ts:Date.now(), ab:{id:c.id, tr:true}, cu:{n:`${sn}: trigger`, t:'Triggered ability', o:txt, img:d.img||''}}); G.me.st.push(t); log(`${sn} goes to the graveyard: its trigger goes on the stack${txt!==m[0].trim()?' ('+txt+')':''}.`); if(needsTarget(txt) && !G.mode){ G.mode={type:'arrow', from:t.id}; toast(`${sn}: click its target (Esc for none).`); } changed(); };
+  if(/choose one\s*[—–-]?\s*$/i.test(m[1])){ const L=(frontText(c)||'').split('\n').map(x=>x.trim()), i=L.findIndex(l=>l===m[0].trim()), modes=[]; for(let j=i+1;j>0 && j<L.length && /^[•+]/.test(L[j]);j++) modes.push(L[j].replace(/^[•+]\s*/,''));
+    if(modes.length>1){ setTimeout(()=>pickModes(c, {head:m[0].trim(), modes, min:1, max:1}, p=>push(modes[p[0]-1].replace(/^([a-z])/, x=>x.toUpperCase())), {title:`${sn} died: choose one`, skip:null}), 0); return; } }
+  push(m[0].trim()); }
 /* Atraxa, Grand Unifier: reveal the top N; drag (or click) at most one card into each card type's box; the rest go to the bottom in a random order */
 const CTYPES=['Artifact','Battle','Creature','Enchantment','Instant','Kindred','Land','Planeswalker','Sorcery'];
 const cardTypesOf = c => { const t=faceTypeOf(c,0).split('—')[0]; return CTYPES.filter(k=>new RegExp('\\b'+k+'\\b').test(t) || (k==='Kindred' && /\bTribal\b/.test(t))); };
@@ -1863,7 +1869,13 @@ function catsDied(dead){ if(!/\bCat\b/.test(faceType(dead)) || dead.fd) return; 
 /* Undying / persist: "When this creature dies, if it had no +1/+1 (-1/-1) counters on it, return it to the battlefield … with a +1/+1 (-1/-1) counter on it." */
 function undying(c){ if(c.tok || c.fd || (!c.k && !c.cu)) return; const t=noRemind(c), u=/(?:^|\n)(?:[^\n]*, )?Undying\b/i.test(t) && !((c.c||0)>0), p=/(?:^|\n)(?:[^\n]*, )?Persist\b/i.test(t) && !((c.c||0)<0); if(!u && !p) return; const d=cdata(c), nm=d.n.split(',')[0];
   G.me.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:c.id, tr:true, und:u?1:-1}, cu:{n:`${nm}: ${u?'undying':'persist'}`, t:'Triggered ability', o:`Return ${d.n} to the battlefield with a ${u?'+1/+1':'-1/-1'} counter on it.`, img:d.img||''}})); log(`${nm} died with no ${u?'+1/+1':'-1/-1'} counters: its ${u?'undying':'persist'} trigger goes on the stack.`); }
-function creatureDied(name, dead){ if(dead && G.me.bf.length) catsDied(dead); for(const x of G.me.bf){ if(x.fd || (!x.k && !x.cu)) continue; const m=(frontText(x)||'').match(/(?:^|\n)Whenever a creature dies, ([^\n]+)/i); if(!m) continue; const d=cdata(x), nm=d.n.split(',')[0];
+/* "Whenever another creature or artifact you control is put into a graveyard from the battlefield / dies, …" (Marionette Apprentice) on my other permanents */
+function othersDie(c){ const cr=!c.fd && isCreature(c) || !!c.fd, art=!c.fd && /\bArtifact\b/.test(faceType(c)), out=[];
+  for(const x of G.me.bf){ if(x.fd || (!x.k && !x.cu) || x.id===c.id) continue;
+    const m=(frontText(x)||'').match(/(?:^|\n)Whenever (?:another |a |an )(nontoken )?(creature or artifact|artifact or creature|creature|artifact) you control (?:dies|is put into a graveyard from the battlefield), ([^\n]+)/i); if(!m) continue;
+    if(m[1] && c.tok) continue; if(!((/creature/i.test(m[2]) && cr) || (/artifact/i.test(m[2]) && art))) continue; out.push(trigPush(x, m[3])); }
+  if(out.length) log(`${cname(c)} went to the graveyard: ${out.join(', ')} trigger${out.length>1?'s go':' goes'} on the stack.`); }
+function creatureDied(name, dead){ if(dead && G.me.bf.length) catsDied(dead); for(const x of G.me.bf){ if(x.fd || (!x.k && !x.cu)) continue; const m=(frontText(x)||'').match(/(?:^|\n)Whenever (?:a|another) creature dies, ([^\n]+)/i); if(!m) continue; const d=cdata(x), nm=d.n.split(',')[0];
     G.me.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:x.id, tr:true}, cu:{n:`${nm}: trigger`, t:'Triggered ability', o:m[1].replace(/^p/,'P'), img:d.img||''}})); log(`${nm}: ${name} died, so its trigger goes on the stack.`); } }
 /* "Whenever one or more +1/+1 counters are put on <this creature>, …" (Basking Broodscale): a watcher compares each creature's counters with the last look */
 function ctrWatch(){ for(const c of G.me.bf){ if(c.fd || (!c.k && !c.cu)) continue; const nm=faceName(c,0), short=nm.split(',')[0];
@@ -2098,6 +2110,20 @@ async function simpleEffects(c, text, srcId){
   for(let sen of (text||'').replace(/\([^)]*\)/g,'').split(/(?<=\.)\s+|\n/)){ sen=sen.trim().replace(nm && /,/.test(nm) ? new RegExp('^((?:When|Whenever) )'+escRe(nm)+'\\b','i') : /^\b$/, '$1it').replace(/^[A-Z][A-Za-z' ]{2,30} — (?=(?:When|Whenever|At) )/,'').replace(/^(?:When|Whenever|At) (?!you attack this turn)(?!you do\b)[^,]+, /i,''); let r;
     if((r=sen.match(new RegExp('^return (?:this card|'+escRe(nm||'@@')+'|'+escRe((nm||'@@').split(',')[0])+') from your graveyard to (the battlefield|your hand)( tapped)?\\.?$','i'))) && srcC){ const g=find(srcC.id); if(g && g.z==='gy'){ move(srcC.id, /hand/i.test(r[1]) ? 'hand' : 'bf', {silent:true, tap:!!r[2]}); log(`${by}: ${m.name} returns ${cname(srcC)} from their graveyard to ${/hand/i.test(r[1]) ? 'their hand' : 'the battlefield'+(r[2]?' tapped':'')}.`); changed(); } else log(`${by}: it is no longer in the graveyard.`); continue; }
     if((r=sen.match(/^if you do, (.+)$/i)) && didIt!==undefined){ if(!didIt){ log(`${by}: nothing happened, so the rest doesn't either.`); didIt=undefined; continue; } didIt=undefined; sen=r[1].replace(/^([a-z])/, x=>x.toUpperCase()); }
+    // Fabricate N: N +1/+1 counters on it, or N 1/1 colorless Servo artifact creature tokens (tokens only if it has left the battlefield)
+    if((r=sen.match(/^fabricate (\d+)\.?$/i))){ const n=+r[1], b=srcC || (c.ab && find(c.ab.id) && find(c.ab.id).c), on=b && find(b.id) && find(b.id).z==='bf'; let ctr=false;
+      if(on){ waited=true; ctr=await yesNo(`${by}: fabricate ${n}`, `Put ${n===1?'a +1/+1 counter':n+' +1/+1 counters'} on ${cname(b)}, or create ${n===1?'a 1/1 colorless Servo artifact creature token':n+' 1/1 colorless Servo artifact creature tokens'}?`, n===1?'+1/+1 counter':`${n} +1/+1 counters`, n===1?'Servo token':`${n} Servo tokens`); }
+      if(ctr){ b.c=(b.c||0)+n; log(`${by}: ${m.name} puts ${n===1?'a +1/+1 counter':n+' +1/+1 counters'} on ${cname(b)}.`); } else { if(!on) log(`${by}: it has left the battlefield, so ${m.name} makes Servos.`); made=makeCreatureTokens(n, '1', '1', 'colorless Servo', {art:true, src:b||null}, by); }
+      changed(); continue; }
+    // Learn: discard a card to draw a card, or reveal a Lesson card from outside the game (the sideboard) and put it into your hand
+    if(/^learn\.?$/i.test(sen)){ const ls=m.side.filter(x=>/\bLesson\b/.test(faceTypeOf(x,0))); waited=true;
+      const pick=await new Promise(res=>{ let done=false; const fin=v=>{ if(done) return; done=true; closeModal(); res(v); };
+        const el=modal(`${by}: learn`, `<span class="hint">${ls.length ? 'Click a Lesson from your sideboard to reveal it and put it into your hand, or ' : 'You have no Lesson cards in your sideboard. You may '}discard a card to draw a card.</span>${ls.length ? `<div class="grid" id="lnGrid">${ls.map(x=>cardHTML(x,'side',true)).join('')}</div>` : ''}`,
+          [['Do nothing',()=>fin(null),'ghost'], ...(m.hand.length ? [['Discard a card, draw a card',()=>fin('rummage'),'alt']] : [])], {wide:ls.length>4, onClose:()=>fin(null)});
+        const g=$('#lnGrid', el); if(g) g.onclick=e=>{ const d=e.target.closest('.card[data-id]'); if(d) fin(d.dataset.id); }; });
+      if(pick==='rummage'){ const p=await pickP(`${by}: discard a card (then draw a card)`, m.hand.slice(), 'Cancel'); if(p){ await discard([p.id]); draw(1); } else log(`${by}: ${m.name} doesn't learn.`); }
+      else if(pick){ const f=find(pick); if(f && f.z==='side'){ move(pick,'hand',{silent:true}); log(`${by}: ${m.name} learns: reveals ${cname(f.c)} from their sideboard and puts it into their hand.`); } }
+      else log(`${by}: ${m.name} doesn't learn.`); changed(); continue; }
     // Ral, Leyline Prodigy: +1, −2's draw, −8
     if((r=sen.match(/^until your next turn, (.+?) spells you cast cost \{(\d+)\} less to cast\.?$/i))){ (m.tmpRed=m.tmpRed||[]).push({desc:r[1], n:+r[2], by:String(by).split(':')[0].split(',')[0]}); log(`${by}: until ${m.name}'s next turn, ${r[1]} spells they cast cost {${r[2]}} less.`); changed(); continue; }
     if((r=sen.match(/^draw a card if you control an? (white|blue|black|red|green) permanent other than [^.]+?\.?$/i))){ const col=COLW[r[1].toLowerCase()]; const ok=m.bf.some(x=>!x.fd && (!srcC || x.id!==srcC.id) && cardColors(x).includes(col)); if(ok) draw(1); else log(`${by}: ${m.name} controls no other ${r[1]} permanent, so no card is drawn.`); changed(); continue; }
@@ -2644,6 +2670,7 @@ function addGyTarget(srcId, cardId, owner){
 }
 let TG=null;   // a stack card waiting for a graveyard target (arrow dragged onto a graveyard, or Target… then a graveyard click)
 function openTargetGy(srcId, owner){
+  { const sf=find(srcId), tx=sf ? (stackText(sf.c)||cdata(sf.c).o||'') : ''; if(/target (?:player|opponent)(?:'|’)s graveyard/i.test(tx) && !/cards? (?:in|from) target (?:player|opponent)(?:'|’)s graveyard/i.test(tx)){ G.mode={type:'arrow', from:srcId}; finishMode(owner); return; } }   // "exile target player's graveyard" (Boggart Trawler) targets the player, not a card
   const mine=owner===G.myId; TG={src:srcId};
   zoneModal(`${mine ? 'Your graveyard' : (G.opp?G.opp.name:'Opponent')+"'s graveyard"}: click the card to target`, ()=>mine ? G.me.gy : ((G.opp&&G.opp.gy)||[]), 'gy', mine, [], ()=>{ TG=null; });
 }
@@ -3461,7 +3488,7 @@ function toggleTap(id, x, y){
     const abs=manaAbilities(c);
     if(abs.length>1 || (abs.length===1 && (abs[0].cost || abs[0].rem))){ if(x==null){ const el=$(`#table .card[data-id="${id}"]`), r=el?el.getBoundingClientRect():{left:200,top:200,width:0}; x=r.left+r.width/2; y=r.top+20; }
       menu(x, y, [...abs.map(a=>[abilityLabel(a), ()=>{ if(useAbility(c,a)) changed(); }]), '-', ['Tap without adding mana', ()=>{ c.tap=true; changed(); }]]); return; }
-    if(abs.length===1){ if(abs[0].only || abs[0].rider){ useAbility(c, abs[0]); changed(); return; } addMana(abs[0].out); if(isCreature(c)) extraMana(c); }
+    if(abs.length===1){ if(abs[0].only || abs[0].rider || abs[0].sacs){ useAbility(c, abs[0]); changed(); return; } addMana(abs[0].out); if(isCreature(c)) extraMana(c); }
   }
   c.tap=true; changed();
 }
