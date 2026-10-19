@@ -35,6 +35,14 @@ def trim(c):
     if parts: t['all_parts'] = parts
     return t
 
+def odd(c):
+    """0 for a real card; higher for playtest, silver-border and other cards no format allows."""
+    bad = 0
+    if 'playtest' in (c.get('promo_types') or []): bad += 2
+    if c.get('set_type') in ('funny', 'memorabilia', 'token'): bad += 2
+    if not any(v != 'not_legal' for v in (c.get('legalities') or {}).values()): bad += 1
+    return bad
+
 def deck_names(path='src/decks.txt'):
     names = set()
     for line in open(path, encoding='utf-8'):
@@ -77,7 +85,10 @@ def main():
             tokens.setdefault(plain(c['name']), []).append(c); continue
         if lay in SKIP: continue
         for n in {c['name'], c['name'].split(' // ')[0]}:
-            by_name.setdefault(plain(n), c)     # the bulk file has one object per card; the full name and the front face both find it
+            # the bulk file has one object per card; the full name and the front face both find it.
+            # Two cards can share a name (a Mystery Booster playtest card, an Un-card): keep the real one.
+            k = plain(n)
+            if k not in by_name or odd(by_name[k]) > odd(c): by_name[k] = c
     out, missing = {}, []
     names = deck_names()
     try: names = sorted(set(names) | set(deck_names('src/extra.txt')))
