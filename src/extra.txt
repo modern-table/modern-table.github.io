@@ -1,0 +1,32 @@
+# Extra cards to build into the page (src/cards.json) besides the tournament decks in src/decks.txt:
+# cards from decks we paste and play. Same "N Card Name" lines as a decklist ("Sideboard" lines are fine).
+# The Build card data workflow reads this file too.
+
+# Golgari / Rakdos sacrifice (Darklight Phoenix, Malevolent Rumble)
+4 Buried Alive
+4 Darklight Phoenix
+4 Eyetwitch
+4 Flare of Malice
+3 Gravecrawler
+4 Malevolent Rumble
+3 Marionette Apprentice
+4 Marsh Flats
+2 Overgrown Tomb
+4 Phyrexian Tower
+4 Shambling Ghast
+4 Spymaster's Vault
+3 Swamp
+4 Thoughtseize
+2 Underground Mortuary
+3 Verdant Catacombs
+4 Warren Soultrader
+Sideboard
+4 Culling Ritual
+1 Dai Li Indoctrination
+1 Decorum Dissertation
+1 Origin of Metalbending
+1 Ozai's Cruelty
+3 Phoenix Fleet Airship
+1 Ruinous Waterbending
+2 Surgical Extraction
+1 True Ancestry

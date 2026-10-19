@@ -79,7 +79,10 @@ def main():
         for n in {c['name'], c['name'].split(' // ')[0]}:
             by_name.setdefault(plain(n), c)     # the bulk file has one object per card; the full name and the front face both find it
     out, missing = {}, []
-    for n in deck_names():
+    names = deck_names()
+    try: names = sorted(set(names) | set(deck_names('src/extra.txt')))
+    except FileNotFoundError: pass
+    for n in names:
         al = aliases().get(plain(n))
         c = (al and by_name.get(plain(al))) or by_name.get(plain(n)) or by_name.get(plain(n.split(' // ')[0]))
         if not c: missing.append(n); continue
