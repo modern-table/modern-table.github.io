@@ -195,6 +195,7 @@ textarea#paste{width:100%;min-height:300px;font-family:ui-monospace,Menlo,Consol
 .badge.xa{left:4%;right:4%;top:4%;padding:1px 2px;text-align:center;font-size:calc(var(--cw)*.11);font-weight:700;line-height:1.15;border-color:#fff;color:#fff;background:#000;white-space:normal;border-radius:3px}
 .badge.xv{left:4%;top:28%;border-color:#fff;color:#fff;background:#000;white-space:nowrap;border-radius:3px}
 .kc.sick{position:absolute;right:3%;top:3%;pointer-events:none}.kc.sick.abil{box-shadow:0 0 0 2px var(--good),0 0 8px 2px #3ddc8488;border-radius:50%}.kc.sick.low{top:17%}
+.prepban{position:absolute;left:0;right:0;top:20%;text-align:center;font:800 calc(var(--cw)*.12)/1 var(--ui);letter-spacing:.1em;color:#f3e9ff;background:linear-gradient(#7a4fc4,#52308f);border-top:1px solid #d9c4ff;border-bottom:1px solid #2a1452;padding:calc(var(--cw)*.03) 0;box-shadow:0 2px 6px #0009;pointer-events:none}
 .lftban{position:absolute;left:0;right:0;top:42%;text-align:center;font:800 calc(var(--cw)*.15)/1 var(--ui);letter-spacing:.12em;color:#06240f;background:var(--good);border-top:1px solid #d6ffe6;border-bottom:1px solid #0f5a2c;padding:calc(var(--cw)*.03) 0;box-shadow:0 2px 6px #0009;pointer-events:none}
 .lorehex{position:absolute;right:3%;bottom:4%;width:calc(var(--cw)*.27);height:calc(var(--cw)*.31);pointer-events:none;filter:drop-shadow(0 1px 3px #000c)}
 .lorehex::before{content:"";position:absolute;inset:0;background:#8a7355;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
@@ -432,10 +433,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v3.66';
+const VERSION = 'v3.67';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v3.67','Oct 19',"A prepared creature (Pompous Battlemage and others) carries a purple PREPARED! banner until you cast its spell."],
   ['v3.66','Oct 19',"New Pause button in the middle bar: ask to stop your opponent's next turn in their upkeep, or in their draw step before or after they draw. Their turn stops there and you get the gold button to cast spells, then pass priority back. Also fixed: when an upkeep trigger (rebound, for example) stopped the turn in the upkeep, moving on skipped the turn's draw."],
   ['v3.65','Oct 19',"Mobilize tokens (Voice of Victory and others) show the red Warrior token picture instead of the white one with vigilance. Tokens now use the picture of the token the card actually makes."],
   ['v3.64','Oct 19',"Pick Your Poison is the printed card now (choose one: your opponent sacrifices an artifact, an enchantment, or a creature with flying, their choice). Last version used a test card of the same name by mistake."],
@@ -3950,6 +3952,7 @@ function cardHTML(c, z, mine, cls=''){
   if(z==='st' && !backUp && !c.tok && chaliceHit(c)) b+=`<span class="cmcban" title="Mana value matches the charge counters on ${esc(chaliceHit(c).name)}">CMC = ${chaliceHit(c).n}</span>`;
   if(z==='st' && c.nm && !backUp && NMW) b+='<span class="nmban" title="No mana was spent to cast this spell">NO MANA<br>WAS SPENT</span>';
   if(z==='bf' && c.chosen && !backUp) b+=`<span class="chban" title="Chosen">${esc(c.chosen)}</span>`;
+  if(z==='bf' && c.prep && !backUp){ const sp=prepSpell(c); b+=`<span class="prepban" title="Prepared: you may cast a copy of ${esc(sp?sp.n:'its spell')} (right-click). Doing so unprepares it.">PREPARED!</span>`; }
   if(z==='bf' && c.lft){ cls+=' lft'; b+='<span class="lftban">NEW!</span>'; }
   if(z==='bf' && showSick(c)){ const ah=abilHaste(mine ? G.me.bf : ((G.opp&&G.opp.bf)||[])); b+=`<span class="kc sick${c.o && c.o !== (mine?G.myId:oppId()) ? ' low' : ''}${ah?' abil':''}" title="${ah ? `Summoning sick, but it can use its abilities (${esc(ah)})` : 'Summoning sick'}">${SICK_SVG}</span>`; }
   if(z==='hand' && mine && !backUp){ const cn=costNow(c); if(cn && cn.delta) b+=`<span class="costbox${cn.delta>0?' up':''}" title="Cost now (printed ${esc(cn.printed)})">${symHTML(cn.syms)}</span>`; }
