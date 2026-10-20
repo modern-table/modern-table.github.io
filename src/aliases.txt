@@ -2,3 +2,5 @@
 # Marvel cards on Arena use their "Through the Omenpaths" names. One per line:  Name in decklists = Scryfall name
 Kavaero, Mind-Bitten = Superior Spider-Man
 Temple Trap = Steel Wrecking Ball
+# Japanese-only promo names
+魔女の予見 = Force of Negation

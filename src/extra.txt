@@ -30,3 +30,28 @@ Sideboard
 1 Ruinous Waterbending
 2 Surgical Extraction
 1 True Ancestry
+
+# Emry artifacts (Mox Amber, Bilbo, Loki)
+1 Aether Spellbomb
+2 Astrologian's Planisphere
+4 Bilbo, Thief in the Night
+1 Dol Amroth
+4 Emry, Lurker of the Loch
+1 Key to the Side-Door
+2 Loki, God of Mischief
+2 Metallic Rebuke
+4 Mox Amber
+4 Mox Opal
+1 Otawara, Soaring City
+2 Sink into Stupor // Soporific Springs
+1 Skateboard
+1 Soul-Guide Lantern
+Sideboard
+1 Haywire Mite
+1 Metallic Rebuke
+1 Pithing Needle
+1 Pyrite Spellbomb
+2 Pyroclasm
+1 Shadowspear
+2 Soul-Guide Lantern
+2 魔女の予見
