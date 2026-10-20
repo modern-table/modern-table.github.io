@@ -4,3 +4,5 @@ Kavaero, Mind-Bitten = Superior Spider-Man
 Temple Trap = Steel Wrecking Ball
 # Japanese-only promo names
 魔女の予見 = Force of Negation
+# Lord of the Rings "Realms and Relics" names
+Dol Amroth = Minamo, School at Water's Edge
