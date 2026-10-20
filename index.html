@@ -197,6 +197,7 @@ textarea#paste{width:100%;min-height:300px;font-family:ui-monospace,Menlo,Consol
 .kc.sick{position:absolute;right:3%;top:3%;pointer-events:none}.kc.sick.abil{box-shadow:0 0 0 2px var(--good),0 0 8px 2px #3ddc8488;border-radius:50%}.kc.sick.low{top:17%}
 .prepban{position:absolute;left:0;right:0;top:20%;text-align:center;font:800 calc(var(--cw)*.12)/1 var(--ui);letter-spacing:.1em;color:#f3e9ff;background:linear-gradient(#7a4fc4,#52308f);border-top:1px solid #d9c4ff;border-bottom:1px solid #2a1452;padding:calc(var(--cw)*.03) 0;box-shadow:0 2px 6px #0009;pointer-events:none}
 .lgpick{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer}.lgpick small{color:var(--dim);font-size:12px}.lgpick:hover .card{outline:2px solid var(--brass);outline-offset:2px}
+.splist{display:flex;flex-direction:column;gap:8px;margin:12px 0}.sprow{display:flex;justify-content:space-between;align-items:center;gap:12px}.sprow small{color:var(--dim)}.sprow input{width:64px}
 .lftban{position:absolute;left:0;right:0;top:42%;text-align:center;font:800 calc(var(--cw)*.15)/1 var(--ui);letter-spacing:.12em;color:#06240f;background:var(--good);border-top:1px solid #d6ffe6;border-bottom:1px solid #0f5a2c;padding:calc(var(--cw)*.03) 0;box-shadow:0 2px 6px #0009;pointer-events:none}
 .lorehex{position:absolute;right:3%;bottom:4%;width:calc(var(--cw)*.27);height:calc(var(--cw)*.31);pointer-events:none;filter:drop-shadow(0 1px 3px #000c)}
 .lorehex::before{content:"";position:absolute;inset:0;background:#8a7355;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
@@ -443,10 +444,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 </script>
 <script>
 "use strict";
-const VERSION = 'v3.75';
+const VERSION = 'v3.76';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v3.76','Oct 20',"Combat damage is dealt by the table, and any creature with lethal damage now dies by itself (a Lightning Bolt, Pyroclasm or damage you mark by hand too). After blocks, the gold button says Apply combat damage (or Apply first strike damage first, when a first striker or double striker is in the fight): damage to players, planeswalkers and creatures happens at once, lifelink gains, and creatures with lethal damage die (deathtouch counts, indestructible survives). Trample goes over, and an attacker with several blockers asks how to split its damage."],
   ['v3.75','Oct 20',"Barbarian Ring's threshold ability can only be activated with seven or more cards in your graveyard. Roiling Vortex now deals 5 to a player who casts a spell for no mana (a Mishra's Bauble, a free spell)."],
   ['v3.74','Oct 20',"With Astrologian's Planisphere (or another card that cares about your second or third draw each turn) on the battlefield, that player's library shows how many cards they have drawn this turn, counting from the start of the turn. It turns gold when the next draw is the one that counts."],
   ['v3.73','Oct 20',"The legend rule: when you control two legendary permanents with the same name, a box asks at once which one to keep. The one that just arrived is marked NEW!; the other goes to the graveyard (its enter and dies triggers still happen)."],
@@ -778,7 +780,7 @@ function lifeGuard(){ const m=G.me; if(!m || !G.turn) return; const n=G.turn.n;
   if(m.lifeLock && m.lifeLock.n===n && m.life!==m.lifeLock.v){ const d=m.life-m.lifeLock.v; m.life=m.lifeLock.v; addLog(`${m.name}'s life total can't change this turn (${d>0?'+':''}${d} undone).`,'s'); send({t:'log', text:`${m.name}'s life total can't change this turn.`}); }
   else if(m.noGain===n && m.lastL!=null && m.life>m.lastL){ const d=m.life-m.lastL; m.life=m.lastL; addLog(`${m.name} can't gain life this turn (+${d} undone).`,'s'); send({t:'log', text:`${m.name} can't gain life this turn.`}); }
   m.lastL=m.life; }
-function changed(){ dedupeIds(); legendCheck(); lifeGuard(); try{ ctrWatch(); }catch(e){} try{ kaitoWatch(); }catch(e){} if(G.me.ctr.energy>0) G.me.energySeen=true; checkHeld(); pruneGtg(); pruneArrows(); checkpoint(); render(); clearTimeout(syncT); syncT=setTimeout(()=>{ send({t:'state', s:pub()}); save(); }, 40); }
+function changed(){ dedupeIds(); clearTimeout(G.sbaT); G.sbaT=setTimeout(sbaDeaths, 150); legendCheck(); lifeGuard(); try{ ctrWatch(); }catch(e){} try{ kaitoWatch(); }catch(e){} if(G.me.ctr.energy>0) G.me.energySeen=true; checkHeld(); pruneGtg(); pruneArrows(); checkpoint(); render(); clearTimeout(syncT); syncT=setTimeout(()=>{ send({t:'state', s:pub()}); save(); }, 40); }
 function save(){ if(G.code || G.solo) store.set('mt_session', {code:G.code, solo:G.solo, myId:G.myId, me:G.me, turn:G.turn, idc:G.idc, at:Date.now()}); }
 function log(text, cls){ addLog(text, cls||'m'); send({t:'log', text}); if(G.me && G.turn && G.turn.n && /\bsacrific(?:es|ed)\b/i.test(text) && String(text).includes(G.me.name) && !/sacrifices nothing|nothing is sacrificed/i.test(text)) G.me.sacT=G.turn.n; }
 /* Vehicles: crewed this turn (c.crew = turn), or "As long as you control eight or more permanents named X, this Vehicle is an artifact creature" (Phoenix Fleet Airship) */
@@ -841,6 +843,7 @@ function onMsg(m){
     else if(f && f.z==='ex' && (f.c.offer || (f.c.by && f.c.by.mode==='play' && f.c.by.pid===oppId()))){ G.noUndo=true; const c=f.c; G.me.ex.splice(f.i,1); delete c.offer; delete c.by; delete c.warp; c.fd=false; send({t:'give', card:c, zone:'st'}); log(`${G.opp?G.opp.name:'Opponent'} casts ${cname(c)} from ${G.me.name}'s exile.`); changed(); } }
   else if(m.t==='give'){ G.noUndo=true; let vdBy=null; if(m.zone==='gy' && m.card && !m.card.tok){ const src=gyReplace(m.card.o||G.myId, m.card); if(src){ m.zone='ex'; ripNote(src, cname(m.card)); } else if((vdBy=voidBy(m.card.o||G.myId))){ m.zone='ex'; voidNote(vdBy.n, cname(m.card)); } } const gc=m.card, play=m.zone==='bf'||m.zone==='st'; if((gc.tok && !play) || (gc.made && !play && m.zone!=='hand')){ render(); return; } if(m.zone==='st') gc.ts=Date.now(); delete gc.lft; delete gc.sick; if(m.zone==='bf' && G.turn.n) gc.sick=true; if(m.zone==='bf') gc.ent=newEnt(); place(m.card, m.zone, m.pos); if(vdBy) gc.by=vdBy; if(m.blink && m.zone==='ex' && !gc.tok){ move(gc.id,'bf',{silent:true}); log(`${String(m.blink).slice(0,80)}: ${cname(gc)} returns to the battlefield under ${G.me.name}'s control.`); } if(m.zone==='gy') noteGy(gc); if(m.zone==='st' && !m.stolen){ noteCast(gc); castTriggers(gc); castTrigs(gc); } if(m.zone==='st' && m.stolen) log(`${G.me.name} now controls ${cname(gc)} on the stack. Right-drag from it to choose new targets.`); if(m.emp && m.zone==='bf'){ gc.fin=1; gc.hst=G.turn.n||1; delete gc.sick; gc.sacEnd=1; gc.sacBy=String(m.emp).slice(0,60); } if(m.card.k) ensureCards([m.card.k]).then(render); changed(); }
   else if(m.t==='cmd'){ runCmd(m); }
+  else if(m.t==='cdmg'){ G.noUndo=true; takeCombat(m); }
   else if(m.t==='pause'){ const at=['up','pre','post'].includes(m.at) ? m.at : null; if(at) G.me.pauseReq={at}; else delete G.me.pauseReq;
     const t=G.turn; if(at==='up' && t.active===G.myId && !t.passed && t.n && t.phase===0 && !t.hold){ setTurn({...t, hold:pauseHold('up')}); } changed(); }
   else if(m.t==='resume'){ resumePause(); }
@@ -897,7 +900,7 @@ function onMsg(m){
   else if(m.t==='lock'){ G.me.lock={n:G.turn.n, nc:!!m.nc, by:String(m.by||'An effect').slice(0,60)}; changed(); }
   else if(m.t==='extract'){ extractName(String(m.name||'').slice(0,80), String(m.by||'A spell').slice(0,60), String(m.who||'Opponent').slice(0,40)); }
   else if(m.t==='wipe'){ wipe(String(m.desc||'').slice(0,60), m.mv==null?null:+m.mv, String(m.by||'A spell').slice(0,60), String(m.who||'Opponent').slice(0,40), !!m.eq); }
-  else if(m.t==='loy'){ const f=find(m.id); if(f && f.z==='bf'){ f.c.c=Math.max(0,(f.c.c||0)+(Math.max(-30,Math.min(0,+m.d||0)))); log(`${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'A spell').slice(0,60)} deals ${-(+m.d||0)} damage to ${cname(f.c)} (loyalty ${f.c.c}).`); changed(); } }
+  else if(m.t==='loy'){ const f=find(m.id); if(f && f.z==='bf'){ f.c.c=Math.max(0,(f.c.c||0)+(Math.max(-30,Math.min(0,+m.d||0)))); f.c.lhit=G.turn.n; log(`${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'A spell').slice(0,60)} deals ${-(+m.d||0)} damage to ${cname(f.c)} (loyalty ${f.c.c}).`); changed(); } }
   else if(m.t==='exhold'){ const f=find(m.id); if(f && f.z==='bf' && m.by){ const nm=cname(f.c), by={id:String(m.by.id||''), pid:oppId(), n:String(m.by.n||'').slice(0,80), mode:'hold'}; move(m.id,'ex',{silent:true}); const g=find(m.id); if(g) g.c.by=by; log(`${String(m.who||'Opponent').slice(0,40)}'s ${by.n} exiles ${G.me.name}'s ${nm} until it leaves the battlefield.`); changed(); } }
   else if(m.t==='ragavan'){ const c=G.me.lib[0]; if(c){ move(c.id,'ex',{silent:true}); c.offer=true; log(`${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'trigger').slice(0,60)}: ${G.me.name} exiles the top card of their library, ${cname(c)}. ${G.opp?G.opp.name:'The opponent'} may cast it this turn.`); changed(); } }
   else if(m.t==='livingend'){ livingEnd(`${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'Living End').slice(0,60)}`); }
@@ -1403,7 +1406,7 @@ const fitTargets = (tg, d) => { const want=descOf(d), mv=String(d||'').match(/wi
 function dealDamage(t, n, by){ const m=G.me; if(!(n>0)) return;
   if(t==='p1' || t==='p2'){ if(t===G.myId){ m.life-=n; log(`${by} deals ${n} damage to ${m.name} (now ${m.life}).`); changed(); } else { send({t:'adj', life:-n}); log(`${by} deals ${n} damage to ${G.opp?G.opp.name:'the opponent'}.`); } return; }
   const a=findAny(t); if(!a || a.z!=='bf'){ log(`${by}: its target is gone.`); return; }
-  if(isPW(a.c)){ if(a.mine){ a.c.c=Math.max(0,(a.c.c||0)-n); log(`${by} deals ${n} damage to ${cname(a.c)} (loyalty ${a.c.c}).`); changed(); } else send({t:'loy', id:t, d:-n, by, who:m.name}); return; }
+  if(isPW(a.c)){ if(a.mine){ a.c.c=Math.max(0,(a.c.c||0)-n); a.c.lhit=G.turn.n; log(`${by} deals ${n} damage to ${cname(a.c)} (loyalty ${a.c.c}).`); changed(); } else send({t:'loy', id:t, d:-n, by, who:m.name}); return; }
   damage(t, n, m.name); log(`${by} deals ${n} damage to ${a.mine?m.name:(G.opp?G.opp.name:'the opponent')}'s ${cname(a.c)}.`); }
 /* counterspells: the controller of the targeted spell or ability counters it (to the graveyard, or exile), after a chance to pay */
 function counterMine(id, exile, by, who){ const f=find(id); if(!f || f.z!=='st'){ log(`${by}: its target is no longer on the stack.`); return; } const c=f.c, nm=cname(c);
@@ -3864,14 +3867,86 @@ const multiBlock = c => /can block (?:an additional|any number of|two) creatures
 const blockersLeft = () => { const used=new Set(G.me.arrows.filter(a=>a.blk).map(a=>a.a)); return G.me.bf.filter(c=>!c.fd && isCreature(c) && !c.tap && (!used.has(c.id) || multiBlock(c))); };
 const blockStep = () => { const t=G.turn; return !!(t.n && t.phase===3 && t.cs==='blk' && t.active!==G.myId && !t.passed); };
 function combatLabel(){ const t=G.turn, on=G.opp?G.opp.name:'opponent'; if(t.phase!==3) return null;
-  if(t.cs==='blk') return {text:`Waiting for ${on}'s blocks`, wait:1}; if(t.cs==='blkd') return {text:'Combat damage'};
+  if(t.cs==='blk') return {text:`Waiting for ${on}'s blocks`, wait:1}; if(t.cs==='blkd') return {text: G.opp && !G.solo ? (combatHasFS() ? 'Apply first strike damage' : 'Apply combat damage') : 'Combat damage'};
+  if(t.cs==='fs') return {text:'Apply combat damage'};
   if(!t.cs && G.me.bf.some(c=>c.atk)) return {text: G.opp && !G.solo ? `Attackers declared → ${on} blocks` : 'Combat damage'}; return null; }
 function combatStep(){ const t=G.turn, atk=G.me.bf.filter(c=>c.atk);
   if(t.cs==='blk'){ toast(`Waiting for ${G.opp?G.opp.name:'your opponent'} to declare blockers.`); return true; }
   if(t.cs==='dmg') return false;
+  if((t.cs==='blkd' || t.cs==='fs') && G.opp && !G.solo){ applyCombat(t.cs==='fs' ? 'reg' : (combatHasFS() ? 'fs' : 'reg')); return true; }
   if(!t.cs){ if(!atk.length) return false;
     if(G.opp && !G.solo){ log(`${G.me.name} declares attackers: ${atk.map(cname).join(', ')}. ${G.opp.name} declares blockers.`); setTurn(Object.assign({}, t, {cs:'blk'})); changed(); return true; } }
   combatDamage(); return true; }
+/* ---- v3.76 combat damage (CR 510): the active player's table works out a damage step and applies it.
+   'fs' (first-strike damage: creatures with first strike or double strike) then 'reg' (the rest, and double strikers again), or just 'reg'.
+   Unblocked attackers hit the player or the planeswalker they attack; blocked attackers hit their blockers (several blockers: the attacker's
+   controller splits it; trample: lethal to the blockers, the rest goes over); an attacker whose blockers are gone deals nothing unless it has
+   trample. Blockers hit the attacker they block. Damage to my side is applied here, the opponent's share goes as {t:'cdmg'} and their table
+   applies it (Deflecting Palm still asks). Then each side's creatures with lethal damage die together (deathtouch, indestructible, regeneration).
+   G.turn.blkd: attackers that were blocked; G.turn.fsd: creatures that dealt first-strike damage. */
+const hasFS = c => kwOn(c, 'first strike'), hasDS = c => kwOn(c, 'double strike');
+function combatBlockers(aid){ return ((G.opp&&G.opp.arrows)||[]).filter(a=>a.blk && a.b===aid).map(a=>findAny(a.a)).filter(f=>f && f.z==='bf' && !f.mine && isCreature(f.c)).map(f=>f.c); }
+function combatHasFS(){ const atk=G.me.bf.filter(c=>c.atk); const bl=atk.flatMap(c=>combatBlockers(c.id)); return [...atk, ...bl].some(c=>hasFS(c) || hasDS(c)); }
+const lethalLeft = (c, mine, dt) => { if(dt) return 1; const T=toughNow(c, mine ? G.myId : oppId()); return T==null ? 1 : Math.max(1, T-(c.dmg||0)); };
+const dealsIn = (c, step) => step==='fs' ? (hasFS(c) || hasDS(c)) : (hasDS(c) || !((G.turn.fsd||[]).includes(c.id)));
+function splitAsk(att, power, bls, tr, toName){ return new Promise(res=>{ const dt=kwOn(att,'deathtouch'); let left=power; const def=bls.map(b=>{ const k=Math.min(left, lethalLeft(b, false, dt)); left-=k; return k; }); let over=0; if(tr) over=left; else if(left>0) def[def.length-1]+=left;
+  const rows=bls.map((b,i)=>`<div class="sprow"><span>${esc(cname(b))} <small>(needs ${lethalLeft(b,false,dt)} for lethal${b.dmg?`, ${b.dmg} already marked`:''})</small></span><input type="number" min="0" max="${power}" value="${def[i]}" data-sp="${i}"></div>`).join('') + (tr ? `<div class="sprow"><span>${esc(toName)} <small>(trample: only after lethal to every blocker)</small></span><input type="number" min="0" max="${power}" value="${over}" data-sp="p"></div>` : '');
+  const el=modal(`${cname(att)}: assign ${power} combat damage`, `<span class="hint">${cname(att)} is blocked by ${bls.length} creatures. Split its damage among them${tr?'; with trample the rest can go to '+esc(toName):''}.</span><div class="splist">${rows}</div><span class="hint" id="spMsg"></span>`,
+    [['Assign',()=>{ const v=[...el.querySelectorAll('[data-sp]')].map(x=>({k:x.dataset.sp, n:Math.max(0, +x.value||0)})), tot=v.reduce((a,x)=>a+x.n,0), pl=(v.find(x=>x.k==='p')||{n:0}).n;
+      if(tot!==power){ el.querySelector('#spMsg').textContent=`Assign exactly ${power} (now ${tot}).`; return; }
+      if(pl>0 && bls.some((b,i)=>v[i].n<lethalLeft(b,false,dt))){ el.querySelector('#spMsg').textContent='Trample: every blocker needs lethal damage before any goes to the player.'; return; }
+      closeModal(); res({per:bls.map((b,i)=>v[i].n), over:pl}); },'go']], {noClose:true, width:520}); }); }
+async function applyCombat(step){ if(G.combatBusy) return; G.combatBusy=true; try{
+  const t=G.turn, m=G.me, on=G.opp?G.opp.name:'the opponent', atk=m.bf.filter(c=>c.atk);
+  const blkd = t.blkd || atk.filter(c=>((G.opp&&G.opp.arrows)||[]).some(a=>a.blk && a.b===c.id)).map(c=>c.id);
+  const mine=[], theirs=[], said=[], dealt=new Set(), toPlayer=[]; let gainMe=0, gainThem=0;
+  const add=(arr, to, n, src, dt)=>{ if(n>0) arr.push({to, n, src:cname(src), dt:dt?1:0}); };
+  for(const c of atk){ if(!dealsIn(c, step)) continue; const p=powerOf(c); if(p<=0) continue; dealt.add(c.id);
+    const pa=m.arrows.find(a=>a.atk && a.a===c.id), pw=pa && findAny(pa.b), tgt=pw && pw.z==='bf' ? pa.b : oppId(), tgtName=pw && pw.z==='bf' ? cname(pw.c) : on, dt=kwOn(c,'deathtouch'), tr=kwOn(c,'trample');
+    const bls=combatBlockers(c.id); let toTgt=0;
+    if(!blkd.includes(c.id)) toTgt=p;
+    else if(!bls.length){ if(tr) toTgt=p; else { said.push(`${cname(c)} is blocked and its blockers are gone, so it deals no damage`); continue; } }
+    else if(bls.length===1){ const L=lethalLeft(bls[0], false, dt); const toB=tr ? Math.min(p, L) : p; add(theirs, bls[0].id, toB, c, dt); toTgt=p-toB; said.push(`${cname(c)} deals ${toB} to ${cname(bls[0])}`); }
+    else { const sp=await splitAsk(c, p, bls, tr, tgtName); bls.forEach((b,i)=>add(theirs, b.id, sp.per[i], c, dt)); toTgt=sp.over; said.push(`${cname(c)} deals ${bls.map((b,i)=>`${sp.per[i]} to ${cname(b)}`).join(', ')}`); }
+    if(toTgt>0){ add(theirs, tgt, toTgt, c, dt); said.push(`${cname(c)} deals ${toTgt} to ${tgtName}${blkd.includes(c.id)?' (trample)':''}`); if(tgt===oppId() || /to a player or planeswalker/i.test(cdmgLine(c)||'')) toPlayer.push(c.id); }
+    if(kwOn(c,'lifelink')) gainMe+=p; }
+  for(const b of (G.opp&&G.opp.bf)||[]){ if(!isCreature(b) || b.fd) continue; const as=((G.opp.arrows)||[]).filter(a=>a.blk && a.a===b.id).map(a=>find(a.b)).filter(f=>f && f.z==='bf' && f.c.atk).map(f=>f.c); if(!as.length || !dealsIn(b, step)) continue;
+    const p=powerAny({c:b, mine:false}); if(p<=0) continue; dealt.add(b.id); const dt=kwOn(b,'deathtouch'); let left=p;
+    as.forEach((a,i)=>{ const k=i===as.length-1 ? left : Math.min(left, lethalLeft(a, true, dt)); left-=k; add(mine, a.id, k, b, dt); if(k>0) said.push(`${cname(b)} deals ${k} to ${cname(a)}`); });
+    if(kwOn(b,'lifelink')) gainThem+=p; }
+  // apply: my creatures, my life; the opponent's share by message
+  for(const e of mine){ const f=find(e.to); if(!f || f.z!=='bf') continue; damage(e.to, e.n, on); if(e.dt) f.c.dtd=G.turn.n; }
+  if(gainMe>0){ const l0=m.life; m.life+=gainMe; if(m.life>l0) said.push(`${m.name} gains ${gainMe} life (lifelink)`); }
+  if(theirs.length || gainThem) send({t:'cdmg', items:theirs, gain:gainThem, by:m.name, step});
+  if(gainThem>0) said.push(`${on} gains ${gainThem} life (lifelink)`);
+  log(`${step==='fs' ? 'First-strike damage' : 'Combat damage'}: ${said.join('; ') || 'no damage is dealt'}.`);
+  for(const id of toPlayer) cdmgTrig(id);
+  const nt=Object.assign({}, t, {cs: step==='fs' ? 'fs' : 'dmg', blkd}); if(step==='fs') nt.fsd=[...dealt]; setTurn(nt);
+  combatDeaths(); changed();
+} finally { G.combatBusy=false; } }
+/* the opponent's share of a combat damage step, and the deaths it causes on my side */
+function takeCombat(msg){ const m=G.me, by=String(msg.by||'Opponent').slice(0,40); let toMe=0;
+  for(const e of (msg.items||[]).slice(0,60)){ const n=Math.max(0, Math.min(999, +e.n||0)); if(!n) continue;
+    if(e.to===G.myId){ toMe+=n; continue; } const f=find(e.to); if(!f || f.z!=='bf') continue;
+    if(isPW(f.c)){ f.c.c=Math.max(0, (f.c.c||0)-n); f.c.lhit=G.turn.n; log(`${String(e.src||'').slice(0,60)} deals ${n} combat damage to ${m.name}'s ${cname(f.c)} (loyalty ${f.c.c}).`); continue; }
+    damage(e.to, n, by); if(e.dt) f.c.dtd=G.turn.n; }
+  const gain=Math.max(0, Math.min(999, +msg.gain||0)); if(gain) m.life+=gain;
+  const done=()=>{ combatDeaths(); changed(); };
+  if(toMe>0){ if(m.palm && m.palm.n===G.turn.n){ const pv=m.palm; m.palm=null; yesNo(`${pv.by}`, `${by} deals ${toMe} combat damage to you. Prevent it with ${pv.by} and deal ${toMe} damage to them?`, 'Prevent and reflect', 'Take it').then(y=>{ if(y){ log(`${pv.by}: ${m.name} prevents ${toMe} damage and deals ${toMe} damage to ${G.opp?G.opp.name:'the opponent'}.`); send({t:'adj', life:-toMe}); } else { m.life-=toMe; log(`${m.name} takes ${toMe} combat damage (now ${m.life}).`); } done(); }); return; }
+    m.life-=toMe; }
+  done(); }
+/* state-based deaths after combat damage: lethal damage (or any deathtouch damage) destroys a creature unless it is indestructible or regenerates;
+   a planeswalker with no loyalty goes to the graveyard */
+/* lethal damage outside combat: checked a moment after each change, so every effect of a spell (Chandra's exile-instead, Searing Blood's watch) is in place first */
+function sbaDeaths(){ if(G.sbaBusy || !G.me || !G.me.bf || !G.turn || !G.turn.n) return; G.sbaBusy=true; let n=0; try{ n=combatDeaths(); } finally { G.sbaBusy=false; } if(n) changed(); }
+function combatDeaths(){ const m=G.me, gone=[];
+  for(const c of [...m.bf]){ if(c.fd) continue;
+    if(isPW(c) && !isCreature(c)){ if((c.c||0)<=0 && c.lhit===G.turn.n){ gone.push(cname(c)); move(c.id,'gy',{silent:true}); } continue; }
+    if(!isCreature(c) || !(c.dmg>0)) continue; const T=toughNow(c, G.myId), lethal=(T!=null && c.dmg>=T) || c.dtd===G.turn.n; if(!lethal) continue;
+    if(kwOn(c,'indestructible')){ log(`${cname(c)} has lethal damage but is indestructible.`); continue; }
+    if(c.regen===G.turn.n){ delete c.regen; c.tap=true; c.atk=false; delete c.dmg; delete c.dtd; m.arrows=m.arrows.filter(a=>a.a!==c.id); log(`${cname(c)} regenerates instead of dying (tapped, removed from combat).`); continue; }
+    gone.push(cname(c)); move(c.id,'gy',{silent:true}); }
+  if(gone.length) log(`${m.name}'s ${gone.join(', ')} ${gone.length>1?'die':'dies'} (lethal damage).`); return gone.length; }
 function combatDamage(){ const t=G.turn, m=G.me, oa=(G.opp&&G.opp.arrows)||[], parts=[], trig=[];
   for(const c of m.bf.filter(x=>x.atk)){ const bl=oa.filter(a=>a.blk && a.b===c.id).map(a=>{ const g=findAny(a.a); return g ? cname(g.c) : 'a creature'; }), pa=m.arrows.find(a=>a.atk && a.a===c.id), pw=pa && findAny(pa.b), p=powerOf(c);
     if(bl.length) parts.push(`${cname(c)} (power ${p}) is blocked by ${bl.join(' and ')}`);
