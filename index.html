@@ -196,6 +196,7 @@ textarea#paste{width:100%;min-height:300px;font-family:ui-monospace,Menlo,Consol
 .badge.xv{left:4%;top:28%;border-color:#fff;color:#fff;background:#000;white-space:nowrap;border-radius:3px}
 .kc.sick{position:absolute;right:3%;top:3%;pointer-events:none}.kc.sick.abil{box-shadow:0 0 0 2px var(--good),0 0 8px 2px #3ddc8488;border-radius:50%}.kc.sick.low{top:17%}
 .prepban{position:absolute;left:0;right:0;top:20%;text-align:center;font:800 calc(var(--cw)*.12)/1 var(--ui);letter-spacing:.1em;color:#f3e9ff;background:linear-gradient(#7a4fc4,#52308f);border-top:1px solid #d9c4ff;border-bottom:1px solid #2a1452;padding:calc(var(--cw)*.03) 0;box-shadow:0 2px 6px #0009;pointer-events:none}
+.lgpick{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer}.lgpick small{color:var(--dim);font-size:12px}.lgpick:hover .card{outline:2px solid var(--brass);outline-offset:2px}
 .lftban{position:absolute;left:0;right:0;top:42%;text-align:center;font:800 calc(var(--cw)*.15)/1 var(--ui);letter-spacing:.12em;color:#06240f;background:var(--good);border-top:1px solid #d6ffe6;border-bottom:1px solid #0f5a2c;padding:calc(var(--cw)*.03) 0;box-shadow:0 2px 6px #0009;pointer-events:none}
 .lorehex{position:absolute;right:3%;bottom:4%;width:calc(var(--cw)*.27);height:calc(var(--cw)*.31);pointer-events:none;filter:drop-shadow(0 1px 3px #000c)}
 .lorehex::before{content:"";position:absolute;inset:0;background:#8a7355;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
@@ -441,10 +442,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 </script>
 <script>
 "use strict";
-const VERSION = 'v3.72';
+const VERSION = 'v3.73';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v3.73','Oct 20',"The legend rule: when you control two legendary permanents with the same name, a box asks at once which one to keep. The one that just arrived is marked NEW!; the other goes to the graveyard (its enter and dies triggers still happen)."],
   ['v3.72','Oct 20',"Emry artifacts: Bilbo casts an artifact, instant or sorcery from your graveyard when he attacks (instants and sorceries are exiled after) and makes spells cast from outside your hand cost 1 less; Emry lets you cast the chosen artifact from your graveyard this turn; Key to the Side-Door (unblockable, and discard a copy of a legendary you control to draw two); Loki draws once a turn when your ability targets something; Mox Amber only makes colours of your legendary creatures and planeswalkers, Mox Opal needs metalcraft; Astrologian's Planisphere makes and equips its Hero, which grows on noncreature spells and your third draw; Pithing Needle stops the named card's abilities for both players; Soul-Guide Lantern exiles its target as it enters."],
   ['v3.71','Oct 19',"Starting a new match asks each player whether to keep their deck. Keep it and you are back at the table with the deck as you first brought it (sideboarding undone), waiting for your opponent; or choose another deck."],
   ['v3.70','Oct 19',"Cori-Steel Cutter: when flurry makes the Monk, you're asked whether to attach the Cutter to it. Equipment and Auras that give keywords (trample and haste from the Cutter, for example) now show them on the creature they're attached to."],
@@ -773,7 +775,7 @@ function lifeGuard(){ const m=G.me; if(!m || !G.turn) return; const n=G.turn.n;
   if(m.lifeLock && m.lifeLock.n===n && m.life!==m.lifeLock.v){ const d=m.life-m.lifeLock.v; m.life=m.lifeLock.v; addLog(`${m.name}'s life total can't change this turn (${d>0?'+':''}${d} undone).`,'s'); send({t:'log', text:`${m.name}'s life total can't change this turn.`}); }
   else if(m.noGain===n && m.lastL!=null && m.life>m.lastL){ const d=m.life-m.lastL; m.life=m.lastL; addLog(`${m.name} can't gain life this turn (+${d} undone).`,'s'); send({t:'log', text:`${m.name} can't gain life this turn.`}); }
   m.lastL=m.life; }
-function changed(){ dedupeIds(); lifeGuard(); try{ ctrWatch(); }catch(e){} try{ kaitoWatch(); }catch(e){} if(G.me.ctr.energy>0) G.me.energySeen=true; checkHeld(); pruneGtg(); pruneArrows(); checkpoint(); render(); clearTimeout(syncT); syncT=setTimeout(()=>{ send({t:'state', s:pub()}); save(); }, 40); }
+function changed(){ dedupeIds(); legendCheck(); lifeGuard(); try{ ctrWatch(); }catch(e){} try{ kaitoWatch(); }catch(e){} if(G.me.ctr.energy>0) G.me.energySeen=true; checkHeld(); pruneGtg(); pruneArrows(); checkpoint(); render(); clearTimeout(syncT); syncT=setTimeout(()=>{ send({t:'state', s:pub()}); save(); }, 40); }
 function save(){ if(G.code || G.solo) store.set('mt_session', {code:G.code, solo:G.solo, myId:G.myId, me:G.me, turn:G.turn, idc:G.idc, at:Date.now()}); }
 function log(text, cls){ addLog(text, cls||'m'); send({t:'log', text}); if(G.me && G.turn && G.turn.n && /\bsacrific(?:es|ed)\b/i.test(text) && String(text).includes(G.me.name) && !/sacrifices nothing|nothing is sacrificed/i.test(text)) G.me.sacT=G.turn.n; }
 /* Vehicles: crewed this turn (c.crew = turn), or "As long as you control eight or more permanents named X, this Vehicle is an artifact creature" (Phoenix Fleet Airship) */
@@ -4438,6 +4440,21 @@ function blinkArrow(md, target){
 function startMode(type, from){ G.mode={type, from}; render(); }
 function lokiTarget(from, target){ const s=find(from); if(!s || s.z!=='st' || !s.c.ab) return; const t=findAny(target); if(!(target===G.myId || target===oppId() || (t && t.z==='bf'))) return;
   for(const x of G.me.bf){ if(x.fd || (!x.k && !x.cu) || !/Whenever a player or permanent becomes the target of an ability you control, draw a card\. This ability triggers only once each turn/i.test(frontText(x)||'')) continue; if(x.lokiT===G.turn.n) continue; x.lokiT=G.turn.n; trigPush(x, 'draw a card.'); log(`${cname(x)}: ${cname(s.c)} targets something, so its trigger goes on the stack (once each turn).`); } }
+/* The legend rule (CR 704.5j): two or more legendary permanents with the same name under my control → I choose one, the rest go to the graveyard.
+   Checked on every change; the box comes up at once (or as soon as another box closes). The newest arrival (by c.ent) is marked NEW! in the box. */
+const entAge = c => { const p=String(c.ent||'').split('-'); return [parseInt(p[1]||'0',36), +p[0]||0]; };
+function legendDupes(){ const by={}; for(const x of G.me.bf){ if(x.fd || (!x.k && !x.cu) || !/\bLegendary\b/.test(faceType(x))) continue; const n=cdata(x).n.split(' // ')[x.flip?1:0]||cdata(x).n; (by[n]=by[n]||[]).push(x); }
+  const e=Object.entries(by).find(([,l])=>l.length>1); return e ? {name:e[0], cards:e[1]} : null; }
+function legendCheck(){ if(G.legendOpen || !G.me || !G.me.bf || !G.turn || !G.turn.n) return; if(!legendDupes()) return; G.legendOpen=true; setTimeout(legendAsk, 0); }
+function legendAsk(){ const d=legendDupes(); if(!d){ G.legendOpen=false; return; }
+  if(!$('#modal').hidden){ setTimeout(legendAsk, 350); return; }
+  const cs=d.cards.slice().sort((a,b)=>{ const x=entAge(a), y=entAge(b); return x[0]-y[0] || x[1]-y[1]; }), oldest=cs[0].id;
+  const tile=c=>{ const isNew=c.id!==oldest; let h=cardHTML(c,'gy',true); if(isNew) h=h.replace(/<\/div>\s*$/, '<span class="lftban">NEW!</span></div>'); return `<div class="lgpick" data-keep="${c.id}">${h}<small>${isNew?'Just arrived':'Already on the battlefield'}</small></div>`; };
+  const el=modal(`Legend rule: ${d.name}`, `<span class="hint">You control ${cs.length} legendary permanents named ${esc(d.name)}. Click the one to keep; the other${cs.length>2?'s go':' goes'} to the graveyard. Triggers that already happened stay on the stack.</span><div class="grid lgrid">${cs.map(tile).join('')}</div>`, [], {noClose:true, width:Math.max(440, Math.min(1100, cs.length*210+60))});
+  el.querySelector('.lgrid').onclick=e=>{ const t=e.target.closest('[data-keep]'); if(!t) return; const keep=t.dataset.keep, kc=find(keep); closeModal();
+    const gone=[]; for(const x of cs){ if(x.id===keep) continue; const f=find(x.id); if(!f || f.z!=='bf') continue; gone.push(cname(x)); move(x.id,'gy',{silent:true}); }
+    log(`Legend rule: ${G.me.name} keeps the ${keep===oldest?'one already on the battlefield':'new'} ${kc?cname(kc.c):d.name}; ${gone.join(', ')||'nothing'} ${gone.length>1?'go':'goes'} to the graveyard.`);
+    G.legendOpen=false; changed(); }; }
 function finishMode(target){
   const md=G.mode; G.mode=null; if(!md) return;
   if(md.type==='pickblocker'){ const f=find(target); if(!f || f.z!=='bf' || !isCreature(f.c) || f.c.tap){ toast('Click one of your untapped creatures.'); G.mode=md; render(); return; } if(!blockersLeft().some(x=>x.id===target)){ toast(`${cdata(f.c).n} is already blocking. Pick another creature, or Reset blockers.`); G.mode=md; render(); return; } G.mode={type:'block', from:target}; toast(`${cdata(f.c).n}: now click the attacker it blocks.`); render(); return; }
