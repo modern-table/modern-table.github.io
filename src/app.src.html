@@ -436,10 +436,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v3.76';
+const VERSION = 'v3.77';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v3.77','Oct 20',"Searing Blaze targets in two steps: click the player or planeswalker, then a creature that player controls (picked for you when there is only one). It can't be cast when no creature could be its target, and if the creature is gone when it resolves, the player still takes the damage."],
   ['v3.76','Oct 20',"Combat damage is dealt by the table, and any creature with lethal damage now dies by itself (a Lightning Bolt, Pyroclasm or damage you mark by hand too). After blocks, the gold button says Apply combat damage (or Apply first strike damage first, when a first striker or double striker is in the fight): damage to players, planeswalkers and creatures happens at once, lifelink gains, and creatures with lethal damage die (deathtouch counts, indestructible survives). Trample goes over, and an attacker with several blockers asks how to split its damage."],
   ['v3.75','Oct 20',"Barbarian Ring's threshold ability can only be activated with seven or more cards in your graveyard. Roiling Vortex now deals 5 to a player who casts a spell for no mana (a Mishra's Bauble, a free spell)."],
   ['v3.74','Oct 20',"With Astrologian's Planisphere (or another card that cares about your second or third draw each turn) on the battlefield, that player's library shows how many cards they have drawn this turn, counting from the start of the turn. It turns gold when the next draw is the one that counts."],
@@ -2236,7 +2237,7 @@ async function simpleEffects(c, text, srcId){
       made=[]; for(const i of ids){ move(i,'bf',{silent:true}); const g=find(i); if(g && g.z==='bf') made.push(g.c); } log(`${by}: ${m.name} returns ${made.length ? made.map(cname).join(', ') : 'nothing'} from their graveyard to the battlefield.`); changed(); continue; }
     if(/^put a \+1\/\+1 counter on each of them\.?$/i.test(sen)){ for(const x of made||[]) x.c=(x.c||0)+1; if((made||[]).length) log(`${by}: a +1/+1 counter on each of them.`); changed(); continue; }
     // Searing Blaze
-    if(/^(?:.+?) deals 1 damage to target player or planeswalker and 1 damage to target creature that player or that planeswalker(?:'|’)s controller controls\.?$/i.test(sen)){ const lf=/Landfall — If you had a land enter the battlefield under your control this turn/i.test(text) && m.landT===G.turn.n, n=lf ? 3 : 1; const p=tg.find(x=>x==='p1'||x==='p2') || oppId(), cr=tg.find(x=>x!=='p1' && x!=='p2'); dealDamage(p, n, by); if(cr) dealDamage(cr, n, by); if(lf) log(`${by}: landfall, so 3 damage each.`); continue; }
+    if(/^(?:.+?) deals 1 damage to target player or planeswalker and 1 damage to target creature that player or that planeswalker(?:'|’)s controller controls\.?$/i.test(sen)){ const lf=/Landfall — If you had a land enter the battlefield under your control this turn/i.test(text) && m.landT===G.turn.n, n=lf ? 3 : 1; const isP=x=>x==='p1'||x==='p2', p=tg.find(isP) || tg.find(x=>{ const a=findAny(x); return a && a.z==='bf' && isPW(a.c) && !isCreature(a.c); }) || oppId(), cr=tg.find(x=>!isP(x) && x!==p); dealDamage(p, n, by); if(cr) dealDamage(cr, n, by); else log(`${by}: its creature target is gone, so only the ${isP(p)?'player':'planeswalker'} is dealt damage.`); if(lf) log(`${by}: landfall, so 3 damage each.`); continue; }
     if(/^landfall — if you had a land enter the battlefield under your control this turn, .+ instead\.?$/i.test(sen)) continue;
     // Secret Identity: "Until end of turn, target creature you control becomes a Citizen with base power and toughness 1/1 and gains hexproof."
     if((r=sen.match(/^(?:[A-Z][a-z]+ — )?until end of turn, target creature you control becomes an? ([A-Z][a-z]+) with base power and toughness (\d+)\/(\d+) and gains ([a-z ,]+?)\.?$/i))){ const ks=r[4].split(/,\s*(?:and\s+)?|\s+and\s+/).map(x=>x.trim().toLowerCase()).filter(k=>KW.includes(k)); for(const t of tg){ const f=find(t); if(!f || f.z!=='bf') continue; applyMod(f.c, {bc:{add:r[1], pt:`${r[2]}/${r[3]}`, till:(G.turn.n||0)+1}, kw:ks}); log(`${by}: ${cname(f.c)} becomes a ${r[2]}/${r[3]} ${r[1]} and gains ${ks.join(' and ')} until end of turn.`); } changed(); continue; }
@@ -3227,6 +3228,7 @@ function spellLimit(c){ const k=G.me.cast||{};
   return null; }
 function castGate(id, go){
   const f=find(id); if(!f || f.z==='st'){ go(); return; }
+  if(twoTgt(f.c) && !pidCreatures(G.myId).length && !pidCreatures(oppId()).length){ toast(`${cdata(f.c).n.split(' // ')[0]} needs a creature to target, and there is none on the battlefield.`); return; }
   { const lk=!isLand(f.c) && castLock(f.c, f.z); if(lk){ modal('Can\'t cast', `<span class="hint">${esc(lk)}.<br><br>Cast anyway only if you have both agreed it's allowed.</span>`, [["Don't cast",()=>closeModal(),'ghost'], ['Cast anyway',()=>{ closeModal(); log(`${G.me.name} casts anyway (${lk}).`); go(); },'go']]); return; } }
   { const tl=!isLand(f.c) && timingLock(f.c); if(tl){ modal(tl, `<span class="hint">${esc(G.opp?G.opp.name:'Your opponent')} controls ${esc(tl)}: you can cast spells only when you could cast a sorcery (your main phase, with the stack empty).<br><br>Cast anyway only if you have both agreed it's allowed.</span>`, [["Don't cast",()=>closeModal(),'ghost'], ['Cast anyway',()=>{ closeModal(); log(`${G.me.name} casts a spell at instant speed anyway, with ${G.opp?G.opp.name:'the opponent'}'s ${tl} on the battlefield.`); const lim=spellLimit(f.c); if(lim) go(); else go(); },'go']]); return; } }
   const lim=spellLimit(f.c); if(!lim){ go(); return; }
@@ -4530,6 +4532,19 @@ function legendAsk(){ const d=legendDupes(); if(!d){ G.legendOpen=false; return;
     const gone=[]; for(const x of cs){ if(x.id===keep) continue; const f=find(x.id); if(!f || f.z!=='bf') continue; gone.push(cname(x)); move(x.id,'gy',{silent:true}); }
     log(`Legend rule: ${G.me.name} keeps the ${keep===oldest?'one already on the battlefield':'new'} ${kc?cname(kc.c):d.name}; ${gone.join(', ')||'nothing'} ${gone.length>1?'go':'goes'} to the graveyard.`);
     G.legendOpen=false; changed(); }; }
+/* Searing Blaze: "target player or planeswalker and … target creature that player or that planeswalker's controller controls" — two arrows */
+const twoTgt = c => !!c && !c.fd && /target player or planeswalker and \d+ damage to target creature that player or that planeswalker(?:'|’)s controller controls/i.test(stackText(c)||cdata(c).o||'');
+const pidName = pid => pid===G.myId ? G.me.name : (G.opp&&G.opp.name||'your opponent');
+const pidCreatures = pid => ((pid===G.myId ? G.me : G.opp)||{bf:[]}).bf.filter(x=>!x.fd && (x.k||x.cu) && isCreature(x));
+function twoTgtArrow(md, target){ const s=find(md.from); if(!s || s.z!=='st' || !twoTgt(s.c)) return false; const nm=srcName(s.c);
+  const arrow=t=>{ G.me.arrows=G.me.arrows.filter(a=>!(a.a===md.from && a.b===t)); G.me.arrows.push({a:md.from, b:t}); const a=findAny(t); log(`${nm} targets ${t==='p1'||t==='p2' ? pidName(t) : a ? `${a.mine?G.me.name:pidName(oppId())}'s ${cname(a.c)}` : 'something'}.`); };
+  if(md.second){ const t=findAny(target), ok=t && t.z==='bf' && isCreature(t.c) && (md.second===G.myId ? t.mine : !t.mine);
+    if(!ok){ toast(`${nm}: click a creature ${pidName(md.second)} controls.`); G.mode=md; render(); return true; } arrow(target); changed(); return true; }
+  let pid=null; if(target===G.myId || target===oppId()) pid=target; else { const t=findAny(target); if(t && t.z==='bf' && isPW(t.c) && !isCreature(t.c)) pid=t.mine ? G.myId : oppId(); }
+  if(!pid){ toast(`${nm}: first click the player or planeswalker it targets.`); G.mode=md; render(); return true; }
+  const cs=pidCreatures(pid); if(!cs.length){ toast(`${pidName(pid)} controls no creatures, so ${nm} can't target ${pid===target?'them':'that planeswalker'}.`); G.mode=md; render(); return true; }
+  arrow(target); if(cs.length===1) arrow(cs[0].id); else { G.mode={type:'arrow', from:md.from, second:pid}; toast(`${nm}: now click the creature ${pidName(pid)} controls that it targets.`); }
+  changed(); return true; }
 function finishMode(target){
   const md=G.mode; G.mode=null; if(!md) return;
   if(md.type==='pickblocker'){ const f=find(target); if(!f || f.z!=='bf' || !isCreature(f.c) || f.c.tap){ toast('Click one of your untapped creatures.'); G.mode=md; render(); return; } if(!blockersLeft().some(x=>x.id===target)){ toast(`${cdata(f.c).n} is already blocking. Pick another creature, or Reset blockers.`); G.mode=md; render(); return; } G.mode={type:'block', from:target}; toast(`${cdata(f.c).n}: now click the attacker it blocks.`); render(); return; }
@@ -4539,6 +4554,7 @@ function finishMode(target){
   else if(md.type==='block'){ const f=findAny(md.from), t=findAny(target);
     if(!t || t.mine || t.z!=='bf' || (blockStep() && !t.c.atk)){ toast('Click the attacking creature it blocks (Esc to cancel).'); G.mode=md; render(); return; }
     { const bf=find(md.from); G.me.arrows=G.me.arrows.filter(a=>!(a.blk && a.a===md.from && (!(bf && multiBlock(bf.c)) || a.b===target))); } G.me.arrows.push({a:md.from, b:target, blk:1}); log(`${G.me.name}'s ${f?cname(f.c):'creature'} blocks ${G.opp?G.opp.name+"'s ":''}${cname(t.c)}.`); { const iss=f ? blockIssues(f.c, t.c) : []; if(iss.length){ log(`Check this block: ${iss.join('; ')}.`); toast(unlink(`Check this block: ${iss.join('; ')}. Reset blockers to change it.`)); } } }
+  else if(md.type==='arrow' && twoTgtArrow(md, target)){ return; }
   else if(md.type==='arrow' && earthArrow(md, target)){ return; }
   else if(md.type==='arrow' && bestowArrow(md, target)){ return; }
   else if(md.type==='arrow' && (bk=>bk)(blinkArrow(md, target))){ return; }
