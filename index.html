@@ -257,6 +257,17 @@ textarea#paste{width:100%;min-height:300px;font-family:ui-monospace,Menlo,Consol
 #winsBox{width:var(--cw);display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 0;border-block:1px solid var(--line)}
 #winsBox b{font-family:var(--display);font-size:26px;line-height:1;font-weight:400;font-variant-numeric:tabular-nums;color:var(--opp)}#winsBox b.me{color:var(--brass)}
 #winsBox span{font-size:10px;letter-spacing:.2em;color:var(--dim)}
+#winsBox span.dr{margin-top:3px;font-size:9px;color:var(--brass)}
+#clockBox{width:var(--cw);display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 0;border-block:1px solid var(--line)}
+#clockBox span{font-size:10px;letter-spacing:.2em;color:var(--dim)}
+#clockBox b{font-family:var(--display);font-size:22px;line-height:1.1;font-weight:400;font-variant-numeric:tabular-nums;color:var(--ink)}
+#clockBox i{font-style:normal;font-size:10px;color:var(--brass)}
+#clockBox.low b{color:#e0a040}#clockBox.out b{color:#e05a4a}#clockBox.over b{color:var(--dim)}
+#turnSign{position:absolute;left:14px;z-index:7;display:flex;flex-direction:column;align-items:center;padding:6px 14px 5px;border:2px solid var(--brass);border-radius:3px;background:#1b1408;box-shadow:0 2px 10px #0008;pointer-events:none}
+#turnSign.opp{top:22%}#turnSign.me{bottom:22%}
+#turnSign b{font-family:var(--display);font-weight:400;font-size:24px;letter-spacing:.08em;color:var(--brass);line-height:1}
+#turnSign span{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+.sbclock{color:var(--brass);font-weight:600}
 .chip.nz{color:var(--ink);border-color:var(--brass)}
 #stackwrap{border-bottom:1px solid var(--line);padding:6px 10px}
 #offerwrap{border-bottom:1px solid var(--line);padding:6px 10px}#offers{max-height:34vh;overflow-y:auto}
@@ -392,8 +403,8 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 </div>
 
 <div id="table" class="screen" hidden>
-  <aside id="left"><div class="piles" id="oppPiles"></div><div id="midRail"><div id="winsBox" title="Games won this match"></div><div id="cityBox" hidden></div><div id="kwKey" hidden></div></div><div class="piles" id="myPiles"></div></aside>
-  <main id="board">
+  <aside id="left"><div class="piles" id="oppPiles"></div><div id="midRail"><div id="clockBox" hidden title="Round clock: 50 minutes for the match"></div><div id="winsBox" title="Games won this match"></div><div id="cityBox" hidden></div><div id="kwKey" hidden></div></div><div class="piles" id="myPiles"></div></aside>
+  <main id="board"><div id="turnSign" hidden title="End-of-round turns: after turn 5 the game ends"></div>
     <div id="oppHand" class="handrow opp"></div>
     <div id="oppBack" class="row opp"></div>
     <div id="oppFront" class="row front opp"></div>
@@ -444,10 +455,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 </script>
 <script>
 "use strict";
-const VERSION = 'v3.78';
+const VERSION = 'v4.0';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.0','Oct 21',"Modern Table now runs the match. A player at 0 or less life, with 10 poison counters, or who has to draw from an empty library loses the game: both players see who won, and the win is recorded when both click Begin sideboarding (Back to game cancels it; Draw a card shows you your own next card). A 50-minute round clock starts when both players reach the table and keeps running through sideboarding, which has its own 3 minutes before your deck goes in as it is. When time runs out during a game, either player can call for the end-of-round turns: a TURN sign counts turn 0 to 5, then you say who won (or that it was a draw) and the match result appears. Time running out between games ends the match on the score."],
   ['v3.78','Oct 21',"Orzhov blink check. Flickerwisp entering and Phelia attacking put their triggers on the stack by themselves and ask for the target (Esc for none with Phelia). Relic of Progenitus works: the targeted player picks a card from their graveyard to exile, and {1} exiles Relic, then all graveyards, and draws. Dauthi Voidwalker: cards with void counters can only be played after its ability chooses one, for free and that turn only (a land is played as your land). Chthonian Nightmare's ability asks for X, pays the energy, sacrifices a creature, returns itself to hand and brings back a creature card with mana value X. Damn can be cast with overload. Ketramose also makes you lose 1 life, and warns when it blocks with fewer than seven cards in exile. Bleachbone Verge and the other Verges only make their second colour with the right land. Damping Sphere turns a land's two or more mana into one colorless. A creature Emperor of Bones brings back gets its enter triggers. Abilities that say 'Activate only as a sorcery' ask first at other times."],
   ['v3.77','Oct 20',"Searing Blaze targets in two steps: click the player or planeswalker, then a creature that player controls (picked for you when there is only one). It can't be cast when no creature could be its target, and if the creature is gone when it resolves, the player still takes the damage."],
   ['v3.76','Oct 20',"Combat damage is dealt by the table, and any creature with lethal damage now dies by itself (a Lightning Bolt, Pyroclasm or damage you mark by hand too). After blocks, the gold button says Apply combat damage (or Apply first strike damage first, when a first striker or double striker is in the fight): damage to players, planeswalkers and creatures happens at once, lifelink gains, and creatures with lethal damage die (deathtouch counts, indestructible survives). Trample goes over, and an attacker with several blockers asks how to split its damage."],
@@ -761,7 +773,7 @@ const cname = c => c.fd ? 'a face-down card' : '[['+(cdata(c).n||'a card')+'|'+(
 function pub(){
   const m=G.me, p = c => c.fd ? Object.assign({}, c, {k:null, cu:null, note:''}) : c;
   return { name:m.name, deck:m.deck, life:m.life, ctr:m.ctr, libN:m.lib.length, handN:m.hand.length, sideN:m.side.length,
-    hand:(m.reveal || m.ctl) ? m.hand : null, noMax:!!m.noMax, comp:m.side.filter(c=>c.comp), compDone:!!m.compDone, skipRoll:!!m.skipRoll, wonGame:m.wonGame||0, ctl:!!m.ctl, ctlNext:!!m.ctlNext, city:!!m.city, sbing:!!m.sbing, bf:m.bf.map(p), gy:m.gy, ex:m.ex.map(p), st:m.st.map(p), arrows:m.arrows, mull:m.mull, drn:m.drn||null, wins:m.wins||0, roll:m.roll||null, dealt:!!m.dealt, kept:!!m.kept, mana:m.mana||noMana(), smana:m.smana||[], energySeen:!!m.energySeen, cast:m.cast||{n:0,is:0}, cares:m.cares||null, gtg:m.gtg||[], baub:m.baub||[], trk:m.trk||null };
+    hand:(m.reveal || m.ctl) ? m.hand : null, noMax:!!m.noMax, comp:m.side.filter(c=>c.comp), compDone:!!m.compDone, deckReady:m.deckReady!==false, skipRoll:!!m.skipRoll, wonGame:m.wonGame||0, ctl:!!m.ctl, ctlNext:!!m.ctlNext, city:!!m.city, sbing:!!m.sbing, bf:m.bf.map(p), gy:m.gy, ex:m.ex.map(p), st:m.st.map(p), arrows:m.arrows, mull:m.mull, drn:m.drn||null, wins:m.wins||0, roll:m.roll||null, dealt:!!m.dealt, kept:!!m.kept, mana:m.mana||noMana(), smana:m.smana||[], energySeen:!!m.energySeen, cast:m.cast||{n:0,is:0}, cares:m.cares||null, gtg:m.gtg||[], baub:m.baub||[], trk:m.trk||null };
 }
 /* undo: a snapshot of my own side is kept before each change. Shuffles and anything that crosses to the other player close the history. */
 const UNDO=[]; let lastSnap=null, lastLogi=0;
@@ -782,8 +794,8 @@ function lifeGuard(){ const m=G.me; if(!m || !G.turn) return; const n=G.turn.n;
   if(m.lifeLock && m.lifeLock.n===n && m.life!==m.lifeLock.v){ const d=m.life-m.lifeLock.v; m.life=m.lifeLock.v; addLog(`${m.name}'s life total can't change this turn (${d>0?'+':''}${d} undone).`,'s'); send({t:'log', text:`${m.name}'s life total can't change this turn.`}); }
   else if(m.noGain===n && m.lastL!=null && m.life>m.lastL){ const d=m.life-m.lastL; m.life=m.lastL; addLog(`${m.name} can't gain life this turn (+${d} undone).`,'s'); send({t:'log', text:`${m.name} can't gain life this turn.`}); }
   m.lastL=m.life; }
-function changed(){ dedupeIds(); clearTimeout(G.sbaT); G.sbaT=setTimeout(sbaDeaths, 150); legendCheck(); lifeGuard(); try{ ctrWatch(); }catch(e){} try{ kaitoWatch(); }catch(e){} if(G.me.ctr.energy>0) G.me.energySeen=true; checkHeld(); pruneGtg(); pruneArrows(); checkpoint(); render(); clearTimeout(syncT); syncT=setTimeout(()=>{ send({t:'state', s:pub()}); save(); }, 40); }
-function save(){ if(G.code || G.solo) store.set('mt_session', {code:G.code, solo:G.solo, myId:G.myId, me:G.me, turn:G.turn, idc:G.idc, at:Date.now()}); }
+function changed(){ dedupeIds(); lossCheck(); clearTimeout(G.sbaT); G.sbaT=setTimeout(sbaDeaths, 150); legendCheck(); lifeGuard(); try{ ctrWatch(); }catch(e){} try{ kaitoWatch(); }catch(e){} if(G.me.ctr.energy>0) G.me.energySeen=true; checkHeld(); pruneGtg(); pruneArrows(); checkpoint(); render(); clearTimeout(syncT); syncT=setTimeout(()=>{ send({t:'state', s:pub()}); save(); }, 40); }
+function save(){ if(G.code || G.solo) store.set('mt_session', {code:G.code, solo:G.solo, myId:G.myId, me:G.me, turn:G.turn, idc:G.idc, mt:mtWire(), mtEnd:(G.mt&&G.mt.end)||null, at:Date.now()}); }
 function log(text, cls){ addLog(text, cls||'m'); send({t:'log', text}); if(G.me && G.turn && G.turn.n && /\bsacrific(?:es|ed)\b/i.test(text) && String(text).includes(G.me.name) && !/sacrifices nothing|nothing is sacrificed/i.test(text)) G.me.sacT=G.turn.n; }
 /* Vehicles: crewed this turn (c.crew = turn), or "As long as you control eight or more permanents named X, this Vehicle is an artifact creature" (Phoenix Fleet Airship) */
 function vehicleCre(c){ if(!c || c.fd || (!c.k && !c.cu)) return false; const t=faceType(c); if(!/\bVehicle\b/.test(t)) return false; if(c.crew && G.turn && c.crew===G.turn.n) return true;
@@ -826,7 +838,7 @@ function connect(){
   });
   function dial(){ if(peer.destroyed || peer.disconnected) return; wire(peer.connect(PREFIX+G.code, {reliable:true, serialization:'json'})); }
   function wire(c){
-    c.on('open', () => { G.conn=c; setNet('connected'); send({t:'hello', n:G.turn.n}); send({t:'state', s:pub()}); if(host || G.turn.n>0) send({t:'turn', turn:G.turn, hello:true}); });
+    c.on('open', () => { G.conn=c; setNet('connected'); send({t:'hello', n:G.turn.n}); send({t:'state', s:pub()}); if(host || G.turn.n>0) send({t:'turn', turn:G.turn, hello:true}); if(host) setTimeout(mtSend, 600); });
     c.on('data', onMsg);
     c.on('close', () => { if(G.conn===c){ G.conn=null; setNet(host ? 'waiting' : 'joining'); if(!host) setTimeout(()=>{ if(peer===G.peer && !G.conn) dial(); }, 2000); } });
     c.on('error', e => console.warn('conn error', e));
@@ -926,6 +938,11 @@ function onMsg(m){
   else if(m.t==='clrarrow'){ const n=G.me.arrows.length; G.me.arrows=G.me.arrows.filter(a=>a.a!==m.id && a.b!==m.id); if(G.me.arrows.length!==n) changed(); }
   else if(m.t==='show'){ const c={id:'s:'+(m.k||''), k:m.k, cu:m.cu}; ensureCards(m.k?[m.k]:[]).then(()=>showCard(c, `${G.opp?G.opp.name:'Your opponent'} shows you ${m.what}`)); }
   else if(m.t==='adj'){ G.noUndo=true; if(m.life<0 && G.me.palm && G.me.palm.n===G.turn.n){ const pv=G.me.palm, n=-m.life; G.me.palm=null; yesNo(`${pv.by}`, `${G.opp?G.opp.name:'Your opponent'} deals ${n} damage to you. Prevent it with ${pv.by} and deal ${n} damage to them?`, 'Prevent and reflect', 'Take it').then(y=>{ if(y){ log(`${pv.by}: ${G.me.name} prevents ${n} damage and deals ${n} damage to ${G.opp?G.opp.name:'the opponent'}.`); send({t:'adj', life:-n}); } else { G.me.life-=n; log(`${G.me.name} takes ${n} damage (${pv.by} not used).`); } changed(); }); return; } if(m.win){ applyWin(m.win); if(m.concede && (G.me.wins||0)<2) nextGamePrompt(`${G.opp?G.opp.name:'Your opponent'} conceded the game`); return; } if(m.life){ G.me.life += m.life; } if(m.ctr){ G.me.ctr[m.ctr] = Math.max(0,(G.me.ctr[m.ctr]||0)+m.d); } changed(); }
+  else if(m.t==='mt'){ if(!isHostSide()){ G.mt=mtFromWire(m.mt); mtPrompts(); render(); } }
+  else if(m.t==='mtreq'){ if(isHostSide() && G.mt) mtApply(String(m.op), oppId(), m.op==='win' ? String(m.v) : !!m.v); }
+  else if(m.t==='gameover'){ G.noUndo=true; gameOver(m.loser===G.myId ? G.myId : oppId(), String(m.why||'The game is over').slice(0,160), false); }
+  else if(m.t==='goready'){ if(G.go){ G.go.ready[oppId()]=1; if(G.go.ready[G.myId]) goFinish(); else goShow(); } }
+  else if(m.t==='goback'){ if(G.go){ goBack(false); toast(`${G.opp?G.opp.name:'Your opponent'} went back to the game; no win was recorded.`); } }
   else if(m.t==='newmatch'){ toast((G.opp&&G.opp.name||'Opponent')+' started a new match.'); newMatch(true); }
   else if(m.t==='setroll'){ G.me.roll=+m.v||null; changed(); }
   else if(m.t==='newgame'){ toast((G.opp&&G.opp.name||'Opponent')+' started a new game.'); newGame(true); }
@@ -995,7 +1012,7 @@ function move(id, zone, o={}){
   if(zone==='bf' && from!=='bf' && !o.later) entered(c);
   if(zone==='bf' && from!=='bf' && o.tap && c.tap) enteredTapped(c);
 }
-function draw(n=1, quiet, step){ const m=G.me; let k=0; { const ns=((G.opp&&G.opp.bf)||[]).find(x=>!x.fd && (x.k||x.cu) && /Each opponent can(?:'|’)t draw more than one card each turn/i.test(frontText(x)||'')); if(ns){ if(!m.dn || m.dn.t!==G.turn.n) m.dn={t:G.turn.n, k:0}; const room=Math.max(0, 1-m.dn.k); if(n>room){ if(!quiet) log(`${cdata(ns).n.split(',')[0]}: ${m.name} can't draw more than one card this turn${room?'':', so they draw nothing'}.`); n=room; } m.dn.k+=n; if(!n) return 0; } } if(step && n===1 && !draw.noDredge && m.gy.some(x=>dredgeN(x) && m.lib.length>=dredgeN(x))){ setTimeout(dredgeAsk, 0); return 1; } if(n>0 && m.hand.length<=1){ const rq=m.bf.filter(x=>!x.fd && (x.k||x.cu) && /As long as you have one or fewer cards in hand, if you would draw one or more cards, you draw that many cards plus one instead/i.test(frontText(x)||'')); if(rq.length){ n+=rq.length; if(!quiet) log(`${rq.map(x=>cdata(x).n).join(', ')}: ${m.name} has one or fewer cards in hand, so they draw ${n} instead.`); } } while(n-- > 0 && m.lib.length){ m.hand.push(m.lib.shift()); k++; } if(!quiet) log(`${m.name} draws ${k===1?'a card':k+' cards'}.`); if(k && G.turn.n) drawTrigs(k); if(!k && !quiet) toast('Your library is empty.'); if(k && !quiet && G.opp && G.turn.n) send({t:'drew', n:k, first:step?1:0}); return k; }
+function draw(n=1, quiet, step){ const m=G.me; let k=0; { const ns=((G.opp&&G.opp.bf)||[]).find(x=>!x.fd && (x.k||x.cu) && /Each opponent can(?:'|’)t draw more than one card each turn/i.test(frontText(x)||'')); if(ns){ if(!m.dn || m.dn.t!==G.turn.n) m.dn={t:G.turn.n, k:0}; const room=Math.max(0, 1-m.dn.k); if(n>room){ if(!quiet) log(`${cdata(ns).n.split(',')[0]}: ${m.name} can't draw more than one card this turn${room?'':', so they draw nothing'}.`); n=room; } m.dn.k+=n; if(!n) return 0; } } if(step && n===1 && !draw.noDredge && m.gy.some(x=>dredgeN(x) && m.lib.length>=dredgeN(x))){ setTimeout(dredgeAsk, 0); return 1; } if(n>0 && m.hand.length<=1){ const rq=m.bf.filter(x=>!x.fd && (x.k||x.cu) && /As long as you have one or fewer cards in hand, if you would draw one or more cards, you draw that many cards plus one instead/i.test(frontText(x)||'')); if(rq.length){ n+=rq.length; if(!quiet) log(`${rq.map(x=>cdata(x).n).join(', ')}: ${m.name} has one or fewer cards in hand, so they draw ${n} instead.`); } } const want=n; while(n-- > 0 && m.lib.length){ m.hand.push(m.lib.shift()); k++; } if(k<want && G.turn.n && m.kept){ G.emptyDraw=true; lossCheck(); } if(!quiet) log(`${m.name} draws ${k===1?'a card':k+' cards'}.`); if(k && G.turn.n) drawTrigs(k); if(!k && !quiet) toast('Your library is empty.'); if(k && !quiet && G.opp && G.turn.n) send({t:'drew', n:k, first:step?1:0}); return k; }
 function shuffleLib(quiet){ G.noUndo=true; shuffle(G.me.lib); if(!quiet) log(`${G.me.name} shuffles their library.`); }
 const ORDW=['','first','second','third','fourth','fifth','sixth','seventh','eighth','ninth','tenth'];
 function playFromHand(id){ const f=find(id); if(!f) return; if(isLand(f.c)){ const m=G.me, n=G.turn.n||0, fz=f.z; if(!m.lp || m.lp.n!==n) m.lp={n, k:0}; m.lp.k++; const k=m.lp.k;
@@ -4045,8 +4062,101 @@ function applyWin(d){
   changed();
 }
 function markWin(pl, d){ if(pl===G.myId) applyWin(d); else if(G.opp) send({t:'adj', win:d}); }
+/* ===== v4.0: the table runs the match =====
+   Losing a game (CR 704.5a–c): 0 or less life, 10 or more poison counters, or a draw from an empty library. The losing player's client notices it
+   (lossCheck → gameOver) and both screens get the game-over window (G.go). The win is recorded only when BOTH click Begin sideboarding; Back to game
+   closes it for both and records nothing; Draw a card shows that player their own next card.
+   Round clock (G.mt, kept by the host p1 and sent as 'mt'; the guest asks with 'mtreq'): 50:00 from both players reaching the table with a deck,
+   running through sideboarding. At 0 during a game each player is asked whether to play the end-of-round turns: if either says yes, the active
+   player's turn is turn 0 and five more follow (a TURN N sign on the active player's side); then both are asked who won, and the match ends.
+   At 0 between games the match ends on the score. Sideboarding has 3:00 (G.sbEnd): at 0 the deck goes in as it stands. Two-player tables only. */
+const ROUND_MS=50*60*1000, SB_MS=3*60*1000;
+const timedTable = () => !G.solo && !!G.opp;
+const isHostSide = () => G.myId==='p1';
+const mtFresh = () => ({end:null, frozen:null, called:false, ask:null, ext:null, draws:0, over:null, winq:false, untimed:false});
+const deckReady = p => !!(p && p.deck) && p.deckReady!==false;
+const fmtMS = ms => { const s=Math.max(0, Math.ceil(ms/1000)); return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; };
+function mtRem(){ const t=G.mt; if(!t || !t.end) return null; return t.frozen!=null ? t.frozen : Math.max(0, t.end-Date.now()); }
+function mtWire(){ const t=G.mt; return t ? Object.assign({}, t, {end:undefined, rem:t.end ? Math.max(0, t.end-Date.now()) : null}) : null; }
+function mtFromWire(w){ if(!w) return null; const t=Object.assign(mtFresh(), w); t.end = w.rem!=null ? Date.now()+w.rem : null; delete t.rem; return t; }
+function mtSend(){ if(isHostSide() && G.opp && G.mt) send({t:'mt', mt:mtWire()}); }
+const matchDone = () => (G.me.wins||0)>=2 || ((G.opp&&G.opp.wins)||0)>=2 || !!(G.mt && G.mt.over);
+/* "Ann wins the match 2–1–0" / "Match drawn 1–1–1" (wins–wins–drawn games); da/db: wins just given and not yet reflected in the state */
+function matchResult(da, db){ const m=G.me, o=G.opp||{}, a=(m.wins||0)+(da||0), b=(o.wins||0)+(db||0), d=(G.mt&&G.mt.draws)||0, on=o.name||'Opponent';
+  return a===b ? `Match drawn ${a}–${b}–${d}` : `${a>b?m.name:on} wins the match ${Math.max(a,b)}–${Math.min(a,b)}–${d}`; }
+function mtTick(){
+  if(!timedTable() || $('#table').hidden){ paintClock(); return; }
+  if(isHostSide()){ if(!G.mt) G.mt=mtFresh(); const t=G.mt;
+    if(!t.end && !t.over && deckReady(G.me) && deckReady(G.opp)){ t.end=Date.now()+ROUND_MS; log('The round clock starts: 50:00 for the match.'); mtSend(); }
+    if(t.end && t.frozen==null && matchDone()){ t.frozen=Math.max(0, t.end-Date.now()); mtSend(); }
+    if(t.end && t.frozen==null && !t.called && Date.now()>=t.end){ t.called=true;
+      if(!G.turn.n){ t.over=matchResult(); log(`Time is called between games, so the match ends on the score: ${t.over}.`); }
+      else { t.ask={}; log('Time is called on the round clock.'); }
+      mtSend(); mtPrompts(); render(); }
+    if(t.ext && !t.winq && !t.over){ const k=(G.turn.n||0)-t.ext.start; if(k>5 || (k===5 && G.turn.passed)){ t.winq=true; log('The five end-of-round turns are over.'); mtSend(); mtPrompts(); render(); } }
+    mtTick.k=(mtTick.k||0)+1; if(mtTick.k%15===0) mtSend(); }
+  paintClock(); sbTick();
+}
+setInterval(mtTick, 1000);
+function paintClock(){ const el=$('#clockBox'); if(!el) return; const t=G.mt, rem=mtRem();
+  if(!timedTable() || !t || rem==null){ el.hidden=true; return; } el.hidden=false;
+  const k = t.ext && G.turn.n ? Math.min(5, Math.max(0, G.turn.n-t.ext.start)) : null;
+  el.className = t.over ? 'over' : t.called ? 'out' : rem<5*60000 ? 'low' : '';
+  el.innerHTML = `<span>ROUND</span><b>${t.called && !t.over ? 'TIME' : fmtMS(rem)}</b>${t.over ? '<i>match over</i>' : k!=null && !t.winq ? `<i>turn ${k} of 5</i>` : t.untimed ? '<i>untimed</i>' : ''}`; }
+/* the host applies a choice (its own, or the guest's 'mtreq') and sends the new state */
+function mtApply(op, pid, v){ const t=G.mt; if(!t) return; const who = pid===G.myId ? G.me.name : (G.opp?G.opp.name:'Opponent');
+  if(op==='ans' && t.ask && !t.ext){ t.ask[pid]=v?'y':'n'; log(`${who} ${v?'wants to play':"doesn't want"} the end-of-round turns.`);
+    if(v){ t.ext={start:G.turn.n||0}; t.ask=null; const an=G.turn.active===G.myId ? G.me.name : (G.opp?G.opp.name:'Opponent'); log(`End of round: this is turn 0 (${an}'s turn). Five more turns follow; then the game ends.`); }
+    else if(t.ask.p1==='n' && t.ask.p2==='n'){ t.ask=null; t.untimed=true; log('Both players keep playing without the end-of-round turns.'); } }
+  if(op==='win' && t.winq && !t.over){ t.winq=false;
+    if(v==='draw'){ t.draws++; log('The players drew this game.'); t.over=matchResult(); }
+    else if(v===G.myId){ applyWin(1); t.over=matchResult(); }
+    else if(v===oppId()){ send({t:'adj', win:1}); t.over=matchResult(0,1); }
+    if(t.over){ t.frozen=mtRem(); log(`${t.over}.`); } }
+  mtSend(); mtPrompts(); changed(); }
+function mtAsk(op, v){ if(isHostSide()) mtApply(op, G.myId, v); else send({t:'mtreq', op, v}); }
+const whenFree = (fn, tries=0) => { if($('#modal').hidden || tries>40) fn(); else setTimeout(()=>whenFree(fn, tries+1), 400); };
+function mtPrompts(){ const t=G.mt; if(!t || !timedTable()) return;
+  if(t.ask && !t.ask[G.myId] && !G.mtAskOpen){ G.mtAskOpen=true; whenFree(()=>{ const t2=G.mt; if(!t2 || !t2.ask || t2.ask[G.myId]){ G.mtAskOpen=false; return; }
+      modal('Time', `<p><b>The round clock has run out.</b></p><span class="hint">Enforce the end-of-round rules? The active player's turn becomes turn 0, then five more turns are played, and after that you say who won. If either of you says yes, the extra turns are played.</span>`,
+        [["No, keep playing",()=>{ closeModal(); G.mtAskOpen=false; mtAsk('ans', false); },'ghost'], ['Yes, play the extra turns',()=>{ closeModal(); G.mtAskOpen=false; mtAsk('ans', true); },'go']], {noClose:true}); }); }
+  if(G.mtAskOpen && (!t.ask || t.ext) && $('#modal').querySelector('h3') && $('#modal').querySelector('h3').textContent==='Time'){ closeModal(); G.mtAskOpen=false; }
+  if(t.winq && !t.over && !G.mtWinOpen){ G.mtWinOpen=true; whenFree(()=>{ const t2=G.mt; if(!t2 || !t2.winq || t2.over){ G.mtWinOpen=false; return; } const on=G.opp?G.opp.name:'Opponent';
+      modal('Is there a winner?', `<span class="hint">The five end-of-round turns are over, so this game ends here. What happened?</span>`,
+        [['We drew this game',()=>{ closeModal(); G.mtWinOpen=false; mtAsk('win','draw'); },'ghost'], [`${G.me.name} won`,()=>{ closeModal(); G.mtWinOpen=false; mtAsk('win', G.myId); },'go'], [`${on} won`,()=>{ closeModal(); G.mtWinOpen=false; mtAsk('win', oppId()); },'go']], {noClose:true}); }); }
+  if(G.mtWinOpen && t.over && $('#modal').querySelector('h3') && $('#modal').querySelector('h3').textContent==='Is there a winner?'){ closeModal(); G.mtWinOpen=false; }
+  if(t.over && G.mtOverShown!==t.over){ G.mtOverShown=t.over; if(G.go){ G.go=null; G.goOpen=false; closeModal(); } if(G.sbOpen) closeModal(); if(G.me.sbing){ delete G.me.sbing; changed(); }
+    whenFree(()=>notice('Match over', `${t.over}.`)); }
+}
+/* sideboarding: 3:00, then the deck goes in as it is */
+function sbTick(){ if(!G.sbEnd) return; const m=G.me; if(!m.sbing){ G.sbEnd=null; return; } const rem=G.sbEnd-Date.now(), el=$('#sbClock'); if(el) el.textContent=fmtMS(rem);
+  if(rem<=0){ G.sbEnd=null; log(`Sideboarding time is up: ${m.name}'s deck goes in as it is.`); if(G.sbOpen) closeModal(); else shuffleUp(); } }
+/* losing a game */
+function lossCheck(){ if(!G.turn.n) return; clearTimeout(G.lossT); G.lossT=setTimeout(lossNow, 250); }
+function lossNow(){ const m=G.me, seen=G.lossSeen||(G.lossSeen={life:false, poison:false}); if(!G.turn.n || !m.kept){ G.emptyDraw=false; return; }
+  const life=m.life<=0, poi=((m.ctr&&m.ctr.poison)||0)>=10, emp=!!G.emptyDraw; G.emptyDraw=false;
+  const why = life && !seen.life ? `${m.name} is at ${m.life} life` : poi && !seen.poison ? `${m.name} has ${m.ctr.poison} poison counters` : emp ? `${m.name} had to draw from an empty library` : '';
+  seen.life=life; seen.poison=poi; if(!why || G.go || matchDone()) return; gameOver(G.myId, why, true); }
+function gameOver(loser, why, local){ if(G.go) return; const o=G.opp, win = loser===G.myId ? oppId() : G.myId, wName = win===G.myId ? G.me.name : (o?o.name:'Opponent'), lName = loser===G.myId ? G.me.name : (o?o.name:'Opponent');
+  const ww = win===G.myId ? (G.me.wins||0) : ((o&&o.wins)||0);
+  G.go={loser, win, why, wName, lName, ready:{}, ends: !G.solo && !!o && (ww+1>=2 || !!(G.mt && G.mt.called && !G.mt.untimed))};
+  if(local){ log(`${why}, so ${lName} loses the game.`); if(o && !G.solo) send({t:'gameover', loser, why}); }
+  goShow(); }
+function goShow(){ (G.goOpen ? (f=>f()) : whenFree)(()=>{ const g=G.go; if(!g) return; G.goOpen=true; const o=G.opp, solo=G.solo || !o, on=o?o.name:'Opponent', mine=g.ready[G.myId], theirs=g.ready[oppId()];
+  const status = solo ? '' : `<p class="hint">${mine ? `Waiting for ${esc(on)} to click ${g.ends?'Finish the match':'Begin sideboarding'}.` : theirs ? `${esc(on)} is ready.` : `Both players click ${g.ends?'Finish the match':'Begin sideboarding'} to record the game.`} Back to game closes this for both of you and records nothing.</p>`;
+  modal(solo ? 'Game over' : `${g.wName} wins the game`, `<p><b>${esc(g.why)}.</b></p>${status}`,
+    [['Back to game',()=>goBack(true),'ghost'], ['Draw a card (see what was coming)',()=>{ const c=G.me.lib[0]; if(!c){ toast('Your library is empty.'); return; } showCard(c, 'Your next card would have been'); },'alt'],
+     [solo ? 'Start the next game' : mine ? 'Waiting…' : g.ends ? 'Finish the match' : 'Begin sideboarding',()=>goReady(),'go']], {noClose:true});
+  const bs=[...$('#modal').querySelectorAll('footer button')]; if(bs[1] && !G.me.lib.length){ bs[1].disabled=true; bs[1].title='Your library is empty.'; } if(bs[2] && mine) bs[2].disabled=true; }); }
+function goReady(){ const g=G.go; if(!g) return; if(G.solo || !G.opp){ G.go=null; G.goOpen=false; closeModal(); newGame(); return; }
+  g.ready[G.myId]=1; send({t:'goready'}); log(`${G.me.name} is ready to ${g.ends?'finish the match':'go on to sideboarding'}.`); if(g.ready[oppId()]) goFinish(); else goShow(); }
+function goFinish(){ const g=G.go; if(!g) return; G.go=null; G.goOpen=false; closeModal(); G.lossSeen={life:false, poison:false};
+  if(g.win===G.myId) applyWin(1);
+  if(G.mt && G.mt.called && !G.mt.untimed){ if(isHostSide()){ G.mt.over=matchResult(0, g.win===G.myId ? 0 : 1); G.mt.frozen=mtRem(); log(`${G.mt.over}.`); mtSend(); mtPrompts(); } changed(); return; }
+  if(!g.ends) newGame(true); else changed(); }
+function goBack(local){ if(!G.go) return; G.go=null; if(G.goOpen){ G.goOpen=false; closeModal(); } if(local){ send({t:'goback'}); log(`${G.me.name} goes back to the game; no win is recorded.`); } }
 /* a new match: each player keeps their deck (rebuilt as first brought, so sideboarding is undone) or goes to choose another */
-function newMatch(remote){ const m=G.me; G.noUndo=true; m.wins=0; m.wonGame=0; G.turn={active:null, phase:2, n:0};
+function newMatch(remote){ const m=G.me; G.noUndo=true; m.wins=0; m.wonGame=0; G.turn={active:null, phase:2, n:0}; G.mt=mtFresh(); G.mtOverShown=null; G.go=null; G.goOpen=false; G.sbEnd=null; m.deckReady=false; delete m.sbing; if(isHostSide()) mtSend();
   if(!remote){ send({t:'newmatch'}); log(`${m.name} started a new match.`); } changed(); matchDeckAsk(); }
 function matchDeckAsk(){ const m=G.me, sp=m.deckSpec, on=G.opp?G.opp.name:'your opponent';
   const other=()=>{ closeModal(); gather(); m.deck=null; for(const z of ['lib','side']) m[z]=[]; log(`${m.name} is choosing a deck for the new match.`); changed(); showDecks(); };
@@ -4063,7 +4173,8 @@ function newGame(remote){
   gather(); G.turn={active:null, phase:2, n:0};
   if(!remote){ send({t:'newgame'}); log(`${G.me.name} started a new game.`); }
   changed();
-  if(G.me.side.length){ G.me.sbing=true; changed(); sideboardModal(); } else shuffleUp();
+  G.lossSeen={life:false, poison:false}; G.go=null; G.goOpen=false;
+  if(G.me.side.length){ G.me.sbing=true; G.sbEnd = timedTable() ? Date.now()+SB_MS : null; changed(); sideboardModal(); } else shuffleUp();
 }
 function shuffleUp(){ const sb=G.me.sbing; delete G.me.sbing; shuffleLib(true); if(sb) log(`${G.me.name} is done sideboarding.`); log(`${G.me.name} shuffles up.`); changed(); }
 function drawOpening(){ const m=G.me; if(m.dealt) return; G.noUndo=true; draw(7,true); m.dealt=true; log(`${m.name} draws an opening hand of seven.`); changed(); }
@@ -4120,7 +4231,7 @@ async function loadDeck(d, name, onProgress){
   for(const [n,c] of d.main) for(let i=0;i<c;i++) m.lib.push(mk(kk(n)));
   for(const [n,c] of d.side) for(let i=0;i<c;i++) m.side.push(mk(kk(n)));
   m.deck=name; m.life=20; m.ctr={poison:0,energy:0}; m.mull=0; m.arrows=[]; m.roll=null; m.compDone=false; m.skipRoll=false; m.dealt=false; m.kept=false; m.mana=noMana(); m.smana=[]; m.energySeen=false; m.drew=0; m.cast={n:0,is:0}; m.pacts=[]; m.baub=[]; m.trk=null; setCares();
-  m.deckSpec={d:{main:d.main, side:d.side, art:d.art||{}}, name};   // for a new match with the same deck (kept with my side, not shared)
+  m.deckSpec={d:{main:d.main, side:d.side, art:d.art||{}}, name}; m.deckReady=true;   // for a new match with the same deck (kept with my side, not shared)
   log(`${m.name} brought ${name}.`); shuffleUp();
 }
 
@@ -4269,19 +4380,22 @@ function render(){
   // pre-game banner
   const bn=$('#banner');
   const mw=m.wins||0, ow=(o&&o.wins)||0;
-  $('#winsBox').innerHTML = (o||!G.solo ? `<b>${ow}</b>` : '') + `<span>WINS</span><b class="me">${mw}</b>`;
+  $('#winsBox').innerHTML = (o||!G.solo ? `<b>${ow}</b>` : '') + `<span>WINS</span><b class="me">${mw}</b>` + (G.mt && G.mt.draws ? `<span class="dr">DRAWN ${G.mt.draws}</span>` : '');
+  paintClock();
+  { const ts=$('#turnSign'), x=G.mt && G.mt.ext, k = x && G.turn.n ? G.turn.n-x.start : -1; if(ts){ ts.hidden = !(timedTable() && x && k>=0 && k<=5 && !G.mt.winq && !G.mt.over); if(!ts.hidden){ ts.className = G.turn.active===G.myId ? 'me' : 'opp'; ts.innerHTML = `<b>TURN ${k}</b><span>${k===0 ? 'time called' : k===5 ? 'last turn' : 'of 5'}</span>`; } } }
   { const cb=$('#cityBox'); const who=[o&&o.city?o.name:null, m.city?m.name:null].filter(Boolean); cb.hidden=!who.length; cb.innerHTML=who.map(n=>`<div class="city" title="Ascend: ten or more permanents">CITY'S BLESSING<small>${esc(n)}</small></div>`).join(''); }
   { const seen=new Map(); for(const [bf,pid] of [[m.bf,G.myId],[(o&&o.bf)||[],oppId()]]) for(const c of bf){ if(c.fd) continue; for(const k of (c.kw||[])) if(!seen.has(k)) seen.set(k,false); for(const g of grantedKw(c, pid)) seen.set(g.k, seen.get(g.k)===false ? false : true); }
     const kk=$('#kwKey'), order=KW.filter(k=>seen.has(k)); kk.hidden=!order.length;
     kk.innerHTML = order.length ? `<h6>KEYWORDS</h6>${order.map(k=>`<div class="kr"><span class="kc${seen.get(k)?' gr':''}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[k]||''}</svg></span>${esc(k[0].toUpperCase()+k.slice(1))}</div>`).join('')}${[...seen.values()].some(v=>v) ? '<div class="kn">Gold ring: from another card</div>' : ''}` : ''; }
-  if(mw>=2 || ow>=2){ bn.hidden=false; bn.innerHTML = `<h3>${esc(mw>=2 ? m.name : o.name)} wins the match ${Math.max(mw,ow)}–${Math.min(mw,ow)}</h3><span class="hint">Marked by mistake? Right-click the win circle to take it back.</span><div><button data-newmatch class="go">Start a new match</button></div>`; }
+  if(G.mt && G.mt.over){ bn.hidden=false; bn.innerHTML = `<h3>${esc(G.mt.over)}</h3><span class="hint">Time was called on the round clock.</span><div><button data-newmatch class="go">Start a new match</button></div>`; }
+  else if(mw>=2 || ow>=2){ bn.hidden=false; bn.innerHTML = `<h3>${esc(mw>=2 ? m.name : o.name)} wins the match ${Math.max(mw,ow)}–${Math.min(mw,ow)}</h3><span class="hint">Marked by mistake? Right-click the win circle to take it back.</span><div><button data-newmatch class="go">Start a new match</button></div>`; }
   else if(m.deck && !(t.n && m.kept)){
     const on=o?o.name:'Opponent', hs=p=>!p.dealt?'not drawn yet':(p.kept?'kept':'deciding')+(p.mull?`, ${p.mull} mulligan${p.mull>1?'s':''}`:''), solo=alone();
     const ch=chooserId(), chName = ch===G.myId ? m.name : on, cand=compCandidates(), oDone = solo || (o && (o.compDone || !o.deck ? o.compDone : false));
     let h='', st='', btn='';
     if(!t.n && (m.sbing || (o && o.sbing))){
       h='Sideboarding';
-      st = m.sbing ? `<span class="st">Finish sideboarding, then shuffle up.</span>` : `<span class="st">Waiting for ${esc(on)} to finish sideboarding.</span>`;
+      st = m.sbing ? `<span class="st">Finish sideboarding, then shuffle up.${G.sbEnd ? ` ${fmtMS(G.sbEnd-Date.now())} left.` : ''}</span>` : `<span class="st">Waiting for ${esc(on)} to finish sideboarding.</span>`;
       btn = m.sbing && $('#modal').hidden ? '<button data-first="sideboard" class="go">Sideboard</button>' : '';
     } else if(!t.n && needRoll()){
       h='Roll for the first turn';
@@ -4555,7 +4669,7 @@ function sideboardModal(){
   const m=G.me;
   const paint=()=>{ $('#sbMain').innerHTML=`<h4>Main deck<b>${m.lib.length}</b></h4>`+(m.lib.length ? sbDeckHTML(m.lib.slice()) : '<span class="hint">Empty.</span>');
     $('#sbSide').innerHTML=`<h4>Sideboard<b>${m.side.length}</b></h4><div class="sbcol">${m.side.slice().sort(sideSort).map(c=>cardHTML(c,'side',true)).join('') || '<span class="hint">Empty.</span>'}</div>`; };
-  const el=modal('Sideboarding', '<span class="hint">Click a card to move it across. When you are happy, shuffle up.</span><div class="sbwrap"><div id="sbMain" class="sbmain"></div><div id="sbSide" class="sbside"></div></div>', [['Shuffle up',()=>{ closeModal(); },'go']], {wide:true, noClose:true, onClose:()=>shuffleUp()});
+  G.sbOpen=true; const el=modal('Sideboarding', `<span class="hint">Click a card to move it across. When you are happy, shuffle up.${G.sbEnd ? ` <b class="sbclock">Time left <span id="sbClock">${fmtMS(G.sbEnd-Date.now())}</span>: then your deck goes in as it is.</b>` : ''}</span><div class="sbwrap"><div id="sbMain" class="sbmain"></div><div id="sbSide" class="sbside"></div></div>`, [['Shuffle up',()=>{ closeModal(); },'go']], {wide:true, noClose:true, onClose:()=>{ G.sbOpen=false; G.sbEnd=null; shuffleUp(); }});
   el.onclick=e=>{ const card=e.target.closest('#sbMain .card[data-id], #sbSide .card[data-id]'); if(!card) return; const f=find(card.dataset.id); if(!f || (f.z!=='lib' && f.z!=='side')) return; const to=f.z==='lib'?'side':'lib'; m[f.z].splice(f.i,1); m[to].push(f.c); hideZoom(); paint(); };
   paint();
 }
@@ -4943,7 +5057,7 @@ $('#soloBtn').onclick=()=>begin('solo');
 const sess=store.get('mt_session',null);
 if(sess && sess.me && Date.now()-sess.at < 864e5){
   $('#resumeBtn').hidden=false; $('#resumeTxt').textContent = (sess.solo ? 'Practice table' : 'Table '+sess.code) + (sess.me.deck ? ' · '+sess.me.deck : '');
-  $('#resumeBtn').onclick=()=>{ G.solo=sess.solo; G.myId=sess.myId; G.code=sess.code; G.me=Object.assign(newPlayer(), sess.me); G.turn=sess.turn; G.idc=sess.idc||0; S.name=G.me.name; if(G.turn.n && sess.me.kept===undefined){ G.me.dealt=true; G.me.kept=true; }
+  $('#resumeBtn').onclick=()=>{ G.solo=sess.solo; G.myId=sess.myId; G.code=sess.code; G.me=Object.assign(newPlayer(), sess.me); G.turn=sess.turn; G.idc=sess.idc||0; G.mt=mtFromWire(sess.mt); if(G.mt && sess.mtEnd) G.mt.end=sess.mtEnd; S.name=G.me.name; if(G.turn.n && sess.me.kept===undefined){ G.me.dealt=true; G.me.kept=true; }
     connect(); const ks=[]; for(const z of Object.keys(ZN)) for(const c of G.me[z]) if(c.k) ks.push(c.k); ensureCards(ks).then(()=>{ if(!G.me.cares && G.me.deck){ setCares(); changed(); } else render(); });
     if(G.me.deck) showTable(); else showDecks(); };
 }

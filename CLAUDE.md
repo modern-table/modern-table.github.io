@@ -13,9 +13,9 @@ Repository `modern-table/modern-table.github.io` (the `modern-table` GitHub orga
 - `draft/sets/*.json`, `tools/make_draft_sets.py`: booster odds per set for the Draft Table.
 
 ## Versioning
-`const VERSION = 'v3.NN'` in `src/app.src.html` (v3.0 on 2026-10-15 brought auto-pay from the mana pool; v2.0 on 2026-10-14 marked the table resolving rules itself, v2 ran to v2.06; v1 ran to v1.99). Bump NN by one for any feature or behaviour change: v3.0 → v3.01 → v3.02 … Do NOT bump it for a decks-only refresh.
+`const VERSION = 'v4.NN'` in `src/app.src.html` (v4.0 on 2026-10-21: the table runs the match, with game losses, a round clock, a sideboarding timer and end-of-round turns; v3.0 on 2026-10-15 brought auto-pay from the mana pool, v3 ran to v3.78; v2.0 on 2026-10-14 marked the table resolving rules itself, v2 ran to v2.06; v1 ran to v1.99). Bump NN by one for any feature or behaviour change: v4.0 → v4.01 → v4.02 … Do NOT bump it for a decks-only refresh.
 
-With every version bump, add one line at the top of the `NEWS` array in `src/app.src.html` (`['v3.NN','Mon D','what changed']`). It feeds the "What's new" list on the front page and in the table menu, and is written for players: plain language, no function names.
+With every version bump, add one line at the top of the `NEWS` array in `src/app.src.html` (`['v4.NN','Mon D','what changed']`). It feeds the "What's new" list on the front page and in the table menu, and is written for players: plain language, no function names.
 
 ## Draft Table (`/draft/`)
 Booster draft for up to 8 players; bots fill empty seats. Its own version: `const VERSION = 'v0.NN'` in `src/draft.src.html`, bumped the same way.
@@ -65,3 +65,6 @@ The page needs Scryfall and a PeerJS broker at runtime, which the cloud sandbox 
 
 ## Discord announcements
 `.github/workflows/announce.yml` runs on pushes to `main` that touch `src/app.src.html`. If `VERSION` changed, `.github/scripts/announce.py` posts every new `NEWS` line (oldest first) to the Discord #announcements channel through the `DISCORD_WEBHOOK` repo secret, after a 90-second wait for Pages. Deck refreshes don't change `VERSION`, so they post nothing (the maintainer's choice). So the `NEWS` line is what players see on Discord too: keep it plain. "Run workflow" on the Actions tab re-posts the newest entry. Test locally with `DRY_RUN=1 python3 .github/scripts/announce.py old.html src/app.src.html`.
+
+## The match (v4.0)
+A game is lost at 0 or less life, 10 poison or a draw from an empty library: the losing player's client notices it (`lossCheck` from `changed()` and `draw()`), and both get the game-over window (`G.go`; messages `gameover`, `goready`, `goback`). The win is recorded only when both click Begin sideboarding. The round clock (`G.mt`) is kept by the host (p1) and sent as `mt`; the guest asks with `mtreq`. It starts at 50:00 once both players have a deck (`deckReady`), keeps running through sideboarding (3:00, `G.sbEnd`), and at 0 offers the end-of-round turns (turn 0 + five, `#turnSign`), then asks who won. Two-player tables only.
