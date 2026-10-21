@@ -55,3 +55,19 @@ Sideboard
 1 Shadowspear
 2 Soul-Guide Lantern
 2 魔女の予見
+
+# Orzhov blink / hate (Ketramose, Phelia, Flickerwisp, Emperor of Bones)
+1 Bleachbone Verge
+3 Ketramose, the New Dawn
+1 Emperor of Bones
+3 Phelia, Exuberant Shepherd
+2 Flickerwisp
+3 Relic of Progenitus
+2 Dauthi Voidwalker
+2 White Orchid Phantom
+1 Chthonian Nightmare
+Sideboard
+2 Damping Sphere
+2 Damn
+2 High Noon
+2 Wrath of the Skies
