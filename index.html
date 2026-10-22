@@ -320,6 +320,8 @@ textarea#paste{width:100%;min-height:300px;font-family:ui-monospace,Menlo,Consol
 .card.marker{background:radial-gradient(circle at 50% 45%,#f6c453 0 20%,#7a4a12 21% 38%,#1d2b33 39%);cursor:pointer}
 .card.marker .mkt{position:absolute;left:0;right:0;bottom:6%;text-align:center;font-size:calc(var(--cw)*.09);letter-spacing:.1em;text-transform:uppercase;color:var(--ink);pointer-events:none}
 .card.marker img{object-fit:cover}
+.card.marker.psn{background:radial-gradient(circle at 50% 45%,#9be15d 0 18%,#2f5d1e 19% 36%,#141a14 37%)}
+.card.marker.psn .mkn{background:#1f3a14;color:#d9f7b8}
 .card.marker .mkn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);min-width:calc(var(--cw)*.42);height:calc(var(--cw)*.42);padding:0 6px;border-radius:99px;display:grid;place-items:center;background:#000c;border:2px solid var(--brass);color:#fff;font:400 calc(var(--cw)*.26)/1 var(--display);font-variant-numeric:tabular-nums;pointer-events:none}
 #drawBtn{margin:8px 10px 0;padding:10px;font-size:15px;border-radius:99px;background:var(--brass);border-color:var(--brass);color:#1b1205;font-weight:800}
 #shown{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:75;background:#0b1417f5;border:1px solid var(--brass);border-radius:12px;padding:16px 20px;display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center;box-shadow:0 20px 60px #000c;--cw:260px}
@@ -779,7 +781,7 @@ const cname = c => c.fd ? 'a face-down card' : '[['+(cdata(c).n||'a card')+'|'+(
 function pub(){
   const m=G.me, p = c => c.fd ? Object.assign({}, c, {k:null, cu:null, note:''}) : c;
   return { name:m.name, deck:m.deck, life:m.life, ctr:m.ctr, libN:m.lib.length, handN:m.hand.length, sideN:m.side.length,
-    hand:(m.reveal || m.ctl) ? m.hand : null, noMax:!!m.noMax, comp:m.side.filter(c=>c.comp), compDone:!!m.compDone, deckReady:m.deckReady!==false, skipRoll:!!m.skipRoll, wonGame:m.wonGame||0, ctl:!!m.ctl, ctlNext:!!m.ctlNext, city:!!m.city, sbing:!!m.sbing, bf:m.bf.map(p), gy:m.gy, ex:m.ex.map(p), st:m.st.map(p), arrows:m.arrows, mull:m.mull, drn:m.drn||null, wins:m.wins||0, roll:m.roll||null, dealt:!!m.dealt, kept:!!m.kept, mana:m.mana||noMana(), smana:m.smana||[], energySeen:!!m.energySeen, cast:m.cast||{n:0,is:0}, cares:m.cares||null, gtg:m.gtg||[], baub:m.baub||[], trk:m.trk||null };
+    hand:(m.reveal || m.ctl) ? m.hand : null, noMax:!!m.noMax, comp:m.side.filter(c=>c.comp), compDone:!!m.compDone, deckReady:m.deckReady!==false, skipRoll:!!m.skipRoll, wonGame:m.wonGame||0, ctl:!!m.ctl, ctlNext:!!m.ctlNext, city:!!m.city, sbing:!!m.sbing, bf:m.bf.map(p), gy:m.gy, ex:m.ex.map(p), st:m.st.map(p), arrows:m.arrows, mull:m.mull, drn:m.drn||null, wins:m.wins||0, roll:m.roll||null, dealt:!!m.dealt, kept:!!m.kept, mana:m.mana||noMana(), smana:m.smana||[], energySeen:!!m.energySeen, poisonSeen:!!m.poisonSeen, poisonSrc:!!m.poisonSrc, cast:m.cast||{n:0,is:0}, cares:m.cares||null, gtg:m.gtg||[], baub:m.baub||[], trk:m.trk||null };
 }
 /* undo: a snapshot of my own side is kept before each change. Shuffles and anything that crosses to the other player close the history. */
 const UNDO=[]; let lastSnap=null, lastLogi=0;
@@ -805,7 +807,7 @@ function lifeGuard(){ const m=G.me; if(!m || !G.turn) return; const n=G.turn.n;
   if(m.lifeLock && m.lifeLock.n===n && m.life!==m.lifeLock.v){ const d=m.life-m.lifeLock.v; m.life=m.lifeLock.v; fix(d); addLog(`${m.name}'s life total can't change this turn (${d>0?'+':''}${d} undone).`,'s'); send({t:'log', text:`${m.name}'s life total can't change this turn.`}); }
   else if(m.noGain===n && m.lastL!=null && m.life>m.lastL){ const d=m.life-m.lastL; m.life=m.lastL; fix(d); addLog(`${m.name} can't gain life this turn (+${d} undone).`,'s'); send({t:'log', text:`${m.name} can't gain life this turn.`}); }
   m.lastL=m.life; }
-function changed(){ dedupeIds(); lossCheck(); clearTimeout(G.sbaT); G.sbaT=setTimeout(sbaDeaths, 150); legendCheck(); lifeGuard(); try{ ctrWatch(); }catch(e){} try{ kaitoWatch(); }catch(e){} if(G.me.ctr.energy>0) G.me.energySeen=true; checkHeld(); pruneGtg(); pruneArrows(); checkpoint(); render(); clearTimeout(syncT); syncT=setTimeout(()=>{ send({t:'state', s:pub()}); save(); }, 40); }
+function changed(){ dedupeIds(); lossCheck(); clearTimeout(G.sbaT); G.sbaT=setTimeout(sbaDeaths, 150); legendCheck(); lifeGuard(); try{ ctrWatch(); }catch(e){} try{ kaitoWatch(); }catch(e){} if(G.me.ctr.energy>0) G.me.energySeen=true; if((G.me.ctr.poison||0)>0) G.me.poisonSeen=true; checkHeld(); pruneGtg(); pruneArrows(); checkpoint(); render(); clearTimeout(syncT); syncT=setTimeout(()=>{ send({t:'state', s:pub()}); save(); }, 40); }
 function save(){ if(G.code || G.solo) store.set('mt_session', {code:G.code, solo:G.solo, myId:G.myId, me:G.me, turn:G.turn, idc:G.idc, mt:mtWire(), mtEnd:(G.mt&&G.mt.end)||null, at:Date.now()}); }
 function log(text, cls){ addLog(text, cls||'m'); send({t:'log', text}); if(G.me && G.turn && G.turn.n && /\bsacrific(?:es|ed)\b/i.test(text) && String(text).includes(G.me.name) && !/sacrifices nothing|nothing is sacrificed/i.test(text)) G.me.sacT=G.turn.n; }
 /* Vehicles: crewed this turn (c.crew = turn), or "As long as you control eight or more permanents named X, this Vehicle is an artifact creature" (Phoenix Fleet Airship) */
@@ -2638,13 +2640,13 @@ async function simpleEffects(c, text, srcId){
       if((r=sen.match(/^(?:then )?put (a|an|one|two|three|\d+) stun counters? on (it|each of (?:them|those creatures|those permanents)|(?:one|either) of them)\.?$/i))){ const k=NUMW2[r[1].toLowerCase()]||+r[1]||1, pool=(itT.length ? itT : tg).filter(x=>{ const a=findAny(x); return a && a.z==='bf'; });
         let ts=pool; if(/^(?:one|either)/i.test(r[2]) && pool.length>1){ waited=true; const p=await pickP(`${by}: put ${k===1?'a stun counter':k+' stun counters'} on which one?`, pool.map(x=>findAny(x).c), 'None'); ts=p ? [p.id] : []; }
         for(const t of ts) modTarget(t, {stun:k}, by); if(!ts.length) log(`${by}: nothing to put a stun counter on.`); changed(); continue; }
-      // Proliferate: the permanents with counters (both sides) — choose which get one more of each kind; your energy goes up by one (the opponent's poison is noted for them to add)
+      // Proliferate: the permanents with counters (both sides) — choose which get one more of each kind; your energy and the opponent's poison go up by one
       if((r=sen.match(/^proliferate(?: (twice|X times|\w+ times))?\.?$/i))){ const opp=(G.opp&&G.opp.bf)||[], cs=[...m.bf, ...opp].filter(x=>!x.fd && ((x.c||0)!==0 || (x.stun||0)>0));
         let pick=cs.filter(x=>m.bf.includes(x) ? (x.c||0)>0 || isPW(x) : (x.c||0)<0 || (x.stun||0)>0);   // the usual choice: yours that grow, theirs that suffer
         if(cs.length){ waited=true; const ids=await pickManyP(`${by}: proliferate — choose permanents to get one more of each kind of counter`, cs, 'Proliferate'); pick=cs.filter(x=>(ids||[]).includes(x.id)); }
         const times=/twice/i.test(r[1]||'') ? 2 : 1;
         for(let i=0;i<times;i++){ for(const x of pick){ const mine=m.bf.includes(x); if((x.c||0)>0){ if(isPW(x) && !isCreature(x)) ctrOn(x.id, 1, 'loyalty'); else ctrOn(x.id, 1, 'p'); } else if((x.c||0)<0) modTarget(x.id, {mctr:1}, by); if((x.stun||0)>0) modTarget(x.id, {stun:1}, by); }
-          if((m.ctr.energy||0)>0){ m.ctr.energy++; log(`${by}: ${m.name} gets another energy (${m.ctr.energy}).`); } if(G.opp && G.opp.ctr && (G.opp.ctr.poison||0)>0) log(`${by}: ${G.opp.name} may get another poison counter (${G.opp.name} adds it).`); }
+          if((m.ctr.energy||0)>0){ m.ctr.energy++; log(`${by}: ${m.name} gets another energy (${m.ctr.energy}).`); } if(G.opp && G.opp.ctr && (G.opp.ctr.poison||0)>0){ send({t:'adj', ctr:'poison', d:1}); log(`${by}: ${G.opp.name} gets another poison counter.`); } }
         if(!pick.length) log(`${by}: ${m.name} proliferates; nothing is chosen.`); changed(); continue; }
       // "Double the number of +1/+1 counters on each creature you control / on it / on target creature."
       if((r=sen.match(/^double the number of \+1\/\+1 counters on (each creature you control|it|that creature|target creature|this creature)\.?$/i))){ const xs=/each creature/i.test(r[1]) ? m.bf.filter(x=>!x.fd && isCreature(x)) : (/this creature/i.test(r[1]) && srcC ? [srcC] : (itT.length ? itT : tg).map(t=>findAny(t)).filter(a=>a && a.z==='bf').map(a=>a.c));
@@ -4264,7 +4266,7 @@ function gather(){
   const m=G.me; G.noUndo=true;
   for(const z of ['hand','bf','gy','ex','st']){ for(const c of m[z].splice(0)){ if(c.tok || c.made) continue; if(c.sideOrig && c.o===G.myId){ delete c.sideOrig; Object.assign(c,{tap:false,c:0,att:null,atk:false,fd:false,flip:false,note:'',row:null}); m.side.push(c); continue; } if(c.o!==G.myId){ send({t:'give', card:Object.assign(c,{tap:false,c:0,att:null,atk:false,fd:false,flip:false}), zone:'lib'}); continue; } Object.assign(c,{tap:false,c:0,att:null,atk:false,fd:false,flip:false,note:'',row:null}); m.lib.push(c); } }
   for(const c of m.lib.filter(x=>x.sideOrig)){ m.lib.splice(m.lib.indexOf(c),1); delete c.sideOrig; m.side.push(c); }
-  m.life=20; m.lastLife=20; delete m.para; delete m.paraT; delete m.noMax; delete m.coinCall; delete m.tmpRed; delete m.pauseAsk; delete m.pauseReq; delete m.emb; delete m.oppT; delete m.dsc; delete m.mayAlways; delete m.gain; delete m.city; delete m.wya; delete m.atkC; delete m.lock; m.ctr={poison:0,energy:0}; m.arrows=[]; m.reveal=false; m.mull=0; m.roll=null; m.compDone=false; m.skipRoll=false; m.dealt=false; m.kept=false; m.mana=noMana(); m.smana=[]; m.energySeen=false; m.drew=0; m.ctl=false; m.ctlNext=false; m.cast={n:0,is:0}; m.pacts=[]; m.baub=[]; m.trk=null; for(const c of m.side) delete c.comp; for(const c of m.lib){ delete c.by; delete c.warp; delete c.wp; delete c.fl; delete c.bt; delete c.ent; delete c.offer; delete c.pl; delete c.kw; delete c.lt; delete c.sick; delete c.lft; delete c.cp; }
+  m.life=20; m.lastLife=20; delete m.para; delete m.paraT; delete m.noMax; delete m.coinCall; delete m.tmpRed; delete m.pauseAsk; delete m.pauseReq; delete m.emb; delete m.oppT; delete m.dsc; delete m.mayAlways; delete m.gain; delete m.city; delete m.wya; delete m.atkC; delete m.lock; m.ctr={poison:0,energy:0}; m.arrows=[]; m.reveal=false; m.mull=0; m.roll=null; m.compDone=false; m.skipRoll=false; m.dealt=false; m.kept=false; m.mana=noMana(); m.smana=[]; m.energySeen=false; m.poisonSeen=false; m.drew=0; m.ctl=false; m.ctlNext=false; m.cast={n:0,is:0}; m.pacts=[]; m.baub=[]; m.trk=null; for(const c of m.side) delete c.comp; for(const c of m.lib){ delete c.by; delete c.warp; delete c.wp; delete c.fl; delete c.bt; delete c.ent; delete c.offer; delete c.pl; delete c.kw; delete c.lt; delete c.sick; delete c.lft; delete c.cp; }
 }
 function newGame(remote){
   gather(); G.turn={active:null, phase:2, n:0};
@@ -4327,7 +4329,8 @@ async function loadDeck(d, name, onProgress){
   const m=G.me; for(const z of ['lib','hand','bf','gy','ex','st','side']){ for(const c of m[z]) if(c.o!==G.myId && !c.tok) send({t:'give', card:c, zone:'lib'}); m[z]=[]; }
   for(const [n,c] of d.main) for(let i=0;i<c;i++) m.lib.push(mk(kk(n)));
   for(const [n,c] of d.side) for(let i=0;i<c;i++) m.side.push(mk(kk(n)));
-  m.deck=name; m.life=20; m.ctr={poison:0,energy:0}; m.mull=0; m.arrows=[]; m.roll=null; m.compDone=false; m.skipRoll=false; m.dealt=false; m.kept=false; m.mana=noMana(); m.smana=[]; m.energySeen=false; m.drew=0; m.cast={n:0,is:0}; m.pacts=[]; m.baub=[]; m.trk=null; setCares();
+  m.deck=name; m.life=20; m.ctr={poison:0,energy:0}; m.mull=0; m.arrows=[]; m.roll=null; m.compDone=false; m.skipRoll=false; m.dealt=false; m.kept=false; m.mana=noMana(); m.smana=[]; m.energySeen=false; m.poisonSeen=false; m.drew=0; m.cast={n:0,is:0}; m.pacts=[]; m.baub=[]; m.trk=null; setCares();
+  m.poisonSrc=[...m.lib, ...m.side].some(x=>{ try{ return POISONRE.test(cdata(x).o||''); }catch(e){ return false; } });   // v4.05: show the poison marker from the start
   m.deckSpec={d:{main:d.main, side:d.side, art:d.art||{}}, name}; m.deckReady=true;   // for a new match with the same deck (kept with my side, not shared)
   log(`${m.name} brought ${name}.`); shuffleUp();
 }
@@ -4373,6 +4376,15 @@ function cardHTML(c, z, mine, cls=''){
   return `<div class="card ${mine?'':'opp'} ${c.tap?'tap':''} ${c.atk?'atk':''} ${!mine && c.atk && z==='bf' && blkDim(c) ? 'nblk' : ''} ${tgtDim(c, z)} ${c.fd&&mine?'fdmine':''} ${cls}" data-id="${c.id}" data-z="${z}" data-o="${mine?'me':'opp'}">${inner}${b}${extra}</div>`;
 }
 const markerHTML = (n, pid) => `<div class="card marker" data-ctr="energy" data-pl="${pid}" title="Energy reserve. Click to add energy, right-click to remove."><span class="mkt">Energy reserve</span><img src="${ENERGY_IMG}" alt="" draggable="false" referrerpolicy="no-referrer" onerror="this.remove()"><span class="mkn">${n}</span></div>`;
+/* poison (v4.05): shown on both sides once anyone has poison or either deck can give it (toxic, infect, poison counters, proliferate); either player clicks it, like the chip */
+const poisonHTML = (n, pid) => { poisonImg(); return `<div class="card marker psn" data-ctr="poison" data-pl="${pid}" title="Poison counters (10 loses the game). Either player: click to add, right-click to remove."><span class="mkt">Poison</span>${POISON_IMG ? `<img src="${esc(POISON_IMG)}" alt="" draggable="false" onerror="this.remove()">` : ''}<span class="mkn">${n}</span></div>`; };
+/* the Poison Counter card's art (Scryfall: set TONE, number 14), looked up once per browser through the request queue and remembered; the green design until then */
+let POISON_IMG = store.get('mt_poison_img', '') || '', poisonAsked = false;
+function poisonImg(){ if(POISON_IMG || poisonAsked) return; poisonAsked = true;
+  sfetch('https://api.scryfall.com/cards/tone/14').then(r => r.ok ? r.json() : null).then(c => { const u = c && ((c.image_uris || {}).normal || ((c.card_faces || [])[0] || {}).image_uris && c.card_faces[0].image_uris.normal);
+    if(u && /^https:\/\/cards\.scryfall\.io\//.test(u)){ POISON_IMG = u; store.set('mt_poison_img', u); render(); } }).catch(() => {}); }
+const POISONRE = /\b(?:toxic|infect|poisonous)\b|poison counters?|\bproliferate\b/i;
+const poisonOn = () => !!(G.me.poisonSeen || G.me.poisonSrc || (G.opp && (G.opp.poisonSeen || G.opp.poisonSrc)) || (G.me.ctr.poison||0)>0 || (G.opp && G.opp.ctr && (G.opp.ctr.poison||0)>0));
 /* a row wider than the board scrolls sideways: the mouse wheel moves it, and its scroll bar is brought to the front while the pointer is on the row */
 document.addEventListener('wheel', e=>{ const r=e.target.closest && e.target.closest('.row'); if(!r || r.scrollWidth<=r.clientWidth+1 || Math.abs(e.deltaX)>Math.abs(e.deltaY)) return; r.scrollLeft+=e.deltaY; e.preventDefault(); }, {passive:false});
 function markOverflow(){ for(const r of document.querySelectorAll('.row')) r.classList.toggle('ovf', r.scrollWidth>r.clientWidth+1); }
@@ -4417,7 +4429,7 @@ function render(){
   FX=landEffects();
   HELD={}; for(const c of [...m.ex, ...((o&&o.ex)||[])]) if(c.by) HELD[c.by.id]=(HELD[c.by.id]||0)+1;
   const warpHTML=(ex,mine)=>ex.filter(c=>c.warp).map(c=>cardHTML(c,'ex',mine,'warped')).join('');
-  const mr=rowsHTML(m.bf,true); $('#myFront').innerHTML=mr.front + playBoxes(m.ex,true,['this']); $('#myBack').innerHTML=mr.back + warpHTML(m.ex,true) + flBox(m.ex,true) + playBoxes(m.ex,true,['next']) + compBox(m.side.filter(c=>c.comp), true) + (m.energySeen ? markerHTML(m.ctr.energy||0, G.myId) : '');
+  const mr=rowsHTML(m.bf,true); $('#myFront').innerHTML=mr.front + playBoxes(m.ex,true,['this']); $('#myBack').innerHTML=mr.back + warpHTML(m.ex,true) + flBox(m.ex,true) + playBoxes(m.ex,true,['next']) + compBox(m.side.filter(c=>c.comp), true) + (m.energySeen ? markerHTML(m.ctr.energy||0, G.myId) : '') + (poisonOn() ? poisonHTML(m.ctr.poison||0, G.myId) : '');
   $('#myHand').innerHTML = m.hand.map(c=>cardHTML(c,'hand',true)).join('') + (m.trk ? `<div class="twrap">${trackPad(m.trk, true)}<span class="thint">Click a name to cross it off</span></div>` : ''); $('#myHand').classList.toggle('hastrk', !!m.trk);
   const back = '<div class="card">'+BACK+'</div>';
   $('#myPiles').innerHTML = '<div class="railh me"><b>You</b></div>' + pileHTML('ex','Exile',m.ex,m.ex.length,true, m.ex.length?cardHTML(m.ex[m.ex.length-1],'ex',true):'')
@@ -4425,7 +4437,7 @@ function render(){
     + pileHTML('lib','Library',m.lib,m.lib.length,true, m.lib.length?back:'')
     + (m.side.length ? pileHTML('side','Sideboard',m.side,m.side.length,true, back) : '');
   if(o){
-    const or=rowsHTML(o.bf||[],false); $('#oppFront').innerHTML=or.front + playBoxes(o.ex,false,['this']); $('#oppBack').innerHTML=or.back + warpHTML(o.ex||[],false) + flBox(o.ex,false) + playBoxes(o.ex,false,['next']) + compBox(o.comp||[], false) + (o.energySeen ? markerHTML((o.ctr||{}).energy||0, oppId()) : '');
+    const or=rowsHTML(o.bf||[],false); $('#oppFront').innerHTML=or.front + playBoxes(o.ex,false,['this']); $('#oppBack').innerHTML=or.back + warpHTML(o.ex||[],false) + flBox(o.ex,false) + playBoxes(o.ex,false,['next']) + compBox(o.comp||[], false) + (o.energySeen ? markerHTML((o.ctr||{}).energy||0, oppId()) : '') + (poisonOn() ? poisonHTML((o.ctr||{}).poison||0, oppId()) : '');
     const oh=$('#oppHand'); oh.classList.toggle('shown', !!o.hand);
     oh.innerHTML = (o.trk && o.trk.list && o.trk.list.length ? `<span class="tnote" data-tnote title=""><b>${o.trk.list.length}</b></span>` : '') + `<span class="hn">${esc(o.name||'Opponent')}'s hand <b>${o.handN}</b>${o.hand?' · revealed':''}</span>` + (o.hand ? o.hand.map(c=>cardHTML(c,'hand',false)).join('') : back.repeat(Math.min(o.handN,30)));
     $('#oppPiles').innerHTML = `<div class="railh"><b>${esc(o.name||'Opponent')}</b></div>` + pileHTML('hand','Hand',null,o.handN,false, o.handN?back:'') + pileHTML('lib','Library',null,o.libN,false, o.libN?back:'')
@@ -4852,8 +4864,8 @@ function tgtNextSlot(md, skip){ const sl=md && md.type==='arrow' && tgtSlotsOf(m
   return false; }
 function tgtSpec(c, slot){ if(!c) return null; let txt = c.ab || c.ch ? ((c.cu && c.cu.o) || '') : (stackText(c) || '');
   txt=String(txt).replace(/\([^)]*\)/g,''); if(c.ab && c.cu && /Activated ability/.test(c.cu.t||'') && /:/.test(txt)) txt=txt.slice(txt.indexOf(':')+1);
-  if(slot==null) slot = G.mode && G.mode.type==='arrow' && G.mode.from===c.id && G.mode.slot || 0;
-  if(slot>0){ const sl=tgtSlots(c); if(!sl || !sl[slot]) return null; const from=sl[slot].i, nq=tgtNoQuote(txt);
+  if(slot==null) slot = G.mode && G.mode.type==='arrow' && G.mode.from===c.id && G.mode.slot || 0; let pre='';
+  if(slot>0){ const sl=tgtSlots(c); if(!sl || !sl[slot]) return null; const from=sl[slot].i, nq=tgtNoQuote(txt); pre=nq.slice(Math.max(0, from-12), from);
     if(/^any target\b/i.test(nq.slice(Math.max(0,from-4)))) return {alts:[['creature'],['player'],['planeswalker'],['battle']], phrase:'any target (a creature, player, planeswalker or battle)', ctl:'', other:false, src:c, upto:sl[slot].upto};
     txt=' '.repeat(from)+nq.slice(from); }   // read the k-th phrase: blank out what comes before it
   if(!slot && /\bany target\b/i.test(txt) && !/\btarget (?!\w+ target)/i.test(txt.replace(/\bany target\b/ig,''))) return {alts:[['creature'],['player'],['planeswalker'],['battle']], phrase:'any target (a creature, player, planeswalker or battle)', ctl:'', other:false, src:c};
@@ -4864,14 +4876,15 @@ function tgtSpec(c, slot){ if(!c) return null; let txt = c.ab || c.ch ? ((c.cu &
   const desc=m[3].trim(), ext=(m[4]||'').trim(), alts=desc.split(/,? (?:or|and\/or) |, /i).map(a=>a.trim().split(/\s+/)); { const NR=new RegExp(`^(?:${TGT_NOUN})$`,'i'), noun=(alts[alts.length-1]||[]).slice(-1)[0]; for(const a of alts) if(!NR.test(a[a.length-1]) && noun) a.push(noun); }   // "black or red permanent", "attacking or blocking creature"
   const ctl=/an opponent controls|you don't control|your opponents control/i.test(ext) ? 'opp' : /you control/i.test(ext) ? 'me' : '';
   const mvq=ext.match(/with mana value (\d+) or (less|greater)/i), pwq=ext.match(/with power (\d+) or (less|greater)/i);
-  const spec={alts, ctl, other:!!m[2], upto:!!m[1], src:c, mv:mvq ? {n:+mvq[1], up:/greater/i.test(mvq[2])} : null, pw:pwq ? {n:+pwq[1], up:/greater/i.test(pwq[2])} : null, phrase:`${m[1]||''}${m[2]||''}target ${desc}${ext?' '+ext:''}`.trim()};
+  const spec={alts, ctl, other:!!m[2], upto:!!m[1], src:c, slot, distinct: slot>0 && (!!m[2] || /\b(?:another|other|second|third|fourth|different) $/i.test(pre)), mv:mvq ? {n:+mvq[1], up:/greater/i.test(mvq[2])} : null, pw:pwq ? {n:+pwq[1], up:/greater/i.test(pwq[2])} : null, phrase:`${m[1]||''}${m[2]||''}target ${desc}${ext?' '+ext:''}`.trim()};
   // resolution-only conditions (still a legal target, it just won't be affected)
   { const a=txt.match(/\bif it has mana value (\d+) or less\b/i), rv=txt.match(/Revolt — [^.]*?mana value (\d+) or less instead if a permanent left the battlefield under your control this turn/i);
     if(a){ const rev=!!rv && G.me.leftT===G.turn.n, n=rev ? +rv[1] : +a[1]; spec.cond={mv:n, note:`it is destroyed only if its mana value is ${n} or less${rv ? (rev ? ' (revolt: a permanent of yours left the battlefield this turn)' : ` (${rv[1]} or less with revolt)`) : ''}`}; } }
   if(/if its mana value is less than or equal to the number of colors of mana spent to cast this spell/i.test(txt) && c.pc!=null) spec.cond={mv:c.pc, note:`it is exiled only if its mana value is ${c.pc} or less (${c.pc} color${c.pc===1?'':'s'} spent)`};
   return spec; }
 /* is that a legal target? → {ok, why}; cond → {cok, cwhy} */
-function tgtCheck(sp, target){ const isP=target==='p1' || target==='p2', a=isP ? null : findAny(target), mineT = isP ? target===G.myId : !!(a && a.mine), srcId = sp.src.ab ? sp.src.ab.id : sp.src.ch ? sp.src.ch.id : sp.src.id;
+function tgtCheck(sp, target){ if(sp.distinct && G.me.arrows.some(x=>x.a===sp.src.id && x.b===target && typeof x.s==='number' && x.s<sp.slot)) return {ok:false, why:'already targets that (this target must be a different one)'};   // v4.05: Incremental Growth's "another" / "a third" target
+  const isP=target==='p1' || target==='p2', a=isP ? null : findAny(target), mineT = isP ? target===G.myId : !!(a && a.mine), srcId = sp.src.ab ? sp.src.ab.id : sp.src.ch ? sp.src.ch.id : sp.src.id;
   const fits=(alt)=>{ const w=alt.map(x=>x.toLowerCase()), last=w[w.length-1].replace(/s$/,'').replace(/ies$/,'y');
     if(last==='player' || last==='opponent') return isP && (last!=='opponent' || target!==G.myId);
     if(isP || !a) return false;
