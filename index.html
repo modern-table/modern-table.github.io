@@ -4466,9 +4466,9 @@ function cardHTML(c, z, mine, cls=''){
   if(z==='ex' && c.pl && !backUp){ cls+=' pl'; b+=`<span class="plban">PLAYABLE · ${c.pl==='this'?'THIS TURN':'NEXT TURN'}</span>`; }
   return `<div class="card ${mine?'':'opp'} ${c.tap?'tap':''} ${c.atk?'atk':''} ${!mine && c.atk && z==='bf' && blkDim(c) ? 'nblk' : ''} ${tgtDim(c, z)} ${c.fd&&mine?'fdmine':''} ${cls}" data-id="${c.id}" data-z="${z}" data-o="${mine?'me':'opp'}">${inner}${b}${extra}</div>`;
 }
-const markerHTML = (n, pid) => `<div class="card marker" data-ctr="energy" data-pl="${pid}" title="Energy reserve. Click to add energy, right-click to remove."><span class="mkt">Energy reserve</span><img src="${ENERGY_IMG}" alt="" draggable="false" referrerpolicy="no-referrer" onerror="this.remove()"><span class="mkn">${n}</span></div>`;
+const markerHTML = (n, pid) => `<div class="card marker" data-ctr="energy" data-pl="${pid}" title="Energy reserve. Click to add energy, right-click to remove."><span class="mkt">⚡ Energy reserve</span><img src="${ENERGY_IMG}" alt="" draggable="false" referrerpolicy="no-referrer" onerror="this.remove()"><span class="mkn">${n}</span></div>`;
 /* poison (v4.05): shown on both sides once anyone has poison or either deck can give it (toxic, infect, poison counters, proliferate); either player clicks it, like the chip */
-const poisonHTML = (n, pid) => { poisonImg(); return `<div class="card marker psn" data-ctr="poison" data-pl="${pid}" title="Poison counters (10 loses the game). Either player: click to add, right-click to remove."><span class="mkt">Poison</span>${POISON_IMG ? `<img src="${esc(POISON_IMG)}" alt="" draggable="false" onerror="this.remove()">` : ''}<span class="mkn">${n}</span></div>`; };
+const poisonHTML = (n, pid) => { poisonImg(); return `<div class="card marker psn" data-ctr="poison" data-pl="${pid}" title="Poison counters (10 loses the game). Either player: click to add, right-click to remove."><span class="mkt">☠️ Poison</span>${POISON_IMG ? `<img src="${esc(POISON_IMG)}" alt="" draggable="false" onerror="this.remove()">` : ''}<span class="mkn">${n}</span></div>`; };
 /* the Poison Counter card's art (Scryfall: set TONE, number 14), looked up once per browser through the request queue and remembered; the green design until then */
 let POISON_IMG = store.get('mt_poison_img', '') || '', poisonAsked = false;
 function poisonImg(){ if(POISON_IMG || poisonAsked) return; poisonAsked = true;
@@ -4488,7 +4488,7 @@ function proliferatePick(by, note){ return new Promise(res=>{ const m=G.me, opp=
 function becomeMonarch(by){ const m=G.me; if(m.monarch) return; m.monarch=true; if(G.opp) send({t:'monarch', by, who:m.name}); log(`${by}: ${m.name} becomes the monarch (draws a card at the beginning of their end step).`); changed(); }
 /* the monarch (v4.06, Ben): a gold box with the crown on the current monarch's side; clicking the opponent's takes it by hand */
 const monarchHTML = pid => `<div class="card marker mon" data-mon="${pid}" title="${pid===G.myId ? 'You are the monarch: you draw a card at the beginning of your end step. Whoever deals you combat damage takes it.' : 'The monarch. Deal them combat damage to take it (it moves by itself), or click to take it by hand.'}"><span class="mkc">👑</span><span class="mkt">Monarch</span></div>`;
-/* one marker keeps the full card look; two or more share one card-sized column (v4.06) so a crowded row doesn't push them off the table */
+/* markers show while their count is above 0 (v4.07, Ben; the chips by the name stay for adding from 0). One marker keeps the full card look; two or more share one card-sized column (v4.06) so a crowded row doesn't push them off the table */
 const markersHTML = xs => { xs=xs.filter(Boolean); return xs.length>1 ? `<div class="mkstack">${xs.join('')}</div>` : xs.join(''); };
 const poisonOn = () => !!(G.me.poisonSeen || G.me.poisonSrc || (G.opp && (G.opp.poisonSeen || G.opp.poisonSrc)) || (G.me.ctr.poison||0)>0 || (G.opp && G.opp.ctr && (G.opp.ctr.poison||0)>0));
 /* a row wider than the board scrolls sideways: the mouse wheel moves it, and its scroll bar is brought to the front while the pointer is on the row */
@@ -4535,7 +4535,7 @@ function render(){
   FX=landEffects();
   HELD={}; for(const c of [...m.ex, ...((o&&o.ex)||[])]) if(c.by) HELD[c.by.id]=(HELD[c.by.id]||0)+1;
   const warpHTML=(ex,mine)=>ex.filter(c=>c.warp).map(c=>cardHTML(c,'ex',mine,'warped')).join('');
-  const mr=rowsHTML(m.bf,true); $('#myFront').innerHTML=mr.front + playBoxes(m.ex,true,['this']); $('#myBack').innerHTML=mr.back + warpHTML(m.ex,true) + flBox(m.ex,true) + playBoxes(m.ex,true,['next']) + compBox(m.side.filter(c=>c.comp), true) + markersHTML([m.energySeen && markerHTML(m.ctr.energy||0, G.myId), poisonOn() && poisonHTML(m.ctr.poison||0, G.myId), m.monarch && monarchHTML(G.myId)]);
+  const mr=rowsHTML(m.bf,true); $('#myFront').innerHTML=mr.front + playBoxes(m.ex,true,['this']); $('#myBack').innerHTML=mr.back + warpHTML(m.ex,true) + flBox(m.ex,true) + playBoxes(m.ex,true,['next']) + compBox(m.side.filter(c=>c.comp), true) + markersHTML([(m.ctr.energy||0)>0 && markerHTML(m.ctr.energy, G.myId), (m.ctr.poison||0)>0 && poisonHTML(m.ctr.poison, G.myId), m.monarch && monarchHTML(G.myId)]);
   $('#myHand').innerHTML = m.hand.map(c=>cardHTML(c,'hand',true)).join('') + (m.trk ? `<div class="twrap">${trackPad(m.trk, true)}<span class="thint">Click a name to cross it off</span></div>` : ''); $('#myHand').classList.toggle('hastrk', !!m.trk);
   const back = '<div class="card">'+BACK+'</div>';
   $('#myPiles').innerHTML = '<div class="railh me"><b>You</b></div>' + pileHTML('ex','Exile',m.ex,m.ex.length,true, m.ex.length?cardHTML(m.ex[m.ex.length-1],'ex',true):'')
@@ -4543,7 +4543,7 @@ function render(){
     + pileHTML('lib','Library',m.lib,m.lib.length,true, m.lib.length?back:'')
     + (m.side.length ? pileHTML('side','Sideboard',m.side,m.side.length,true, back) : '');
   if(o){
-    const or=rowsHTML(o.bf||[],false); $('#oppFront').innerHTML=or.front + playBoxes(o.ex,false,['this']); $('#oppBack').innerHTML=or.back + warpHTML(o.ex||[],false) + flBox(o.ex,false) + playBoxes(o.ex,false,['next']) + compBox(o.comp||[], false) + markersHTML([o.energySeen && markerHTML((o.ctr||{}).energy||0, oppId()), poisonOn() && poisonHTML((o.ctr||{}).poison||0, oppId()), o.monarch && monarchHTML(oppId())]);
+    const or=rowsHTML(o.bf||[],false); $('#oppFront').innerHTML=or.front + playBoxes(o.ex,false,['this']); $('#oppBack').innerHTML=or.back + warpHTML(o.ex||[],false) + flBox(o.ex,false) + playBoxes(o.ex,false,['next']) + compBox(o.comp||[], false) + markersHTML([((o.ctr||{}).energy||0)>0 && markerHTML(o.ctr.energy, oppId()), ((o.ctr||{}).poison||0)>0 && poisonHTML(o.ctr.poison, oppId()), o.monarch && monarchHTML(oppId())]);
     const oh=$('#oppHand'); oh.classList.toggle('shown', !!o.hand);
     oh.innerHTML = (o.trk && o.trk.list && o.trk.list.length ? `<span class="tnote" data-tnote title=""><b>${o.trk.list.length}</b></span>` : '') + `<span class="hn">${esc(o.name||'Opponent')}'s hand <b>${o.handN}</b>${o.hand?' · revealed':''}</span>` + (o.hand ? o.hand.map(c=>cardHTML(c,'hand',false)).join('') : back.repeat(Math.min(o.handN,30)));
     $('#oppPiles').innerHTML = `<div class="railh"><b>${esc(o.name||'Opponent')}</b></div>` + pileHTML('hand','Hand',null,o.handN,false, o.handN?back:'') + pileHTML('lib','Library',null,o.libN,false, o.libN?back:'')
