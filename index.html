@@ -330,7 +330,8 @@ textarea#paste{width:100%;min-height:300px;font-family:ui-monospace,Menlo,Consol
 .card.marker .mki .ico{width:100%;height:100%;display:block}
 .card.marker:not(.mon) .mkt{display:none}
 .card.marker.mon .mkc .ico{width:100%;height:100%;color:#fff3cf;filter:drop-shadow(0 2px 3px #0009)}
-.card.marker.mon .mkc{width:calc(var(--cw)*.46);height:calc(var(--cw)*.46)}
+.card.marker.mon .mkc{display:block;width:calc(var(--cw)*.46);height:calc(var(--cw)*.46)}
+.card.marker.mon .mkc .ico{display:block}
 .mkstack{flex:none;align-self:flex-start;width:var(--cw);aspect-ratio:488/680;display:flex;flex-direction:column;gap:4px}
 .mkstack .card.marker{aspect-ratio:auto;flex:1 1 0;min-height:0;width:100%}
 .mkstack .card.marker{background:#14252a;border-left:5px solid #f6c453;box-shadow:0 2px 6px #0008}
@@ -482,10 +483,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 </script>
 <script>
 "use strict";
-const VERSION = 'v4.09';
+const VERSION = 'v4.10';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.10','Oct 22',"A rounder poison skull with big eyes and three teeth, and the monarch's crown now sits in line with the word."],
   ['v4.09','Oct 22',"The bolt and crown are solid now, and the skull is a solid white skull with see-through eyes, nose and teeth. On the table, energy and poison show their symbol in place of the word; the monarch keeps its crown and the word."],
   ['v4.08','Oct 22',"Energy, poison and the monarch have their own drawn symbols (a bolt, a skull and a crown) instead of emoji, on the table and by the player names."],
   ['v4.07','Oct 22',"About sixty more cube cards play themselves, among them Show and Tell, Sneak Attack, Through the Breach, Flash, Wheel of Fortune, Memory Jar, Time Warp, Fact or Fiction, Intuition, Balance, Cataclysm, Exhume, Animate Dead, Necromancy, Council's Judgment, Palace Jailer, Mana Drain, Vendilion Clique, Remand, Kroxa, Uro, Yorion and Oko. When a card makes the opponent choose (Fact or Fiction's piles, Intuition, Karn, a vote), the choice opens on the opponent's screen. Energy, poison and the monarch only show on the table while there is something to show."],
@@ -4760,7 +4762,7 @@ function cardHTML(c, z, mine, cls=''){
 /* marker icons (v4.08, Ben): one drawn style instead of emoji: rounded white outline with filled details; they take the text colour */
 const ICO = (()=>{ const sv=(b)=>`<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">${b}</svg>`;
   return { energy: sv('<path d="M13.6 2.6 5.4 13.4h5.7l-1.4 8 8.9-11.6h-5.8z" fill="currentColor"/>'),
-    poison: sv('<path fill="currentColor" stroke="none" fill-rule="evenodd" d="M12 1.8c-5.4 0-9.2 3.9-9.2 8.8 0 2.6 1.1 4.5 2.8 5.7v3.1c0 1.1.9 2 2 2h8.8c1.1 0 2-.9 2-2v-3.1c1.7-1.2 2.8-3.1 2.8-5.7 0-4.9-3.8-8.8-9.2-8.8zM6.2 10.8a2.4 2.4 0 1 0 4.8 0a2.4 2.4 0 1 0-4.8 0z M13 10.8a2.4 2.4 0 1 0 4.8 0a2.4 2.4 0 1 0-4.8 0zM10.7 13.9h.9v2.1h-.9z M12.4 13.9h.9v2.1h-.9z M9.6 17.6h.95v2.6h-.95z M13.45 17.6h.95v2.6h-.95z"/>'),
+    poison: sv('<path fill="currentColor" stroke="none" fill-rule="evenodd" d="M7.4 17.3A8.6 8.6 0 1 1 16.6 17.3V20.5Q16.6 21.9 15.2 21.9H14.1V19.7H13.1V21.9H10.9V19.7H9.9V21.9H8.8Q7.4 21.9 7.4 20.5ZM5.6 11.2a2.65 2.65 0 1 0 5.3 0a2.65 2.65 0 1 0-5.3 0z M13.1 11.2a2.65 2.65 0 1 0 5.3 0a2.65 2.65 0 1 0-5.3 0zM10.7 14.5h1.05v2.2h-1.05z M12.25 14.5h1.05v2.2h-1.05z"/>'),
     monarch: sv('<path d="M4.2 17.2 3 7.6l5.2 4L12 4.8l3.8 6.8 5.2-4-1.2 9.6z" fill="currentColor"/><path d="M4.6 20.4h14.8"/>') }; })();
 const ICON_OF = k => ICO[k] || '';
 const markerHTML = (n, pid) => `<div class="card marker" data-ctr="energy" data-pl="${pid}" title="Energy reserve. Click to add energy, right-click to remove."><span class="mki">${ICO.energy}</span><span class="mkt">Energy</span><img src="${ENERGY_IMG}" alt="" draggable="false" referrerpolicy="no-referrer" onerror="this.remove()"><span class="mkn">${n}</span></div>`;
