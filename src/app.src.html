@@ -1302,6 +1302,7 @@ function entered(c){
   if(isCreature(c) && G.me.bf.includes(c) && !cardColors(c).length) trg.push(['colorless creature enters', ()=>{ for(const x of G.me.bf){ if(x.id===c.id || x.fd || (!x.k && !x.cu)) continue; const m=(frontText(x)||'').match(/(?:^|\n)Whenever another colorless creature you control enters, ([^\n]+)/i); if(m){ pushTrig(x, m[1]); log(`${cdata(x).n.split(',')[0]}: ${cname(c)} entered, so its trigger goes on the stack.`); } } }, 1]);
   if(ev) trg.push(['evoke sacrifice', ()=>evokeSac(c), 1]);
   if(earthbendN(c) && /\bWhen (?:this creature|[^,\n]+) enters, earthbend/i.test(frontText(c)||'')){ const n=earthbendN(c), src=c; trg.push(['earthbend', ()=>setTimeout(()=>startEarthbend(src, n, 'enters'), 0)]); }
+  if(/(?:^|\n)Living weapon\b/i.test(frontText(c)||'') && G.me.bf.includes(c)) trg.push(['living weapon', ()=>{ pushTrig(c, 'Create a 0/0 black Phyrexian Germ creature token, then attach this Equipment to it.', 'living weapon'); log(`${cname(c)} enters: living weapon goes on the stack.`); }, 1]);   // v4.11 MH2
   if(/(?:^|\n)Job select\b/i.test(frontText(c)||'') && G.me.bf.includes(c)) trg.push(['job select', ()=>{ pushTrig(c, 'Create a 1/1 colorless Hero creature token, then attach this Equipment to it.', 'job select'); log(`${cname(c)} enters: job select goes on the stack.`); }, 1]);
   { const fb=(frontText(c)||'').match(/(?:^|\n)Fabricate (\d+)/i); if(fb && G.me.bf.includes(c)) trg.push(['fabricate', ()=>{ pushTrig(c, `Fabricate ${fb[1]}.`, 'fabricate'); log(`${cname(c)} enters: fabricate ${fb[1]} goes on the stack.`); }, 1]); }
   if(etbLines(c).length) trg.push([etbLines(c).length>1 ? 'enter triggers' : 'enter trigger', ()=>etbTrigs(c), 1]);
@@ -1544,7 +1545,8 @@ function amass(type, n, by, src){ type=type.replace(/s$/,''); const m=G.me;   /*
 function ltbTrig(c){ if(c.fd || (!c.k && !c.cu)) return; const d=cdata(c), nm=faceName(c,0), sn=nm.split(',')[0], out=[];
   const re=new RegExp('(?:^|\\n|\\.\\s)When (?:this (?:artifact|creature|permanent|enchantment|token|aura)|'+escRe(nm)+'|'+escRe(sn)+') leaves the battlefield, ([^\\n]+)','i'), m=(frontText(c)||'').match(re); if(m) out.push(m[1]); if(c.gainLtb) out.push(c.gainLtb);
   for(const e of out){ G.me.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:c.id, tr:true}, cu:{n:`${sn}: leaves trigger`, t:'Triggered ability', o:e.replace(/^t/,'T'), img:d.img||''}})); log(`${sn} leaves the battlefield: its trigger goes on the stack.`); } }
-function diesTrig(c){ const d=cdata(c), nm=faceName(c,0), sn=nm.split(',')[0], re=new RegExp('(?:^|\\n)When (?:this (?:artifact|creature|permanent|enchantment)|'+escRe(nm)+'|'+escRe(sn)+') (?:is put into a graveyard from the battlefield|dies), ([^\\n]+)','i'), m=(frontText(c)||'').match(re); if(!m) return;
+function diesTrig(c){ if(/(?:^|\n)Modular\b/i.test(frontText(c)||'') && (c.c||0)>0){ const d0=cdata(c), sn0=d0.n.split(',')[0], k=c.c, t=mk(null,{tok:true, ts:Date.now(), ab:{id:c.id, tr:true}, cu:{n:`${sn0}: modular`, t:'Triggered ability', o:`You may put ${k} +1/+1 counter${k>1?'s':''} on target artifact creature.`, img:d0.img||''}}); G.me.st.push(t); log(`${sn0} dies: modular puts its ${k} +1/+1 counter${k>1?'s':''} on the stack (click an artifact creature).`); if(!G.mode){ G.mode={type:'arrow', from:t.id}; } changed(); }   // v4.11 MH2
+  const d=cdata(c), nm=faceName(c,0), sn=nm.split(',')[0], re=new RegExp('(?:^|\\n)When (?:this (?:artifact|creature|permanent|enchantment)|'+escRe(nm)+'|'+escRe(sn)+') (?:is put into a graveyard from the battlefield|dies), ([^\\n]+)','i'), m=(frontText(c)||'').match(re); if(!m) return;
   const push=txt=>{ const t=mk(null,{tok:true, ts:Date.now(), ab:{id:c.id, tr:true}, cu:{n:`${sn}: trigger`, t:'Triggered ability', o:txt, img:d.img||''}}); G.me.st.push(t); log(`${sn} goes to the graveyard: its trigger goes on the stack${txt!==m[0].trim()?' ('+txt+')':''}.`); if(needsTarget(txt) && !G.mode){ G.mode={type:'arrow', from:t.id}; toast(`${sn}: click its target (Esc for none).`); } changed(); };
   if(/choose one\s*[—–-]?\s*$/i.test(m[1])){ const L=(frontText(c)||'').split('\n').map(x=>x.trim()), i=L.findIndex(l=>l===m[0].trim()), modes=[]; for(let j=i+1;j>0 && j<L.length && /^[•+]/.test(L[j]);j++) modes.push(L[j].replace(/^[•+]\s*/,''));
     if(modes.length>1){ setTimeout(()=>pickModes(c, {head:m[0].trim(), modes, min:1, max:1}, p=>push(modes[p[0]-1].replace(/^([a-z])/, x=>x.toUpperCase())), {title:`${sn} died: choose one`, skip:null}), 0); return; } }
@@ -2034,9 +2036,10 @@ function grantedKw(c, pid){ if(c.fd || !isCreature(c) || !pid) return []; const 
 const printedKw = c => { const out=[]; for(const l of (frontText(c)||'').split('\n')){ const ws=l.trim().toLowerCase().split(/,\s*/); if(ws.length && ws.every(w=>KW.includes(w))) out.push(...ws); } return out; };
 const hasKw = (c, pid, k) => printedKw(c).includes(k) || (c.kw||[]).includes(k) || grantedKw(c, pid).some(o=>o.k===k);
 const giftsLine = (c, pid) => { const parts=[]; const ac=!c.fd && !isLand(c) && allColorsBy(pid); if(ac) parts.push(`All colors (${ac})`); const g=grantedKw(c, pid); if(g.length){ const by={}; for(const o of g) (by[o.src]=by[o.src]||[]).push(o.k); parts.push(Object.entries(by).map(([s,ks])=>`Has ${ks.join(', ')} (${s})`).join('\n')); } return parts.join('\n'); };
+const NOTCT=new Set('artifact creature enchantment land planeswalker instant sorcery battle legendary snow basic token tribal kindred equipment aura vehicle saga class food treasure clue blood forest island swamp mountain plains gate desert cave lesson trap adventure world spell ability'.split(' '));   // v4.11: words that are not creature types (changeling)
 function matchesDesc(c, desc){ if(!desc) return true; desc=String(desc).replace(/\b(non-?\w+),\s*(?=non-?\w+)/gi, '$1 '); const tl=faceTypeOf(c,0), cols=cardColors(c);
   const one = w => { w=w.toLowerCase(); let m; if((m=w.match(/^non-?(.+)$/))) return !one(m[1]); if(w==='basic') return /\bBasic\b/.test(tl); if(w==='tapped') return !!c.tap; if(w==='untapped') return !c.tap; if(w==='attacking') return !!c.atk;
-    if(COLW[w]) return cols.includes(COLW[w]); if(w==='colorless') return !cols.length; if(w==='colored') return cols.length>0 && !isLand(c); if(w==='permanent') return !/\b(Instant|Sorcery)\b/.test(tl); if(w==='card') return true; return new RegExp('\\b'+w.replace(/s$/,'')+'s?\\b','i').test(tl); };
+    if(COLW[w]) return cols.includes(COLW[w]); if(w==='colorless') return !cols.length; if(w==='colored') return cols.length>0 && !isLand(c); if(w==='permanent') return !/\b(Instant|Sorcery)\b/.test(tl); if(w==='card') return true; if(new RegExp('\\b'+w.replace(/s$/,'')+'s?\\b','i').test(tl)) return true; return !NOTCT.has(w.replace(/s$/,'')) && /\b(?:Creature|Kindred|Tribal)\b/.test(tl) && /(?:^|\n)Changeling\b/i.test(frontText(c)||''); };
   return desc.split(/\s*,\s*(?:or\s+)?|\s+or\s+/i).filter(Boolean).some(alt => alt.split(/\s+/).filter(Boolean).every(one)); }
 /* Amulet of Vigor: "Whenever a permanent you control enters tapped, untap it." Each Amulet puts its own trigger on the stack.
    Spelunking: "Lands you control enter untapped." */
@@ -2966,6 +2969,19 @@ async function simpleEffects(c, text, srcId){
       if(r[1]){ const v=condTrue(r[1], srcC); if(v===false){ log(`${by}: it isn't true that ${r[1]}, so it doesn't transform.`); continue; } if(v==null && !(await yesNo(by, `Is it true that ${r[1]}? If so, ${faceName(srcC,0).split(',')[0]} transforms.`, 'Yes, transform', 'No'))){ log(`${by}: ${m.name} says no, so it doesn't transform.`); continue; } }
       if(r[2] && !(await yesNo(by, `Transform ${faceName(srcC,0).split(',')[0]} into ${faceName(srcC,1)}?`, 'Transform', 'Not now'))){ log(`${by}: ${m.name} doesn't transform it.`); continue; }
       if(/\buntap\b/i.test(sen)) srcC.tap=false; transform(srcC); changed(); continue; }
+    // "(You may) put N +1/+1 counters on target artifact creature." (modular) and other qualified single targets
+    if((r=sen.match(/^(?:you may )?put (a|an|one|two|three|four|five|six|\d+) \+1\/\+1 counters? on target ([a-z ]+?)\.?$/i)) && !/^creature$/i.test(r[2])){ const k=NUMW2[r[1].toLowerCase()]||+r[1]||1, t=fitTargets(tg, r[2])[0] || tg.find(x=>{ const a=findAny(x); return a && a.z==='bf'; });
+      if(!t){ log(`${by}: nothing was chosen, so no counters are put on.`); continue; } modTarget(t, {ctr:k}, by); itT=[t]; changed(); continue; }
+    // damage to each player / a qualified group: "deals 4 damage to each player", "1 damage to each creature you don't control", "X damage to each creature with flying",
+    // "1 damage to each creature and planeswalker your opponents control", "X damage to each creature and each player"
+    if((r=sen.match(/^(?:it|this creature|[A-Z][^,]*?) deals (\d+|X) damage to each (player|creature you don(?:'|’)t control|creature with flying|creature and planeswalker your opponents control|creature and each player)\.?$/i))){
+      const k=/^x$/i.test(r[1]) ? (c.x!=null ? +c.x : (c.ab && c.ab.x!=null ? +c.ab.x : 0)) : +r[1], w=r[2].toLowerCase(); if(!(k>0)){ log(`${by}: X is 0.`); continue; }
+      if(/player/.test(w)){ m.life-=k; log(`${by}: ${k} damage to ${m.name} (now ${m.life}).`); if(G.opp){ send({t:'adj', life:-k}); log(`${by}: ${k} damage to ${G.opp.name}.`); } }
+      if(/creature/.test(w)){ const mineToo=/each creature with flying|creature and each player/.test(w), fly=/flying/.test(w), ok=x=>!x.fd && isCreature(x) && (!fly || kwOn(x,'flying'));
+        const xs=[...(mineToo ? m.bf.filter(ok) : []), ...((G.opp&&G.opp.bf)||[]).filter(ok)]; for(const x of xs) damage(x.id, k, by);
+        if(/planeswalker/.test(w)) for(const x of ((G.opp&&G.opp.bf)||[]).filter(x=>!x.fd && isPW(x) && !isCreature(x))) send({t:'loy', id:x.id, d:-k, by, who:m.name});
+        log(`${by}: ${k} damage to each ${w.replace(/ and each player$/,'')} (${xs.length}).`); }
+      changed(); continue; }
     // a group gets/gains: "(Other) creatures you control / Attacking creatures / Creatures your opponents control / All creatures / Wizards you control /
     //  Warrior creatures you control / Creatures you control with flying … get +1/+0 and gain haste until end of turn"
     if((r=sen.match(/^(?:then )?(other )?(creatures you control|attacking creatures(?: you control)?|creatures your opponents control|all creatures|all other creatures|creatures target player controls|(?:([A-Z][a-z]+) creatures|([A-Z][a-z]+?)s) you control)( with flying| with [a-z+\/1 -]+? counters? on (?:it|them))? ((?:gets?|gains?) .+?)\.?$/i)) && !/\buntil your next turn\b|\bfor each\b|\bwhere X\b/i.test(sen)){
@@ -3459,6 +3475,28 @@ function cycAction(k){
 /* "When you cycle this card, …" (Krosan Tusker, Shark Typhoon) and "Whenever you cycle [or discard] [another] card, …" on my permanents (Archfiend of Ifnir):
    each goes on the stack above the cycling ability, so it resolves first */
 /* Rebound: a spell cast from the hand is exiled as it resolves (c.rb = that turn); at its owner's next upkeep a trigger offers to cast it free from exile */
+/* v4.11 (MH2): Suspend N—{cost}: from the hand, pay the cost and exile it with N time counters; one comes off at each of your upkeeps; when the last one
+   comes off you cast it without paying its mana cost (a creature has haste). */
+const suspendOf = c => { const m=(frontText(c)||'').match(/(?:^|\n)Suspend (\d+)\s*[—–-]\s*((?:\{[^}]+\})+)/i); return m ? {n:+m[1], cost:m[2]} : null; };
+function suspendCard(id){ const f=find(id); if(!f || f.z!=='hand') return; const c=f.c, sp=suspendOf(c); if(!sp) return;
+  const go=()=>{ const g=find(id); if(!g || g.z!=='hand') return; move(id,'ex',{silent:true}); const h=find(id); if(h){ h.c.susp=1; h.c.c=sp.n; } log(`${G.me.name} suspends ${cname(c)} (paid ${sp.cost}): it is exiled with ${sp.n} time counter${sp.n>1?'s':''}.`); changed(); };
+  if(autoPayOn()) payFor(costSyms(sp.cost), {card:c, id, from:'hand'}, {title:`Suspend ${cdata(c).n}`, verb:'suspend', done:go, cancel:()=>{}}); else go(); }
+function suspendTick(){ const m=G.me, xs=m.ex.filter(c=>c.susp); if(!xs.length) return false;
+  for(const c of xs){ c.c=Math.max(0,(c.c||0)-1); if(c.c>0){ log(`Upkeep: a time counter comes off ${cname(c)} (${c.c} left).`); continue; }
+    delete c.susp; delete c.c; log(`Upkeep: the last time counter comes off ${cname(c)}: ${G.me.name} casts it without paying its mana cost.`); if(isCreature(c)) c.hst=G.turn.n||1;
+    setTimeout(()=>{ const f=find(c.id); if(f && f.z==='ex') castSpell(c.id, {silent:true, nm:1}, ()=>log(`${G.me.name} casts ${cname(c)} from exile (suspend).`)); }, 0); }
+  changed(); return true; }
+/* v4.11 (Khans): Morph {cost} / Megamorph {cost}: cast face down for {3} as a 2/2; turn it face up any time for its morph cost (megamorph adds a +1/+1 counter);
+   "When this creature is turned face up, …" goes on the stack */
+const morphOf = c => { const m=(frontText(c)||'').match(/(?:^|\n)(Megamorph|Morph)\s*[—–-]?\s*((?:\{[^}]+\})+|[^\n]+)/i); return m ? {kind:m[1][0].toUpperCase()+m[1].slice(1).toLowerCase(), cost:m[2].trim()} : null; };
+function morphCast(id){ const f=find(id); if(!f || f.z!=='hand') return; const c=f.c;
+  const go=()=>{ const g=find(id); if(!g || g.z!=='hand') return; move(id,'bf',{fd:true, fdk:'Morph', silent:true}); log(`${G.me.name} casts a card face down for {3} as a 2/2 creature (morph).`); changed(); };
+  if(autoPayOn()) payFor(costSyms('{3}'), {card:c, id, from:'hand'}, {title:'Cast face down', verb:'cast', done:go, cancel:()=>{}}); else go(); }
+function morphUp(id){ const f=find(id); if(!f || f.z!=='bf' || !f.c.fd) return; const c=f.c, mo=morphOf(c); if(!mo) return faceToggle(id);
+  const go=()=>{ const g=find(id); if(!g || g.z!=='bf' || !g.c.fd) return; faceToggle(id); if(mo.kind==='Megamorph'){ c.c=(c.c||0)+1; log(`${cname(c)} gets a +1/+1 counter (megamorph).`); }
+    const t=(frontText(c)||'').match(/(?:^|\n)When (?:this creature|[^,\n]+) is turned face up, ([^\n]+)/i); if(t) pushTrig(c, t[1].replace(/^([a-z])/, x=>x.toUpperCase()), 'turned face up'); changed(); };
+  const syms=/^\{/.test(mo.cost) ? costSyms(mo.cost) : null; log(`${G.me.name} turns ${cname(c)} face up for its ${mo.kind.toLowerCase()} cost ${mo.cost}.`);
+  if(syms && autoPayOn()) payFor(syms, {card:c, id, from:'bf'}, {title:`Turn ${cdata(c).n} face up`, verb:'pay', done:go, cancel:()=>{}}); else go(); }
 function rbTick(){ const m=G.me, due=m.ex.filter(c=>c.rb && c.rb<G.turn.n); for(const c of due){ delete c.rb; const d=cdata(c);
     m.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:c.id, rbc:c.id}, cu:{n:`${d.n}: rebound`, t:'Triggered ability', o:`At the beginning of your upkeep, you may cast ${d.n} from exile without paying its mana cost.`, img:d.img||''}})); }
   if(due.length) log(`Upkeep: ${due.map(cname).join(', ')}'s rebound trigger goes on ${m.name}'s stack.`); return due.length>0; }
@@ -3750,6 +3788,7 @@ function abilitiesOf(c){
   for(let line of frontText(c).split('\n')){
     line=line.trim(); let m;
     if(!line.includes(':') && (m=line.replace(/^[A-Z][A-Za-z' ]{1,30} — (?=(?:Equip|Crew|Reconfigure|Fortify)\b)/,'').match(/^(Equip|Crew|Reconfigure|Fortify)\b\s*(?:—\s*)?(.+)$/))){ out.push({cost:m[2].trim(), eff:m[1], kw:true}); continue; }
+    if((m=line.match(/^Outlast ((?:\{[^}]+\})+)$/i))){ push(m[1]+', {T}', 'Put a +1/+1 counter on this creature. Activate only as a sorcery.'); continue; }   // v4.11 Khans
     const g=line.match(/(?:gains|has) "([^":]{1,120}): (.+)"\.?$/); if(g){ if(line.includes(nm) || /\bthis\b/i.test(line.slice(0,g.index))) push(g[1], g[2]); continue; }
     if((/^Delirium —/i.test(line) || /four or more card types among cards in your graveyard/i.test(line)) && /:/.test(line) && gyTypes(G.me.gy).length<4) continue;   // shown once you have delirium
     if(/^Channel\s*[—–-]/i.test(line) || new RegExp('\\bDiscard (?:this card|'+escRe(nm)+'|'+escRe(nm.split(',')[0])+')\\b[^:]*:','i').test(line) || new RegExp('\\bExile (?:this card|'+escRe(nm)+'|'+escRe(nm.split(',')[0])+') from your graveyard\\b[^:]*:','i').test(line) || new RegExp(':\\s*Return (?:this card|'+escRe(nm)+'|'+escRe(nm.split(',')[0])+') from your graveyard','i').test(line)) continue;   // abilities used from the graveyard (gyAbils), not costs that exile other cards
@@ -4488,7 +4527,7 @@ function startMyTurn(){
   G.noUndo=true; checkpoint();
   clearDamage(); warpTick({n:G.turn.n-1, phase:0}, {n:G.turn.n, phase:G.turn.phase}); flTick({n:G.turn.n-1, phase:0}, {n:G.turn.n, phase:G.turn.phase});
   emptyPool(); for(const c of m.ex) delete c.offer; for(const c of m.bf) if(c.anim){ c.anim=false; c.row=null; } clearBoosts(); for(const c of m.gy) delete c.fbk; m.cast={n:0,is:0}; expirePlayable(); endCopies(); pactTick(); for(const c of m.ex) if(c.pl==='next') c.pl='this';
-  delete m.gate; const oppDue=baubDue(G.opp&&G.opp.baub, G.turn.n).length>0; baubTick(G.turn.n); const upT=phaseTrigs('upkeep', true) | rbTick(); const bHeld=oppDue || m.st.some(c=>c.ab && c.ab.bdraw), held=m.st.some(c=>c.pact) || bHeld || upT;
+  delete m.gate; const oppDue=baubDue(G.opp&&G.opp.baub, G.turn.n).length>0; baubTick(G.turn.n); const upT=phaseTrigs('upkeep', true) | rbTick() | suspendTick(); const bHeld=oppDue || m.st.some(c=>c.ab && c.ab.bdraw), held=m.st.some(c=>c.pact) || bHeld || upT;
   const pz = G.opp && !G.solo && m.pauseReq ? m.pauseReq.at : null;
   if(S.autoDraw && !held && !pz) setTimeout(paradigmAsk, 0);
   if(S.autoDraw && !held && pz!=='up'){ if(pz==='pre'){ G.turn.phase=1; G.turn.hold=pauseHold('pre'); } else { turnDraw(); if(pauseAt('post')){ G.turn.phase=1; G.turn.hold=pauseHold('post'); } else { G.turn.phase=2; sagaTick(G.turn.n); } } }
@@ -5196,6 +5235,7 @@ function cardMenu(id, x, y){
     ['Set counters…',async()=>{ const n=await askN('Set counters', c.c||0); if(n!=null){ c.c=Math.max(minCounters(c),n); ch(); } }],
     ['Note…',async()=>{ const v=await ask('Note on this card', c.note||'', 'Short note, e.g. +2/+2 until end of turn'); if(v!=null){ c.note=v.slice(0,40); ch(); } }], '-',
     d.back&&[c.flip?'Turn to front face':'Transform',()=>{ transform(c); ch(); },'F'],
+    c.fd&&morphOf(c)&&[`Turn face up for ${morphOf(c).cost} (${morphOf(c).kind.toLowerCase()})`,()=>morphUp(id)],
     [c.fd?(c.fdk?`Turn face up (reveal the ${c.fdk.toLowerCase()})`:'Turn face up'):'Turn face down',()=>faceToggle(id), c.fd&&c.fdk?'F':''],
     ['Attach to…',()=>startMode('attach',id)], c.att&&['Detach',()=>{ c.att=null; ch(); }],
     ['Move to the other row',()=>{ const cur=c.row||((c.fd||isCreature(c))?'f':'b'); c.row=cur==='f'?'b':'f'; ch(); }],
@@ -5224,6 +5264,8 @@ function cardMenu(id, x, y){
     ...cyclingOf(c).map((cy,i)=>[`${cy.label}${cy.mana?' '+cy.mana:''}${cy.life?(cy.mana?', ':' — ')+'pay '+cy.life+' life':''}${cy.other?', '+cy.other:''} (${cy.what ? 'search for a'+(/^[aeiou]/i.test(cy.what)?'n':'')+' '+cy.what.toLowerCase()+' card' : 'draw a card'})`, ()=>startCycle(id, i)]),
     bestowCost(c)&&[`Cast for its bestow cost ${bestowCost(c)} (an Aura: then click its creature)`,()=>castBestow(id)],
     impendingN(c)>0&&[`Cast for its impending cost (${impendingN(c)} time counters)`,()=>{ const n=impendingN(c), ic=((cdata(c).o||'').match(/\bImpending \d+\s*[—–-]\s*((?:\{[^}]+\})+)/i)||[])[1]||''; castSpell(id, Object.assign({silent:true}, ic ? {payCost:ic} : {nm:true}), ()=>{ const g=find(id); if(g) g.c.imp=n; log(`${G.me.name} casts ${cname(c)} for its impending cost${ic?' '+ic:''}.`); }); }],
+    suspendOf(c)&&[`Suspend ${suspendOf(c).n} — ${suspendOf(c).cost} (exile it with ${suspendOf(c).n} time counters)`,()=>suspendCard(id)],
+    morphOf(c)&&[`Cast face down for {3} (${morphOf(c).kind.toLowerCase()} ${morphOf(c).cost})`,()=>morphCast(id)],
     ['Morph (face down 2/2)',()=>{ move(id,'bf',{fd:true,fdk:'Morph',silent:true}); log(`${G.me.name} casts a card face down as a 2/2 creature (morph).`); ch(); }], [isLand(c)?'Play land tapped':'Put onto the battlefield tapped',go('bf',{tap:true}),isLand(c)?'Shift-click':''], !isLand(c)&&['Put straight onto the battlefield',go('bf')], ['Play face down',go('bf',{fd:true})],
     ['Reveal to opponent',()=>log(`${G.me.name} reveals ${cname(c)} from hand.`)], ['Discard',()=>discard([id]),'G'], '-', ...dest.filter(i=>i&&i[0]!=='To graveyard'&&i[0]!=='To battlefield') ];
   else if(z==='st' && c.pact) items=[ ['Pay for the pact…',()=>pactPanel(id)], ['Counter this trigger',()=>{ const g=find(id); if(g) G.me.st.splice(g.i,1); if(PACT===id) closePact(); log(`${G.me.name} counters the pact trigger from ${c.pact.src}.`); changed(); resumeAfterPact(); }], ['Target…',()=>startMode('arrow',id),'R'] ];
