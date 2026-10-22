@@ -71,3 +71,14 @@ Sideboard
 2 Damn
 2 High Noon
 2 Wrath of the Skies
+
+# White lifegain / energy (Ajani Resolute, Liliana the Faultless, Haliya)
+2 Ajani Resolute
+1 Dalkovan Encampment
+2 Enlightened Confidant
+3 Haliya, Guided by Light
+2 Liliana the Faultless
+2 Ranger-Captain of Eos
+2 Repurposed Enforcer
+2 Sanctifier en-Vec
+2 Static Prison
