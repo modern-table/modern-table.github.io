@@ -4828,10 +4828,12 @@ const TGT_NOUN='creatures?|players?|opponents?|planeswalkers?|permanents?|spells
    sentence uses only the targets of its own phrases (a sentence with none, like "It gains flying", keeps the previous one's). Abilities with
    one phrase, graveyard-card targets and arrows drawn by hand (no phrase number) work as before. */
 const tgtNoQuote = t => String(t||'').replace(/\([^)]*\)/g,'').replace(/"[^"]*"|“[^”]*”/g,'""');
-function tgtPhrases(txt){ const out=[]; for(const m of tgtNoQuote(txt).matchAll(/\b(up to (?:one|two|three|four|five) |one or two |any number of |(?:two|three) )?(?:(?:an)?other )?(?<!\b(?:that|the|new|its) )target\b(?! of\b)/gi)){
-    const w=(m[1]||'').trim().toLowerCase(); out.push({i:m.index, n:/any number/.test(w) ? 99 : /one or two/.test(w) ? 2 : (NUMW2[(w.match(/(one|two|three|four|five)$/)||[])[1]]||1), upto:/^(?:up to|any number|one or two)/.test(w)}); } return out; }
+function tgtPhrases(txt){ const out=[], T=tgtNoQuote(txt); for(const m of T.matchAll(/\b(up to (?:one|two|three|four|five) |one or two |any number of |(?:two|three) )?(?:(?:an)?other )?(?<!\b(?:that|the|new|its|single) )target\b(?! of\b)/gi)){
+    const w=(m[1]||'').trim().toLowerCase(); out.push({i:m.index, n:/any number/.test(w) ? 99 : /one or two/.test(w) ? 2 : (NUMW2[(w.match(/(one|two|three|four|five)$/)||[])[1]]||1), upto:/^(?:up to|any number|one or two)/.test(w)}); }
+  // a phrase in a sentence that says "instead" re-states an earlier target (Into the Flood Maw's gift), so it isn't a new one
+  return out.filter((p,i)=>{ if(!i) return true; const st=T.lastIndexOf('.', p.i)+1, en=T.indexOf('.', p.i); return !/\binstead\b/i.test(T.slice(st, en<0 ? T.length : en)); }); }
 function tgtText(c){ let txt = c.ab || c.ch ? ((c.cu && c.cu.o) || '') : (stackText(c) || ''); txt=String(txt).replace(/\([^)]*\)/g,''); if(c.ab && c.cu && /Activated ability/.test(c.cu.t||'') && /:/.test(txt)) txt=txt.slice(txt.indexOf(':')+1); return txt; }
-function tgtSlots(c){ if(!c || c.fd) return null; const txt=tgtText(c); if(/\btarget [^.]*?cards? (?:in|from) [^.]*?graveyard/i.test(txt) || /\btarget [^.]*?graveyard\b/i.test(txt)) return null;
+function tgtSlots(c){ if(!c || c.fd || (isSplit(c) && c.half==null && !c.fuse)) return null; const txt=tgtText(c); if(/\btarget [^.]*?cards? (?:in|from) [^.]*?graveyard/i.test(txt) || /\btarget [^.]*?graveyard\b/i.test(txt)) return null;
   const ph=tgtPhrases(txt); return ph.length>=2 ? ph : null; }
 const tgtSlotsOf = id => { const f=find(id); return f && f.z==='st' ? tgtSlots(f.c) : null; };
 /* after a target is clicked for phrase k: stay on k while it can take more ("up to two"), else go to the next phrase; false when done */
