@@ -322,6 +322,18 @@ textarea#paste{width:100%;min-height:300px;font-family:ui-monospace,Menlo,Consol
 .card.marker img{object-fit:cover}
 .card.marker.psn{background:radial-gradient(circle at 50% 45%,#9be15d 0 18%,#2f5d1e 19% 36%,#141a14 37%)}
 .card.marker.psn .mkn{background:#1f3a14;color:#d9f7b8}
+.card.marker.mon{background:radial-gradient(circle at 50% 42%,#ffe08a 0 22%,#b8862b 23% 40%,#3a2a10 41%)}
+.card.marker.mon .mkc{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);font-size:calc(var(--cw)*.42);line-height:1;pointer-events:none}
+.card.marker.mon .mkt{color:#ffe9b0;font-weight:700}
+.mkstack{flex:none;align-self:flex-start;width:var(--cw);aspect-ratio:488/680;display:flex;flex-direction:column;gap:4px}
+.mkstack .card.marker{aspect-ratio:auto;flex:1 1 0;min-height:0;width:100%}
+.mkstack .card.marker{background:#14252a;border-left:5px solid #f6c453;box-shadow:0 2px 6px #0008}
+.mkstack .card.marker.psn{border-left-color:#7fd14a}
+.mkstack .card.marker.mon{border-left-color:#ffd25e;background:#2a2112}
+.mkstack .card.marker img{display:none}
+.mkstack .card.marker .mkn{left:26%;min-width:calc(var(--cw)*.3);height:calc(var(--cw)*.3);font-size:calc(var(--cw)*.17)}
+.mkstack .card.marker .mkc{left:26%;top:50%;font-size:calc(var(--cw)*.24)}
+.mkstack .card.marker .mkt{left:48%;right:4px;bottom:auto;top:50%;transform:translateY(-50%);text-align:left;letter-spacing:.04em;font-size:calc(var(--cw)*.085);line-height:1.15;color:#f3ead6;font-weight:600}
 .card.marker .mkn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);min-width:calc(var(--cw)*.42);height:calc(var(--cw)*.42);padding:0 6px;border-radius:99px;display:grid;place-items:center;background:#000c;border:2px solid var(--brass);color:#fff;font:400 calc(var(--cw)*.26)/1 var(--display);font-variant-numeric:tabular-nums;pointer-events:none}
 #drawBtn{margin:8px 10px 0;padding:10px;font-size:15px;border-radius:99px;background:var(--brass);border-color:var(--brass);color:#1b1205;font-weight:800}
 #shown{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:75;background:#0b1417f5;border:1px solid var(--brass);border-radius:12px;padding:16px 20px;display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center;box-shadow:0 20px 60px #000c;--cw:260px}
@@ -459,10 +471,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 </script>
 <script>
 "use strict";
-const VERSION = 'v4.05';
+const VERSION = 'v4.06';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.06','Oct 22',"Proliferate lets you choose: a window lists every permanent and player with counters, and only the ones you pick get another one. The monarch has a gold MONARCH box on their side of the table, and it moves by itself to whoever deals them combat damage. When you have more than one of energy, poison and the monarch, they stack in one column so a crowded board doesn't push them off the table."],
   ['v4.05','Oct 22',"Poison gets its own counter on the battlefield, like energy, showing the Poison Counter card: either player can click it, and proliferate adds to it. When a spell asks for \"another\" target, the ones you already picked are greyed out (Incremental Growth). More graveyard cards work: Reanimate and Necromancy (from either graveyard), Life from the Loam, Entomb, Sun Titan, Dutiful Return. Discard and mill for any player (Mind Rake, Liliana of the Veil, Fractured Sanity), Investigate, the monarch (a crown by your name; click theirs to take it), edicts (Diabolic Edict, Dead Drop), Kroxa and Uro's escape check, and \"when you do\" triggers that pick their own target."],
   ['v4.04','Oct 22',"Spells with two targets ask for each one in turn: Awaken the Inferno now burns their creature and puts the counter on yours. Fight cards and \"deals damage equal to its power\" cards work (Savage Punch, Temur Charm, Flametongue Yearling). More cards that look at the top of your library (Ponder, Sensei's Divining Top, See the Unwritten, Bitter Revelation, Identity Echo), more \"exile the top card, you may play it\" wordings, and more counters: proliferate, splitting counters among creatures, Monstrosity, stun counters, prepared."],
   ['v4.03','Oct 22',"Targeting follows the card's wording. When a spell or ability asks for a target, the bar at the top says what it can target (Fatal Push: \"target creature · destroyed only if its mana value is 2 or less (4 or less with revolt)\"), anything it can't target is greyed out, and things it can target but won't affect are half-greyed. Clicking one of those asks first, with Pick another target or Target anyway."],
@@ -2647,14 +2660,13 @@ async function simpleEffects(c, text, srcId){
       if((r=sen.match(/^(?:then )?put (a|an|one|two|three|\d+) stun counters? on (it|each of (?:them|those creatures|those permanents)|(?:one|either) of them)\.?$/i))){ const k=NUMW2[r[1].toLowerCase()]||+r[1]||1, pool=(itT.length ? itT : tg).filter(x=>{ const a=findAny(x); return a && a.z==='bf'; });
         let ts=pool; if(/^(?:one|either)/i.test(r[2]) && pool.length>1){ waited=true; const p=await pickP(`${by}: put ${k===1?'a stun counter':k+' stun counters'} on which one?`, pool.map(x=>findAny(x).c), 'None'); ts=p ? [p.id] : []; }
         for(const t of ts) modTarget(t, {stun:k}, by); if(!ts.length) log(`${by}: nothing to put a stun counter on.`); changed(); continue; }
-      // Proliferate: the permanents with counters (both sides) — choose which get one more of each kind; your energy and the opponent's poison go up by one
-      if((r=sen.match(/^proliferate(?: (twice|X times|\w+ times))?\.?$/i))){ const opp=(G.opp&&G.opp.bf)||[], cs=[...m.bf, ...opp].filter(x=>!x.fd && ((x.c||0)!==0 || (x.stun||0)>0));
-        let pick=cs.filter(x=>m.bf.includes(x) ? (x.c||0)>0 || isPW(x) : (x.c||0)<0 || (x.stun||0)>0);   // the usual choice: yours that grow, theirs that suffer
-        if(cs.length){ waited=true; const ids=await pickManyP(`${by}: proliferate — choose permanents to get one more of each kind of counter`, cs, 'Proliferate'); pick=cs.filter(x=>(ids||[]).includes(x.id)); }
-        const times=/twice/i.test(r[1]||'') ? 2 : 1;
-        for(let i=0;i<times;i++){ for(const x of pick){ const mine=m.bf.includes(x); if((x.c||0)>0){ if(isPW(x) && !isCreature(x)) ctrOn(x.id, 1, 'loyalty'); else ctrOn(x.id, 1, 'p'); } else if((x.c||0)<0) modTarget(x.id, {mctr:1}, by); if((x.stun||0)>0) modTarget(x.id, {stun:1}, by); }
-          if((m.ctr.energy||0)>0){ m.ctr.energy++; log(`${by}: ${m.name} gets another energy (${m.ctr.energy}).`); } if(G.opp && G.opp.ctr && (G.opp.ctr.poison||0)>0){ send({t:'adj', ctr:'poison', d:1}); log(`${by}: ${G.opp.name} gets another poison counter.`); } }
-        if(!pick.length) log(`${by}: ${m.name} proliferates; nothing is chosen.`); changed(); continue; }
+      // Proliferate (v4.06, Ben): the proliferating player chooses — any permanents and any players with counters; nothing is chosen for them
+      if((r=sen.match(/^proliferate(?: (twice|X times|\w+ times))?\.?$/i))){ const times=/twice/i.test(r[1]||'') ? 2 : 1;
+        for(let i=0;i<times;i++){ waited=true; const ch=await proliferatePick(by, times>1 ? ` (${i+1} of ${times})` : '');
+          for(const id of ch.cards){ const a=findAny(id); if(!a || a.z!=='bf') continue; const x=a.c; if((x.c||0)>0){ if(isPW(x) && !isCreature(x)) ctrOn(id, 1, 'loyalty'); else ctrOn(id, 1, 'p'); } else if((x.c||0)<0) modTarget(id, {mctr:1}, by); if((x.stun||0)>0) modTarget(id, {stun:1}, by); }
+          for(const pid of ch.players){ const pl = pid===G.myId ? m : G.opp; if(!pl || !pl.ctr) continue; for(const [k,v] of Object.entries(pl.ctr)){ if(!(v>0)) continue; if(pid===G.myId){ m.ctr[k]=(m.ctr[k]||0)+1; log(`${by}: ${m.name} gets another ${k} counter (${m.ctr[k]}).`); } else { send({t:'adj', ctr:k, d:1}); log(`${by}: ${G.opp.name} gets another ${k} counter.`); } } }
+          if(!ch.cards.length && !ch.players.length) log(`${by}: ${m.name} proliferates; nothing is chosen.`); changed(); }
+        continue; }
       // "Double the number of +1/+1 counters on each creature you control / on it / on target creature."
       if((r=sen.match(/^double the number of \+1\/\+1 counters on (each creature you control|it|that creature|target creature|this creature)\.?$/i))){ const xs=/each creature/i.test(r[1]) ? m.bf.filter(x=>!x.fd && isCreature(x)) : (/this creature/i.test(r[1]) && srcC ? [srcC] : (itT.length ? itT : tg).map(t=>findAny(t)).filter(a=>a && a.z==='bf').map(a=>a.c));
         for(const x of xs){ const n=Math.max(0, x.c||0); if(!n) continue; if(m.bf.includes(x)){ x.c+=n; log(`${by}: ${cname(x)} now has ${x.c} +1/+1 counters.`); } else modTarget(x.id, {ctr:n}, by); } changed(); continue; }
@@ -4173,6 +4185,7 @@ async function applyCombat(step){ if(G.combatBusy) return; G.combatBusy=true; tr
   for(const e of mine){ const f=find(e.to); if(!f || f.z!=='bf') continue; damage(e.to, e.n, on); if(e.dt) f.c.dtd=G.turn.n; }
   if(gainMe>0 && gainOK(gainMe, 'Lifelink')){ const l0=m.life; m.life+=gainMe; if(m.life>l0) said.push(`${m.name} gains ${gainMe} life (lifelink)`); }
   if(theirs.length || gainThem) send({t:'cdmg', items:theirs, gain:gainThem, by:m.name, step});
+  if(G.opp && G.opp.monarch && theirs.some(e=>e.to===oppId() && +e.n>0)) setTimeout(()=>becomeMonarch(`${m.name} dealt combat damage to the monarch`), 0);   // v4.06: the monarch moves by itself
   if(gainThem>0) said.push(`${on} gains ${gainThem} life (lifelink)`);
   log(`${step==='fs' ? 'First-strike damage' : 'Combat damage'}: ${said.join('; ') || 'no damage is dealt'}.`);
   for(const id of toPlayer) cdmgTrig(id);
@@ -4462,7 +4475,21 @@ function poisonImg(){ if(POISON_IMG || poisonAsked) return; poisonAsked = true;
   sfetch('https://api.scryfall.com/cards/tone/14').then(r => r.ok ? r.json() : null).then(c => { const u = c && ((c.image_uris || {}).normal || ((c.card_faces || [])[0] || {}).image_uris && c.card_faces[0].image_uris.normal);
     if(u && /^https:\/\/cards\.scryfall\.io\//.test(u)){ POISON_IMG = u; store.set('mt_poison_img', u); render(); } }).catch(() => {}); }
 const POISONRE = /\b(?:toxic|infect|poisonous)\b|poison counters?|\bproliferate\b/i;
+/* proliferate's chooser (v4.06): every permanent with counters on either battlefield and every player with counters; the proliferating player picks */
+function proliferatePick(by, note){ return new Promise(res=>{ const m=G.me, opp=(G.opp&&G.opp.bf)||[], cs=[...m.bf, ...opp].filter(x=>!x.fd && ((x.c||0)!==0 || (x.stun||0)>0));
+  const pls=[[G.myId, m], [oppId(), G.opp]].filter(([pid,p])=>p && p.ctr && Object.values(p.ctr).some(v=>v>0)).map(([pid,p])=>({pid, name:p.name, txt:Object.entries(p.ctr).filter(([k,v])=>v>0).map(([k,v])=>`${k} ${v}`).join(', ')}));
+  if(!cs.length && !pls.length){ res({cards:[], players:[]}); return; }
+  const sel=new Set(), psel=new Set(); let done=false; const fin=()=>{ if(done) return; done=true; closeModal(); res({cards:[...sel], players:[...psel]}); };
+  const el=modal(`${by}: proliferate${note||''}`, `<span class="hint">Choose any number of permanents and players. Each one chosen gets one more of each kind of counter it already has.</span>
+    ${pls.length ? `<div class="mdlist" id="prPl" style="margin:8px 0">${pls.map(p=>`<button data-pp="${p.pid}"><b>${esc(p.name)}</b><span>${esc(p.txt)}</span></button>`).join('')}</div>` : ''}
+    ${cs.length ? `<div class="grid" id="prGrid">${cs.map(x=>cardHTML(x,'gy',true)).join('')}</div>` : ''}`, [['Done',fin,'go']], {wide:true, noClose:true});
+  const pg=$('#prGrid', el); if(pg) pg.onclick=e=>{ const d=e.target.closest('.card[data-id]'); if(!d) return; const id=d.dataset.id; if(sel.has(id)) sel.delete(id); else sel.add(id); d.classList.toggle('sel', sel.has(id)); };
+  const pp=$('#prPl', el); if(pp) pp.onclick=e=>{ const b=e.target.closest('[data-pp]'); if(!b) return; const id=b.dataset.pp; if(psel.has(id)) psel.delete(id); else psel.add(id); b.classList.toggle('on', psel.has(id)); }; }); }
 function becomeMonarch(by){ const m=G.me; if(m.monarch) return; m.monarch=true; if(G.opp) send({t:'monarch', by, who:m.name}); log(`${by}: ${m.name} becomes the monarch (draws a card at the beginning of their end step).`); changed(); }
+/* the monarch (v4.06, Ben): a gold box with the crown on the current monarch's side; clicking the opponent's takes it by hand */
+const monarchHTML = pid => `<div class="card marker mon" data-mon="${pid}" title="${pid===G.myId ? 'You are the monarch: you draw a card at the beginning of your end step. Whoever deals you combat damage takes it.' : 'The monarch. Deal them combat damage to take it (it moves by itself), or click to take it by hand.'}"><span class="mkc">👑</span><span class="mkt">Monarch</span></div>`;
+/* one marker keeps the full card look; two or more share one card-sized column (v4.06) so a crowded row doesn't push them off the table */
+const markersHTML = xs => { xs=xs.filter(Boolean); return xs.length>1 ? `<div class="mkstack">${xs.join('')}</div>` : xs.join(''); };
 const poisonOn = () => !!(G.me.poisonSeen || G.me.poisonSrc || (G.opp && (G.opp.poisonSeen || G.opp.poisonSrc)) || (G.me.ctr.poison||0)>0 || (G.opp && G.opp.ctr && (G.opp.ctr.poison||0)>0));
 /* a row wider than the board scrolls sideways: the mouse wheel moves it, and its scroll bar is brought to the front while the pointer is on the row */
 document.addEventListener('wheel', e=>{ const r=e.target.closest && e.target.closest('.row'); if(!r || r.scrollWidth<=r.clientWidth+1 || Math.abs(e.deltaX)>Math.abs(e.deltaY)) return; r.scrollLeft+=e.deltaY; e.preventDefault(); }, {passive:false});
@@ -4508,7 +4535,7 @@ function render(){
   FX=landEffects();
   HELD={}; for(const c of [...m.ex, ...((o&&o.ex)||[])]) if(c.by) HELD[c.by.id]=(HELD[c.by.id]||0)+1;
   const warpHTML=(ex,mine)=>ex.filter(c=>c.warp).map(c=>cardHTML(c,'ex',mine,'warped')).join('');
-  const mr=rowsHTML(m.bf,true); $('#myFront').innerHTML=mr.front + playBoxes(m.ex,true,['this']); $('#myBack').innerHTML=mr.back + warpHTML(m.ex,true) + flBox(m.ex,true) + playBoxes(m.ex,true,['next']) + compBox(m.side.filter(c=>c.comp), true) + (m.energySeen ? markerHTML(m.ctr.energy||0, G.myId) : '') + (poisonOn() ? poisonHTML(m.ctr.poison||0, G.myId) : '');
+  const mr=rowsHTML(m.bf,true); $('#myFront').innerHTML=mr.front + playBoxes(m.ex,true,['this']); $('#myBack').innerHTML=mr.back + warpHTML(m.ex,true) + flBox(m.ex,true) + playBoxes(m.ex,true,['next']) + compBox(m.side.filter(c=>c.comp), true) + markersHTML([m.energySeen && markerHTML(m.ctr.energy||0, G.myId), poisonOn() && poisonHTML(m.ctr.poison||0, G.myId), m.monarch && monarchHTML(G.myId)]);
   $('#myHand').innerHTML = m.hand.map(c=>cardHTML(c,'hand',true)).join('') + (m.trk ? `<div class="twrap">${trackPad(m.trk, true)}<span class="thint">Click a name to cross it off</span></div>` : ''); $('#myHand').classList.toggle('hastrk', !!m.trk);
   const back = '<div class="card">'+BACK+'</div>';
   $('#myPiles').innerHTML = '<div class="railh me"><b>You</b></div>' + pileHTML('ex','Exile',m.ex,m.ex.length,true, m.ex.length?cardHTML(m.ex[m.ex.length-1],'ex',true):'')
@@ -4516,7 +4543,7 @@ function render(){
     + pileHTML('lib','Library',m.lib,m.lib.length,true, m.lib.length?back:'')
     + (m.side.length ? pileHTML('side','Sideboard',m.side,m.side.length,true, back) : '');
   if(o){
-    const or=rowsHTML(o.bf||[],false); $('#oppFront').innerHTML=or.front + playBoxes(o.ex,false,['this']); $('#oppBack').innerHTML=or.back + warpHTML(o.ex||[],false) + flBox(o.ex,false) + playBoxes(o.ex,false,['next']) + compBox(o.comp||[], false) + (o.energySeen ? markerHTML((o.ctr||{}).energy||0, oppId()) : '') + (poisonOn() ? poisonHTML((o.ctr||{}).poison||0, oppId()) : '');
+    const or=rowsHTML(o.bf||[],false); $('#oppFront').innerHTML=or.front + playBoxes(o.ex,false,['this']); $('#oppBack').innerHTML=or.back + warpHTML(o.ex||[],false) + flBox(o.ex,false) + playBoxes(o.ex,false,['next']) + compBox(o.comp||[], false) + markersHTML([o.energySeen && markerHTML((o.ctr||{}).energy||0, oppId()), poisonOn() && poisonHTML((o.ctr||{}).poison||0, oppId()), o.monarch && monarchHTML(oppId())]);
     const oh=$('#oppHand'); oh.classList.toggle('shown', !!o.hand);
     oh.innerHTML = (o.trk && o.trk.list && o.trk.list.length ? `<span class="tnote" data-tnote title=""><b>${o.trk.list.length}</b></span>` : '') + `<span class="hn">${esc(o.name||'Opponent')}'s hand <b>${o.handN}</b>${o.hand?' · revealed':''}</span>` + (o.hand ? o.hand.map(c=>cardHTML(c,'hand',false)).join('') : back.repeat(Math.min(o.handN,30)));
     $('#oppPiles').innerHTML = `<div class="railh"><b>${esc(o.name||'Opponent')}</b></div>` + pileHTML('hand','Hand',null,o.handN,false, o.handN?back:'') + pileHTML('lib','Library',null,o.libN,false, o.libN?back:'')
