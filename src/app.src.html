@@ -128,6 +128,8 @@ textarea#paste{width:100%;min-height:300px;font-family:ui-monospace,Menlo,Consol
 .card.atk{transform:translateY(-14%);box-shadow:0 0 0 3px var(--brass),0 0 16px 3px #d9b25faa,0 8px 14px #000a}
 .card.atk.tap{filter:brightness(.8) saturate(.85)}
 .card.nblk,.card.atk.nblk,.card.atk.tap.nblk{filter:grayscale(.9) brightness(.4)}
+.card.ntg{filter:grayscale(.9) brightness(.4)}.card.ntg2{filter:grayscale(.6) brightness(.65)}
+.avatar.tgt.ntg{outline:none;opacity:.45;cursor:default}
 .opp .card.atk,.card.opp.atk{transform:translateY(14%)}
 .card.atk.tap{transform:translateY(-14%) rotate(18deg) scale(.94)}
 .card.opp.atk.tap{transform:translateY(14%) rotate(18deg) scale(.94)}
@@ -447,10 +449,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.02';
+const VERSION = 'v4.03';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.03','Oct 22',"Targeting follows the card's wording. When a spell or ability asks for a target, the bar at the top says what it can target (Fatal Push: \"target creature · destroyed only if its mana value is 2 or less (4 or less with revolt)\"), anything it can't target is greyed out, and things it can target but won't affect are half-greyed. Clicking one of those asks first, with Pick another target or Target anyway."],
   ['v4.02','Oct 22',"Front page: the fan content notice and credits now sit under Send feedback, so you can see them without scrolling past What's new."],
   ['v4.01','Oct 21',"Skullcrack (and anything that says players can't gain life this turn) now stops life gain before it happens: spells, lifelink, the + button and life your opponent gives you are refused with a note in the log, so your life never goes up and back down, and Ocelot Pride no longer thinks you gained life."],
   ['v4.0','Oct 21',"Modern Table now runs the match. A player at 0 or less life, with 10 poison counters, or who has to draw from an empty library loses the game: both players see who won, and the win is recorded when both click Begin sideboarding (Back to game cancels it; Draw a card shows you your own next card). A 50-minute round clock starts when both players reach the table and keeps running through sideboarding, which has its own 3 minutes before your deck goes in as it is. When time runs out during a game, either player can call for the end-of-round turns: a TURN sign counts turn 0 to 5, then you say who won (or that it was a draw) and the match result appears. Time running out between games ends the match on the score."],
@@ -631,7 +634,7 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const store = { get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } }, set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }, del(k){ try{ localStorage.removeItem(k); }catch(e){} } };
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
-function toast(t){ const el=$('#toast'); el.textContent=t; el.style.opacity=1; clearTimeout(toast.t); toast.t=setTimeout(()=>el.style.opacity=0, 2600); }
+function toast(t){ if(/: click its target\b/.test(t) && typeof tgtSrcSpec==='function'){ const sp=tgtSrcSpec(); if(sp) t=tgtHint(sp)+'.'; } const el=$('#toast'); el.textContent=t; el.style.opacity=1; clearTimeout(toast.t); toast.t=setTimeout(()=>el.style.opacity=0, 2600); }
 
 /* Saved data brought over from the old address (used before 2026-10-17).
    The forwarding page there sends #import=<base64url JSON of mt_decks, mt_settings, mt_dview>. */
@@ -4272,7 +4275,7 @@ function cardHTML(c, z, mine, cls=''){
   if(z==='ex' && c.fl && !backUp) b+=`<span class="flban">Exiled by ${esc(String(c.fl.by).split(',')[0])}</span>`;
   if(z==='ex' && c.warp && !backUp) b+='<span class="wrpban">WARPED</span>';
   if(z==='ex' && c.pl && !backUp){ cls+=' pl'; b+=`<span class="plban">PLAYABLE · ${c.pl==='this'?'THIS TURN':'NEXT TURN'}</span>`; }
-  return `<div class="card ${mine?'':'opp'} ${c.tap?'tap':''} ${c.atk?'atk':''} ${!mine && c.atk && z==='bf' && blkDim(c) ? 'nblk' : ''} ${c.fd&&mine?'fdmine':''} ${cls}" data-id="${c.id}" data-z="${z}" data-o="${mine?'me':'opp'}">${inner}${b}${extra}</div>`;
+  return `<div class="card ${mine?'':'opp'} ${c.tap?'tap':''} ${c.atk?'atk':''} ${!mine && c.atk && z==='bf' && blkDim(c) ? 'nblk' : ''} ${tgtDim(c, z)} ${c.fd&&mine?'fdmine':''} ${cls}" data-id="${c.id}" data-z="${z}" data-o="${mine?'me':'opp'}">${inner}${b}${extra}</div>`;
 }
 const markerHTML = (n, pid) => `<div class="card marker" data-ctr="energy" data-pl="${pid}" title="Energy reserve. Click to add energy, right-click to remove."><span class="mkt">Energy reserve</span><img src="${ENERGY_IMG}" alt="" draggable="false" referrerpolicy="no-referrer" onerror="this.remove()"><span class="mkn">${n}</span></div>`;
 /* a row wider than the board scrolls sideways: the mouse wheel moves it, and its scroll bar is brought to the front while the pointer is on the row */
@@ -4313,7 +4316,7 @@ function avatarHTML(p, pid, mine){
 }
 let NMW=null, CHAL=[];   /* name of a card that cares whether mana was spent, set each render */
 function render(){
-  if($('#table').hidden) return;
+  if($('#table').hidden) return; TGS=tgtSrcSpec();
   NMW=noManaWatch(); CHAL=chaliceWatch(); trackGain(); if(checkCity()) setTimeout(changed, 0);
   const m=G.me, o=G.opp;
   FX=landEffects();
@@ -4340,9 +4343,9 @@ function render(){
       : `<div class="nm">Waiting for your friend</div><div class="dk">Send them the code <b style="color:var(--brass);letter-spacing:.15em;user-select:text;-webkit-user-select:text">${esc(G.code)}</b></div><div class="chips"><span class="pill" id="netPill2"></span></div>`;
     if(!G.solo) renderNet();
   }
-  $('#oppAv').className = 'avatar'+(G.turn.n&&G.turn.active===oppId()?' active':'')+(G.mode?' tgt':''); $('#oppAv').dataset.pl=oppId();
+  $('#oppAv').className = 'avatar'+(G.turn.n&&G.turn.active===oppId()?' active':'')+(G.mode?' tgt':'')+(TGS && !tgtCheck(TGS, oppId()).ok ? ' ntg' : ''); $('#oppAv').dataset.pl=oppId();
   $('#myAv').innerHTML = avatarHTML(m, G.myId, true);
-  $('#myAv').className = 'avatar me'+(G.turn.n&&G.turn.active===G.myId?' active':'')+(G.mode?' tgt':''); $('#myAv').dataset.pl=G.myId;
+  $('#myAv').className = 'avatar me'+(G.turn.n&&G.turn.active===G.myId?' active':'')+(G.mode?' tgt':'')+(TGS && !tgtCheck(TGS, G.myId).ok ? ' ntg' : ''); $('#myAv').dataset.pl=G.myId;
   const st = [...m.st.map(c=>[c,true]), ...((o&&o.st)||[]).map(c=>[c,false])].sort((a,b)=>(a[0].ts||0)-(b[0].ts||0));
   { const se=$('#stack'), keep=se.scrollLeft; se.innerHTML = st.map(([c,mine])=>cardHTML(c,'st',mine)).join(''); $('#stackN').textContent = st.length>1 ? '· '+st.length : '';
     if(st.length>(render.stN||0)) se.scrollLeft=se.scrollWidth; else se.scrollLeft=keep; render.stN=st.length; }   // something new on the stack: show the top
@@ -4420,7 +4423,7 @@ function render(){
     bn.hidden=false; bn.innerHTML = `<h3>${h}</h3>${st}<div>${btn}</div>`;
   }
   else bn.hidden=true;
-  $('#modebar').hidden = !G.mode; if(G.mode) $('#modebar').textContent = (G.mode.type==='exhold'||G.mode.type==='exvoid' ? 'Click the card that is doing the exiling' : G.mode.type==='attach' ? 'Click the permanent to attach to' : G.mode.type==='block' ? 'Click the attacker to block' : G.mode.type==='pickblocker' ? 'Click one of your untapped creatures to block with' : 'Click a target: a card or a player') + ' · Esc cancels';
+  $('#modebar').hidden = !G.mode; if(G.mode) $('#modebar').textContent = (G.mode.type==='exhold'||G.mode.type==='exvoid' ? 'Click the card that is doing the exiling' : G.mode.type==='attach' ? 'Click the permanent to attach to' : G.mode.type==='block' ? 'Click the attacker to block' : G.mode.type==='pickblocker' ? 'Click one of your untapped creatures to block with' : (TGS ? tgtHint(TGS) : 'Click a target: a card or a player')) + ' · Esc cancels';
   if(!G.mode){ const ic=iControl(), ctlMe=m.ctl && G.turn.active===G.myId; if(ic || ctlMe || m.ctlNext || (o&&o.ctlNext)){ $('#modebar').hidden=false; $('#modebar').textContent = ic ? `You control ${o.name}'s turn: click and right-click their cards, and use the Next button` : ctlMe ? `${o?o.name:'Opponent'} controls this turn. You take an extra turn afterwards` : m.ctlNext ? `${o?o.name:'Opponent'} will control your next turn` : `You will control ${o.name}'s next turn`; } }
   const hd=$('#myHand'), n=m.hand.length, fc=hd.firstElementChild;
   if(fc && n>1){ const w=fc.offsetWidth, step=Math.min(w*.86, (hd.clientWidth-24-w)/(n-1)); hd.style.setProperty('--hm', (-(w-step)/2)+'px'); }
@@ -4727,6 +4730,54 @@ function twoTgtArrow(md, target){ const s=find(md.from); if(!s || s.z!=='st' || 
   const cs=pidCreatures(pid); if(!cs.length){ toast(`${pidName(pid)} controls no creatures, so ${nm} can't target ${pid===target?'them':'that planeswalker'}.`); G.mode=md; render(); return true; }
   arrow(target); if(cs.length===1) arrow(cs[0].id); else { G.mode={type:'arrow', from:md.from, second:pid}; toast(`${nm}: now click the creature ${pidName(pid)} controls that it targets.`); }
   changed(); return true; }
+/* Targets named by the card (v4.03). tgtSpec(stack card) reads the first "target …" phrase of a spell, ability or trigger: what it can target
+   (types, controller, "another", mana value/power restrictions) plus a condition checked only on resolution (Fatal Push's mana value, revolt;
+   Prismatic Ending's converge). While its arrow mode is on, the mode bar names the legal targets, illegal ones are dimmed, and clicking one asks
+   first (Target anyway, as everywhere: nothing is enforced). Graveyard-card targets keep their own flow. */
+const TGT_NOUN='creatures?|players?|opponents?|planeswalkers?|permanents?|spells?|abilit(?:y|ies)|artifacts?|enchantments?|lands?|battles?';
+function tgtSpec(c){ if(!c) return null; let txt = c.ab || c.ch ? ((c.cu && c.cu.o) || '') : (stackText(c) || '');
+  txt=String(txt).replace(/\([^)]*\)/g,''); if(c.ab && c.cu && /Activated ability/.test(c.cu.t||'') && /:/.test(txt)) txt=txt.slice(txt.indexOf(':')+1);
+  if(/\bany target\b/i.test(txt) && !/\btarget (?!\w+ target)/i.test(txt.replace(/\bany target\b/ig,''))) return {alts:[['creature'],['player'],['planeswalker'],['battle']], phrase:'any target (a creature, player, planeswalker or battle)', ctl:'', other:false, src:c};
+  const re=new RegExp(`\\b(up to (?:one|two|three|four) |one or two |two |three )?((?:an)?other )?target (?!of\\b)((?:[a-z\\-]+ ){0,4}?(?:${TGT_NOUN})(?:(?:,? (?:or|and\\/or) |, )(?:[a-z\\-]+ ){0,2}?(?:${TGT_NOUN}))*)((?: (?:you control|an opponent controls|you don't control|your opponents control|that player controls|with (?:mana value|power|toughness) \\d+ or (?:less|greater)))*)`,'i');
+  const m=txt.match(re); if(!m) return null; { const first=txt.search(/\btarget\b(?! of\b)/i); if(first>=0 && first<m.index+(m[1]||'').length+(m[2]||'').length) return null; }   // the first target is something else (a card in a graveyard…): leave it
+  const tail=txt.slice(m.index+m[0].length,m.index+m[0].length+12);
+  if(/^\s*(?:card|cards)\b/i.test(tail) || /\bcards? (?:in|from)\b/i.test(m[3])) return null;   // graveyard cards: their own picker
+  const desc=m[3].trim(), ext=(m[4]||'').trim(), alts=desc.split(/,? (?:or|and\/or) |, /i).map(a=>a.trim().split(/\s+/)); { const NR=new RegExp(`^(?:${TGT_NOUN})$`,'i'), noun=(alts[alts.length-1]||[]).slice(-1)[0]; for(const a of alts) if(!NR.test(a[a.length-1]) && noun) a.push(noun); }   // "black or red permanent", "attacking or blocking creature"
+  const ctl=/an opponent controls|you don't control|your opponents control/i.test(ext) ? 'opp' : /you control/i.test(ext) ? 'me' : '';
+  const mvq=ext.match(/with mana value (\d+) or (less|greater)/i), pwq=ext.match(/with power (\d+) or (less|greater)/i);
+  const spec={alts, ctl, other:!!m[2], upto:!!m[1], src:c, mv:mvq ? {n:+mvq[1], up:/greater/i.test(mvq[2])} : null, pw:pwq ? {n:+pwq[1], up:/greater/i.test(pwq[2])} : null, phrase:`${m[1]||''}${m[2]||''}target ${desc}${ext?' '+ext:''}`.trim()};
+  // resolution-only conditions (still a legal target, it just won't be affected)
+  { const a=txt.match(/\bif it has mana value (\d+) or less\b/i), rv=txt.match(/Revolt — [^.]*?mana value (\d+) or less instead if a permanent left the battlefield under your control this turn/i);
+    if(a){ const rev=!!rv && G.me.leftT===G.turn.n, n=rev ? +rv[1] : +a[1]; spec.cond={mv:n, note:`it is destroyed only if its mana value is ${n} or less${rv ? (rev ? ' (revolt: a permanent of yours left the battlefield this turn)' : ` (${rv[1]} or less with revolt)`) : ''}`}; } }
+  if(/if its mana value is less than or equal to the number of colors of mana spent to cast this spell/i.test(txt) && c.pc!=null) spec.cond={mv:c.pc, note:`it is exiled only if its mana value is ${c.pc} or less (${c.pc} color${c.pc===1?'':'s'} spent)`};
+  return spec; }
+/* is that a legal target? → {ok, why}; cond → {cok, cwhy} */
+function tgtCheck(sp, target){ const isP=target==='p1' || target==='p2', a=isP ? null : findAny(target), mineT = isP ? target===G.myId : !!(a && a.mine), srcId = sp.src.ab ? sp.src.ab.id : sp.src.ch ? sp.src.ch.id : sp.src.id;
+  const fits=(alt)=>{ const w=alt.map(x=>x.toLowerCase()), last=w[w.length-1].replace(/s$/,'').replace(/ies$/,'y');
+    if(last==='player' || last==='opponent') return isP && (last!=='opponent' || target!==G.myId);
+    if(isP || !a) return false;
+    if(last==='spell') return a.z==='st' && !a.c.ab && !a.c.ch && !a.c.pact && matchesDesc(a.c, w.slice(0,-1).join(' '));
+    if(last==='ability' || last==='abilitie') return a.z==='st' && !!(a.c.ab || a.c.ch) && (!w.includes('triggered') || /Triggered/.test((a.c.cu&&a.c.cu.t)||'') || !!a.c.ch) && (!w.includes('activated') || /Activated/.test((a.c.cu&&a.c.cu.t)||''));
+    if(a.z!=='bf') return false; if(w.includes('blocking')){ const blk=[...G.me.arrows, ...((G.opp&&G.opp.arrows)||[])].some(r=>r.blk && r.a===a.c.id); if(!blk) return false; return matchesDesc(a.c, w.filter(x=>x!=='blocking').join(' ')); } return matchesDesc(a.c, w.join(' ')); };
+  if(!sp.alts.some(fits)) return {ok:false, why:`needs ${sp.phrase.replace(/^(?:up to \w+ )?/i,'').replace(/^target /i,'a ').replace(/^another target /i,'another ').replace(/^other target /i,'another ').replace(/^a any target/i,'any target')}`};
+  if(sp.ctl==='opp' && mineT) return {ok:false, why:'needs one your opponent controls'};
+  if(sp.ctl==='me' && !mineT) return {ok:false, why:'needs one you control'};
+  if(sp.other && a && a.c.id===srcId) return {ok:false, why:'needs another one, not itself'};
+  const mv = a ? (a.z==='st' ? stackMV(a.c) : manaValue(a.c)) : null;
+  if(sp.mv && mv!=null && (sp.mv.up ? mv<sp.mv.n : mv>sp.mv.n)) return {ok:false, why:`needs mana value ${sp.mv.n} or ${sp.mv.up?'greater':'less'} (it has ${mv})`};
+  if(sp.pw && a && a.z==='bf'){ const p=powerAny(a); if(sp.pw.up ? p<sp.pw.n : p>sp.pw.n) return {ok:false, why:`needs power ${sp.pw.n} or ${sp.pw.up?'greater':'less'} (it has ${p})`}; }
+  const r={ok:true}; if(sp.cond && a && sp.cond.mv!=null && mv!=null && mv>sp.cond.mv){ r.cok=false; r.cwhy=`${sp.cond.note}, and it has mana value ${mv}`; } return r; }
+const tgtSrcSpec = () => { const md=G.mode; if(!md || md.type!=='arrow' || !md.from) return null; const f=find(md.from); return f && f.z==='st' ? tgtSpec(f.c) : null; };
+let TGS=null;   // spec of the arrow mode in progress, set each render
+function tgtDim(c, z){ if(!TGS || !(z==='bf' || z==='st')) return ''; if(c.id===(G.mode&&G.mode.from)) return ''; const r=tgtCheck(TGS, c.id); return !r.ok ? 'ntg' : r.cok===false ? 'ntg2' : ''; }
+function tgtHint(sp){ const n=srcName(sp.src); return `${n}: click ${sp.phrase}${sp.cond ? ` · ${sp.cond.note}` : ''}${sp.upto ? ' · Esc for none' : ''}`; }
+/* finishMode: a stack source's arrow onto an illegal (or pointless) target asks first */
+function tgtGate(md, target){ if(md.tgtOK) return false; const f=find(md.from); if(!f || f.z!=='st') return false; const sp=tgtSpec(f.c); if(!sp) return false;
+  if(typeof target==='string' && target.startsWith('gy:')) return false; const r=tgtCheck(sp, target); if(r.ok && r.cok!==false) return false;
+  const tn = target===G.myId ? 'yourself' : target===oppId() ? (G.opp?G.opp.name:'your opponent') : (findAny(target) ? cname(findAny(target).c) : 'that'), n=srcName(f.c);
+  const again=()=>{ closeModal(); G.mode=md; render(); }, anyway=()=>{ closeModal(); log(`${G.me.name} targets ${unlink(tn)} with ${n} anyway${r.ok ? '' : ` (it ${r.why})`}.`); G.mode=Object.assign({}, md, {tgtOK:1}); finishMode(target); };
+  modal(r.ok ? `${n} won't do anything to that` : `${n} can't target that`, `<span class="hint">${esc(unlink(r.ok ? `${n} can target ${tn}, but ${r.cwhy}.` : `${n} ${r.why}.`))}<br><br>${r.ok ? 'Target it anyway?' : 'Target anyway only if you have both agreed it\'s allowed.'}</span>`,
+    [['Pick another target', again, 'ghost'], ['Target anyway', anyway, 'go']]); render(); return true; }
 function finishMode(target){
   const md=G.mode; G.mode=null; if(!md) return;
   if(md.type==='pickblocker'){ const f=find(target); if(!f || f.z!=='bf' || !isCreature(f.c) || f.c.tap){ toast('Click one of your untapped creatures.'); G.mode=md; render(); return; } if(!blockersLeft().some(x=>x.id===target)){ toast(`${cdata(f.c).n} is already blocking. Pick another creature, or Reset blockers.`); G.mode=md; render(); return; } G.mode={type:'block', from:target}; toast(`${cdata(f.c).n}: now click the attacker it blocks.`); render(); return; }
@@ -4740,6 +4791,7 @@ function finishMode(target){
   else if(md.type==='arrow' && earthArrow(md, target)){ return; }
   else if(md.type==='arrow' && bestowArrow(md, target)){ return; }
   else if(md.type==='arrow' && (bk=>bk)(blinkArrow(md, target))){ return; }
+  else if(md.type==='arrow' && tgtGate(md, target)){ return; }
   else { G.me.arrows = G.me.arrows.filter(a=>!(a.a===md.from && a.b===target)); G.me.arrows.push({a:md.from, b:target});
     const f=findAny(md.from), t=findAny(target); const tn = target===G.myId ? G.me.name : target===oppId() ? (G.opp&&G.opp.name||'the opponent') : t ? cname(t.c) : 'something';
     log(md.type==='block' ? `${f?cname(f.c):'A creature'} blocks ${tn}.` : `${f?cname(f.c):'Something'} targets ${tn}.`); if(md.type==='arrow') lokiTarget(md.from, target); }
