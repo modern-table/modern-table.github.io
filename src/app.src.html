@@ -37,7 +37,7 @@ h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
 @media (max-width:920px){.lobbybox{grid-template-columns:minmax(0,1fr);width:min(560px,100%)}}
 .lobbybox h1{font-size:44px;letter-spacing:.02em}
 .lobbybox p{margin:0;color:var(--dim);max-width:60ch}
-.lobbybox p.legal{grid-column:1/-1;max-width:none;font:12px/1.55 var(--ui);color:var(--dim);border-top:1px solid var(--line);padding-top:12px;margin-top:4px}.lobbybox p.legal a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+.lobbybox p.legal{max-width:none;font:12px/1.55 var(--ui);color:var(--dim);border-top:1px solid var(--line);padding-top:12px;margin-top:4px}.lobbybox p.legal a{color:inherit;text-decoration:underline;text-underline-offset:2px}
 .field{display:flex;flex-direction:column;gap:6px}
 .field label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
 .choices{display:grid;gap:10px}
@@ -385,9 +385,9 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
     </div>
     <p id="lobbyMsg" style="color:var(--go)"></p>
     <p><a href="#" id="fbLink" style="color:var(--brass)">Send feedback</a> <span style="color:var(--dim)">· report a bug or suggest a change</span></p>
+    <p class="legal">Modern Table is unofficial Fan Content permitted under the <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Fan Content Policy</a>. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.<br>Card images and card data from <a href="https://scryfall.com/" target="_blank" rel="noopener">Scryfall</a>. Tournament decklists from <a href="https://www.mtggoldfish.com/" target="_blank" rel="noopener">MTGGoldfish</a>. Free to use, with no ads, and not affiliated with any of these sites.</p>
     </div>
     <aside class="news" id="news" aria-label="What's new"></aside>
-    <p class="legal">Modern Table is unofficial Fan Content permitted under the <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Fan Content Policy</a>. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.<br>Card images and card data from <a href="https://scryfall.com/" target="_blank" rel="noopener">Scryfall</a>. Tournament decklists from <a href="https://www.mtggoldfish.com/" target="_blank" rel="noopener">MTGGoldfish</a>. Free to use, with no ads, and not affiliated with any of these sites.</p>
   </div>
 </div>
 
@@ -447,10 +447,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.01';
+const VERSION = 'v4.02';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.02','Oct 22',"Front page: the fan content notice and credits now sit under Send feedback, so you can see them without scrolling past What's new."],
   ['v4.01','Oct 21',"Skullcrack (and anything that says players can't gain life this turn) now stops life gain before it happens: spells, lifelink, the + button and life your opponent gives you are refused with a note in the log, so your life never goes up and back down, and Ocelot Pride no longer thinks you gained life."],
   ['v4.0','Oct 21',"Modern Table now runs the match. A player at 0 or less life, with 10 poison counters, or who has to draw from an empty library loses the game: both players see who won, and the win is recorded when both click Begin sideboarding (Back to game cancels it; Draw a card shows you your own next card). A 50-minute round clock starts when both players reach the table and keeps running through sideboarding, which has its own 3 minutes before your deck goes in as it is. When time runs out during a game, either player can call for the end-of-round turns: a TURN sign counts turn 0 to 5, then you say who won (or that it was a draw) and the match result appears. Time running out between games ends the match on the score."],
   ['v3.78','Oct 21',"Orzhov blink check. Flickerwisp entering and Phelia attacking put their triggers on the stack by themselves and ask for the target (Esc for none with Phelia). Relic of Progenitus works: the targeted player picks a card from their graveyard to exile, and {1} exiles Relic, then all graveyards, and draws. Dauthi Voidwalker: cards with void counters can only be played after its ability chooses one, for free and that turn only (a land is played as your land). Chthonian Nightmare's ability asks for X, pays the energy, sacrifices a creature, returns itself to hand and brings back a creature card with mana value X. Damn can be cast with overload. Ketramose also makes you lose 1 life, and warns when it blocks with fewer than seven cards in exile. Bleachbone Verge and the other Verges only make their second colour with the right land. Damping Sphere turns a land's two or more mana into one colorless. A creature Emperor of Bones brings back gets its enter triggers. Abilities that say 'Activate only as a sorcery' ask first at other times."],
