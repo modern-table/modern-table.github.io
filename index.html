@@ -459,10 +459,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 </script>
 <script>
 "use strict";
-const VERSION = 'v4.04';
+const VERSION = 'v4.05';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.05','Oct 22',"Poison gets its own counter on the battlefield, like energy, showing the Poison Counter card: either player can click it, and proliferate adds to it. When a spell asks for \"another\" target, the ones you already picked are greyed out (Incremental Growth). More graveyard cards work: Reanimate and Necromancy (from either graveyard), Life from the Loam, Entomb, Sun Titan, Dutiful Return. Discard and mill for any player (Mind Rake, Liliana of the Veil, Fractured Sanity), Investigate, the monarch (a crown by your name; click theirs to take it), edicts (Diabolic Edict, Dead Drop), Kroxa and Uro's escape check, and \"when you do\" triggers that pick their own target."],
   ['v4.04','Oct 22',"Spells with two targets ask for each one in turn: Awaken the Inferno now burns their creature and puts the counter on yours. Fight cards and \"deals damage equal to its power\" cards work (Savage Punch, Temur Charm, Flametongue Yearling). More cards that look at the top of your library (Ponder, Sensei's Divining Top, See the Unwritten, Bitter Revelation, Identity Echo), more \"exile the top card, you may play it\" wordings, and more counters: proliferate, splitting counters among creatures, Monstrosity, stun counters, prepared."],
   ['v4.03','Oct 22',"Targeting follows the card's wording. When a spell or ability asks for a target, the bar at the top says what it can target (Fatal Push: \"target creature · destroyed only if its mana value is 2 or less (4 or less with revolt)\"), anything it can't target is greyed out, and things it can target but won't affect are half-greyed. Clicking one of those asks first, with Pick another target or Target anyway."],
   ['v4.02','Oct 22',"Front page: the fan content notice and credits now sit under Send feedback, so you can see them without scrolling past What's new."],
