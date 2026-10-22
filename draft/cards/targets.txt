@@ -1,0 +1,8 @@
+# Draft Table sets and cubes whose card text tools/make_draft_cards.py writes to draft/cards/<code>.json
+fra
+mh2
+fin
+ktk
+mh1
+mom
+df07
