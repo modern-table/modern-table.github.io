@@ -325,15 +325,23 @@ textarea#paste{width:100%;min-height:300px;font-family:ui-monospace,Menlo,Consol
 .card.marker.mon{background:radial-gradient(circle at 50% 42%,#ffe08a 0 22%,#b8862b 23% 40%,#3a2a10 41%)}
 .card.marker.mon .mkc{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);font-size:calc(var(--cw)*.42);line-height:1;pointer-events:none}
 .card.marker.mon .mkt{color:#ffe9b0;font-weight:700}
+.ico{width:1.05em;height:1.05em;vertical-align:-.17em;flex:none}.chip .ico{margin-right:3px}
+.card.marker .mki{display:none}
+.card.marker.mon .mkc .ico{width:100%;height:100%;color:#fff3cf;filter:drop-shadow(0 2px 3px #0009)}
+.card.marker.mon .mkc{width:calc(var(--cw)*.46);height:calc(var(--cw)*.46)}
 .mkstack{flex:none;align-self:flex-start;width:var(--cw);aspect-ratio:488/680;display:flex;flex-direction:column;gap:4px}
 .mkstack .card.marker{aspect-ratio:auto;flex:1 1 0;min-height:0;width:100%}
 .mkstack .card.marker{background:#14252a;border-left:5px solid #f6c453;box-shadow:0 2px 6px #0008}
 .mkstack .card.marker.psn{border-left-color:#7fd14a}
 .mkstack .card.marker.mon{border-left-color:#ffd25e;background:#2a2112}
 .mkstack .card.marker img{display:none}
-.mkstack .card.marker .mkn{left:26%;min-width:calc(var(--cw)*.3);height:calc(var(--cw)*.3);font-size:calc(var(--cw)*.17)}
+.mkstack .card.marker .mki{display:block;position:absolute;left:5px;top:50%;transform:translateY(-50%);width:calc(var(--cw)*.2);height:calc(var(--cw)*.2);color:#fff;pointer-events:none}
+.mkstack .card.marker .mki .ico{width:100%;height:100%;display:block}
+.mkstack .card.marker.mon .mkc{left:calc(5px + var(--cw)*.1);width:calc(var(--cw)*.2);height:calc(var(--cw)*.2);color:#fff}
+.mkstack .card.marker .mkn{left:40%;min-width:calc(var(--cw)*.3);height:calc(var(--cw)*.3);font-size:calc(var(--cw)*.17)}
 .mkstack .card.marker .mkc{left:26%;top:50%;font-size:calc(var(--cw)*.24)}
-.mkstack .card.marker .mkt{left:48%;right:4px;bottom:auto;top:50%;transform:translateY(-50%);text-align:left;letter-spacing:.04em;font-size:calc(var(--cw)*.085);line-height:1.15;color:#f3ead6;font-weight:600}
+.mkstack .card.marker.mon .mkt{left:40%}
+.mkstack .card.marker .mkt{left:59%;right:4px;bottom:auto;top:50%;transform:translateY(-50%);text-align:left;letter-spacing:.04em;font-size:calc(var(--cw)*.085);line-height:1.15;color:#f3ead6;font-weight:600}
 .card.marker .mkn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);min-width:calc(var(--cw)*.42);height:calc(var(--cw)*.42);padding:0 6px;border-radius:99px;display:grid;place-items:center;background:#000c;border:2px solid var(--brass);color:#fff;font:400 calc(var(--cw)*.26)/1 var(--display);font-variant-numeric:tabular-nums;pointer-events:none}
 #drawBtn{margin:8px 10px 0;padding:10px;font-size:15px;border-radius:99px;background:var(--brass);border-color:var(--brass);color:#1b1205;font-weight:800}
 #shown{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:75;background:#0b1417f5;border:1px solid var(--brass);border-radius:12px;padding:16px 20px;display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center;box-shadow:0 20px 60px #000c;--cw:260px}
@@ -463,10 +471,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.07';
+const VERSION = 'v4.08';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.08','Oct 22',"Energy, poison and the monarch have their own drawn symbols (a bolt, a skull and a crown) instead of emoji, on the table and by the player names."],
   ['v4.07','Oct 22',"About sixty more cube cards play themselves, among them Show and Tell, Sneak Attack, Through the Breach, Flash, Wheel of Fortune, Memory Jar, Time Warp, Fact or Fiction, Intuition, Balance, Cataclysm, Exhume, Animate Dead, Necromancy, Council's Judgment, Palace Jailer, Mana Drain, Vendilion Clique, Remand, Kroxa, Uro, Yorion and Oko. When a card makes the opponent choose (Fact or Fiction's piles, Intuition, Karn, a vote), the choice opens on the opponent's screen. Energy, poison and the monarch only show on the table while there is something to show."],
   ['v4.06','Oct 22',"Proliferate lets you choose: a window lists every permanent and player with counters, and only the ones you pick get another one. The monarch has a gold MONARCH box on their side of the table, and it moves by itself to whoever deals them combat damage. When you have more than one of energy, poison and the monarch, they stack in one column so a crowded board doesn't push them off the table."],
   ['v4.05','Oct 22',"Poison gets its own counter on the battlefield, like energy, showing the Poison Counter card: either player can click it, and proliferate adds to it. When a spell asks for \"another\" target, the ones you already picked are greyed out (Incremental Growth). More graveyard cards work: Reanimate and Necromancy (from either graveyard), Life from the Loam, Entomb, Sun Titan, Dutiful Return. Discard and mill for any player (Mind Rake, Liliana of the Veil, Fractured Sanity), Investigate, the monarch (a crown by your name; click theirs to take it), edicts (Diabolic Edict, Dead Drop), Kroxa and Uro's escape check, and \"when you do\" triggers that pick their own target."],
@@ -4736,9 +4745,15 @@ function cardHTML(c, z, mine, cls=''){
   if(z==='ex' && c.pl && !backUp){ cls+=' pl'; b+=`<span class="plban">PLAYABLE · ${c.pl==='this'?'THIS TURN':'NEXT TURN'}</span>`; }
   return `<div class="card ${mine?'':'opp'} ${c.tap?'tap':''} ${c.atk?'atk':''} ${!mine && c.atk && z==='bf' && blkDim(c) ? 'nblk' : ''} ${tgtDim(c, z)} ${c.fd&&mine?'fdmine':''} ${cls}" data-id="${c.id}" data-z="${z}" data-o="${mine?'me':'opp'}">${inner}${b}${extra}</div>`;
 }
-const markerHTML = (n, pid) => `<div class="card marker" data-ctr="energy" data-pl="${pid}" title="Energy reserve. Click to add energy, right-click to remove."><span class="mkt">⚡ Energy reserve</span><img src="${ENERGY_IMG}" alt="" draggable="false" referrerpolicy="no-referrer" onerror="this.remove()"><span class="mkn">${n}</span></div>`;
+/* marker icons (v4.08, Ben): one drawn style instead of emoji: rounded white outline with filled details; they take the text colour */
+const ICO = (()=>{ const sv=(b)=>`<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">${b}</svg>`;
+  return { energy: sv('<path d="M13.6 2.6 5.4 13.4h5.7l-1.4 8 8.9-11.6h-5.8z"/>'),
+    poison: sv('<path d="M12 2.6c-5 0-8.4 3.6-8.4 8 0 2.5 1.1 4.3 2.8 5.3v3.4c0 .8.6 1.3 1.3 1.3h8.6c.7 0 1.3-.5 1.3-1.3v-3.4c1.7-1 2.8-2.8 2.8-5.3 0-4.4-3.4-8-8.4-8z"/><circle cx="8.7" cy="11" r="2.1" fill="currentColor" stroke="none"/><circle cx="15.3" cy="11" r="2.1" fill="currentColor" stroke="none"/><path d="M11.2 14.4v1.3M12.8 14.4v1.3M10.2 18.3v2.2M13.8 18.3v2.2" stroke-width="1.5"/>'),
+    monarch: sv('<path d="M4.2 17.2 3 7.6l5.2 4L12 4.8l3.8 6.8 5.2-4-1.2 9.6z"/><path d="M4.6 20.4h14.8"/>') }; })();
+const ICON_OF = k => ICO[k] || '';
+const markerHTML = (n, pid) => `<div class="card marker" data-ctr="energy" data-pl="${pid}" title="Energy reserve. Click to add energy, right-click to remove."><span class="mki">${ICO.energy}</span><span class="mkt">Energy</span><img src="${ENERGY_IMG}" alt="" draggable="false" referrerpolicy="no-referrer" onerror="this.remove()"><span class="mkn">${n}</span></div>`;
 /* poison (v4.05): shown on both sides once anyone has poison or either deck can give it (toxic, infect, poison counters, proliferate); either player clicks it, like the chip */
-const poisonHTML = (n, pid) => { poisonImg(); return `<div class="card marker psn" data-ctr="poison" data-pl="${pid}" title="Poison counters (10 loses the game). Either player: click to add, right-click to remove."><span class="mkt">☠️ Poison</span>${POISON_IMG ? `<img src="${esc(POISON_IMG)}" alt="" draggable="false" onerror="this.remove()">` : ''}<span class="mkn">${n}</span></div>`; };
+const poisonHTML = (n, pid) => { poisonImg(); return `<div class="card marker psn" data-ctr="poison" data-pl="${pid}" title="Poison counters (10 loses the game). Either player: click to add, right-click to remove."><span class="mki">${ICO.poison}</span><span class="mkt">Poison</span>${POISON_IMG ? `<img src="${esc(POISON_IMG)}" alt="" draggable="false" onerror="this.remove()">` : ''}<span class="mkn">${n}</span></div>`; };
 /* the Poison Counter card's art (Scryfall: set TONE, number 14), looked up once per browser through the request queue and remembered; the green design until then */
 let POISON_IMG = store.get('mt_poison_img', '') || '', poisonAsked = false;
 function poisonImg(){ if(POISON_IMG || poisonAsked) return; poisonAsked = true;
@@ -4757,7 +4772,7 @@ function proliferatePick(by, note){ return new Promise(res=>{ const m=G.me, opp=
   const pp=$('#prPl', el); if(pp) pp.onclick=e=>{ const b=e.target.closest('[data-pp]'); if(!b) return; const id=b.dataset.pp; if(psel.has(id)) psel.delete(id); else psel.add(id); b.classList.toggle('on', psel.has(id)); }; }); }
 function becomeMonarch(by){ const m=G.me; if(m.monarch) return; m.monarch=true; if(G.opp) send({t:'monarch', by, who:m.name}); log(`${by}: ${m.name} becomes the monarch (draws a card at the beginning of their end step).`); changed(); }
 /* the monarch (v4.06, Ben): a gold box with the crown on the current monarch's side; clicking the opponent's takes it by hand */
-const monarchHTML = pid => `<div class="card marker mon" data-mon="${pid}" title="${pid===G.myId ? 'You are the monarch: you draw a card at the beginning of your end step. Whoever deals you combat damage takes it.' : 'The monarch. Deal them combat damage to take it (it moves by itself), or click to take it by hand.'}"><span class="mkc">👑</span><span class="mkt">Monarch</span></div>`;
+const monarchHTML = pid => `<div class="card marker mon" data-mon="${pid}" title="${pid===G.myId ? 'You are the monarch: you draw a card at the beginning of your end step. Whoever deals you combat damage takes it.' : 'The monarch. Deal them combat damage to take it (it moves by itself), or click to take it by hand.'}"><span class="mkc">${ICO.monarch}</span><span class="mkt">Monarch</span></div>`;
 /* markers show while their count is above 0 (v4.07, Ben; the chips by the name stay for adding from 0). One marker keeps the full card look; two or more share one card-sized column (v4.06) so a crowded row doesn't push them off the table */
 const markersHTML = xs => { xs=xs.filter(Boolean); return xs.length>1 ? `<div class="mkstack">${xs.join('')}</div>` : xs.join(''); };
 const poisonOn = () => !!(G.me.poisonSeen || G.me.poisonSrc || (G.opp && (G.opp.poisonSeen || G.opp.poisonSrc)) || (G.me.ctr.poison||0)>0 || (G.opp && G.opp.ctr && (G.opp.ctr.poison||0)>0));
@@ -4792,7 +4807,7 @@ function pileHTML(z, label, cards, n, mine, top){
 }
 function avatarHTML(p, pid, mine){
   const act = G.turn.n && G.turn.active===pid;
-  const chips = Object.entries(p.ctr||{}).map(([k,v])=>`<span class="chip ${v?'nz':''}" data-ctr="${k}" data-pl="${pid}" title="Click to add, right-click to remove">${k} ${v}</span>`).join('') + (p.monarch ? `<span class="chip nz" data-mon="${pid}" title="${pid===G.myId ? 'You are the monarch: draw a card at the beginning of your end step.' : 'Click to take the monarch (when you deal combat damage to them).'}">👑 monarch</span>` : '');
+  const chips = Object.entries(p.ctr||{}).map(([k,v])=>`<span class="chip ${v?'nz':''}" data-ctr="${k}" data-pl="${pid}" title="Click to add, right-click to remove">${ICON_OF(k)}${k} ${v}</span>`).join('') + (p.monarch ? `<span class="chip nz" data-mon="${pid}" title="${pid===G.myId ? 'You are the monarch: draw a card at the beginning of your end step.' : 'Click to take the monarch (when you deal combat damage to them).'}">${ICO.monarch} monarch</span>` : '');
   return `<div class="nm">${esc(p.name||'Opponent')}${act?' ●':''}</div>
     <div class="life"><button data-life="-1" data-pl="${pid}" aria-label="Lose 1 life">−</button><b>${p.life}</b><button data-life="1" data-pl="${pid}" aria-label="Gain 1 life">+</button></div>
     <div class="dk">${esc(p.deck||'No deck yet')}${p.mull?` · ${p.mull} mulligan${p.mull>1?'s':''}`:''}</div><div class="mana">${MANA.map(k=>{ const n=(p.mana||{})[k]||0; return `<span class="mp ${n?'on':''} ${mine?'mine':''}" ${mine?`data-mana="${k}"`:''} title="${MNAME[k]} mana${mine?': click to spend one, Shift-click or right-click to add one':''}">${n>1?`<b>${n}</b>`:''}<i class="ms ms-${k}">${k}<img src="https://svgs.scryfall.io/card-symbols/${k}.svg" alt="" draggable="false" onerror="this.remove()"></i></span>`; }).join('')}</div>${smanaHTML(p, mine)}<div class="chips">${chips}<span class="winmark ${p.wins?'on':''}" data-win="${pid}" title="Click to mark a game win. Right-click to take one back."><i></i>${p.wins>=2?'Match won':p.wins?'1 game won':'Game win'}</span></div>`;
