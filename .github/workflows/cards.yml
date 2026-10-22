@@ -8,7 +8,7 @@ name: Build card data
 on:
   push:
     branches: [main]
-    paths: [src/decks.txt, src/extra.txt, src/aliases.txt, tools/make_cards.py, .github/workflows/cards.yml, .github/scripts/bulk_uri.py]
+    paths: [src/decks.txt, src/extra.txt, src/aliases.txt, tools/make_cards.py, tools/make_draft_cards.py, draft/cards/targets.txt, .github/workflows/cards.yml, .github/scripts/bulk_uri.py]
   schedule:
     - cron: '23 13 * * *'
   workflow_dispatch:
@@ -70,16 +70,28 @@ jobs:
           echo "::notice::$(head -1 "$RUNNER_TEMP/cards.txt"); $(grep 'not found' "$RUNNER_TEMP/cards.txt" | tail -n +2 | head -20 | tr '\n' ';')"
           python3 build.py | tail -2
 
+      - name: Write draft/cards (card text for the Draft Table sets and cubes in draft/cards/targets.txt)
+        shell: bash
+        run: |
+          # Names come from Scryfall's search (a few pages per set), text from the bulk file. A failure here
+          # must not stop src/cards.json from being pushed, so it only warns.
+          if python3 tools/make_draft_cards.py "$RUNNER_TEMP/oracle-cards.json" > "$RUNNER_TEMP/draft.txt" 2>&1; then
+            while IFS= read -r line; do echo "::notice::draft cards $line"; done < "$RUNNER_TEMP/draft.txt"
+          else
+            echo "::warning::make_draft_cards.py failed: $(tail -3 "$RUNNER_TEMP/draft.txt" | tr '\n' ' ')"
+            git checkout -- draft/cards 2>/dev/null || true
+          fi
+
       - name: Commit and push if anything changed
         id: push
         run: |
-          if git diff --quiet -- src/cards.json index.html && [ -z "$(git status --porcelain -- src/cards.json)" ]; then
+          if git diff --quiet -- src/cards.json index.html draft/cards && [ -z "$(git status --porcelain -- src/cards.json draft/cards)" ]; then
             echo "Card data unchanged."; exit 0
           fi
           echo "changed=1" >> "$GITHUB_OUTPUT"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/cards.json index.html draft/index.html
+          git add src/cards.json index.html draft/index.html draft/cards
           git commit -m "Card data from Scryfall's bulk file, $(date -u +%Y-%m-%d)"
           for i in 1 2 3; do
             git pull --rebase --strategy-option=theirs origin main && python3 build.py > /dev/null && git add index.html draft/index.html \
