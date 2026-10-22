@@ -475,10 +475,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.10';
+const VERSION = 'v4.11';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.11','Oct 22',"White lifegain cards. \"Whenever you gain life\" triggers now go on the stack by themselves (Ajani Resolute's loyalty, the Ajani's Pridemate token it makes). Liliana the Faultless gains you life when another creature or planeswalker of yours enters, and her ability gives hexproof. Enlightened Confidant puts a surveilled card into your hand when its mana value is no more than the life you gained. Repurposed Enforcer empowers Jace by your number of creatures. Static Prison asks at your first main phase whether to pay an energy or sacrifice it. Emblems that pump your creatures show on their power and toughness."],
   ['v4.10','Oct 22',"A rounder poison skull with big eyes and three teeth, and the monarch's crown now sits in line with the word."],
   ['v4.09','Oct 22',"The bolt and crown are solid now, and the skull is a solid white skull with see-through eyes, nose and teeth. On the table, energy and poison show their symbol in place of the word; the monarch keeps its crown and the word."],
   ['v4.08','Oct 22',"Energy, poison and the monarch have their own drawn symbols (a bolt, a skull and a crown) instead of emoji, on the table and by the player names."],
@@ -803,7 +804,7 @@ const cname = c => c.fd ? 'a face-down card' : '[['+(cdata(c).n||'a card')+'|'+(
 function pub(){
   const m=G.me, p = c => c.fd ? Object.assign({}, c, {k:null, cu:null, note:''}) : c;
   return { name:m.name, deck:m.deck, life:m.life, ctr:m.ctr, libN:m.lib.length, handN:m.hand.length, sideN:m.side.length,
-    hand:(m.reveal || m.ctl) ? m.hand : null, noMax:!!m.noMax, comp:m.side.filter(c=>c.comp), compDone:!!m.compDone, deckReady:m.deckReady!==false, skipRoll:!!m.skipRoll, wonGame:m.wonGame||0, ctl:!!m.ctl, ctlNext:!!m.ctlNext, city:!!m.city, sbing:!!m.sbing, bf:m.bf.map(p), gy:m.gy, ex:m.ex.map(p), st:m.st.map(p), arrows:m.arrows, mull:m.mull, drn:m.drn||null, wins:m.wins||0, roll:m.roll||null, dealt:!!m.dealt, kept:!!m.kept, mana:m.mana||noMana(), smana:m.smana||[], energySeen:!!m.energySeen, monarch:!!m.monarch, poisonSeen:!!m.poisonSeen, poisonSrc:!!m.poisonSrc, cast:m.cast||{n:0,is:0}, cares:m.cares||null, gtg:m.gtg||[], baub:m.baub||[], trk:m.trk||null };
+    hand:(m.reveal || m.ctl) ? m.hand : null, noMax:!!m.noMax, comp:m.side.filter(c=>c.comp), compDone:!!m.compDone, deckReady:m.deckReady!==false, skipRoll:!!m.skipRoll, wonGame:m.wonGame||0, ctl:!!m.ctl, ctlNext:!!m.ctlNext, city:!!m.city, sbing:!!m.sbing, bf:m.bf.map(p), gy:m.gy, ex:m.ex.map(p), st:m.st.map(p), arrows:m.arrows, mull:m.mull, drn:m.drn||null, wins:m.wins||0, roll:m.roll||null, dealt:!!m.dealt, kept:!!m.kept, mana:m.mana||noMana(), smana:m.smana||[], energySeen:!!m.energySeen, monarch:!!m.monarch, poisonSeen:!!m.poisonSeen, poisonSrc:!!m.poisonSrc, cast:m.cast||{n:0,is:0}, cares:m.cares||null, emb:m.emb||[], gtg:m.gtg||[], baub:m.baub||[], trk:m.trk||null };
 }
 /* undo: a snapshot of my own side is kept before each change. Shuffles and anything that crosses to the other player close the history. */
 const UNDO=[]; let lastSnap=null, lastLogi=0;
@@ -1131,6 +1132,7 @@ function turnCleanup(prev, next){
   if(next.n===prev.n && next.phase!==prev.phase && !next.passed){ if(next.phase===3 && prev.phase<3 && next.active===G.myId && phaseTrigs('combat', true)) ch=true; if(next.phase===5 && prev.phase!==5 && phaseTrigs('end', next.active===G.myId)) ch=true; }
   if(G.opp && next.n && next.active!==G.myId && !next.passed){ const ot=m.oppT||(m.oppT={}); if(ot.up!==next.n){ ot.up=next.n; if(oppPhase('up')) ch=true; } if(next.phase>=1 && ot.dr!==next.n){ ot.dr=next.n; if(oppPhase('dr')) ch=true; } }
   if(next.active===G.myId && next.phase===2 && prev.phase<2 && next.n===prev.n) setTimeout(paradigmAsk, 0);
+  if(next.active===G.myId && next.phase===2 && prev.phase<2 && next.n===prev.n && !next.passed && main1Trigs()) ch=true;
   if(next.active===G.myId && (next.phase===2 || next.phase===4) && next.phase!==prev.phase && (m.drain||[]).length) setTimeout(()=>drainMana(next), 0);
   if(next.active===G.myId && next.phase===5 && prev.phase!==5 && next.n===prev.n) for(const c of m.bf) if(c.imp && c.c>0){ c.c--; log(`End step: a time counter comes off ${cname(c)} (${c.c} left).`); impDone(c); ch=true; }
   if(next.n===prev.n && prev.phase===0 && next.phase>0) for(const c of G.me.st.filter(x=>x.ab && x.ab.bdraw)){ const id=c.id; setTimeout(()=>{ const g=find(id); if(g && g.z==='st'){ G.me.st.splice(g.i,1); log(`The upkeep ends, so ${cdata(c).n.replace(/: delayed trigger$/,'')}'s delayed trigger resolves.`); draw(1); changed(); } }, 0); }
@@ -1612,7 +1614,13 @@ function grantedPwAbils(c){ if(!isPW(c) || !G.me.bf.includes(c)) return []; cons
   return out; }
 /* life gained this turn (Ocelot Pride, Haliya): any rise of my life total between renders counts */
 const gainedThisTurn = () => (G.me.gain && G.me.gain.n===G.turn.n) ? G.me.gain.amt : 0;
-function trackGain(){ const m=G.me; if(m.lastLife==null){ m.lastLife=m.life; return; } if(m.life>m.lastLife && G.turn.n){ if(!m.gain || m.gain.n!==G.turn.n) m.gain={n:G.turn.n, amt:0}; m.gain.amt+=m.life-m.lastLife; } m.lastLife=m.life; }
+function trackGain(){ const m=G.me; if(m.lastLife==null){ m.lastLife=m.life; return; } if(m.life>m.lastLife && G.turn.n){ const first=!m.gain || m.gain.n!==G.turn.n || !m.gain.amt; if(!m.gain || m.gain.n!==G.turn.n) m.gain={n:G.turn.n, amt:0}; const d=m.life-m.lastLife; m.gain.amt+=d; if(gainTrigs(d, first)) setTimeout(changed, 0); } m.lastLife=m.life; }
+/* "At the beginning of your first main phase, …" (Static Prison): once per turn */
+function main1Trigs(){ const m=G.me; if(m.m1T===G.turn.n) return false; m.m1T=G.turn.n; return phaseTrigs('main1', true); }
+/* "Whenever you gain life, …" (Ajani Resolute, Ajani's Pridemate) and "… for the first time each turn": one trigger per life-gain event, on the stack */
+function gainTrigs(amt, first){ const out=[];
+  for(const x of trigSrcs()) for(const l of trigLines(x)){ const r=l.match(/^Whenever you gain life( for the first time (?:each|during each of your) turns?)?, (.+)$/i); if(!r || (r[1] && !first)) continue; out.push(trigPush(x, r[2].replace(/\bthat much\b/i, String(amt)))); }
+  if(out.length) log(`${G.me.name} gained ${amt} life: ${out.join(', ')} trigger${out.length>1?'s go':' goes'} on the stack.`); return out.length>0; }
 /* ascend: ten or more permanents and a permanent with ascend → the city's blessing for the rest of the game */
 function checkCity(){ const m=G.me; if(m.city || m.bf.length<10) return false; if(!m.bf.some(x=>!x.fd && (x.k||x.cu) && /(?:^|\n)Ascend\b/.test(frontText(x)||''))) return false; m.city=true; log(`${m.name} controls ${m.bf.length} permanents and gets the city's blessing for the rest of the game.`); return true; }
 /* creature tokens from card text: "create two 1/1 red Warrior creature tokens [that are tapped and attacking] [with flying]" */
@@ -1622,11 +1630,11 @@ function makeCreatureTokens(n, p, t, words, opts, by){ const ws=words.split(/\s+
   log(`${by}: ${G.me.name} creates ${n===1?'a':n} ${p}/${t} ${words} creature token${n===1?'':'s'}${opts.tapatk?' that '+(n===1?'is':'are')+' tapped and attacking':''}.`);
   for(const tk of made) entered(tk); changed(); tokenArt(made, opts.src, types, `${p}/${t}`, cl); return made; }
 /* "Whenever [this creature or] another creature [or artifact] you control enters, …" (Guide of Souls, Haliya) */
-function othersEnter(c){ const out=[], cr=isCreature(c), art=/\bArtifact\b/.test(faceType(c)); if(!cr && !art) return out;
+function othersEnter(c){ const out=[], cr=isCreature(c), art=/\bArtifact\b/.test(faceType(c)), pw=isPW(c); if(!cr && !art && !pw) return out;
   for(const x of G.me.bf){ if(x.fd || (!x.k && !x.cu)) continue; const nm=faceName(x,0), sn=nm.split(',')[0];
-    const m=(frontText(x)||'').match(new RegExp('Whenever (?:(this creature|'+escRe(nm)+'|'+escRe(sn)+') or )?another (nontoken creature|creature or artifact|creature|artifact) you control enters(?: the battlefield)?, ([^\\n]+)','i'))
+    const m=(frontText(x)||'').match(new RegExp('Whenever (?:(this creature|'+escRe(nm)+'|'+escRe(sn)+') or )?another (nontoken creature|creature or artifact|creature or planeswalker|creature|artifact) you control enters(?: the battlefield)?, ([^\\n]+)','i'))
       || (x.id!==c.id && (frontText(x)||'').match(/Whenever an? ()(nontoken artifact|nontoken creature|creature or artifact|artifact|creature) you control enters(?: the battlefield)?, ([^\n]+)/i)); if(!m) continue;
-    const self=x.id===c.id; if(self && !m[1]) continue; if(!self && !((/creature/i.test(m[2]) && cr) || (/artifact/i.test(m[2]) && art))) continue; if(/nontoken/i.test(m[2]) && c.tok) continue;
+    const self=x.id===c.id; if(self && !m[1]) continue; if(!self && !((/creature/i.test(m[2]) && cr) || (/artifact/i.test(m[2]) && art) || (/planeswalker/i.test(m[2]) && pw))) continue; if(/nontoken/i.test(m[2]) && c.tok) continue;
     out.push(()=>{ const d=cdata(x); G.me.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:x.id, tr:true}, cu:{n:`${sn}: trigger`, t:'Triggered ability', o:m[0], img:d.img||''}})); }); }
   return out; }
 /* "Whenever you attack, …" (once per combat; Guide of Souls asks for energy only when there is enough) and delayed "whenever you attack this turn" (Dalkovan Encampment) */
@@ -1954,7 +1962,7 @@ function etbTrigs(c){ for(const l of etbLines(c)){ const d=cdata(c), nm=d.n.spli
     else if(needsTarget(l)){ G.mode={type:'arrow', from:mkr.id}; toast(`${nm}: click its target (Esc for none).`); } } }
 /* a target named only in a reflexive follow-up ("When you discard one or more nonland cards this way, tap up to that many target creatures") is chosen later, by that trigger */
 const needsTarget = t => /\btarget\b/i.test(String(t||'').split(/(?:^|\.\s+)When you [^,]+? this way,/i)[0]);
-const PHASE_RE={upkeep:/^At the beginning of (?:your upkeep|each upkeep|each player's upkeep), (.+)$/i, combat:/^At the beginning of (?:combat on your turn|each combat), (.+)$/i, end:/^At the beginning of (?:your end step|each end step|the end step), (.+)$/i, endEach:/^At the beginning of (?:each end step|the end step), (.+)$/i};
+const PHASE_RE={main1:/^At the beginning of (?:your first main phase|your precombat main phase|the first main phase of your turn), (.+)$/i, upkeep:/^At the beginning of (?:your upkeep|each upkeep|each player's upkeep), (.+)$/i, combat:/^At the beginning of (?:combat on your turn|each combat), (.+)$/i, end:/^At the beginning of (?:your end step|each end step|the end step), (.+)$/i, endEach:/^At the beginning of (?:each end step|the end step), (.+)$/i};
 function phaseTrigs(kind, mineTurn){ const re = kind==='end' && !mineTurn ? PHASE_RE.endEach : PHASE_RE[kind], out=[], rem=[];
   for(const c of G.me.bf){ if(c.fd || (!c.k && !c.cu)) continue; const d=cdata(c), nm=d.n.split(',')[0];
     for(const l of (frontText(c)||'').split('\n').map(x=>x.trim())){ const m=l.match(re); if(!m || /time counter|lore counter|return this card from your graveyard/i.test(l)) continue;
@@ -1971,7 +1979,7 @@ function phaseTrigs(kind, mineTurn){ const re = kind==='end' && !mineTurn ? PHAS
     for(const l of (frontText(c)||'').split('\n').map(x=>x.trim())){ const m=l.match(re); if(!m || !/return this card from your graveyard/i.test(m[1])) continue; const dc=m[1].match(/^if (\w+) or more creatures died this turn, (.+)$/i);
       if(dc){ const need=NUMW[dc[1].toLowerCase()]||+dc[1]||2, k=(G.died && G.died.n===G.turn.n) ? G.died.k : 0; if(k<need) continue; }
       G.me.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:c.id, ph:kind}, cu:{n:`${nm}: trigger`, t:'Triggered ability', o:(dc?dc[2]:m[1]).replace(/^([a-z])/, x=>x.toUpperCase()), img:d.img||''}})); out.push(nm+' (from the graveyard)'); } }
-  const when={upkeep:'Upkeep', combat:'Beginning of combat', end:'End step'}[kind];
+  const when={upkeep:'Upkeep', combat:'Beginning of combat', end:'End step', main1:'First main phase'}[kind];
   if(out.length) log(`${when}: ${out.join(', ')}'s trigger${out.length>1?'s go':' goes'} on ${G.me.name}'s stack.`);
   if(rem.length) log(`${when}: check ${rem.join(', ')} (its trigger has a condition).`);
   return out.length>0; }
@@ -2002,7 +2010,7 @@ const cardColors = c => { const d=cdata(c); if(!c.fd && !isLand(c)){ const pid=G
 const allColorsBy = pid => { for(const x of sideOf(pid).bf||[]){ if(!x.fd && (x.k||x.cu) && /Each nonland permanent you control is all colors/i.test(frontText(x)||'')) return cdata(x).n; } return null; };
 /* keywords a creature gets from its controller's permanents: Scion of Draco ("Each creature you control has vigilance if it's white, hexproof if it's blue, …")
    and plain anthems ("Creatures you control have flying", "Other creatures you control have …") → [{k, src}] */
-function grantedKw(c, pid){ if(c.fd || !isCreature(c) || !pid) return []; const out=[], cols=cardColors(c);
+function grantedKw(c, pid){ if(c.fd || !pid) return []; if(!isCreature(c)) return (c.tkw && c.tkw.n===G.turn.n) ? c.tkw.k.map(k=>({k, src:'until end of turn'})) : []; const out=[], cols=cardColors(c);
   if(c.tkw && c.tkw.n===G.turn.n) for(const k of c.tkw.k) out.push({k, src:'until end of turn'});   // "<this creature> gains flying until end of turn"
   for(const bf of [G.me.bf, (G.opp&&G.opp.bf)||[]]) for(const x of bf){ if(x.att!==c.id || x.fd || (!x.k && !x.cu)) continue; const src=cdata(x).n.split(',')[0];   // "Equipped creature gets +1/+1 and has trample and haste."
     for(const m of (frontText(x)||'').matchAll(/(?:^|\n)(?:Equipped|Enchanted) creature (?:gets [^.\n]*? and )?has ([^.\n"]+)\./gi)) for(const it of m[1].split(/,\s*(?:and\s+)?|\s+and\s+/)){ const k=it.trim().toLowerCase(); if(KW.includes(k) && !out.some(o=>o.k===k)) out.push({k, src}); } }
@@ -2502,6 +2510,9 @@ async function simpleEffects(c, text, srcId){
       log(`${by}: ${m.name} exiles the top ${got.length} cards: ${got.join(', ')}. The instants and sorceries among them may be cast this turn without paying their mana costs.`); changed(); continue; }
     if(/^you may cast (?:instant and sorcery|instant|sorcery) spells from among them this turn without paying their mana costs\.?$/i.test(sen)) continue;
     // Chandra, Chill of Compliance +1: "If you put a noncreature, nonland card into your graveyard this way, put that card into your hand."
+    // Enlightened Confidant
+    if(/^if you put a card with mana value less than or equal to the amount of life you gained this turn into your graveyard this way, put that card into your hand\.?$/i.test(sen)){ const g=gainedThisTurn(), got=(G.lastSurv||[]).map(i=>find(i)).filter(f=>f && f.z==='gy' && manaValue(f.c)<=g);
+      for(const f of got){ move(f.c.id,'hand',{silent:true}); log(`${by}: ${cname(f.c)} has mana value ${manaValue(f.c)}, no more than the ${g} life gained this turn, so ${m.name} puts it into their hand.`); } if(!got.length) log(`${by}: no card with mana value ${g} or less went to the graveyard.`); changed(); continue; }
     if(/^if you put a noncreature, nonland card into your graveyard this way, put that card into your hand\.?$/i.test(sen)){ const got=(G.lastSurv||[]).map(i=>find(i)).filter(f=>f && f.z==='gy' && !isCreature(f.c) && !isLand(f.c)); for(const f of got){ move(f.c.id,'hand',{silent:true}); log(`${by}: ${m.name} puts ${cname(f.c)} into their hand.`); } if(!got.length) log(`${by}: no noncreature, nonland card went to the graveyard.`); changed(); continue; }
     // Kaito's 0: "Then draw a card for each opponent who lost life this turn."
     if(/^then draw a card for each opponent who lost life this turn\.?$/i.test(sen)){ if(G.oppLost===G.turn.n) draw(1); else log(`${by}: ${G.opp?G.opp.name:'the opponent'} hasn't lost life this turn, so no card is drawn.`); changed(); continue; }
@@ -2737,8 +2748,8 @@ async function simpleEffects(c, text, srcId){
         let n=0; for(const x of xs) if(prepSpell(x)){ x.prep=true; n++; } log(`${by}: ${n ? n+' creature'+(n>1?'s become':' becomes')+' prepared' : 'no creature that can be prepared'}.`); changed(); continue; }
       if((r=sen.match(/^put (a|an|one|two|three|\d+) \+1\/\+1 counters? on (?:up to one )?(?:another )?target creature(?: you control)?\.?$/i))){ const k=NUMW2[r[1].toLowerCase()]||+r[1]||1, ts=tg.filter(cre).slice(0,1);
         if(!ts.length){ log(`${by}: no creature was chosen, so no counter is put on.`); itT=[]; continue; } for(const t of ts) modTarget(t, {ctr:k}, by); itT=ts; changed(); continue; }
-      if((r=sen.match(/^(?:up to one )?(?:another )?target (?:tapped |attacking |blocking |attacking or blocking )?creature(?: you control| an opponent controls| you don't control)? ((?:gets|gains) .+)$/i)) || (itT.length && (r=sen.match(/^(?:it|that creature) ((?:gets|gains) .+)$/i)))){
-        const o=modPred(r[1]); if(o){ const ts=/^(?:it|that creature)\b/i.test(sen) ? itT : tg.filter(cre).slice(0,1); if(!ts.length){ log(`${by}: no creature was chosen.`); continue; } for(const t of ts) modTarget(t, o, by); itT=ts; changed(); continue; } }
+      if((r=sen.match(/^(?:up to one )?(?:another )?target (?:tapped |attacking |blocking |attacking or blocking )?creature(?: or planeswalker)?(?: you control| an opponent controls| you don't control)? ((?:gets|gains) .+)$/i)) || (itT.length && (r=sen.match(/^(?:it|that creature) ((?:gets|gains) .+)$/i)))){
+        const o=modPred(r[1]); if(o){ const ts=/^(?:it|that creature)\b/i.test(sen) ? itT : tg.filter(x=>cre(x) || (/ or planeswalker/i.test(sen) && (a=>a && a.z==='bf' && isPW(a.c))(findAny(x)))).slice(0,1); if(!ts.length){ log(`${by}: no creature was chosen.`); continue; } for(const t of ts) modTarget(t, o, by); itT=ts; changed(); continue; } }
       if((r=sen.match(/^tap (?:up to one )?target (artifact or creature|creature|permanent|artifact|land|nonland permanent)(?: an opponent controls| you don't control)?\.?$/i))){ const ts=fitTargets(tg, r[1]).filter(x=>{ const a=findAny(x); return a && a.z==='bf'; }).slice(0,1);
         if(!ts.length){ log(`${by}: nothing was chosen, so nothing is tapped.`); itT=[]; continue; } for(const t of ts) modTarget(t, {tap:true}, by); itT=ts; changed(); continue; }
       if(itT.length && (r=sen.match(/^put (a|an|one|two|three|\d+|X) stun counters? on (?:it|that creature|that permanent)\.?$/i))){ const k=/^x$/i.test(r[1]) ? (c.x!=null?c.x:(c.ab&&c.ab.x)||0) : (NUMW2[r[1].toLowerCase()]||+r[1]||1);
@@ -2787,11 +2798,15 @@ async function simpleEffects(c, text, srcId){
     if((r=sen.match(/^(?:when you do, )?put (a|an|one|two|three|\d+) \+1\/\+1 counters?(?: and an? ([a-z ]+?) counter)? on target attacking creature\.?$/i))){ if(!sacPow) continue; const cs=m.bf.filter(x=>x.atk && isCreature(x)); if(!cs.length){ log(`${by}: no attacking creature.`); continue; } waited=true; const pk = cs.length===1 ? cs[0] : await pickP(`${by}: choose the attacking creature`, cs, 'None');
       if(pk && find(pk.id)){ const k=NUMW2[r[1].toLowerCase()]||+r[1]||1; pk.c=(pk.c||0)+k; if(r[2] && KW.includes(r[2].toLowerCase()) && !(pk.kw||[]).includes(r[2].toLowerCase())) pk.kw=[...(pk.kw||[]), r[2].toLowerCase()]; log(`${by}: ${cname(pk)} gets ${k} +1/+1 counter${k>1?'s':''}${r[2]?' and a '+r[2]+' counter':''}.`); changed(); } continue; }
     if(/^it becomes an? [A-Z][a-z]+ in addition to its other types\.?$/i.test(sen)) continue;
+    let tokName=null; { const nq=sen.match(/^([Cc]reate .+? creature tokens?) named ([A-Z][A-Za-z'’ -]+?)( with .+|\.?)$/); if(nq){ tokName=nq[2]; sen=nq[1]+nq[3]; } }
     if((r=sen.match(/^create (a|an|one|two|three|four|five|six|seven|eight|nine|ten|X|\d+) (tapped and attacking |tapped )?(\d+)\/(\d+) ([a-z ]+?) (artifact )?creature tokens?( that are tapped and attacking)?(?: with ([a-z ,]+? and "[^"]+"|[a-z ,]+?|"[^"]+"|'[^']+'))?\.?$/i))){ if(r[8] && /" *$/.test(r[8]) && !/^"/.test(r[8])) r[8]=r[8].replace(/^([a-z ,]+?) and "([^"]+)"$/i, (z,a,b)=>a+'\n'+b);
-      const n=r[1].toUpperCase()==='X' ? (c.x||0) : (NUMW2[r[1].toLowerCase()]||+r[1]||1); made=makeCreatureTokens(n, r[3], r[4], r[5], {tapatk:!!((r[2] && /attacking/i.test(r[2]))||r[7]), tapped:!!(r[2] && !/attacking/i.test(r[2])), art:!!r[6], kw:r[8] ? r[8].replace(/^["']|["']$/g,'').replace(/^([a-z])/, x=>x.toUpperCase()) : '', src:srcCard(srcId)||srcCard(c.id)}, by); continue; }
+      const n=r[1].toUpperCase()==='X' ? (c.x||0) : (NUMW2[r[1].toLowerCase()]||+r[1]||1); made=makeCreatureTokens(n, r[3], r[4], r[5], {tapatk:!!((r[2] && /attacking/i.test(r[2]))||r[7]), tapped:!!(r[2] && !/attacking/i.test(r[2])), art:!!r[6], kw:r[8] ? r[8].replace(/^["']|["']$/g,'').replace(/^([a-z])/, x=>x.toUpperCase()) : '', src:srcCard(srcId)||srcCard(c.id)}, by); if(tokName){ for(const tk of made){ tk.cu.n=tokName; } log(`${by}: the token is named ${tokName}.`); changed(); } continue; }
     if((r=sen.match(/^create an? (colorless |white |blue |black |red |green )?(artifact )?token named ([A-Z][A-Za-z' -]+?) with ["“]([^"”]+)["”]\.?$/i))){ const tk=mk(null,{tok:true, cu:{n:r[3], t:'Token '+(r[2]?'Artifact':'Enchantment')+' — '+r[3], o:r[4], img:''}}); tk.tokT=G.turn.n; m.bf.push(tk); made=[tk]; setTimeout(()=>{ entered(tk); changed(); }, 0);
       log(`${by}: ${m.name} creates a ${(r[1]||'').trim()} ${r[2]?'artifact ':''}token named ${r[3]}.`.replace('  ',' ')); changed(); continue; }
     if((r=sen.match(/^(?:it|this creature|[A-Z][A-Za-z']+(?:, [A-Za-z ]+)?) deals (\d+) damage to you\.?$/i))){ dealDamage(G.myId, +r[1], by); continue; }
+    if((r=sen.match(/^sacrifice (?:this (?:enchantment|artifact|creature|permanent)|it) unless you pay ((?:\{E\})+)\.?$/i)) && srcC){ const k=(r[1].match(/\{E\}/g)||[]).length, have=m.ctr.energy||0, g=find(srcC.id); if(!g || g.z!=='bf') continue; waited=true;
+      const pay = have>=k && await yesNo(by, `Pay ${'{E}'.repeat(k)} to keep ${cdata(srcC).n}? You have ${have} energy.`, `Pay ${k} energy`, 'Sacrifice it');
+      if(pay){ m.ctr.energy=have-k; log(`${by}: ${m.name} pays ${k} energy to keep ${cname(srcC)} (${m.ctr.energy} left).`); } else { log(`${by}: ${m.name} ${have<k?`has only ${have} energy, so `:''}sacrifices ${cname(srcC)}.`); move(srcC.id,'gy',{silent:true}); } changed(); continue; }
     if(/^sacrifice (?:them|it|those tokens) at the beginning of the next end step\.?$/i.test(sen)){ for(const tk of made){ tk.sacEnd=1; tk.sacBy=String(by).split(":")[0]; } continue; }
     if((r=String(text).match(/^(?:[^\n]*?)Whenever you attack this turn, ([\s\S]+)$/i)) && /^whenever you attack this turn,/i.test(sen)){ (m.wya=(m.wya||[]).filter(e=>e.n===G.turn.n)).push({n:G.turn.n, src:by, txt:r[1].trim()}); log(`${by}: the next time ${m.name} attacks this turn, ${r[1].trim().replace(/\.$/,'')}.`); break; }
     if((r=sen.match(/^then if you have the city's blessing, for each token you control that entered (?:the battlefield )?this turn, create a token that's a copy of it\.?$/i))){ if(!m.city) continue; const ts=m.bf.filter(x=>x.tok && x.tokT===G.turn.n); const cps=[]; for(const x of ts){ const tk=mk(null,{tok:true, cu:Object.assign({}, x.cu||{}), k:x.k}); tk.tokT=G.turn.n; tk.sick=true; m.bf.push(tk); cps.push(tk); } for(const tk of cps) entered(tk); log(`${by}: city's blessing, ${m.name} copies ${ts.length} token${ts.length===1?'':'s'} that entered this turn.`); changed(); continue; }
@@ -3150,13 +3165,14 @@ async function simpleEffects(c, text, srcId){
     if((r=sen.match(/^destroy (?:all|each) (.+?)(?: with mana value (?:(X|\d+) or less|less than or equal to the amount of \{E\} paid this way))?\.?$/i))){ const d=r[1].replace(/s\b/g,'').replace(/,? and /g,', or '), mv=/amount of \{E\}/i.test(sen) ? (sacPow||0) : r[2]==null ? null : r[2].toUpperCase()==='X' ? (c.x||0) : +r[2]; const oc=((G.opp&&G.opp.bf)||[]).filter(x=>!x.fd && matchesDesc(x, d) && (mv==null || manaValue(x)<=mv) && !indestr(x)).length; G.lastWipe=wipe(d, mv, by)+oc; if(G.opp) send({t:'wipe', desc:d, mv, by, who:m.name}); continue; }
     if((r=sen.match(/^(?:you may )?exile target (.+?) until (?:this \w+|[^.]+?) leaves the battlefield\.?$/i))){ const t=fitTargets(tg, r[1])[0]; if(!t){ log(`${by}: no target was chosen.`); continue; } const by2={id:srcId||c.id, pid:G.myId, n:(srcC?cdata(srcC).n:by), mode:'hold'};
       if(find(t)){ const nm2=cname(find(t).c); move(t,'ex',{silent:true}); const g=find(t); if(g) g.c.by=by2; log(`${by} exiles ${nm2} until ${by2.n} leaves the battlefield.`); } else send({t:'exhold', id:t, by:by2, who:m.name}); continue; }
-    if((r=sen.match(/^put (a|an|one|two|three|\d+) \+1\/\+1 counters? on (?:this creature|it|this permanent|this vehicle|this artifact|this enchantment|this land)\.?$/i)) || (nm && (r=sen.match(new RegExp('^put (a|an|one|two|three|\\d+) \\+1\\/\\+1 counters? on (?:'+escRe(nm.split(',')[0])+'|'+escRe(nm.split(/[ ,]/)[0])+')\\.?$','i'))))){ const f0=srcId && find(srcId); if(f0 && f0.z==='bf'){ const k=NUMW2[r[1].toLowerCase()]||+r[1]||1; f0.c.c=(f0.c.c||0)+k; log(`${by}: ${k} +1/+1 counter${k>1?'s':''} on ${cname(f0.c)}.`); changed(); } continue; }
+    if((r=sen.match(/^put (a|an|one|two|three|\d+) (\+1\/\+1|loyalty) counters? on (?:this creature|it|this permanent|this vehicle|this artifact|this enchantment|this land|this token|this planeswalker)\.?$/i)) || (nm && (r=sen.match(new RegExp('^put (a|an|one|two|three|\\d+) (\\+1\\/\\+1|loyalty) counters? on (?:'+escRe(nm.split(',')[0])+'|'+escRe(nm.split(/[ ,]/)[0])+')\\.?$','i'))))){ const f0=srcId && find(srcId); if(f0 && f0.z==='bf'){ const k=NUMW2[r[1].toLowerCase()]||+r[1]||1; f0.c.c=(f0.c.c||0)+k; log(`${by}: ${k} ${r[2]} counter${k>1?'s':''} on ${cname(f0.c)}${/loyalty/i.test(r[2]) ? ` (loyalty ${f0.c.c})` : ''}.`); changed(); } continue; }
     if((r=sen.match(/^discard a card\.?$/i))){ sacPow=null; if(!m.hand.length){ log(`${by}: ${m.name} has no card to discard.`); continue; } waited=true; const pk=await pickP(`${by}: discard a card`, m.hand.slice(), 'No card'); if(pk && find(pk.id) && find(pk.id).z==='hand'){ await discard([pk.id]); sacPow=1; } continue; }
     if((r=sen.match(/^if you do, draw (a|one|two) cards?\.?$/i))){ if(sacPow) draw(NUMW2[r[1].toLowerCase()]||1); continue; }
     if((r=sen.match(/^(?:then )?amass ([A-Z][a-z]+) (\d+|X)\.?$/i))){ amass(r[1], r[2].toUpperCase()==='X' ? (c.x||0) : +r[2], by, srcCard(srcId)||srcCard(c.id)); continue; }
     if((r=sen.match(/^create a Treasure token and exile the top card of that player's library\.?$/i))){ makeTokens('Treasure', 1, by, srcCard(srcId)||srcCard(c.id)); if(G.opp) send({t:'ragavan', by, who:m.name}); continue; }
     if(nm && new RegExp('^double (?:this creature|it|'+escRe(nm)+'|'+escRe(nm.split(',')[0])+')(?:\'s|’s)? power until end of turn\.?$','i').test(sen)){ const f0=srcId && find(srcId); if(f0 && f0.z==='bf'){ const p=powerOf(f0.c); boost(f0.c, p, 0); log(`${by}: ${cname(f0.c)}'s power doubles to ${powerOf(f0.c)} until end of turn.`); changed(); } continue; }
     if((r=sen.match(/^empower Jace (\d+)\.?$/i))){ empowerJace(+r[1], srcC); changed(); continue; }
+    if((r=sen.match(/^empower Jace X, where X is (.+?)\.?$/i))){ const x=xValue(r[1], srcC); if(x>0){ empowerJace(x, srcC); log(`${by}: X is ${x} (${r[1]}).`); } else log(`${by}: X is 0, so Jace isn't empowered.`); changed(); continue; }   // Repurposed Enforcer
     if((r=sen.match(/^put a \+1\/\+1 counter on target creature for each (.+?)\.?$/i))){ const k=countPhrase(r[1].replace(/^land /,'lands '), G.myId, srcId) ?? 0, t=tg.find(x=>{ const a=findAny(x); return a && a.z==='bf' && isCreature(a.c); });
       if(!t){ log(`${by}: no creature was chosen.`); continue; } if(find(t)){ find(t).c.c=(find(t).c.c||0)+k; log(`${by}: ${k} +1/+1 counter${k===1?'':'s'} on ${cname(find(t).c)}.`); changed(); } else log(`${by}: put ${k} +1/+1 counters on ${G.opp?G.opp.name:'the opponent'}'s ${cname(findAny(t).c)} (they add them).`); continue; }
     if((r=sen.match(/^your opponents can't cast (noncreature )?spells this turn\.?$/i))){ if(G.opp) send({t:'lock', nc:!!r[1], by}); log(`${by}: ${G.opp?G.opp.name:'the opponent'} can't cast ${r[1]?'noncreature ':''}spells this turn.`); continue; }
@@ -3963,7 +3979,7 @@ function gyTypes(gy){
 }
 /* creatures whose power/toughness depends on the game: "*" in the printed P/T ("power is equal to the number of …", Tarmogoyf, Nethergoyf, Cosmogoyf)
    and "gets +1/+1 for each artifact you control" on the creature itself or on Equipment attached to it (Construct tokens, Cranial Plating) */
-const sideOf = pid => pid===G.myId ? {bf:G.me.bf, gy:G.me.gy, ex:G.me.ex, hand:G.me.hand.length} : G.opp ? {bf:G.opp.bf||[], gy:G.opp.gy||[], ex:G.opp.ex||[], hand:G.opp.handN||0} : {bf:[], gy:[], ex:[], hand:0};
+const sideOf = pid => pid===G.myId ? {bf:G.me.bf, gy:G.me.gy, ex:G.me.ex, hand:G.me.hand.length, emb:G.me.emb||[]} : G.opp ? {bf:G.opp.bf||[], gy:G.opp.gy||[], ex:G.opp.ex||[], hand:G.opp.handN||0, emb:G.opp.emb||[]} : {bf:[], gy:[], ex:[], hand:0};
 const TYPEW={artifact:'Artifact',artifacts:'Artifact',creature:'Creature',creatures:'Creature',land:'Land',lands:'Land',enchantment:'Enchantment',enchantments:'Enchantment',planeswalker:'Planeswalker',planeswalkers:'Planeswalker',instant:'Instant',instants:'Instant',sorcery:'Sorcery',sorceries:'Sorcery',permanent:'',permanents:''};
 const hasTypes = (c, words) => { const t=faceType(c); return words.some(w=>!TYPEW[w] || new RegExp('\\b'+TYPEW[w]+'\\b').test(t)); };
 /* cost reducers on the card itself: "This spell costs {N} less to cast for each …" (Obsidian Charmaw, Scion of Draco, Tolarian Terror) and affinity.
@@ -4123,7 +4139,8 @@ function dynPT(c, pid){
       for(const g of ox.matchAll(/(?:^|\n)(Other )?[Cc]reatures you control get ([+\-−]\d+)\/([+\-−]\d+)\./g)) if(!(g[1] && x.id===c.id)) add(x, g[2], g[3]);
       for(const g of ox.matchAll(/(?:^|\n)(Other )?([A-Z][a-z]+)s you control get ([+\-−]\d+)\/([+\-−]\d+)\./g)){ if(/^Creature$/.test(g[2]) || (g[1] && x.id===c.id)) continue; if(new RegExp('\\b'+g[2]+'\\b').test(st)) add(x, g[3], g[4]); }
       for(const g of ox.matchAll(/(?:^|\n)Each other creature you control that's an? ([^.]+?) gets ([+\-−]\d+)\/([+\-−]\d+)/g)){ if(x.id===c.id) continue; const ts=g[1].split(/,\s*(?:or\s+)?|\s+or\s+/).map(z=>z.replace(/^an? /,'').trim()).filter(Boolean); if(ts.some(z=>new RegExp('\\b'+escRe(z)+'\\b').test(st))) add(x, g[2], g[3]); } }
-    for(const x of sideOf(pid===G.myId ? oppId() : G.myId).bf||[]){ if(x.fd || (!x.k && !x.cu)) continue; for(const g of noRemind(x).matchAll(/(?:^|\n)Creatures your opponents control get ([+\-−]\d+)\/([+\-−]\d+)\./g)) add(x, g[1], g[2]); } }
+    for(const x of sideOf(pid===G.myId ? oppId() : G.myId).bf||[]){ if(x.fd || (!x.k && !x.cu)) continue; for(const g of noRemind(x).matchAll(/(?:^|\n)Creatures your opponents control get ([+\-−]\d+)\/([+\-−]\d+)\./g)) add(x, g[1], g[2]); }
+    for(const e of (sideOf(pid).emb||[])) for(const g of String(e.o||'').matchAll(/(?:^|\n)[Cc]reatures you control get ([+\-−]\d+)\/([+\-−]\d+)\./g)){ gp+=v(g[1]); gt+=v(g[2]); dyn=true; why.push(`${e.src} emblem: ${g[1]}/${g[2]}`); } }   // Ajani Resolute's −10
   if(!dyn && !c.tp && !c.tt && !c.eb) return null;
   if(c.eb && !dyn && !c.tp && !c.tt) return {p:0, t:0, printed:true, why:'earthbent land: 0/0 (counters shown separately)'};   // its printed-style box; counters stay on their own badge   // counters alone show only their badge; text-driven P/T and boosts get the box
   const val=x=>{ x=String(x||'').trim(); if(/\*/.test(x)){ if(n==null) return null; return x.split('+').reduce((a,p)=>a+(p.trim()==='*' ? n : (+p||0)),0); } return /^-?\d+$/.test(x) ? +x : null; };
@@ -4350,7 +4367,7 @@ function startMyTurn(){
   delete m.gate; const oppDue=baubDue(G.opp&&G.opp.baub, G.turn.n).length>0; baubTick(G.turn.n); const upT=phaseTrigs('upkeep', true) | rbTick(); const bHeld=oppDue || m.st.some(c=>c.ab && c.ab.bdraw), held=m.st.some(c=>c.pact) || bHeld || upT;
   const pz = G.opp && !G.solo && m.pauseReq ? m.pauseReq.at : null;
   if(S.autoDraw && !held && !pz) setTimeout(paradigmAsk, 0);
-  if(S.autoDraw && !held && pz!=='up'){ if(pz==='pre'){ G.turn.phase=1; G.turn.hold=pauseHold('pre'); } else { turnDraw(); if(pauseAt('post')){ G.turn.phase=1; G.turn.hold=pauseHold('post'); } else { G.turn.phase=2; sagaTick(G.turn.n); } } }
+  if(S.autoDraw && !held && pz!=='up'){ if(pz==='pre'){ G.turn.phase=1; G.turn.hold=pauseHold('pre'); } else { turnDraw(); if(pauseAt('post')){ G.turn.phase=1; G.turn.hold=pauseHold('post'); } else { G.turn.phase=2; sagaTick(G.turn.n); main1Trigs(); } } }
   else { G.turn.phase=0; if(pz==='up') G.turn.hold=pauseHold('up'); if(held){ const t=`${m.name}'s turn stops in the upkeep: ${m.st.some(c=>c.pact) ? 'the pact trigger must be dealt with before the draw' : bHeld ? "Mishra's Bauble's delayed draw trigger is on the stack" : 'an upkeep trigger is on the stack'}.`; addLog(t,'s'); send({t:'log', text:t}); } }
   send({t:'turn', turn:G.turn}); changed();
 }
@@ -5273,7 +5290,7 @@ function tgtSpec(c, slot){ if(!c) return null; let txt = c.ab || c.ch ? ((c.cu &
   const desc=m[3].trim(), ext=(m[4]||'').trim(), alts=desc.split(/,? (?:or|and\/or) |, /i).map(a=>a.trim().split(/\s+/)); { const NR=new RegExp(`^(?:${TGT_NOUN})$`,'i'), noun=(alts[alts.length-1]||[]).slice(-1)[0]; for(const a of alts) if(!NR.test(a[a.length-1]) && noun) a.push(noun); }   // "black or red permanent", "attacking or blocking creature"
   const ctl=/an opponent controls|you don't control|your opponents control/i.test(ext) ? 'opp' : /you control/i.test(ext) ? 'me' : '';
   const mvq=ext.match(/with mana value (\d+) or (less|greater)/i), pwq=ext.match(/with power (\d+) or (less|greater)/i);
-  const spec={alts, ctl, other:!!m[2], upto:!!m[1], src:c, slot, distinct: slot>0 && (!!m[2] || /\b(?:another|other|second|third|fourth|different) $/i.test(pre)), mv:mvq ? {n:+mvq[1], up:/greater/i.test(mvq[2])} : null, pw:pwq ? {n:+pwq[1], up:/greater/i.test(pwq[2])} : null, phrase:`${m[1]||''}${m[2]||''}target ${desc}${ext?' '+ext:''}`.trim()};
+  const spec={alts, ctl, other:!!m[2], upto:!!m[1], src:c, slot, distinct: slot>0 && (!!m[2] || /\b(?:another|other|second|third|fourth|different) $/i.test(pre)), mv:mvq ? {n:+mvq[1], up:/greater/i.test(mvq[2])} : null, pw:pwq ? {n:+pwq[1], up:/greater/i.test(pwq[2])} : null, phrase:`${m[1]||''}${m[2]||''}target ${desc}${ext?' '+ext:''}`.trim().replace(/^[A-Z]/, x=>x.toLowerCase())};
   // resolution-only conditions (still a legal target, it just won't be affected)
   { const a=txt.match(/\bif it has mana value (\d+) or less\b/i), rv=txt.match(/Revolt — [^.]*?mana value (\d+) or less instead if a permanent left the battlefield under your control this turn/i);
     if(a){ const rev=!!rv && G.me.leftT===G.turn.n, n=rev ? +rv[1] : +a[1]; spec.cond={mv:n, note:`it is destroyed only if its mana value is ${n} or less${rv ? (rev ? ' (revolt: a permanent of yours left the battlefield this turn)' : ` (${rv[1]} or less with revolt)`) : ''}`}; } }
