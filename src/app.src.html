@@ -190,6 +190,9 @@ textarea#paste{width:100%;min-height:300px;font-family:ui-monospace,Menlo,Consol
 .playbox>div{display:flex;gap:4px;flex:1;min-height:0;align-items:center;justify-content:center}
 .playbox .plban,.pile .plban,.pile .wrpban,.pile .nmban,.pile .ribban{display:none}.playbox .card{box-shadow:0 2px 6px #0008}
 .card.pl{box-shadow:0 0 0 2px var(--brass),0 0 14px 3px #d9b25faa}
+.plban.nsban{top:30%;background:#3b2a52e6;color:#efe3ff}.plban.nsany{top:52%;background:#1d4a2ce6;color:#dcffe6;font-size:calc(var(--cw)*.07)}
+.hnbox{flex:0 0 auto;align-self:center;width:calc(var(--cw)*1.05);height:calc(var(--ch)*.8);margin-left:10px;border:2px dashed var(--brass);border-radius:8px;display:flex;align-items:center;justify-content:center;text-align:center;font:800 10px/1.3 var(--ui);letter-spacing:.06em;color:var(--brass);padding:6px;background:#0006}
+.card.phz{filter:grayscale(1) brightness(.55);opacity:.7}.card.phz>.phban{position:absolute;left:0;right:0;top:44%;text-align:center;font:800 calc(var(--cw)*.1) var(--ui);letter-spacing:.1em;color:#e8e8e8;background:#000a;padding:2px 0;filter:none;z-index:3}
 .plban{position:absolute;left:0;right:0;top:44%;text-align:center;font:800 calc(var(--cw)*.095) var(--ui);letter-spacing:.08em;color:var(--brass);background:#000c;border-top:1px solid var(--brass);border-bottom:1px solid var(--brass);padding:2px 0;pointer-events:none}
 .mdlist{display:flex;flex-direction:column;gap:6px;max-width:580px}
 .mdlist button{display:flex;gap:10px;align-items:flex-start;text-align:left;padding:10px 12px;background:#12262b;white-space:normal;line-height:1.35}
@@ -482,10 +485,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.18';
+const VERSION = 'v4.19';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.19','Oct 23',"Card fixes from Ben's notes. Chef's Kiss takes the spell, copies it and picks new targets at random for both (never you or your permanents). Out of Time phases out every creature (they turn grey and wait, counters and Equipment and all) and phases them back in when it leaves; its time counters come off each upkeep. String of Disappearances opens the pay window for {U}{U}, and the offer goes to whoever controls the bounced creature. Summon: Brynhildr counts lore counters, keeps its exiled card playable on your turns while it's out, and shows a box when your next creature spell will gain haste. Forecast cards (Piercing Rays) can be used from your hand in your upkeep, and the pause button can stop your own next turn in your upkeep. Graveyards show THRESHOLD when a deck cares, and a card Null Summoner exiles says so (and when it can be cast with mana of any type). Warrior's Blades asks where to equip first, then charges {1} less for each +1/+1 counter on that creature."],
   ['v4.18','Oct 23',"Ketramose now sees its own exile: when Phelia, Flickerwisp or a removal spell exiles it during your turn, you still draw a card and lose 1 life."],
   ['v4.17','Oct 23',"Practice games now have an opponent called Practice, at 20 life, so you can see combat damage and burn land. The Practice button in the middle can give it creatures (with flying, reach, deathtouch and so on), a planeswalker, an artifact, an enchantment or a land, or put a battle on your side to attack; you declare its blocks. Attack with all chooses every creature that can attack, and Reset attackers starts over. Phelia and Flickerwisp keep asking for their target until you click one or press No target. An Overlord cast for its impending cost no longer counts as a creature entering (Guide of Souls)."],
   ['v4.16','Oct 23',"The last of the draft sets' odd cards: Zodiark, Kindred Judgment and Patriarch's Bidding (you pick the creature type), Villainous Wealth, Gix and Lonis (your opponent's top cards come over to you), Collected Conjuring, Mizzix's Mastery, Uldaros and Garth One-Eye (free casts and copies), Howl of the Horde, Memories Returning (you and your opponent take turns), Sorin's and Garruk's 'until your next turn' effects, Clash of Elements, Stiltzkin, Sin, Glimpse of Tomorrow, hideaway, abilities that cost less for each Town, spells that do more when cast from a graveyard, and many more."],
@@ -803,23 +807,23 @@ const deckText = d => d.main.map(([n,c])=>c+' '+n).join('\n') + (d.side.length ?
 
 /* ================= state ================= */
 const S = Object.assign({name:'', autoDraw:true, autoPay:true}, store.get('mt_settings', {}));
-const newPlayer = () => ({ name:S.name||'Player', deck:'', life:20, ctr:{poison:0,energy:0}, lib:[], hand:[], bf:[], gy:[], ex:[], st:[], side:[], reveal:false, arrows:[], mull:0, wins:0, roll:null, dealt:false, kept:false, mana:noMana(), energySeen:false, drew:0, cast:{n:0,is:0}, cares:null });
+const newPlayer = () => ({ name:S.name||'Player', deck:'', life:20, ctr:{poison:0,energy:0}, lib:[], hand:[], bf:[], gy:[], ex:[], st:[], side:[], ph:[], reveal:false, arrows:[], mull:0, wins:0, roll:null, dealt:false, kept:false, mana:noMana(), energySeen:false, drew:0, cast:{n:0,is:0}, cares:null });
 const G = { myId:'p1', solo:false, code:'', me:newPlayer(), opp:null, turn:{active:null, phase:2, n:0}, log:[], net:'', idc:0, peer:null, conn:null, mode:null, hover:null };
 const oppId = () => G.myId==='p1' ? 'p2' : 'p1';
 const nid = () => G.myId+'-'+(++G.idc).toString(36);
-const ZN = {lib:'library', hand:'hand', bf:'battlefield', gy:'graveyard', ex:'exile', st:'stack', side:'sideboard'};
+const ZN = {lib:'library', hand:'hand', bf:'battlefield', gy:'graveyard', ex:'exile', st:'stack', side:'sideboard', ph:'phased out'};
 const mk = (k, extra) => Object.assign({ id:nid(), k, o:G.myId, tap:false, fd:false, flip:false, c:0, att:null, atk:false }, extra);
 /* two of my cards must never share an id (a card on the stack that shared one with a graveyard card could not be resolved): the later one gets a new id */
-function dedupeIds(){ const seen=new Set(); for(const z of Object.keys(ZN)) for(const c of G.me[z]){ if(!c || !c.id) continue; if(seen.has(c.id)){ const old=c.id; c.id=nid(); console.warn('Modern Table: duplicate card id', old, 'in', z, '→', c.id); log(`Table note: two of ${G.me.name}'s cards were mixed up (${cdata(c).n||'a card'}, in the ${ZN[z]}); fixed. If you see this, please say what happened just before.`, 's'); } else seen.add(c.id); } }
+function dedupeIds(){ const seen=new Set(); for(const z of Object.keys(ZN)) for(const c of (G.me[z]||[])){ if(!c || !c.id) continue; if(seen.has(c.id)){ const old=c.id; c.id=nid(); console.warn('Modern Table: duplicate card id', old, 'in', z, '→', c.id); log(`Table note: two of ${G.me.name}'s cards were mixed up (${cdata(c).n||'a card'}, in the ${ZN[z]}); fixed. If you see this, please say what happened just before.`, 's'); } else seen.add(c.id); } }
 const ZLOG=[]; let ZSEQ=0;
-function find(id){ for(const z of Object.keys(ZN)){ const i=G.me[z].findIndex(c=>c.id===id); if(i>=0) return {c:G.me[z][i], z, i}; } return null; }
+function find(id){ for(const z of Object.keys(ZN)){ const i=(G.me[z]||(G.me[z]=[])).findIndex(c=>c.id===id); if(i>=0) return {c:G.me[z][i], z, i}; } return null; }
 function findAny(id){ const f=find(id); if(f) return Object.assign(f,{mine:true}); if(G.opp) for(const z of ['bf','gy','ex','st','hand','comp']){ const c=(G.opp[z]||[]).find(c=>c.id===id); if(c) return {c, z, mine:false}; } return null; }
 const cname = c => c.fd ? 'a face-down card' : '[['+(cdata(c).n||'a card')+'|'+(c.cu?'':c.k||'')+']]';
 
 function pub(){
   const m=G.me, p = c => c.fd ? Object.assign({}, c, {k:null, cu:null, note:''}) : c;
   return { name:m.name, deck:m.deck, life:m.life, ctr:m.ctr, libN:m.lib.length, handN:m.hand.length, sideN:m.side.length,
-    hand:(m.reveal || m.ctl) ? m.hand : null, noMax:!!m.noMax, comp:m.side.filter(c=>c.comp), compDone:!!m.compDone, deckReady:m.deckReady!==false, skipRoll:!!m.skipRoll, wonGame:m.wonGame||0, ctl:!!m.ctl, ctlNext:!!m.ctlNext, city:!!m.city, sbing:!!m.sbing, bf:m.bf.map(p), gy:m.gy, ex:m.ex.map(p), st:m.st.map(p), arrows:m.arrows, mull:m.mull, drn:m.drn||null, wins:m.wins||0, roll:m.roll||null, dealt:!!m.dealt, kept:!!m.kept, mana:m.mana||noMana(), smana:m.smana||[], energySeen:!!m.energySeen, monarch:!!m.monarch, mill:m.mill||null, nt:m.nt||null, poisonSeen:!!m.poisonSeen, poisonSrc:!!m.poisonSrc, cast:m.cast||{n:0,is:0}, cares:m.cares||null, emb:m.emb||[], gtg:m.gtg||[], baub:m.baub||[], trk:m.trk||null };
+    hand:(m.reveal || m.ctl) ? m.hand : null, noMax:!!m.noMax, comp:m.side.filter(c=>c.comp), compDone:!!m.compDone, deckReady:m.deckReady!==false, skipRoll:!!m.skipRoll, wonGame:m.wonGame||0, ctl:!!m.ctl, ctlNext:!!m.ctlNext, city:!!m.city, sbing:!!m.sbing, bf:m.bf.map(p), ph:(m.ph||[]).map(p), gy:m.gy, ex:m.ex.map(p), st:m.st.map(p), arrows:m.arrows, mull:m.mull, drn:m.drn||null, wins:m.wins||0, roll:m.roll||null, dealt:!!m.dealt, kept:!!m.kept, mana:m.mana||noMana(), smana:m.smana||[], energySeen:!!m.energySeen, monarch:!!m.monarch, mill:m.mill||null, nt:m.nt||null, hasteNext:m.hasteNext||0, poisonSeen:!!m.poisonSeen, poisonSrc:!!m.poisonSrc, cast:m.cast||{n:0,is:0}, cares:m.cares||null, emb:m.emb||[], gtg:m.gtg||[], baub:m.baub||[], trk:m.trk||null };
 }
 /* undo: a snapshot of my own side is kept before each change. Shuffles and anything that crosses to the other player close the history. */
 const UNDO=[]; let lastSnap=null, lastLogi=0;
@@ -925,7 +929,7 @@ function onMsg(m){
     if(G.hvOpen){ G.hvOpen=false; closeModal(); }
     modal(`${src}: ${who}'s hand`, `<span class="hint">${pk ? `${esc(who)} discarded ${esc(pk)}.` : `${esc(who)} chose nothing to discard.`}${rest.length ? ` ${rest.length} card${rest.length>1?'s':''} still there: ${rest.map(x=>esc(x.n)).join(', ')}. A notepad next to your hand can list them; both players can see it.` : ' Their hand is now empty.'}</span>`,
       rest.length ? [['No need to track these cards',()=>closeModal(),'ghost'], ['I would like to track these cards',()=>{ closeModal(); G.me.trk={who, pid:oppId(), src, n:G.turn.n||0, list:rest}; log(`${G.me.name} starts a notepad of ${who}'s hand (${rest.length} card${rest.length>1?'s':''}).`); changed(); },'go']] : [['OK',()=>closeModal(),'go']]); }
-  else if(m.t==='discardpick'){ const f=find(m.id); if(f && f.z==='hand'){ if(m.bot){ const nm=cname(f.c); toLibPos(m.id, 1e9); draw(1); log(`${String(m.src||'').slice(0,60)}: ${G.me.name} reveals ${nm}, puts it on the bottom of their library and draws a card.`); changed(); } else if(m.ex){ move(m.id,'ex',{silent:true}); log(`${String(m.src||'').slice(0,60)}: ${G.me.name}'s ${cname(f.c)} is exiled from their hand.`); changed(); } else discard([m.id]); } }
+  else if(m.t==='discardpick'){ const f=find(m.id); if(f && f.z==='hand'){ if(m.bot){ const nm=cname(f.c); toLibPos(m.id, 1e9); draw(1); log(`${String(m.src||'').slice(0,60)}: ${G.me.name} reveals ${nm}, puts it on the bottom of their library and draws a card.`); changed(); } else if(m.ex){ move(m.id,'ex',{silent:true}); const nb=m.nsBy; if(nb && nb.id){ const g=find(m.id); if(g) g.c.by={id:String(nb.id), pid:oppId(), n:String(nb.n||'Null Summoner').slice(0,60), mode:'play', ns:Math.max(1, Math.min(9, +nb.k||1))}; } log(`${String(m.src||'').slice(0,60)}: ${G.me.name}'s ${cname(f.c)} is exiled from their hand.`); changed(); } else discard([m.id]); } }
   else if(m.t==='peek'){ const top=G.me.lib[0]; send({t:'peektop', src:String(m.src||'').slice(0,80), card: top ? {k:top.k, cu:top.cu||null} : null}); }
   else if(m.t==='peekhand'){ const h=G.me.hand, c=h[Math.floor(Math.random()*h.length)]; send({t:'peektop', hand:1, src:String(m.src||'').slice(0,80), card: c ? {k:c.k, cu:c.cu||null} : null}); }
   else if(m.t==='peektop'){ const cd=m.card, src=String(m.src||'').slice(0,80), on=G.opp?G.opp.name:'Opponent'; if(!cd){ toast(`${on}'s ${m.hand?'hand':'library'} is empty.`); } else ensureCards(cd.k ? [cd.k] : []).then(()=>showCard({id:'peek-'+Date.now(), k:cd.k, cu:cd.cu}, m.hand ? `${src}: a random card from ${on}'s hand` : `${src}: top of ${on}'s library`)); }
@@ -949,6 +953,9 @@ function onMsg(m){
   else if(m.t==='q'){ answerQ(m.rid, m.q); }
   else if(m.t==='libtake'){ const by=`${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'effect').slice(0,60)}`, take=m.take && find(m.take); G.noUndo=true; if(take && take.z==='lib'){ const c=take.c; G.me.lib.splice(take.i,1); send({t:'give', card:c, zone:'bf'}); log(`${by}: ${G.opp?G.opp.name:'the opponent'} puts ${cname(c)} from ${G.me.name}'s library onto the battlefield under their control.`); }
     const rest=(Array.isArray(m.ids)?m.ids:[]).map(i=>find(i)).filter(f=>f && f.z==='lib').map(f=>f.c), ids=new Set(rest.map(x=>x.id)); if(rest.length){ G.me.lib=[...G.me.lib.filter(x=>!ids.has(x.id)), ...shuffle(rest)]; log(`${by}: ${G.me.name} puts ${rest.length} card${rest.length===1?'':'s'} on the bottom of their library in a random order.`); } if(m.shuffle) shuffleLib(); changed(); }
+  else if(m.t==='phaseout'){ const n=phaseOut(G.me.bf.filter(c=>isCreature(c)).map(c=>c.id), String(m.src||''), `${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'effect').slice(0,60)}`); changed(); }
+  else if(m.t==='phasein'){ phaseInBy(String(m.src||''), `${String(m.by||'It')} left the battlefield`); }
+  else if(m.t==='sodpay'){ sodOffer(String(m.k||'').slice(0,80), `${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'spell').slice(0,60)}`); }
   else if(m.t==='exlib'){ const xs=G.me.lib.slice(0, Math.max(0, G.me.lib.length-1)); for(const x of xs) move(x.id,'ex',{silent:true}); G.noUndo=true; log(`${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'effect').slice(0,60)}: ${G.me.name} exiles all but the bottom card of their library (${xs.length}).`); changed(); }
   else if(m.t==='pbid'){ pbidMe((Array.isArray(m.types)?m.types:[]).map(x=>String(x).slice(0,40)), `${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'effect').slice(0,60)}`); }
   else if(m.t==='suspendme'){ const f=find(m.id); if(f && f.z==='bf'){ move(m.id,'ex',{silent:true}); const g=find(m.id); if(g){ g.c.susp=1; g.c.c=Math.max(1, Math.min(20, +m.n||2)); } log(`${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'effect').slice(0,60)}: ${G.me.name}'s ${cname(f.c)} is exiled with ${+m.n||2} time counters and has suspend.`); changed(); } }
@@ -1042,6 +1049,7 @@ function move(id, zone, o={}){
   if(from==='side' && zone!=='side' && G.turn.n) c.sideOrig=1; if(zone==='side') delete c.sideOrig;
   if(zone!=='st'){ delete c.ovl; delete c.md; delete c.half; delete c.sacMV; delete c.sacTp; delete c.addPaid; delete c.gift; delete c.nm; delete c.unc; delete c.pc; } if(zone!=='st' && zone!=='bf'){ delete c.ev; delete c.spent; delete c.dash; delete c.hst; } if(zone!=='bf') delete c.exEnd;
   m[from].splice(f.i,1); if(from==='ex'){ delete c.plot; delete c.offer; delete c.by; delete c.warp; delete c.pl; delete c.plFree; delete c.fl; delete c.advOK; } if(zone!=='st') delete c.adv; if(zone!=='st') delete c.bt;
+  if(from==='bf' && zone!=='bf' && /phase out until this (?:enchantment|artifact|creature|permanent) leaves the battlefield/i.test(frontText(c)||'')){ const by=cdata(c).n; setTimeout(()=>{ phaseInBy(c.id, by); if(G.opp) send({t:'phasein', src:c.id, by}); }, 0); }
   ZLOG.push({c, from, to:zone, at:++ZSEQ}); if(ZLOG.length>300) ZLOG.splice(0, ZLOG.length-300);   // v4.14: what an effect did "this way"
   if(from==='lib' && zone==='gy'){ if(!m.mill || m.mill.t!==G.turn.n) m.mill={t:G.turn.n, k:0}; m.mill.k++; }
   if(from==='bf' && zone==='gy' && !c.fd && (c.k||c.cu)) diesTrig(c);
@@ -1299,9 +1307,9 @@ function ctrName(c){
   for(const m of o.matchAll(/\b(?:an?|one|two|three|four|five|six|seven|eight|nine|ten|x|\d+|of|no|more|many|those|that|each|all|its|another|additional|the|any|has|have|with|remove|removing|put) ([a-z]+) counters?\b/gi)){ const n=m[1].toLowerCase(); if(!CSTOP.has(n)) return n; }
   return '';
 }
-const ctrLabel = c => isPW(c) ? 'loyalty' : (isCreature(c) && !c.imp) ? '' : ctrName(c);
+const ctrLabel = c => isPW(c) ? 'loyalty' : (isCreature(c) && !c.imp && !isSaga(c)) ? '' : ctrName(c);
 function counterBadge(c, cr){
-  if(cr) return `<span class="badge ctr ${c.c<0?'neg':''}">${(c.c>0?'+':'−')+Math.abs(c.c)}</span>`;
+  if(cr && !isSaga(c)) return `<span class="badge ctr ${c.c<0?'neg':''}">${(c.c>0?'+':'−')+Math.abs(c.c)}</span>`;
   const n=ctrName(c);
   if(n==='lore') return `<span class="lorehex" title="Lore counters"><b>${roman(c.c)}</b></span>`;
   if(ICON[n]) return `<span class="badge ctr nm">${kcHTML(n)}${c.c}</span>`;
@@ -1367,7 +1375,7 @@ function yesNo(title, text, yes, no){ return new Promise(res=>{ let done=false; 
   if(!$('#modal').hidden) closeModal();
   modal(title, `<span class="hint">${esc(text)}</span>`, [[no||'No',()=>fin(false),'ghost'], [yes||'Yes',()=>fin(true),'go']], {onClose:()=>{ if(!done){ done=true; res(false); } }}); }); }
 /* power of a card on either battlefield (counters and boosts included) */
-const powerAny = a => { if(a.mine) return powerOf(a.c); const dp=dynPT(a.c, oppId()); if(dp && !dp.printed) return dp.p; return (parseInt((cdata(a.c).pt||'0/0').split('/')[0],10)||0)+(a.c.c||0)+(a.c.tp||0); };
+const powerAny = a => { if(a.mine) return powerOf(a.c); const dp=dynPT(a.c, oppId()); if(dp && !dp.printed) return dp.p; return (parseInt((cdata(a.c).pt||'0/0').split('/')[0],10)||0)+(isSaga(a.c)?0:(a.c.c||0))+(a.c.tp||0); };
 /* fight: each deals damage equal to its power to the other (damage marks go through damage(), so the opponent's creature is marked on their side) */
 function fight(mine, tid, by){ const a=findAny(tid); if(!a || a.z!=='bf'){ log(`${by}: the other creature is gone, so there is no fight.`); return; }
   const p1=powerOf(mine), p2=powerAny(a); log(`${by}: ${cname(mine)} (power ${p1}) fights ${a.mine?G.me.name:((G.opp&&G.opp.name)||'the opponent')}'s ${cname(a.c)} (power ${p2}).`);
@@ -1765,6 +1773,12 @@ const channelOf = c => { if(c.fd || (!c.k && !c.cu)) return null; const m=(front
   if(red && mana){ less=G.me.bf.filter(x=>isCreature(x) && !x.fd && /\bLegendary\b/.test(faceType(x))).length*(+red[1]);
     if(less){ const syms=costSyms(mana), gen=syms.filter(k=>/^\d+$/.test(k)).reduce((a,k)=>a+(+k),0), rest=syms.filter(k=>!/^\d+$/.test(k)), g=Math.max(0, gen-less); mana=(g ? `{${g}}` : '')+rest.map(k=>`{${k}}`).join(''); } }
   return {cost:m[1].trim(), mana, less, eff:m[2].replace(/\s*This ability costs \{\d+\} less[^.]*\.\s*/i,' ').trim()}; };
+const forecastOf = c => { if(c.fd || (!c.k && !c.cu)) return null; const m=(frontText(c)||'').match(/(?:^|\n)Forecast\s*[—–-]\s*((?:\{[^}]+\})+),\s*Reveal this card from your hand:\s*([^\n]+)/i); return m ? {mana:m[1], eff:m[2].trim()} : null; };
+function forecast(id, pd){ const f=find(id); if(!f || f.z!=='hand') return; const c=f.c, fc=forecastOf(c); if(!fc) return; const d=cdata(c), nm=d.n.split(',')[0];
+  if(!(G.turn.active===G.myId && G.turn.phase===0)){ toast('Forecast only during your upkeep.'); return; } if(c.fcT===G.turn.n){ toast('Forecast only once each turn.'); return; }
+  if(!pd && autoPayOn()){ payFor(normSyms(costSyms(fc.mana)), {abil:true, card:c, id, from:'hand'}, {title:`Forecast ${nm}`, verb:'activate', done:r=>forecast(id, r)}); return; }
+  c.fcT=G.turn.n; const mkr=mk(null,{tok:true, ts:Date.now(), ab:{id, fc:1}, cu:{n:`${nm}: forecast`, t:'Activated ability', o:fc.eff, img:d.img||''}}); G.me.st.push(mkr);
+  log(`${G.me.name} reveals ${cname(c)} from their hand and activates its forecast: ${fc.eff} (${pd && pd.text ? pd.text : fc.mana}).`); if(/\btarget\b/i.test(fc.eff)){ G.mode={type:'arrow', from:mkr.id}; toast(`${nm}: click its target.`); } changed(); }
 function channel(id, i, pd){ const f=find(id); if(!f || f.z!=='hand') return; const c=f.c, ch=handAbils(c)[i||0]; if(!ch) return; const d=cdata(c), nm=d.n.split(',')[0], paid=[];
   if(ch.mana && !pd && autoPayOn()){ payFor(normSyms(costSyms(ch.mana)), {abil:true, card:c, id, from:'hand'}, {title:`${ch.chan?'Channel':'Activate'} ${nm}`, verb:'activate', done:r=>channel(id, i, r)}); return; }
   if(ch.mana && pd){ paid.push(pd.other ? `${ch.mana} (paid another way)` : pd.text || ch.mana); }
@@ -1797,6 +1811,10 @@ function chooseType5(title){ return new Promise(res=>{ let done=false; const fin
   modal(title, `<div class="joinrow">${opts.length ? `<select id="ctSel">${opts.map(o=>`<option>${esc(o)}</option>`).join('')}</select>` : ''}<input id="ctOther" style="text-transform:none;letter-spacing:normal;font:inherit" placeholder="${opts.length?'or type another':'Type it'}" aria-label="Other creature type"></div>`, [['Choose',()=>{ const o=$('#ctOther'), sl=$('#ctSel'), v=((o&&o.value.trim())||(sl&&sl.value)||'').slice(0,40); if(!v) return; fin(v); },'go']], {noClose:true}); }); }
 function pbidMe(types, by){ const m=G.me, of=x=>types.some(t=>new RegExp('\\b'+escRe(t)+'s?\\b','i').test(faceType(x))) || (/\bCreature\b/.test(faceType(x)) && /\bchangeling\b/i.test(frontText(x)||'')); const xs=m.gy.filter(x=>!x.fd && /\bCreature\b/.test(faceType(x)) && of(x));
   for(const x of xs){ move(x.id,'bf',{silent:true}); entered(x); } log(`${by}: ${m.name} returns ${xs.length ? xs.map(cname).join(', ') : 'nothing'} from their graveyard to the battlefield.`); changed(); }
+/* String of Disappearances: pay {U}{U} in the pay window to copy the spell (the copy needs a new target) */
+async function sodOffer(k, by){ if(!k) return; await ensureCards([k]); const nm=(DB[k]&&DB[k].n)||'the spell';
+  const paid=await new Promise(res=>payFor(normSyms(['U','U']), {abil:true}, {title:`${by}: pay {U}{U} to copy ${nm}?`, verb:'copy it', ask:1, cancelLabel:"Don't copy it", done:()=>res(true), cancel:()=>res(false)}));
+  if(!paid){ log(`${by}: ${G.me.name} doesn't pay {U}{U}.`); return; } const cp=mk(k,{tok:true, ts:Date.now(), nm:1}); G.me.st.push(cp); log(`${by}: ${G.me.name} pays {U}{U} and copies ${nm}.`); G.mode={type:'arrow', from:cp.id}; toast(`${nm}: click the copy's new target.`); changed(); }
 async function topTutor(by){ const m=G.me; const p=m.lib.length ? await pickP(`${by}: choose a card to put on top of your library`, m.lib.slice(), null) : null; shuffleLib(true);
   if(p){ const i=m.lib.findIndex(x=>x.id===p.id); if(i>=0){ const [x]=m.lib.splice(i,1); m.lib.unshift(x); } } G.noUndo=true; log(`${by}: ${m.name} searches their library, shuffles and puts a card on top.`); changed(); }
 function oppSearchAsk(msg){ const by=String(msg.by||'An effect').slice(0,80), who=String(msg.who||'Opponent').slice(0,40), sp=searchSpec(String(msg.text||'').slice(0,300)); if(!sp) return;
@@ -1987,7 +2005,7 @@ function openReveal(cards, pid, who, info){ let pick=null; const own=pid===G.myI
   const goB=$('footer button.go', el); goB.disabled=true; if(!nLegal) goB.hidden=true;
   $('#rvGrid').onclick=e=>{ const cd=e.target.closest('.card[data-id]'); if(!cd || cd.classList.contains('dim')) return; pick=cards.find(x=>x.id===cd.dataset.id); [...$('#rvGrid').children].forEach(n=>n.classList.toggle('sel', n===cd)); goB.disabled=false; goB.textContent=`${info.bot?'Bottom:':info.ex?'Exile':'Discard'} ${cdata(d(pick)).n}`; };
   function after(p){ closeModal();
-    if(p){ if(own){ log(`${info.src}: ${G.me.name} chooses ${cname(d(p))} from their own hand.`); if(info.bot){ toLibPos(p.id, 1e9); draw(1); log(`${info.src}: ${G.me.name} reveals ${cname(d(p))}, puts it on the bottom of their library and draws a card.`); changed(); } else if(info.ex) move(p.id,'ex'); else discard([p.id]); } else { send({t:'discardpick', id:p.id, src:info.src, by:G.me.name, ex:info.ex?1:0, bot:info.bot?1:0}); log(`${info.src}: ${G.me.name} chooses ${cname(d(p))} for ${who} to ${info.bot?'put on the bottom of their library (then they draw a card)':info.ex?'exile':'discard'}.`); } }
+    if(p){ const nsBy=G.nsPend||null; G.nsPend=null; if(own){ log(`${info.src}: ${G.me.name} chooses ${cname(d(p))} from their own hand.`); if(info.bot){ toLibPos(p.id, 1e9); draw(1); log(`${info.src}: ${G.me.name} reveals ${cname(d(p))}, puts it on the bottom of their library and draws a card.`); changed(); } else if(info.ex) move(p.id,'ex'); else discard([p.id]); } else { send({t:'discardpick', id:p.id, src:info.src, by:G.me.name, ex:info.ex?1:0, bot:info.bot?1:0, nsBy}); log(`${info.src}: ${G.me.name} chooses ${cname(d(p))} for ${who} to ${info.bot?'put on the bottom of their library (then they draw a card)':info.ex?'exile':'discard'}.`); } }
     else if(!info.look) log(`${info.src}: ${G.me.name} chooses nothing.`);
     const rest=cards.filter(x=>!p || x.id!==p.id);
     if(own){ if(G.opp) send({t:'handdone', who:G.me.name, src:info.src, pick:p ? cdata(d(p)).n : '', rest:rest.map(x=>({k:x.k, n:cdata(d(x)).n}))}); return; }   // the opponent may track a hand that was public and is hidden again
@@ -2031,7 +2049,7 @@ function phaseTrigs(kind, mineTurn){ const re = kind==='end' && !mineTurn ? PHAS
   if(out.length) log(`${when}: ${out.join(', ')}'s trigger${out.length>1?'s go':' goes'} on ${G.me.name}'s stack.`);
   if(rem.length) log(`${when}: check ${rem.join(', ')} (its trigger has a condition).`);
   return out.length>0; }
-const powerOf = c => { const dp=dynPT(c, G.myId); if(dp && !dp.printed) return dp.p; const p=parseInt((cdata(c).pt||'0/0').split('/')[0],10)||0; return p+(c.c||0)+(c.tp||0); };
+const powerOf = c => { const dp=dynPT(c, G.myId); if(dp && !dp.printed) return dp.p; const p=parseInt((cdata(c).pt||'0/0').split('/')[0],10)||0; return p+(isSaga(c)?0:(c.c||0))+(c.tp||0); };
 /* v4.11: a condition the table can judge (true / false), or null when it can't (then the player is asked) */
 function condTrue(x, c){ x=String(x||'').toLowerCase().trim().replace(/\.$/,''); const m=G.me; let q;
   if(/^you attacked (?:with a creature )?this turn$/.test(x)) return m.atkC===G.turn.n;
@@ -2160,6 +2178,7 @@ function stormCopies(e){ const m=G.me, f=find(e.id); if(!f || f.z!=='st'){ log('
   for(let i=0;i<e.n;i++){ const cp=mk(o.k, Object.assign({tok:true, ts:Date.now()+i+1, cu:o.cu||undefined}, o.md ? {md:o.md.slice()} : {}, o.x!=null ? {x:o.x} : {})); m.st.push(cp); for(const b of tgts) m.arrows.push({a:cp.id, b}); }
   log(`Storm: ${m.name} puts ${e.n} cop${e.n>1?'ies':'y'} of ${cname(o)} on the stack${tgts.length?' with the same target'+(tgts.length>1?'s':''):''}.`); changed(); }
 function afterCast(id, o){ const f=find(id); if(!f || f.z!=='st') return; const c=f.c; if(c.fd || (!c.k && !c.cu)) return; c.kick=!!(o&&o.kick); const nm=cdata(c).n.split(',')[0];
+  if(G.me.hasteNext===G.turn.n && isCreature(c) && !c.tok){ delete G.me.hasteNext; c.hst=G.turn.n||1; log(`${cname(c)} gains haste until end of turn (Summon: Brynhildr).`); changed(); }
   if(!c.tok && G.me.howl && G.me.howl.t===G.turn.n && /\b(Instant|Sorcery)\b/.test(faceType(c))){ const n=G.me.howl.n; delete G.me.howl; log(`Howl of the Horde: ${G.me.name} copies ${cname(c)} ${n===1?'once':n+' times'}.`); stormCopies({id:c.id, n}); }
   if(!c.tok && isStormText(noRemind(c))){ const n=Math.max(0, stormCount()-1);
     if(n>0){ G.me.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:c.id, storm:{id:c.id, n}, trig:true}, cu:{n:`${nm}: storm`, t:'Triggered ability', o:`Storm — copy ${nm} ${n} time${n>1?'s':''} (one for each spell cast before it this turn). The copies keep its targets; right-drag from a copy to change its target.`, img:cdata(c).img||''}})); log(`${nm}: storm ${n}, its trigger goes on the stack.`); }
@@ -2481,7 +2500,18 @@ async function simpleEffects(c, text, srcId){
     if(c.ab && c.ab.sac) sen=sen.replace(/damage equal to (\d+) plus the sacrificed permanent(?:'|’)s mana value/i, (z,k)=>`${+k+(+c.ab.sac.mv||0)} damage`);   // Broadside Bombardiers
     if(/^(?:they|a creature destroyed this way|a creature dealt damage this way) can(?:'|’)t be regenerated(?: this turn)?\.?$|^this spell can(?:'|’)t be countered\.?$/i.test(sen)) continue; if(SLT){ const np=tgtPhrases(sen).length, mine=np ? tgAll.filter((t,i)=>tgS[i]>=slK && tgS[i]<slK+np) : (slPrev || tgAll); slIt=slPrev; tg.length=0; tg.push(...mine); if(np){ slPrev=mine.slice(); slK+=np; } }
     if(/^(?:When|Whenever|At) [^.]*,$/.test(sen) || !sen) continue;   // only the trigger's opening was left (the rest was handled above)
-    if(/^gain control of target spell that targets only a single permanent or player\.?$/i.test(sen)){ skipS.push(/^copy it, then reselect the targets at random/i, /^the new targets can(?:'|’)t be you or a permanent you control/i); log(`${by}: play this one by hand: take control of the spell, copy it, and choose new targets at random (not ${m.name} or their permanents).`); continue; }
+    if(/^gain control of target spell that targets only a single permanent or player\.?$/i.test(sen)){ skipS.push(/^copy it, then reselect the targets at random/i, /^the new targets can(?:'|’)t be you or a permanent you control/i);   // v4.18 Chef's Kiss
+      const t=tgAll.find(x=>{ const a=findAny(x); return a && a.z==='st' && !a.c.ab && !a.c.ch; }); if(!t){ log(`${by}: no spell was targeted.`); continue; } waited=true;
+      if(!find(t)){ send({t:'stealsp', id:t, by, who:m.name}); for(let i=0;i<50 && !(find(t) && find(t).z==='st');i++) await new Promise(r=>setTimeout(r,100)); }
+      const f=find(t); if(!f || f.z!=='st'){ log(`${by}: the spell is no longer on the stack.`); continue; } const o=f.c; m.arrows=m.arrows.filter(x=>x.a!==o.id);
+      const cp=mk(o.k, Object.assign({tok:true, ts:Date.now()+1}, o.cu?{cu:o.cu}:{}, o.md?{md:o.md.slice()}:{}, o.x!=null?{x:o.x}:{}, o.flip?{flip:o.flip}:{}, o.half!=null?{half:o.half}:{})); m.st.push(cp);
+      const pick=card=>{ let sp=null; try{ sp=tgtSpec(card, 0); }catch(e){} const cs=[oppId(), ...((G.opp&&G.opp.bf)||[]).map(x=>x.id)].filter(x=>{ if(!sp) return true; try{ const r=tgtCheck(sp, x); return !!(r && r.ok); }catch(e){ return false; } }); return cs.length ? cs[Math.floor(Math.random()*cs.length)] : null; };
+      const nmOf=x=>x===oppId() ? (G.opp?G.opp.name:'the opponent') : (findAny(x) ? cname(findAny(x).c) : 'it'), r1=pick(cp), r2=pick(o);
+      if(r1) m.arrows.push({a:cp.id, b:r1}); if(r2) m.arrows.push({a:o.id, b:r2});
+      log(`${by}: ${m.name} gains control of ${cname(o)} and copies it. New targets at random: the copy → ${r1 ? nmOf(r1) : 'no legal target'}; the spell → ${r2 ? nmOf(r2) : 'no legal target'}.`); changed(); continue; }
+    if(/^exile the top card of your library\.?$/i.test(sen) && /During any turn you put a lore counter on this Saga, you may play that card/i.test(text)){ skipS.push(/^during any turn you put a lore counter on this saga, you may play that card\.?$/i);   // v4.18 Summon: Brynhildr
+      const x=m.lib[0]; if(!x){ log(`${by}: the library is empty.`); continue; } move(x.id,'ex',{silent:true}); x.pl='this'; x.brynBy=srcId||1; log(`${by}: ${m.name} exiles ${cname(x)}. They may play it during each turn they put a lore counter on the Saga.`); changed(); continue; }
+    if(/^it gains haste until end of turn\.?$/i.test(sen) && /When you next cast a creature spell this turn, it gains haste until end of turn/i.test(text)){ m.hasteNext=G.turn.n||1; log(`${by}: the next creature spell ${m.name} casts this turn gains haste.`); changed(); continue; }
     sen=sen.replace(/^if you cast (?:him|her), (?=exile up to one target nonland card of each card type)/i, '');
     if(/^destroy all creatures that aren(?:'|’)t of the chosen type\.?$/i.test(sen)){ const ty=G.ctype||'', of=x=>new RegExp('\\b'+escRe(ty)+'s?\\b','i').test(faceType(x)) || /\bchangeling\b/i.test(frontText(x)||''), ids=[...m.bf, ...((G.opp&&G.opp.bf)||[])].filter(x=>!x.fd && isCreature(x) && !of(x)).map(x=>x.id);   // v4.14
       if(!ids.length){ log(`${by}: every creature is a ${ty}.`); continue; } hit=hitTargets(ids, by, 'destroy'); changed(); continue; }
@@ -3756,8 +3786,8 @@ async function simpleEffects(c, text, srcId){
       else if(/^its owner may put it on top of their library\.?$/i.test(sen)){ const t=tgt0B(), a=t && findAny(t); if(!a || a.z!=='bf'){ log(`${by}: it is gone.`); continue; } waited=true; const on=a.mine ? m.name : oppName();
         const top=a.mine ? await yesNo(by, `Put ${cdata(a.c).n} on top of your library (you take 2 damage)? If not, it goes on the bottom.`, 'Top (take 2)', 'Bottom') : await askOpp({kind:'yn', by, who:m.name, title:`put ${cdata(a.c).n} on top of your library and take 2 damage? Otherwise it goes on the bottom`, yes:'Top (take 2)', no:'Bottom'}, false);
         if(a.mine) toLibPos(t, top ? 0 : 1e9); else send({t:'tuck', id:t, pos:top ? 0 : 1e9, by, who:m.name}); log(`${by}: ${on} puts ${cname(a.c)} on the ${top?'top':'bottom'} of their library.`); if(top) dealDamage(a.mine ? G.myId : oppId(), 2, by); skipS.push(/^if they do, .+ deals 2 damage to them\.?$/i, /^if they didn(?:'|’)t put the card on top of their library, they put it on the bottom\.?$/i); }
-      else if(/^then that creature(?:'|’)s controller may pay \{U\}\{U\}\.?$/i.test(sen)){ const t=tgt0(), s=tgSnap[t]; skipS.push(/^if the player does, they may copy this spell/i); if(s && s.mine){ waited=true; const ok=await yesNo(by, 'Pay {U}{U} to copy this spell (and choose a new target)?', 'Paid {U}{U}', "Don't"); if(ok){ const cp=mk(c.k0||c.k,{tok:true, ts:Date.now(), nm:1}); m.st.push(cp); G.mode={type:'arrow', from:cp.id}; log(`${by}: ${m.name} pays {U}{U} and copies it.`); toast(`${cdata(cp).n}: click the copy's target.`); } }
-        else log(`${by}: ${oppName()} may pay {U}{U} to copy it (they cast the copy by hand).`); }
+      else if(/^then that creature(?:'|’)s controller may pay \{U\}\{U\}\.?$/i.test(sen)){ const t=tgt0(), sn=tgSnap[t]; skipS.push(/^if the player does, they may copy this spell/i); const k=c.k0||c.k;   // v4.18
+        if(sn && sn.mine){ waited=true; await sodOffer(k, by); } else if(sn && G.opp){ send({t:'sodpay', k, by, who:m.name}); log(`${by}: ${oppName()} may pay {U}{U} to copy it.`); } }
       else if(/^target opponent gains control of another target permanent you control\.?$/i.test(sen)){ const t=tgAll.find(x=>{ const f=find(x); return f && f.z==='bf' && x!==srcId; }); if(!t || !G.opp){ log(`${by}: no permanent of yours was chosen.`); didIt=false; continue; } const f=find(t), x=f.c; G.me.bf.splice(f.i,1); m.arrows=m.arrows.filter(a=>a.a!==t && a.b!==t); delete x.atk; send({t:'give', card:x, zone:'bf'}); didIt=true; G.noUndo=true; log(`${by}: ${oppName()} gains control of ${cname(x)}.`); }
       else if(/^if they do, you draw a card\.?$/i.test(sen)){ if(didIt) draw(1); didIt=undefined; }
       // types
@@ -3806,7 +3836,7 @@ async function simpleEffects(c, text, srcId){
       else if(/^choose a color\.?$/i.test(sen) && /Add one mana of that color/i.test(text)){ waited=true; G.col5=await choose5(`${by}: choose a color`, ['White','Blue','Black','Red','Green']); log(`${by}: ${m.name} chooses ${G.col5.toLowerCase()}.`); }
       else if(/^add one mana of that color for each different power among creatures you control\.?$/i.test(sen)){ const L={White:'W',Blue:'U',Black:'B',Red:'R',Green:'G'}[G.col5||'Green']||'G', k=new Set(myCre().map(x=>powerOf(x))).size; addMana(L.repeat(k)); log(`${by}: ${m.name} adds ${('{'+L+'}').repeat(k)||'nothing'} (${k} different power${k===1?'':'s'}).`); }
       // reminders for things the table doesn't track
-      else if(/^untap all creatures, then those creatures phase out until this enchantment leaves the battlefield\.?$/i.test(sen)){ const n=myCre().length+oppCre().length; for(const x of myCre()) x.tap=false; G.ootN=n; log(`${by}: all creatures untap and phase out until it leaves the battlefield (${n}). Phasing is played by hand: turn the phased-out creatures aside and ignore them.`); }
+      else if(/^untap all creatures, then those creatures phase out until this enchantment leaves the battlefield\.?$/i.test(sen)){ const src=srcId||c.id, on=oppCre().length; const mine=phaseOut(myCre().map(x=>x.id), src, by); if(G.opp && on) send({t:'phaseout', src, by, who:m.name}); G.ootN=mine+on; log(`${by}: every creature untaps and phases out until it leaves the battlefield (${mine+on}).`); }
       else if(/^put a time counter on this enchantment for each creature that phased out this way\.?$/i.test(sen)){ const f=srcId && find(srcId), n=G.ootN||0; if(f){ f.c.c=(f.c.c||0)+n; log(`${by}: ${n} time counter${n===1?'':'s'} on ${cname(f.c)}.`); } }
       else if(/^put your commander into your hand from the command zone\.?$/i.test(sen)){ log(`${by}: there is no command zone at this table, so nothing happens.`); }
       else if((r=sen.match(/^you may reveal exactly two cards you own with different names from outside the game\.?$/i))){ const cs=m.side.slice(); skipS.push(/^an opponent chooses one of them\.?$/i, /^you put that card into your hand\.?$/i); if(cs.length<2){ log(`${by}: ${m.name} has fewer than two cards in their sideboard.`); continue; } waited=true;
@@ -3878,7 +3908,8 @@ async function payAddl(id, ac){ const m=G.me, nm=cdata(find(id).c).n.split(' // 
 async function autoResolve(c, text, srcId){ G.sacMV=c.sacMV!=null ? c.sacMV : null; G.sacTp=c.sacTp!=null ? c.sacTp : null; const t0 = c.ab && !c.ab.etb && !c.ab.ph && !c.ab.tr ? String(text).replace(/^[^:\n]*:\s*/,'') : String(text);
   if(/you may discard a card\. If you do, search your library/i.test(t0)){ const by=srcName(c), sp=searchSpec(t0); if(!G.me.hand.length){ log(`${by}: ${G.me.name} has no card to discard, so there is no search.`); return; }
     setTimeout(()=>modal(`${by}: discard a card?`, '<span class="hint">If you discard a card, you search your library for the card it names.</span>', [["Don't discard",()=>{ closeModal(); log(`${by}: ${G.me.name} doesn't discard, so there is no search.`); },'ghost'], ['Discard a card…',()=>{ closeModal(); pickCard(`${by}: discard a card`, G.me.hand.slice(), x=>{ discard([x.id]); setTimeout(()=>searchGate(()=>libSearch(sp, by, null), by), 50); }); },'go']]), 0); return; }
-  { const t1=t0.replace(/That player reveals their hand\. You choose a nonland card from it\. They discard that card\./i, 'Target opponent reveals their hand. You choose a nonland card from it. That player discards that card.').replace(/if you cast it, target opponent reveals their hand\. You choose a nonland card from it\. Exile that card\./i, 'target opponent reveals their hand. You choose a nonland card from it and exile that card.'); if(t1!==t0 && HANDRE.test(t1)){ await handDisrupt(c, t1); await simpleEffects(c, t0.replace(/(That player|if you cast it, target opponent) reveals their hand\.[^\n]*?(They discard that card|Exile that card)\./i,' '), srcId); return; } }
+  { const nsC=c.ab && find(c.ab.id); if(nsC && /you may cast the exiled card, and mana of any type can be spent/i.test(frontText(nsC.c)||'')){ const same=G.me.bf.filter(x=>cdata(x).n===cdata(nsC.c).n); G.nsPend={id:nsC.c.id, n:cdata(nsC.c).n, k:same.length>1 ? same.indexOf(nsC.c)+1 : 1}; }
+    const t1=t0.replace(/That player reveals their hand\. You choose a nonland card from it\. They discard that card\./i, 'Target opponent reveals their hand. You choose a nonland card from it. That player discards that card.').replace(/if you cast it, target opponent reveals their hand\. You choose a nonland card from it\. Exile that card\./i, 'target opponent reveals their hand. You choose a nonland card from it and exile that card.'); if(t1!==t0 && HANDRE.test(t1)){ await handDisrupt(c, t1); await simpleEffects(c, t0.replace(/(That player|if you cast it, target opponent) reveals their hand\.[^\n]*?(They discard that card|Exile that card)\./i,' '), srcId); return; } }
   if(HANDRE.test(t0)) await handDisrupt(c, t0);
   await simpleEffects(c, t0, srcId); if(G.skipSearch===c.id){ G.skipSearch=null; return; } const sp=searchSpec(c.cgy ? String(text).replace(/Search your library for (an? [A-Za-z ]+? card), reveal it, and put it into your hand\. If this spell was cast from a graveyard, put that card onto the battlefield instead\. Then shuffle\./i, 'Search your library for $1, put it onto the battlefield, then shuffle.') : text); if(!sp) return; const by=srcName(c), x=c.x!=null ? c.x : c.ab && c.ab.x;
   setTimeout(()=>searchGate(async ()=>{ let xx=x; if((sp.mv==='X' || sp.n==='X') && xx==null){ xx=await askN(`${by}: X =`, 1); if(xx==null) xx=0; } libSearch(sp, by, xx); }, by), 0); }
@@ -3972,6 +4003,16 @@ const suspendOf = c => { const m=(frontText(c)||'').match(/(?:^|\n)Suspend (\d+)
 function suspendCard(id){ const f=find(id); if(!f || f.z!=='hand') return; const c=f.c, sp=suspendOf(c); if(!sp) return;
   const go=()=>{ const g=find(id); if(!g || g.z!=='hand') return; move(id,'ex',{silent:true}); const h=find(id); if(h){ h.c.susp=1; h.c.c=sp.n; } log(`${G.me.name} suspends ${cname(c)} (paid ${sp.cost}): it is exiled with ${sp.n} time counter${sp.n>1?'s':''}.`); changed(); };
   if(autoPayOn()) payFor(costSyms(sp.cost), {card:c, id, from:'hand'}, {title:`Suspend ${cdata(c).n}`, verb:'suspend', done:go, cancel:()=>{}}); else go(); }
+/* v4.18 phasing (Out of Time): the permanent and everything attached to it leave G.me.bf for G.me.ph untapped, keeping counters and attachments; no enter or leave triggers either way */
+function phaseOut(ids, src, by){ const m=G.me; m.ph=m.ph||[]; const all=new Set(ids); for(const c of m.bf) if(c.att && all.has(c.att)) all.add(c.id); const out=[];
+  for(const id of all){ const i=m.bf.findIndex(c=>c.id===id); if(i<0) continue; const [c]=m.bf.splice(i,1); c.tap=false; c.atk=false; c.phz=src||1; m.ph.push(c); out.push(c); } m.arrows=m.arrows.filter(a=>!all.has(a.a) && !all.has(a.b));
+  if(out.length) log(`${by}: ${out.map(cname).join(', ')} phase${out.length===1?'s':''} out.`); return out.filter(c=>isCreature(c)).length; }
+function phaseIn(ids, by){ const m=G.me, back=[]; for(const id of ids){ const i=(m.ph||[]).findIndex(c=>c.id===id); if(i<0) continue; const [c]=m.ph.splice(i,1); delete c.phz; m.bf.push(c); back.push(c); }
+  for(const c of [...(m.ph||[])]) if(c.att && back.some(x=>x.id===c.att)){ m.ph.splice(m.ph.indexOf(c),1); delete c.phz; m.bf.push(c); back.push(c); }
+  if(back.length){ log(`${by}: ${back.map(cname).join(', ')} phase${back.length===1?'s':''} in.`); changed(); } }
+function phaseInBy(src, by){ phaseIn((G.me.ph||[]).filter(c=>c.phz===src).map(c=>c.id), by); }
+/* Vanishing: at the beginning of my upkeep a time counter comes off; when the last one does, it is sacrificed */
+function vanishTick(){ const m=G.me, xs=m.bf.filter(c=>!c.fd && (c.k||c.cu) && /(?:^|\n)Vanishing\b/.test(frontText(c)||'') && (c.c||0)>0); for(const c of xs){ c.c--; log(`Upkeep: a time counter comes off ${cname(c)} (${c.c} left).`); if(c.c<=0){ log(`${cname(c)}: the last time counter is gone, so it is sacrificed.`); move(c.id,'gy',{silent:true}); } } return xs.length>0; }
 function upkSacTick(){ const m=G.me, xs=m.bf.filter(c=>c.sacUp && c.sacUp<G.turn.n); for(const c of xs){ log(`Upkeep: ${G.me.name} sacrifices ${cname(c)}.`); move(c.id,'gy',{silent:true}); } return xs.length>0; }
 function suspendTick(){ const m=G.me, xs=m.ex.filter(c=>c.susp); if(!xs.length) return false;
   for(const c of xs){ c.c=Math.max(0,(c.c||0)-1); if(c.c>0){ log(`Upkeep: a time counter comes off ${cname(c)} (${c.c} left).`); continue; }
@@ -4297,6 +4338,7 @@ const abText = a => a.kw ? a.eff+' '+a.cost : a.cost+': '+a.eff;
 const fetchOf = a => { if(!/\bsacrifice\b/i.test(a.cost) || !/\{T\}/.test(a.cost)) return null; const sp=searchSpec(a.eff); return sp && sp.dest==='bf' && /\b(land|plains|island|swamp|mountain|forest)\b/i.test(sp.desc) ? sp : null; };
 const abLabel = a => { const fs=fetchOf(a); if(fs){ const l=a.cost.match(/pay (\d+) life/i); return `Fetch (${fs.desc}${fs.tapped?', enters tapped':''}${l?', pay '+l[1]+' life':''})`; } const t='Activate  '+abText(a); return t.length>84 ? t.slice(0,82)+'…' : t; };
 function activate(id, a, evDone, extra){
+  { const f0=find(id); if(f0 && f0.z==='bf' && a && a.kw && /^Equip$/i.test(a.eff) && !(extra && extra.eqT) && /costs \{\d+\} less to activate for each \+1\/\+1 counter on the creature it targets/i.test(frontText(f0.c)||'')){ G.mode={type:'eqtgt', from:id, a, evDone}; toast(`${cdata(f0.c).n}: where would you like to equip it? Click a creature you control.`); render(); return; } }
   if(a && a.kw && /^Crew$/i.test(a.eff)){ crewIt(id, parseInt(a.cost,10)||1); return; }
   { const f0=find(id); if(f0 && f0.z==='bf' && !(extra&&extra.totem) && !totemGate(f0.c, ()=>activate(id, a, evDone, Object.assign({}, extra||{}, {totem:1})))) return; }
   { const f0=find(id); if(f0 && f0.z==='bf'){ const c0=f0.c, ex=extra||{};
@@ -4338,7 +4380,7 @@ function activate(id, a, evDone, extra){
   if(loy && /[−-]/.test(loy[1]) && (c.c||0) < +loy[2]){ toast('It does not have that much loyalty.'); return; }
   if(rn && (c.c||0) < rn){ toast('It does not have enough counters to remove.'); return; }
   const what=cname(c), syms=[...cost.matchAll(/\{([WUBRGC]|\d+)\}/g)].map(x=>x[1]).join(',');
-  { const lessA=abilLess(c, a), asy=abilSyms(cost, extra && extra.x, lessA); if(lessA) log(`${cname(c)}: the ability costs {${lessA}} less.`); if(asy.length && autoPayOn() && !(extra && extra.paidOK)){ payFor(asy, {abil:true, card:c, id, from:'bf'}, {title:`Activate ${nm}`, verb:'activate', done:r=>activate(id, a, evDone, Object.assign({}, extra||{}, {paidOK:r}))}); return; } }
+  { const lessA=abilLess(c, a, extra), asy=abilSyms(String(cost).replace(/\.\s*This ability costs[^]*$/i,''), extra && extra.x, lessA); if(lessA) log(`${cname(c)}: the ability costs {${lessA}} less.`); if(asy.length && autoPayOn() && !(extra && extra.paidOK)){ payFor(asy, {abil:true, card:c, id, from:'bf'}, {title:`Activate ${nm}`, verb:'activate', done:r=>activate(id, a, evDone, Object.assign({}, extra||{}, {paidOK:r}))}); return; } }
   if(extra && extra.paidOK){ const pd=extra.paidOK; if(pd.other) paid.push('mana paid another way'); else if(pd.text) paid.push(pd.text); }
   else if(syms && G.me.mana && MANA.some(k=>G.me.mana[k]) && payCost(syms)) paid.push('mana from the pool');
   if(/\{T\}/.test(cost)){ c.tap=true; paid.push('tapped'); } if(/\{Q\}/.test(cost)){ c.tap=false; paid.push('untapped'); }
@@ -4360,7 +4402,7 @@ function activate(id, a, evDone, extra){
   if(extra && extra.gyt){ addGyTarget(mkr.id, extra.gyt, G.myId); }
   const t=abText(a); log(`${G.me.name} activates ${what}: ${t.length>220 ? t.slice(0,218)+'…' : t}${paid.length ? ' ('+paid.join(', ')+')' : ''}${extra&&extra.copy ? ', targeting '+extra.copy.name+' in their graveyard' : ''}`);
   if(!peek && /\buntap (?:another |up to one )?(?:other )?target\b/i.test(abText(a))){ G.mode={type:'arrow', from:mkr.id}; toast(`${nm}: click the permanent to untap.`); }
-  if(a.kw && /^(Equip|Reconfigure)$/i.test(a.eff) && /^Equip$/i.test(a.eff)){ G.mode={type:'arrow', from:mkr.id}; toast(`${nm}: click the creature you control to equip.`); }
+  if(a.kw && /^(Equip|Reconfigure)$/i.test(a.eff) && /^Equip$/i.test(a.eff)){ if(extra && extra.eqT){ G.me.arrows.push({a:mkr.id, b:extra.eqT}); log(`${nm}: equip ${cname(find(extra.eqT) ? find(extra.eqT).c : {k:''})}.`); } else { G.mode={type:'arrow', from:mkr.id}; toast(`${nm}: click the creature you control to equip.`); } }
   if(peek){ G.mode={type:'arrow', from:mkr.id}; toast(`${nm}: click the player whose ${hpeek?'hand':'library'} you look at (you or your opponent).`); }
   else if(!G.mode && /\btarget\b/i.test(a.eff) && !(extra && extra.gyt)){ G.mode={type:'arrow', from:mkr.id}; toast(`${nm}: click its target (Esc for none).`); }
   if(extra && extra.copy){ const title=`${nm}'s ability was put on the stack`; notice(title, `It targets ${extra.copy.name} in your graveyard. Click it on the stack to resolve it; ${nm} then becomes a copy of ${extra.copy.name} until end of turn.`); send({t:'notice', title, text:`It targets ${extra.copy.name} in ${G.me.name}'s graveyard. When it resolves, ${nm} becomes a copy of ${extra.copy.name} until end of turn.`}); }
@@ -4534,7 +4576,7 @@ function castSyms(c, o){
 const replicateCost = c => { if(c.fd || (!c.k && !c.cu)) return ''; const m=(frontText(c)||'').match(/(?:^|\n)Replicate\s*((?:\{[^}]+\})+)/i); return m ? m[1] : ''; };
 const exileForLess = c => { if(c.fd || (!c.k && !c.cu)) return null; const m=(frontText(c)||'').match(/you may exile any number of (\w+) cards from your hand\. This spell costs \{(\d+)\} less to cast for each card exiled this way/i); return m ? {desc:m[1].toLowerCase(), n:+m[2]} : null; };
 const abilSyms = (cost, x, less) => normSyms(costSyms(cost).filter(k=>k!=='T' && k!=='Q' && k!=='E'), x, less);
-function abilLess(c, a){ const r=String((a&&a.eff)||'').match(/This ability costs \{(\d+)\} less to activate for each (other )?([^.]+?)\./i); if(!r) return 0; const k=+r[1], d=r[3].toLowerCase(), m=G.me; let n=0;
+function abilLess(c, a, ex){ { const q=String(frontText(c)||'').match(/costs \{(\d+)\} less to activate for each \+1\/\+1 counter on the creature it targets/i), t=ex && ex.eqT && find(ex.eqT); if(q && a && a.kw && /^Equip$/i.test(a.eff)) return t ? (+q[1])*Math.max(0, t.c.c||0) : 0; } const r=String((a&&a.eff)||'').match(/This ability costs \{(\d+)\} less to activate for each (other )?([^.]+?)\./i); if(!r) return 0; const k=+r[1], d=r[3].toLowerCase(), m=G.me; let n=0;
   if(/^town you control$/.test(d)) n=m.bf.filter(x=>!x.fd && (!r[2] || x.id!==c.id) && /\bTown\b/.test(faceType(x))).length; else if(/^\+1\/\+1 counter on creatures you control$/.test(d)) n=m.bf.filter(x=>!x.fd && isCreature(x)).reduce((s,x)=>s+Math.max(0,x.c||0),0); return k*n; }
 const symStr = ks => ks.map(k=>`{${k}}`).join('');
 function payPlan(syms, ctx, ch){
@@ -4568,7 +4610,7 @@ let PAY=null;
 function payFor(syms, ctx, o){
   if(!syms || !syms.length){ o.done({text:'', cols:noMana(), mana:0, riders:[], life:0}); return; }
   const pl=payPlan(syms, ctx, {});
-  if(pl.ok && !syms.some(k=>/\/P$/.test(k))){ o.done(payApply(pl)); return; }
+  if(pl.ok && !o.ask && !syms.some(k=>/\/P$/.test(k))){ o.done(payApply(pl)); return; }
   if(PAY){ const P=PAY; closePay(); P.o.cancel&&P.o.cancel(); }
   PAY={syms, ctx, o, ch:{}}; paintPay(); }
 function closePay(){ PAY=null; const el=$('#payPanel'); el.hidden=true; el.innerHTML=''; }
@@ -4579,7 +4621,7 @@ function paintPay(){
   const chips=syms.map((k,i)=>/\/P$/.test(k) && pl.pick[i]==='life' ? '<i class="ms lifec ok" title="2 life">2♥</i>' : symHTML([k]).replace('class="ms ', `class="ms ${pl.marks[i]?'ok ':''}`)).join('');
   const rows=syms.map((k,i)=>{ let mm; const opts = (mm=k.match(/^([WUBRG])\/P$/)) ? [['mana',symHTML([mm[1]])],['life','2 life']] : (mm=k.match(/^([WUBRG])\/([WUBRG])$/)) ? [[mm[1],symHTML([mm[1]])],[mm[2],symHTML([mm[2]])]] : (mm=k.match(/^2\/([WUBRG])$/)) ? [[mm[1],symHTML([mm[1]])],['2',symHTML(['2'])]] : null;
     return opts ? `<div class="pch">${symHTML([k])}<span>pay with</span>${opts.map(([v,h])=>`<button class="${pl.pick[i]===v?'on':''}" data-pay="ch:${i}:${v}">${h}</button>`).join('')}</div>` : ''; }).join('');
-  const cancel = ctx.spell ? (ctx.from==='hand' ? 'Cancel (back to hand)' : `Cancel (stays in ${ctx.from==='gy' ? 'the graveyard' : ZN[ctx.from]||'place'})`) : 'Cancel';
+  const cancel = o.cancelLabel ? o.cancelLabel : ctx.spell ? (ctx.from==='hand' ? 'Cancel (back to hand)' : `Cancel (stays in ${ctx.from==='gy' ? 'the graveyard' : ZN[ctx.from]||'place'})`) : 'Cancel';
   const what = ctx.spell ? 'It goes on the stack once it\'s paid.' : 'The ability goes on the stack once it\'s paid.';
   el.innerHTML=`<button class="px" data-pay="cancel" title="${esc(cancel)}">✕</button><h3>${esc(o.title)}</h3>
     <span class="hint">${what} Tap lands; each symbol lights up as your pool covers it.${ctx.card && /(?:^|\n)Convoke\b/i.test(frontText(ctx.card)||'') ? ' Convoke: click your untapped creatures to tap them for mana of their color.' : ''}</span>
@@ -4634,8 +4676,8 @@ function noteCast(c){ const m=G.me; if(!m.cast) m.cast={n:0,is:0}; m.cast.n++; i
   if(G.opp && G.turn.n) send({t:'ocast', nc:(!c.fd && !isCreature(c)) ? 1 : 0, nnc:m.cast.nc||0, n:m.cast.n, mv:c.fd?0:manaValue(c), cols:c.fd?[]:cardColors(c), nm:c.nm?1:0}); }
 const isStormText = o => /(^|\n|, )storm\b/i.test(o) || /\b(has|have|gains?|with) storm\b/i.test(o);
 function setCares(){
-  const m=G.me, all=[]; for(const z of Object.keys(ZN)) for(const c of m[z]) if(c.o===G.myId && !c.tok) all.push((cdata(c).o||'').replace(/\([^)]*\)/g,''));
-  m.cares={storm:all.some(isStormText), del:all.some(o=>/\bdelirium\b/i.test(o))};
+  const m=G.me, all=[]; for(const z of Object.keys(ZN)) for(const c of (m[z]||[])) if(c.o===G.myId && !c.tok) all.push((cdata(c).o||'').replace(/\([^)]*\)/g,''));
+  m.cares={storm:all.some(isStormText), del:all.some(o=>/\bdelirium\b/i.test(o)), thr:all.some(o=>/\bthreshold\b/i.test(o))};
 }
 const stormCount = () => ((G.me.cast&&G.me.cast.n)||0) + ((G.opp&&G.opp.cast&&G.opp.cast.n)||0);
 const TYPES=['Artifact','Battle','Creature','Enchantment','Instant','Kindred','Land','Planeswalker','Sorcery','Tribal'];
@@ -4746,7 +4788,7 @@ function countPhrase(ph, pid, self){
   return null;
 }
 /* damage marked on a creature (c.dmg) until the turn ends; the controller's client keeps it, the other player asks with {t:'dmg'} */
-function toughNow(c, pid){ const dp=dynPT(c, pid); if(dp && dp.printed) return (c.c||0)+(c.tt||0); if(dp) return dp.t; const t=(cdata(c).pt||'').split('/')[1]; return /^-?\d+$/.test((t||'').trim()) ? +t+(c.c||0)+(c.tt||0) : null; }
+function toughNow(c, pid){ const dp=dynPT(c, pid), cc=isSaga(c)?0:(c.c||0); if(dp && dp.printed) return cc+(c.tt||0); if(dp) return dp.t; const t=(cdata(c).pt||'').split('/')[1]; return /^-?\d+$/.test((t||'').trim()) ? +t+cc+(c.tt||0) : null; }
 const DMGLOG={};
 function damage(id, d, by){
   const f=find(id);
@@ -4813,7 +4855,7 @@ function dynPT(c, pid){
   if(c.eb && !dyn && !c.tp && !c.tt) return {p:0, t:0, printed:true, why:'earthbent land: 0/0 (counters shown separately)'};   // its printed-style box; counters stay on their own badge   // counters alone show only their badge; text-driven P/T and boosts get the box
   const val=x=>{ x=String(x||'').trim(); if(/\*/.test(x)){ if(n==null) return null; return x.split('+').reduce((a,p)=>a+(p.trim()==='*' ? n : (+p||0)),0); } return /^-?\d+$/.test(x) ? +x : null; };
   const [ps,ts]=(d.pt || (c.eb ? '0/0' : '')).split('/'), bp=val(ps), bt=val(ts); if(bp==null || bt==null) return null;
-  const cc=c.c||0; return {p:bp+gp+cc+(c.tp||0), t:bt+gt+cc+(c.tt||0), why:why.join('; ')};
+  const cc=isSaga(c)?0:(c.c||0); return {p:bp+gp+cc+(c.tp||0), t:bt+gt+cc+(c.tt||0), why:why.join('; ')};
 }
 /* Moonshadow and the like: "Whenever one or more permanent cards are put into your graveyard …, remove a -1/-1 counter from it".
    Cards reaching my graveyard in one action (a mill, a discard, a wrath) count as one event: noteGy() batches them to the next tick. */
@@ -4897,6 +4939,7 @@ const arrowsOn = id => G.me.arrows.some(a=>a.a===id||a.b===id) || !!(G.opp && (G
 function clearTargets(id){ G.me.arrows=G.me.arrows.filter(a=>a.a!==id && a.b!==id); send({t:'clrarrow', id}); changed(); }
 function checkHeld(){
   const m=G.me; let ch=false;
+  for(const c of m.ex){ const by=c.by; if(!by || !by.ns || !G.opp) continue; const here=m.bf.some(x=>x.id===by.id) || (G.opp.bf||[]).some(x=>x.id===by.id); if(here){ by.seen=1; continue; } if(by.seen){ delete c.by; ch=true; addLog(`${by.n} left the battlefield, so ${cname(c)} stays in exile.`,'s'); } }
   for(const c of [...m.ex]){ const by=c.by; if(!by || by.mode!=='hold') continue;
     if(by.pid!==G.myId && !G.opp) continue;
     if(by.mon){ if(!m.monarch){ by.monWas=false; continue; } if(by.monWas) continue; }   // v4.07 Palace Jailer: back when its owner becomes the monarch
@@ -5028,19 +5071,19 @@ function askPause(at){ const on=G.opp?G.opp.name:'your opponent';
   if(!at){ if(G.me.pauseAsk){ delete G.me.pauseAsk; send({t:'pause', at:null}); log(`${G.me.name} no longer asks to pause ${on}'s next turn.`); changed(); } return; }
   G.me.pauseAsk={at}; send({t:'pause', at}); log(`${G.me.name} asks to pause ${on}'s next turn ${PAUSE_TXT[at]}.`); changed(); }
 function pauseMenu(x, y){ const on=G.opp?G.opp.name:'Opponent', a=G.me.pauseAsk&&G.me.pauseAsk.at, ck=k=>a===k?'✓ ':'';
-  menu(x, y, [[`${ck('up')}During ${on}'s next upkeep`, ()=>askPause('up')], [`${ck('pre')}During ${on}'s draw step (before the draw)`, ()=>askPause('pre')], [`${ck('post')}During ${on}'s draw step (after the draw)`, ()=>askPause('post')], a ? '-' : null, a ? ['Cancel the pause', ()=>askPause(null)] : null]); }
+  menu(x, y, [[`${G.me.pauseSelf?'✓ ':''}On my next upkeep (my turn stops there)`, ()=>{ G.me.pauseSelf=!G.me.pauseSelf; log(G.me.pauseSelf ? `${G.me.name}'s next turn will stop in their upkeep.` : `${G.me.name} won't stop in their next upkeep.`); changed(); }], '-', [`${ck('up')}During ${on}'s next upkeep`, ()=>askPause('up')], [`${ck('pre')}During ${on}'s draw step (before the draw)`, ()=>askPause('pre')], [`${ck('post')}During ${on}'s draw step (after the draw)`, ()=>askPause('post')], a ? '-' : null, a ? ['Cancel the pause', ()=>askPause(null)] : null]); }
 function startMyTurn(){
   dummyRefresh(); const m=G.me; if(m.tmpRed && m.tmpRed.length){ delete m.tmpRed; } m.bf.forEach(c=>{ c.atk=false; delete c.sick; delete c.lft; if(c.exert){ c.exert=false; if(c.tap){ const t=`${cname(c)} was exerted and stays tapped.`; addLog(t,'s'); send({t:'log', text:t}); } } else if(c.tap && c.stun>0){ c.stun--; const t=`A stun counter comes off ${cname(c)} instead of it untapping (${c.stun} left).`; addLog(t,'s'); send({t:'log', text:t}); } else if(c.tap && c.frz){ delete c.frz; const t=`${cname(c)} doesn't untap during this untap step.`; addLog(t,'s'); send({t:'log', text:t}); } else { delete c.frz; c.tap=false; } }); m.arrows=[];
   if(m.ctlNext && G.opp){ m.ctlNext=false; m.ctl=true; const cm=`${G.opp.name} controls ${m.name} during this turn.`; addLog(cm,'s'); send({t:'log', text:cm}); } else m.ctlNext=false;
   const msg = `Turn ${G.turn.n}: ${m.name} untaps.`; addLog(msg,'s'); send({t:'log', text:msg});
   G.noUndo=true; checkpoint();
   clearDamage(); warpTick({n:G.turn.n-1, phase:0}, {n:G.turn.n, phase:G.turn.phase}); flTick({n:G.turn.n-1, phase:0}, {n:G.turn.n, phase:G.turn.phase});
-  emptyPool(); for(const c of m.ex) delete c.offer; for(const c of m.bf) if(c.anim){ c.anim=false; c.row=null; } clearBoosts(); for(const c of m.gy) delete c.fbk; m.cast={n:0,is:0}; expirePlayable(); endCopies(); pactTick(); for(const c of m.ex) if(c.pl==='next') c.pl='this';
-  delete m.gate; const oppDue=baubDue(G.opp&&G.opp.baub, G.turn.n).length>0; baubTick(G.turn.n); const upT=phaseTrigs('upkeep', true) | rbTick() | suspendTick() | upkSacTick(); const bHeld=oppDue || m.st.some(c=>c.ab && c.ab.bdraw), held=m.st.some(c=>c.pact) || bHeld || upT;
+  emptyPool(); for(const c of m.ex) delete c.offer; for(const c of m.bf) if(c.anim){ c.anim=false; c.row=null; } clearBoosts(); for(const c of m.gy) delete c.fbk; m.cast={n:0,is:0}; expirePlayable(); endCopies(); pactTick(); for(const c of m.ex) if(c.pl==='next') c.pl='this'; for(const c of m.ex) if(c.brynBy && m.bf.some(x=>x.id===c.brynBy)) c.pl='this';
+  delete m.gate; const oppDue=baubDue(G.opp&&G.opp.baub, G.turn.n).length>0; baubTick(G.turn.n); const upT=phaseTrigs('upkeep', true) | rbTick() | suspendTick() | upkSacTick() | vanishTick(); const selfP=!!m.pauseSelf; delete m.pauseSelf; const bHeld=oppDue || m.st.some(c=>c.ab && c.ab.bdraw), held=m.st.some(c=>c.pact) || bHeld || upT || selfP;
   const pz = vsReal() && m.pauseReq ? m.pauseReq.at : null;
   if(S.autoDraw && !held && !pz) setTimeout(paradigmAsk, 0);
   if(S.autoDraw && !held && pz!=='up'){ if(pz==='pre'){ G.turn.phase=1; G.turn.hold=pauseHold('pre'); } else { turnDraw(); if(pauseAt('post')){ G.turn.phase=1; G.turn.hold=pauseHold('post'); } else { G.turn.phase=2; sagaTick(G.turn.n); main1Trigs(); } } }
-  else { G.turn.phase=0; if(pz==='up') G.turn.hold=pauseHold('up'); if(held){ const t=`${m.name}'s turn stops in the upkeep: ${m.st.some(c=>c.pact) ? 'the pact trigger must be dealt with before the draw' : bHeld ? "Mishra's Bauble's delayed draw trigger is on the stack" : 'an upkeep trigger is on the stack'}.`; addLog(t,'s'); send({t:'log', text:t}); } }
+  else { G.turn.phase=0; if(pz==='up') G.turn.hold=pauseHold('up'); if(held){ const t=`${m.name}'s turn stops in the upkeep: ${m.st.some(c=>c.pact) ? 'the pact trigger must be dealt with before the draw' : bHeld ? "Mishra's Bauble's delayed draw trigger is on the stack" : upT ? 'an upkeep trigger is on the stack' : 'they asked to stop here'}.`; addLog(t,'s'); send({t:'log', text:t}); } }
   send({t:'turn', turn:G.turn}); changed();
 }
 /* combat steps (G.turn.cs while in Combat): attackers are declared (no cs) → 'blk' the defender blocks (click a creature, then the attacker;
@@ -5365,7 +5408,7 @@ function matchDeckAsk(){ const m=G.me, sp=m.deckSpec, on=G.opp?G.opp.name:'your 
   modal('New match', `<p>Play <b>${esc(sp.name)}</b> again? It comes back as you first brought it, with any sideboarding undone.</p><span class="hint">Or pick another deck; ${esc(on)} decides for themselves.</span>`,
     [['Choose another deck', other, 'ghost'], ['Keep this deck', async ()=>{ closeModal(); await loadDeck(sp.d, sp.name); showTable(); changed(); }, 'go']], {noClose:true}); }
 function gather(){
-  const m=G.me; G.noUndo=true;
+  const m=G.me; G.noUndo=true; for(const c of (m.ph||[]).splice(0)){ delete c.phz; m.bf.push(c); }
   for(const z of ['hand','bf','gy','ex','st']){ for(const c of m[z].splice(0)){ if(c.tok || c.made) continue; if(c.sideOrig && c.o===G.myId){ delete c.sideOrig; Object.assign(c,{tap:false,c:0,att:null,atk:false,fd:false,flip:false,note:'',row:null}); m.side.push(c); continue; } if(c.o!==G.myId){ send({t:'give', card:Object.assign(c,{tap:false,c:0,att:null,atk:false,fd:false,flip:false}), zone:'lib'}); continue; } Object.assign(c,{tap:false,c:0,att:null,atk:false,fd:false,flip:false,note:'',row:null}); m.lib.push(c); } }
   for(const c of m.lib.filter(x=>x.sideOrig)){ m.lib.splice(m.lib.indexOf(c),1); delete c.sideOrig; m.side.push(c); }
   m.life=20; m.lastLife=20; delete m.para; delete m.paraT; delete m.noMax; delete m.coinCall; delete m.tmpRed; delete m.pauseAsk; delete m.pauseReq; delete m.emb; delete m.monarch; delete m.xturns; delete m.oppT; delete m.dsc; delete m.mayAlways; delete m.gain; delete m.city; delete m.wya; delete m.atkC; delete m.lock; m.ctr={poison:0,energy:0}; m.arrows=[]; m.reveal=false; m.mull=0; m.roll=null; m.compDone=false; m.skipRoll=false; m.dealt=false; m.kept=false; m.mana=noMana(); m.smana=[]; m.energySeen=false; m.poisonSeen=false; m.drew=0; m.ctl=false; m.ctlNext=false; m.cast={n:0,is:0}; m.pacts=[]; m.baub=[]; m.trk=null; for(const c of m.side) delete c.comp; for(const c of m.lib){ delete c.by; delete c.warp; delete c.wp; delete c.fl; delete c.bt; delete c.ent; delete c.offer; delete c.pl; delete c.kw; delete c.lt; delete c.sick; delete c.lft; delete c.cp; }
@@ -5534,8 +5577,10 @@ function cardHTML(c, z, mine, cls=''){
   if(z==='gy' && c.fbk){ cls+=' fbk'; b+='<span class="fbkban">FLASHBACK</span>'; }
   if(z==='ex' && c.fl && !backUp) b+=`<span class="flban">Exiled by ${esc(String(c.fl.by).split(',')[0])}</span>`;
   if(z==='ex' && c.warp && !backUp) b+='<span class="wrpban">WARPED</span>';
+  if(z==='ex' && c.by && c.by.ns && !backUp){ const cg=(c.by.pid===G.myId ? G.me.gy : ((G.opp&&G.opp.gy)||[])).length>=7; b+=`<span class="plban nsban">EXILED BY ${esc(String(c.by.n||'').toUpperCase())}${c.by.ns>1?' ('+c.by.ns+')':''}</span>${cg?'<span class="plban nsany">MAY BE CAST WITH MANA OF ANY TYPE</span>':''}`; }
   if(z==='ex' && c.pl && !backUp){ cls+=' pl'; b+=`<span class="plban">PLAYABLE · ${c.pl==='this'?'THIS TURN':'NEXT TURN'}</span>`; }
   else if(z==='ex' && c.plot && !backUp){ b+='<span class="plban pltd">PLOTTED</span>'; }
+  if(c.phz){ cls+=' phz'; b+='<span class="phban">PHASED OUT</span>'; }
   return `<div class="card ${mine?'':'opp'} ${c.tap?'tap':''} ${c.atk?'atk':''} ${!mine && c.atk && z==='bf' && blkDim(c) ? 'nblk' : ''} ${tgtDim(c, z)} ${mine && z==='bf' && G.atkSel && G.atkSel.has(c.id) ? 'asel' : ''} ${c.fd&&mine?'fdmine':''} ${cls}" data-id="${c.id}" data-z="${z}" data-o="${mine?'me':'opp'}">${inner}${b}${extra}</div>`;
 }
 /* marker icons (v4.08, Ben): one drawn style instead of emoji: rounded white outline with filled details; they take the text colour */
@@ -5596,7 +5641,7 @@ function drawTagHTML(who){ const k=drawWatch(who); if(!k || !G.turn.n) return ''
 function pileHTML(z, label, cards, n, mine, top){
   const still = !mine && (z==='lib' || z==='hand'), tip = still ? '' : mine ? (z==='lib' ? 'Click to draw, right-click for more' : 'Click to look through') : 'Click to look through';
   const fbN = z==='gy' ? cards.filter(c=>c.fbk).length : (z==='ex' && cards) ? cards.filter(c=>c.pl).length : 0, who = mine ? G.me : G.opp, ty = z==='gy' && who && who.cares && who.cares.del ? gyTypes(cards) : null;
-  return `<div class="pile ${still?'still':''}${fbN?' fbpile':''}" title="${tip}${ty ? ` · Card types here: ${ty.join(', ')||'none'}` : ''}" data-pile="${z}" data-o="${mine?'me':'opp'}" ${mine&&z!=='side'?`data-drop="${z}"`:''}>${top||''}${fbN?`<span class="fbtag">${z==='ex'?'PLAYABLE':'FLASHBACK'}${fbN>1?' ×'+fbN:''}</span>`:''}${z==='gy' && cards && cards.some(c=>gyTargetsOn(c.id).length) ? '<span class="tgtag">TARGETED</span>' : ''}${z==='lib' && who ? drawTagHTML(who) : ''}${z==='lib' && (x=>x?`<span class="riptag" title="${esc(x)}: this player can't be made to search their library">NO SEARCH</span>`:'')(searchBlocker(mine?G.myId:oppId())) || ''}${z==='gy' && (x=>x?`<span class="riptag" title="${esc(x)}: cards that would go here are exiled instead">→ EXILE</span>`:'')(gyReplace(mine?G.myId:oppId())) || ''}${ty?`<span class="dtag ${ty.length>=4?'on':''} ${fbN?'low':''}">${ty.length>=4?'DELIRIUM':'TYPES'} ${ty.length}</span>`:''}<label>${label}<b>${n}</b></label></div>`;
+  return `<div class="pile ${still?'still':''}${fbN?' fbpile':''}" title="${tip}${ty ? ` · Card types here: ${ty.join(', ')||'none'}` : ''}" data-pile="${z}" data-o="${mine?'me':'opp'}" ${mine&&z!=='side'?`data-drop="${z}"`:''}>${top||''}${fbN?`<span class="fbtag">${z==='ex'?'PLAYABLE':'FLASHBACK'}${fbN>1?' ×'+fbN:''}</span>`:''}${z==='gy' && cards && cards.some(c=>gyTargetsOn(c.id).length) ? '<span class="tgtag">TARGETED</span>' : ''}${z==='lib' && who ? drawTagHTML(who) : ''}${z==='lib' && (x=>x?`<span class="riptag" title="${esc(x)}: this player can't be made to search their library">NO SEARCH</span>`:'')(searchBlocker(mine?G.myId:oppId())) || ''}${z==='gy' && (x=>x?`<span class="riptag" title="${esc(x)}: cards that would go here are exiled instead">→ EXILE</span>`:'')(gyReplace(mine?G.myId:oppId())) || ''}${ty?`<span class="dtag ${ty.length>=4?'on':''} ${fbN?'low':''}">${ty.length>=4?'DELIRIUM':'TYPES'} ${ty.length}</span>`:''}${z==='gy' && who && who.cares && who.cares.thr ? `<span class="dtag ${(cards||[]).length>=7?'on':''}" style="top:${5+(ty?21:0)+(fbN?21:0)}px" title="Threshold: seven or more cards in this graveyard">${(cards||[]).length>=7?'THRESHOLD':'THRESHOLD '+(cards||[]).length+'/7'}</span>` : ''}<label>${label}<b>${n}</b></label></div>`;
 }
 function avatarHTML(p, pid, mine){
   const act = G.turn.n && G.turn.active===pid;
@@ -5613,7 +5658,7 @@ function render(){
   FX=landEffects();
   HELD={}; for(const c of [...m.ex, ...((o&&o.ex)||[])]) if(c.by) HELD[c.by.id]=(HELD[c.by.id]||0)+1;
   const warpHTML=(ex,mine)=>ex.filter(c=>c.warp).map(c=>cardHTML(c,'ex',mine,'warped')).join('');
-  const mr=rowsHTML(m.bf,true); $('#myFront').innerHTML=mr.front + playBoxes(m.ex,true,['this']); $('#myBack').innerHTML=mr.back + warpHTML(m.ex,true) + flBox(m.ex,true) + plotBox(m.ex,true) + playBoxes(m.ex,true,['next']) + compBox(m.side.filter(c=>c.comp), true) + markersHTML([(m.ctr.energy||0)>0 && markerHTML(m.ctr.energy, G.myId), (m.ctr.poison||0)>0 && poisonHTML(m.ctr.poison, G.myId), m.monarch && monarchHTML(G.myId)]);
+  const mr=rowsHTML([...m.bf, ...(m.ph||[])],true); $('#myFront').innerHTML=mr.front + playBoxes(m.ex,true,['this']) + (m.hasteNext===G.turn.n ? '<div class="hnbox">YOUR NEXT CREATURE SPELL THIS TURN GAINS HASTE</div>' : ''); $('#myBack').innerHTML=mr.back + warpHTML(m.ex,true) + flBox(m.ex,true) + plotBox(m.ex,true) + playBoxes(m.ex,true,['next']) + compBox(m.side.filter(c=>c.comp), true) + markersHTML([(m.ctr.energy||0)>0 && markerHTML(m.ctr.energy, G.myId), (m.ctr.poison||0)>0 && poisonHTML(m.ctr.poison, G.myId), m.monarch && monarchHTML(G.myId)]);
   $('#myHand').innerHTML = m.hand.map(c=>cardHTML(c,'hand',true)).join('') + (m.trk ? `<div class="twrap">${trackPad(m.trk, true)}<span class="thint">Click a name to cross it off</span></div>` : ''); $('#myHand').classList.toggle('hastrk', !!m.trk);
   const back = '<div class="card">'+BACK+'</div>';
   $('#myPiles').innerHTML = '<div class="railh me"><b>You</b></div>' + pileHTML('ex','Exile',m.ex,m.ex.length,true, m.ex.length?cardHTML(m.ex[m.ex.length-1],'ex',true):'')
@@ -5621,7 +5666,7 @@ function render(){
     + pileHTML('lib','Library',m.lib,m.lib.length,true, m.lib.length?back:'')
     + (m.side.length ? pileHTML('side','Sideboard',m.side,m.side.length,true, back) : '');
   if(o){
-    const or=rowsHTML(o.bf||[],false); $('#oppFront').innerHTML=or.front + playBoxes(o.ex,false,['this']); $('#oppBack').innerHTML=or.back + warpHTML(o.ex||[],false) + flBox(o.ex,false) + plotBox(o.ex,false) + playBoxes(o.ex,false,['next']) + compBox(o.comp||[], false) + markersHTML([((o.ctr||{}).energy||0)>0 && markerHTML(o.ctr.energy, oppId()), ((o.ctr||{}).poison||0)>0 && poisonHTML(o.ctr.poison, oppId()), o.monarch && monarchHTML(oppId())]);
+    const or=rowsHTML([...(o.bf||[]), ...(o.ph||[])],false); $('#oppFront').innerHTML=or.front + playBoxes(o.ex,false,['this']) + (o.hasteNext && o.hasteNext===G.turn.n ? '<div class="hnbox">THEIR NEXT CREATURE SPELL THIS TURN GAINS HASTE</div>' : ''); $('#oppBack').innerHTML=or.back + warpHTML(o.ex||[],false) + flBox(o.ex,false) + plotBox(o.ex,false) + playBoxes(o.ex,false,['next']) + compBox(o.comp||[], false) + markersHTML([((o.ctr||{}).energy||0)>0 && markerHTML(o.ctr.energy, oppId()), ((o.ctr||{}).poison||0)>0 && poisonHTML(o.ctr.poison, oppId()), o.monarch && monarchHTML(oppId())]);
     const oh=$('#oppHand'); oh.classList.toggle('shown', !!o.hand);
     oh.innerHTML = (o.trk && o.trk.list && o.trk.list.length ? `<span class="tnote" data-tnote title=""><b>${o.trk.list.length}</b></span>` : '') + `<span class="hn">${esc(o.name||'Opponent')}'s hand <b>${o.handN}</b>${o.hand && !o.dummy?' · revealed':''}</span>` + (o.hand ? o.hand.map(c=>cardHTML(c,'hand',false)).join('') : back.repeat(Math.min(o.handN,30)));
     $('#oppPiles').innerHTML = `<div class="railh"><b>${esc(o.name||'Opponent')}</b></div>` + pileHTML('hand','Hand',null,o.handN,false, o.handN?back:'') + pileHTML('lib','Library',null,o.libN,false, o.libN?back:'')
@@ -5642,8 +5687,8 @@ function render(){
     if(st.length>(render.stN||0)) se.scrollLeft=se.scrollWidth; else se.scrollLeft=keep; render.stN=st.length; }   // something new on the stack: show the top
   const myOff=m.ex.filter(c=>c.offer), opOff=((o&&o.ex)||[]).filter(c=>c.offer), on=o?o.name:'Opponent';
   const myBy=m.ex.filter(c=>c.by), opBy=((o&&o.ex)||[]).filter(c=>c.by);
-  const byHTML=(c,mine)=>{ const by=c.by, owner=mine?m.name:on, ctl=by.pid===G.myId?m.name:on, free=by.vd && by.free===G.turn.n, iCast=!mine && by.mode==='play' && by.pid===G.myId && (!by.vd || free), land=isLand(c);
-    return `<div class="offer">${cardHTML(c,'ex',mine)}<div><h5>Exiled by ${esc(by.n)}</h5><span>${by.mode==='hold' ? (by.mon ? `Belongs to ${esc(owner)}. Returns to ${esc(owner)}'s battlefield when ${esc(owner)} becomes the monarch.` : `Belongs to ${esc(owner)}. Returns to ${esc(owner)}'s battlefield when ${esc(by.n)} leaves.`) : by.vd ? (free ? `Void counter. Belongs to ${esc(owner)}; ${esc(ctl)} chose it and may play it this turn without paying its mana cost.` : `Void counter. Belongs to ${esc(owner)}. ${esc(ctl)} can choose it with ${esc(by.n.split(',')[0])}'s ability.`) : `Void counter. Belongs to ${esc(owner)}; ${esc(ctl)} may play it.`}</span>${iCast?`<button class="go" data-take="${c.id}"${free?` data-free="1"`:''}>${free ? (land ? 'Play this land' : 'Cast it without paying its mana cost') : 'Cast this card'}</button>`:''}${mine&&by.mode==='hold'?`<button data-byback="${c.id}">Return it now</button>`:''}</div></div>`; };
+  const byHTML=(c,mine)=>{ const by=c.by, owner=mine?m.name:on, ctl=by.pid===G.myId?m.name:on, free=by.vd && by.free===G.turn.n, thr=by.ns ? ((by.pid===G.myId ? m.gy : ((o&&o.gy)||[])).length>=7) : true, iCast=!mine && by.mode==='play' && by.pid===G.myId && (!by.vd || free) && thr, land=isLand(c);
+    return `<div class="offer">${cardHTML(c,'ex',mine)}<div><h5>Exiled by ${esc(by.n)}</h5><span>${by.mode==='hold' ? (by.mon ? `Belongs to ${esc(owner)}. Returns to ${esc(owner)}'s battlefield when ${esc(owner)} becomes the monarch.` : `Belongs to ${esc(owner)}. Returns to ${esc(owner)}'s battlefield when ${esc(by.n)} leaves.`) : by.ns ? `Belongs to ${esc(owner)}. ${thr ? `${esc(ctl)} has threshold, so they may cast it, with mana of any type.` : `${esc(ctl)} may cast it once they have threshold (seven or more cards in their graveyard).`}` : by.vd ? (free ? `Void counter. Belongs to ${esc(owner)}; ${esc(ctl)} chose it and may play it this turn without paying its mana cost.` : `Void counter. Belongs to ${esc(owner)}. ${esc(ctl)} can choose it with ${esc(by.n.split(',')[0])}'s ability.`) : `Void counter. Belongs to ${esc(owner)}; ${esc(ctl)} may play it.`}</span>${iCast?`<button class="go" data-take="${c.id}"${free?` data-free="1"`:''}>${free ? (land ? 'Play this land' : 'Cast it without paying its mana cost') : 'Cast this card'}</button>`:''}${mine&&by.mode==='hold'?`<button data-byback="${c.id}">Return it now</button>`:''}</div></div>`; };
   $('#offerwrap').hidden = !(myOff.length || opOff.length || myBy.length || opBy.length);
   $('#offers').innerHTML = opOff.map(c=>`<div class="offer">${cardHTML(c,'ex',false)}<div><span>From ${esc(on)}'s library. You may cast it this turn; it still belongs to ${esc(on)}.</span><button class="go" data-take="${c.id}">Cast this card</button></div></div>`).join('')
     + myOff.map(c=>`<div class="offer">${cardHTML(c,'ex',true)}<div><span>${esc(on)} may cast this until the turn ends. It is in your exile.</span><button data-offend="${c.id}">Stop offering</button></div></div>`).join('')
@@ -5817,7 +5862,7 @@ document.addEventListener('pointerdown', e=>{ if(!e.target.closest('#ctx')) clos
 
 /* ---------- card menus ---------- */
 function cardMenu(id, x, y){
-  const f=find(id); if(!f) return; const c=f.c, z=f.z, d=cdata(c), ch=()=>changed();
+  const f=find(id); if(!f) return; if(f.z==='ph'){ menu(x, y, [['Phase in (it comes back as it left)',()=>{ phaseIn([id], 'by hand'); }]]); return; } const c=f.c, z=f.z, d=cdata(c), ch=()=>changed();
   const go=(zone,o)=>()=>{ move(id,zone,o); ch(); modalRefresh&&modalRefresh(); };
   const dest = [ z!=='hand'&&['To hand',go('hand'),'H'], z!=='bf'&&['To battlefield',go('bf')], z!=='bf'&&z!=='hand'&&['To battlefield tapped',go('bf',{tap:true})], z!=='gy'&&['To graveyard',go('gy'),'G'], z!=='ex'&&['To exile',go('ex'),'E'], z!=='ex'&&z!=='lib'&&['Exile under a card… (returns when it leaves)',()=>startMode('exhold',id)], z!=='ex'&&z!=='lib'&&['Exile with a void counter… (its controller may play it)',()=>startMode('exvoid',id)],
     ['Top of library',go('lib',{pos:'top'})], ['Bottom of library',go('lib',{pos:'bottom'})], z!=='lib'&&['Shuffle into library',()=>{ move(id,'lib'); shuffleLib(); ch(); modalRefresh&&modalRefresh(); }],
@@ -5867,6 +5912,7 @@ function cardMenu(id, x, y){
     ...(evokeOf(c) ? (spentConds(c).length && /\{[WUBRG]\/[WUBRG]\}/.test(evokeOf(c).text) && !autoPayOn() ? spentConds(c).map(k=>[`Cast for its evoke cost, paying {${k}}{${k}} (its {${k}}{${k}} trigger; sacrificed when it enters)`,()=>castAlt(id, Object.assign({}, evokeOf(c), {mana:`{${k}}{${k}}`}), 'evoke', [k])]) : [[`Cast for its evoke cost: ${evokeOf(c).text} (sacrificed when it enters)`,()=>castAlt(id, evokeOf(c), 'evoke')]]) : []),
     ...(spentConds(c).length && !autoPayOn() ? [...spentConds(c).map(k=>[k]), ...(spentConds(c).length>1 ? [spentConds(c)] : [])].map(v=>[`Cast it, paying ${v.map(k=>`{${k}}{${k}}`).join(' and ')} (${v.length>1?'both triggers':'that trigger'})`,()=>castSpell(id,{spent:v})]) : []),
     ...altCostsOf(c).map(a=>[`Cast without paying its mana cost: ${a.text}${a.cond?' ('+a.cond.toLowerCase()+')':''}`,()=>castAlt(id, a, 'alt')]),
+    ...(forecastOf(c) && G.turn.active===G.myId && G.turn.phase===0 && G.turn.n && c.fcT!==G.turn.n ? [[`Forecast — ${forecastOf(c).mana}, reveal it: ${forecastOf(c).eff}`,()=>forecast(id)]] : []),
     ...handAbils(c).map((x,i)=>[`${x.chan?'Channel — ':x.tm?'Transmute (as a sorcery) — ':'Discard to activate — '}${x.mana||x.cost}${x.less?' (after '+x.less+' less)':''}: ${x.eff.length>70 ? x.eff.slice(0,68)+'…' : x.eff}`,()=>channel(id, i)]),
     targetDiscount(c)&&(x=>[`Cast for ${x.cost} (it targets ${x.what})`,()=>castSpell(id,{silent:true, payCost:x.cost},()=>log(`${G.me.name} casts ${cname(c)} for ${x.cost}: it targets ${x.what}.`))])(targetDiscount(c)),
     ...cyclingOf(c).map((cy,i)=>[`${cy.label}${cy.mana?' '+cy.mana:''}${cy.life?(cy.mana?', ':' — ')+'pay '+cy.life+' life':''}${cy.other?', '+cy.other:''} (${cy.what ? 'search for a'+(/^[aeiou]/i.test(cy.what)?'n':'')+' '+cy.what.toLowerCase()+' card' : 'draw a card'})`, ()=>startCycle(id, i)]),
@@ -6101,6 +6147,7 @@ function tgtGate(md, target){ if(md.tgtOK) return false; const f=find(md.from); 
 function finishMode(target){
   const md=G.mode; G.mode=null; if(!md) return;
   if(md.type==='atktgt'){ atkTarget(md, target); return; }
+  if(md.type==='eqtgt'){ const t=find(target); if(!t || t.z!=='bf' || !isCreature(t.c) || target===md.from){ toast('Click a creature you control (Esc to cancel).'); G.mode=md; render(); return; } activate(md.from, md.a, md.evDone, {eqT:target}); return; }
   if(md.type==='pblock' || md.type==='pblock2'){ pblockClick(md, target); return; }
   if(md.auto){ const w=find(md.from); if(w && w.z==='st' && !blinkArrow(md, target)) toast(`${srcName(w.c)}: click ${w.c.ab.what||'its target'}, or NO TARGET.`); render(); return; }
   if(md.type==='pickblocker'){ const f=find(target); if(!f || f.z!=='bf' || !isCreature(f.c) || f.c.tap){ toast('Click one of your untapped creatures.'); G.mode=md; render(); return; } if(!blockersLeft().some(x=>x.id===target)){ toast(`${cdata(f.c).n} is already blocking. Pick another creature, or Reset blockers.`); G.mode=md; render(); return; } G.mode={type:'block', from:target}; toast(`${cdata(f.c).n}: now click the attacker it blocks.`); render(); return; }
@@ -6214,7 +6261,7 @@ document.addEventListener('click', e=>{
   const bk=t.closest('[data-bk]'); if(bk){ const k=bk.dataset.bk; if(!blockStep()) return; if(k==='declare'){ G.mode={type:'pickblocker'}; toast('Click one of your untapped creatures to block with.'); render(); } else if(k==='reset'){ const n=G.me.arrows.filter(a=>a.blk).length; G.me.arrows=G.me.arrows.filter(a=>!a.blk); G.mode=null; if(n) log(`${G.me.name} resets their blocks.`); changed(); } else if(k==='finish'){ G.mode=null; doneBlocking(); } return; }
   const smp=t.closest('[data-smana]'); if(smp){ spendSpecial(+smp.dataset.smana); return; }
   const lifeB=t.closest('[data-life]'); if(lifeB){ const d=(+lifeB.dataset.life)*(e.shiftKey?5:1); if(lifeB.dataset.pl===G.myId) setLife(d); else if(G.opp){ send({t:'adj', life:d}); log(`${G.me.name} changes ${G.opp.name}'s life by ${d>0?'+':''}${d}.`); } return; }
-  const tk=t.closest('[data-take]'); if(tk){ send(Object.assign({t:'take', id:tk.dataset.take}, tk.dataset.free ? {free:1} : {})); tk.disabled=true; return; }
+  const tk=t.closest('[data-take]'); if(tk){ const a=findAny(tk.dataset.take); if(a && a.c.by && a.c.by.ns && autoPayOn()){ const n=manaValue(a.c), id=tk.dataset.take; payFor(normSyms(n ? [String(n)] : []), {spell:true, card:a.c}, {title:`Cast ${cdata(a.c).n} (mana of any type)`, verb:'cast', done:()=>send({t:'take', id})}); return; } send(Object.assign({t:'take', id:tk.dataset.take}, tk.dataset.free ? {free:1} : {})); tk.disabled=true; return; }
   const bb=t.closest('[data-byback]'); if(bb){ const f=find(bb.dataset.byback); if(f){ log(`${G.me.name} returns ${cname(f.c)} from exile to the battlefield.`); move(f.c.id,'bf',{silent:true}); changed(); } return; }
   const oe=t.closest('[data-offend]'); if(oe){ const f=find(oe.dataset.offend); if(f){ delete f.c.offer; log(`${G.me.name} stops offering ${cname(f.c)}; it stays in exile.`); changed(); } return; }
   const mp=t.closest('[data-mana]'); if(mp){ const k=mp.dataset.mana, m=G.me; if(!m.mana) m.mana=noMana(); if(e.shiftKey) m.mana[k]++; else if(m.mana[k]>0) m.mana[k]--; else { toast('No '+MNAME[k].toLowerCase()+' mana in your pool. Shift-click or right-click to add some by hand.'); return; } changed(); return; }
@@ -6440,7 +6487,7 @@ const sess=store.get('mt_session',null);
 if(sess && sess.me && Date.now()-sess.at < 864e5){
   $('#resumeBtn').hidden=false; $('#resumeTxt').textContent = (sess.solo ? 'Practice table' : 'Table '+sess.code) + (sess.me.deck ? ' · '+sess.me.deck : '');
   $('#resumeBtn').onclick=()=>{ G.solo=sess.solo; G.myId=sess.myId; G.code=sess.code; G.me=Object.assign(newPlayer(), sess.me); G.opp = sess.dum ? Object.assign(newDummy(), sess.dum) : G.solo ? newDummy() : null; G.turn=sess.turn; G.idc=sess.idc||0; G.mt=mtFromWire(sess.mt); if(G.mt && sess.mtEnd) G.mt.end=sess.mtEnd; S.name=G.me.name; if(G.turn.n && sess.me.kept===undefined){ G.me.dealt=true; G.me.kept=true; }
-    connect(); const ks=[]; for(const z of Object.keys(ZN)) for(const c of G.me[z]) if(c.k) ks.push(c.k); ensureCards(ks).then(()=>{ if(!G.me.cares && G.me.deck){ setCares(); changed(); } else render(); });
+    connect(); const ks=[]; for(const z of Object.keys(ZN)) for(const c of (G.me[z]||[])) if(c.k) ks.push(c.k); ensureCards(ks).then(()=>{ if(!G.me.cares && G.me.deck){ setCares(); changed(); } else render(); });
     if(G.me.deck) showTable(); else showDecks(); };
 }
 /* Links from the Draft Table: ?t=CODE&r=h|g opens or joins that table, ?r=s is practice, &d=1 shows the newest saved deck. */
