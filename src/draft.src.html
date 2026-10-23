@@ -140,8 +140,11 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 <script src="../src/peerjs.min.js"></script>
 <script>
 "use strict";
-const VERSION = 'v0.12';
-const SETS = /*__SETS__*/[];
+const VERSION = 'v0.13';
+// Only the sets and cube whose cards the Modern Table plays fully (2026-10-23); the other set files stay in draft/sets for later.
+const READY = ['fra','fin','mh2','mh1','ktk','df07'];
+const SETS_ALL = /*__SETS__*/[];
+const SETS = SETS_ALL.filter(s=>READY.includes(s.code));
 const PREFIX = 'draft-table-v1-';
 const $ = (s, el=document) => el.querySelector(s), $$ = (s, el=document) => [...el.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -168,7 +171,7 @@ function setHTML(el, h){ if(el._h!==h){ el._h=h; el.innerHTML=h; } }
 const randCode = () => { const A='ABCDEFGHJKLMNPQRSTUVWXYZ'; let c=''; for(let i=0;i<6;i++) c+=A[Math.floor(Math.random()*A.length)]; return c; };
 const SETTINGS = store.get('mt_settings', {});            // shared with the Modern Table, so your name carries over
 let PID = store.get('dt_pid', null); if(!PID){ PID = Math.random().toString(36).slice(2,12); store.set('dt_pid', PID); }
-const setName = code => (SETS.find(s=>s.code===code)||{}).name || code;
+const setName = code => (SETS_ALL.find(s=>s.code===code)||{}).name || code;
 
 /* ================= card data (Scryfall), cached for the set being drafted ================= */
 let CARDS = {}, cardSet = '';
