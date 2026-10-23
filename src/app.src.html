@@ -482,10 +482,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.17';
+const VERSION = 'v4.18';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.18','Oct 23',"Ketramose now sees its own exile: when Phelia, Flickerwisp or a removal spell exiles it during your turn, you still draw a card and lose 1 life."],
   ['v4.17','Oct 23',"Practice games now have an opponent called Practice, at 20 life, so you can see combat damage and burn land. The Practice button in the middle can give it creatures (with flying, reach, deathtouch and so on), a planeswalker, an artifact, an enchantment or a land, or put a battle on your side to attack; you declare its blocks. Attack with all chooses every creature that can attack, and Reset attackers starts over. Phelia and Flickerwisp keep asking for their target until you click one or press No target. An Overlord cast for its impending cost no longer counts as a creature entering (Guide of Souls)."],
   ['v4.16','Oct 23',"The last of the draft sets' odd cards: Zodiark, Kindred Judgment and Patriarch's Bidding (you pick the creature type), Villainous Wealth, Gix and Lonis (your opponent's top cards come over to you), Collected Conjuring, Mizzix's Mastery, Uldaros and Garth One-Eye (free casts and copies), Howl of the Horde, Memories Returning (you and your opponent take turns), Sorin's and Garruk's 'until your next turn' effects, Clash of Elements, Stiltzkin, Sin, Glimpse of Tomorrow, hideaway, abilities that cost less for each Town, spells that do more when cast from a graveyard, and many more."],
   ['v4.15','Oct 23',"Declare attackers with buttons: in your combat, Choose attackers, click your creatures (chosen ones get a gold ATTACK tag), then Attack, or No attacks to go straight to your second main phase. Creatures that must attack (Dragon's Rage Channeler with delirium) start chosen. If your opponent has a planeswalker, each attacker then shows an arrow and asks what it attacks, with the choices lit. The A key still works. Dragon's Rage Channeler shows the flying icon while you have delirium."],
@@ -1060,7 +1061,7 @@ function move(id, zone, o={}){
   if(zone==='st'){ c.ts=Date.now(); if(from!=='st'){ if(from==='hand') c.fh=1; else delete c.fh; noteCast(c); castTriggers(c); } } else delete c.fh;
   if(from==='hand' && z0==='gy') discQ(c);
   if(from==='gy') gyLeaveQ(c);
-  if(zone==='ex' && (from==='gy' || from==='bf')) exiledQ();
+  if(zone==='ex' && (from==='gy' || from==='bf')) exiledQ(from==='bf' ? c : null);
   const leavesPlay = !['bf','st'].includes(zone);
   if(c.tok && leavesPlay){ if(!o.silent) log(`${m.name}'s token ${cname(c)} leaves play.`); return; }
   if(c.made && leavesPlay && zone!=='hand'){ log(`${m.name}'s created card ${cname(c)} leaves the game.`); return; }
@@ -1234,10 +1235,12 @@ function gyLeaveFlush(){ const q=GQ||[]; GQ=null; if(!q.length) return; const ou
     if((r=l.match(/^Whenever one or more cards leave your graveyard, (.+)$/i))){ out.push(trigPush(x, r[1])); continue; }
     if((r=l.match(/^Whenever an? (instant or sorcery|creature) card leaves your graveyard, (.+)$/i))){ const k=q.filter(e=>/instant/i.test(r[1]) ? e.inst : e.cr).length; for(let i=0;i<k;i++) trigPush(x, r[2]); if(k) out.push(cdata(x).n.split(',')[0]+(k>1?' ×'+k:'')); } }
   if(out.length){ log(`Cards left ${G.me.name}'s graveyard: ${out.join(', ')} trigger${out.length>1||/×/.test(out[0])?'s go':' goes'} on the stack.`); changed(); } }
-let XQ=null;
-function exiledQ(){ if(!G.turn.n || XQ) return; XQ=setTimeout(()=>{ XQ=null; if(G.turn.active===G.myId) exiledTrig(); else if(G.opp) send({t:'exd'}); }, 0); }
+let XQ=null, XQS=[];
+/* v4.18: a permanent exiled from the battlefield still sees its own exile (a leaves-the-battlefield trigger looks back, CR 603.10a):
+   Ketramose exiled by Phelia, Flickerwisp or removal triggers. Those cards are kept in XQS for the trigger check. */
+function exiledQ(c){ if(c && !c.fd && !XQS.includes(c)) XQS.push(c); if(!G.turn.n || XQ) return; XQ=setTimeout(()=>{ XQ=null; if(G.turn.active===G.myId) exiledTrig(); else { XQS.length=0; if(G.opp) send({t:'exd'}); } }, 0); }
 /* my cards and the opponent's report ('exd') for the same event make one trigger */
-function exiledTrig(){ const out=[]; if(Date.now()-(G.exdAt||0)<1200) return; for(const x of trigSrcs()) for(const l of trigLines(x)){ const r=l.match(/^Whenever one or more cards are put into exile from graveyards and\/or the battlefield during your turn, (.+)$/i); if(r && G.turn.active===G.myId) out.push(trigPush(x, r[1])); }
+function exiledTrig(){ const out=[], gone=XQS.splice(0); if(Date.now()-(G.exdAt||0)<1200) return; const srcs=trigSrcs(); for(const g of gone) if(!srcs.some(x=>x.id===g.id) && (g.k||g.cu)) srcs.push(g); for(const x of srcs) for(const l of trigLines(x)){ const r=l.match(/^Whenever one or more cards are put into exile from graveyards and\/or the battlefield during your turn, (.+)$/i); if(r && G.turn.active===G.myId) out.push(trigPush(x, r[1])); }
   if(out.length){ G.exdAt=Date.now(); log(`Cards were exiled: ${out.join(', ')} trigger${out.length>1?'s go':' goes'} on the stack.`); changed(); } }
 function oppPhase(kind){ const re = kind==='up' ? /^At the beginning of (?:each opponent's upkeep|each upkeep|each player's upkeep), (.+)$/i : /^At the beginning of each opponent's draw step, (.+)$/i, out=[];
   for(const x of trigSrcs()) for(const l of trigLines(x)){ const r=l.match(re); if(r) out.push(trigPush(x, l)); }
