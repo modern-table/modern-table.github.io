@@ -483,10 +483,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 </script>
 <script>
 "use strict";
-const VERSION = 'v4.10';
+const VERSION = 'v4.11';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.11','Oct 22',"A big step for the draft sets. Team pumps, base power and toughness, switching and doubling stats, \"can't block\" and \"doesn't untap next turn\" effects, tapping several creatures, and steal-and-untap effects now happen by themselves. Reality Fracture's Cadet and Heartwood tokens and named tokens like Angelo and Mowu are made for you. Raid, ferocious, hellbent and kicker upgrades only add the difference. Final Fantasy's double-faced cards transform when the card says so (Jace, Vryn's Prodigy and Sephiroth too). Morph can be cast face down for {3} and turned face up for its cost, and outlast, suspend, modular and living weapon work. Changelings count as every creature type."],
   ['v4.10','Oct 22',"A rounder poison skull with big eyes and three teeth, and the monarch's crown now sits in line with the word."],
   ['v4.09','Oct 22',"The bolt and crown are solid now, and the skull is a solid white skull with see-through eyes, nose and teeth. On the table, energy and poison show their symbol in place of the word; the monarch keeps its crown and the word."],
   ['v4.08','Oct 22',"Energy, poison and the monarch have their own drawn symbols (a bolt, a skull and a crown) instead of emoji, on the table and by the player names."],
@@ -2378,18 +2379,19 @@ async function simpleEffects(c, text, srcId){
     const bySen=(text||'').replace(/\([^)]*\)/g,'').split(/(?<=\.)\s+|\n/).reduce((n,x)=>n+tgtPhrases(x).length,0); return all>=2 && bySen===all && Math.max(...tgS)<all; })();
   let slK=0, slPrev=null, slIt=null, mjNow=false, skipS=[], flyHit=null, oustCtl=null, grpIds=null, lastPump=null, insteadNow=false;
   for(let sen of (text||'').replace(/\([^)]*\)/g,'').split(/(?<=\.)\s+|\n/)){ sen=sen.trim().replace(nm && /,/.test(nm) ? new RegExp('^((?:When|Whenever) )'+escRe(nm)+'\\b','i') : /^\b$/, '$1it').replace(/^[A-Z][A-Za-z' ]{2,30} — (?=(?:When|Whenever|At) )/,'').replace(/^(?:When|Whenever|At) (?!you attack this turn)(?!you do\b)(?!that creature dies this turn)(?!a creature dies this turn)[^,]+, /i,'').trim(); let r; if(skipS.length && skipS.some(x=>x.test(sen))) continue;
-    { let s2=sen, w; if(/^until end of turn, /i.test(s2) && !/\bbecomes?\b/i.test(s2) && /\b(?:gets?|gains?|get|gain)\b/i.test(s2)) s2=s2.replace(/^until end of turn, (.+?)\.?$/i, '$1 until end of turn.');   // v4.11
-      if((w=s2.match(/^(.*?\b(?:get|gets) )([+\-−])X\/(?:([+\-−])X|([+\-−]\d+))(.*?), where X is ([^.]+?)\.?$/i))){ const v=xNum(w[6], srcC); if(v!=null) s2=`${w[1]}${w[2]}${v}/${w[3] ? w[3]+v : w[4]}${w[5]}.`; }
+    { let s2=sen, w; if(/^until end of turn, /i.test(s2) && !/\bbecomes?\b|can(?:'|’)t|^until end of turn, (?:double|triple|switch|you|your)\b/i.test(s2) && /\b(?:gets?|gains?|get|gain)\b/i.test(s2)) s2=s2.replace(/^until end of turn, (.+?)\.?$/i, '$1 until end of turn.');   // v4.11
+      if((w=s2.match(/^(.*?\b(?:get|gets) )([+\-−])X\/(?:([+\-−])X|([+\-−]\d+))(.*?), where X is ([^.,]+?)\.?$/i))){ const v=xNum(w[6], srcC); if(v!=null) s2=`${w[1]}${w[2]}${v}/${w[3] ? w[3]+v : w[4]}${w[5]}.`; }
       if((w=s2.match(/^(.*?\bgets? )([+\-−])(\d+)\/([+\-−])(\d+)( until end of turn)? for each ([^.]+?)( until end of turn)?\.?$/i))){ const v=xNum(w[7], srcC); if(v!=null) s2=`${w[1]}${w[2]}${(+w[3])*v}/${w[4]}${(+w[5])*v}${w[6]||w[8]||''}.`; }
       if(s2!==sen && !/\bX\b|for each/i.test(s2)) sen=s2; }
-    insteadNow=false;
-    sen=sen.replace(/^(?![A-Z][a-z]+ —\s*(?:When|Whenever|At)\b)(?:[A-Z][A-Za-z0-9'!?,.-]*(?: [A-Za-z0-9'!?,/.-]+){0,6}) — (?=[A-Z])/,'').replace(/^for each opponent, (?=(?:tap|destroy|exile|put|return|untap)\b[^.]*\btarget\b)/i,'').replace(/target opponent or planeswalker/i,'any target');   // v4.11: "Item — …", "Take the Elevator — …", "Raid — …"
+    insteadNow=false; const keepS=/counter that spell|creatures can(?:'|’)t attack this turn/i.test(sen);   // sentences older handlers read whole (Stubborn Denial, Orim's Chant)
+    if(!keepS) sen=sen.replace(/^(?![A-Z][a-z]+ —\s*(?:When|Whenever|At)\b)(?!(?:Landfall|Delirium|Revolt|Threshold|Spell mastery|Metalcraft|Morbid|Coven|Domain|Converge|Corrupted|Celebration|Descend \d+|Max speed|Will of the council|Kicker|Undergrowth|Void|Valiant|Eerie|Survival|Flurry|Renew|Gift|Teamwork|Exhaust|Start your engines!) —)(?:[A-Z][A-Za-z0-9'!?,.-]*(?: [A-Za-z0-9'!?,/.-]+){0,6}) — (?=[A-Z])/,'').replace(/^for each opponent, (?=(?:tap|destroy|exile|put|return|untap)\b[^.]*\btarget\b)/i,'').replace(/target opponent or planeswalker/i,'any target');   // v4.11: "Item — …", "Take the Elevator — …", "Raid — …"
     { const cnd=x=>{ x=x.toLowerCase().trim(); let q; if(/^you attacked (?:with a creature )?this turn$/.test(x)) return m.atkC===G.turn.n; if(/^you control a creature with power 4 or greater$/.test(x)) return m.bf.some(y=>!y.fd && isCreature(y) && powerOf(y)>=4);
         if(/^you have no cards in hand$/.test(x)) return m.hand.length===0; if((q=x.match(/^you control (\w+) or more creatures$/))) return m.bf.filter(y=>!y.fd && isCreature(y)).length >= (NUMW2[q[1]]||+q[1]||99);
         if(/^this spell was kicked$|^it was kicked$/.test(x)) return !!c.kick; if(/^you(?:'|’)ve discarded a card this turn$/.test(x)) return !!(m.dsc && m.dsc.t===G.turn.n && m.dsc.n>0); if((q=x.match(/^you have (\d+) or less life$/))) return m.life<=+q[1];
         return null; };
       let w, v;
-      if((w=sen.match(/^if (.+?), instead (.+)$/i)) && (v=cnd(w[1]))!=null){ if(!v){ log(`${by}: it isn't true that ${w[1]}, so that doesn't happen.`); continue; } sen=w[2][0].toUpperCase()+w[2].slice(1); insteadNow=true; }
+      if(keepS){}
+      else if((w=sen.match(/^if (.+?), instead (.+)$/i)) && (v=cnd(w[1]))!=null){ if(!v){ log(`${by}: it isn't true that ${w[1]}, so that doesn't happen.`); continue; } sen=w[2][0].toUpperCase()+w[2].slice(1); insteadNow=true; }
       else if((w=sen.match(/^if (.+?), (.+?) instead\.?$/i)) && (v=cnd(w[1]))!=null){ if(!v){ log(`${by}: it isn't true that ${w[1]}, so that doesn't happen.`); continue; } sen=w[2][0].toUpperCase()+w[2].slice(1)+'.'; insteadNow=true; }
       else if((w=sen.match(/^(.+?) instead if (.+?)\.?$/i)) && (v=cnd(w[2]))!=null){ if(!v){ log(`${by}: it isn't true that ${w[2]}, so that doesn't happen.`); continue; } sen=w[1]+'.'; insteadNow=true; }
       else if((w=sen.match(/^if there are (\w+) or more cards in your graveyard, (.+)$/i)) && !/\binstead\b/i.test(sen)){ const k=NUMW2[w[1].toLowerCase()]||+w[1]||99, n=m.gy.filter(y=>y.id!==c.id).length; if(n<k){ log(`${by}: only ${n} card${n===1?'':'s'} in the graveyard, so that doesn't happen.`); continue; } sen=w[2][0].toUpperCase()+w[2].slice(1); }
@@ -2952,6 +2954,7 @@ async function simpleEffects(c, text, srcId){
     // ---- Batch 4 (v4.11): the sets. Pumps, P/T changes, combat restrictions, tapping, named tokens
     // "That creature / It gets/gains …" when nothing was targeted in this ability before: the sentence before's targets
     if(!itT.length && (r=sen.match(/^(?:that creature|it) ((?:gets|gains) .+?)\.?$/i))){ const o=modPred(r[1]); const ts=(slPrev||tgAll).filter(x=>{ const a=findAny(x); return a && a.z==='bf' && isCreature(a.c); }).slice(0,1); if(o && ts.length){ for(const t of ts) modTarget(t, o, by); itT=ts; changed(); continue; } }
+    if(/^tap it\.?$/i.test(sen) && /that creature gains[^.]*\.\s*Tap it/i.test(text)) continue;   // Tyvar: "it" is the creature tapped to pay
     if(/^tap it\.?$/i.test(sen)){ const t=itT[0] || (srcC && srcC.id); const f=t && find(t); if(f && f.z==='bf'){ f.c.tap=true; log(`${by}: ${cname(f.c)} is tapped.`); } else if(t) modTarget(t, {tap:true}, by); changed(); continue; }
     if(/^put target (?:creature|nonland permanent|permanent) on (?:top of|the bottom of) its owner(?:'|’)s library\.?$/i.test(sen)){ const t=tg.find(x=>{ const a=findAny(x); return a && a.z==='bf'; }); if(!t){ log(`${by}: nothing was chosen.`); continue; } const a=findAny(t), bot=/bottom/i.test(sen), nm2=cname(a.c);
       if(a.mine) toLibPos(t, bot ? 1e9 : 0); else send({t:'tuck', id:t, pos:bot ? 999 : 0}); log(`${by}: ${a.mine ? m.name : (G.opp?G.opp.name:'the opponent')}'s ${nm2} goes on ${bot?'the bottom':'top'} of its owner's library.`); changed(); continue; }
