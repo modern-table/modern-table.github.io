@@ -118,7 +118,7 @@ textarea#paste{width:100%;min-height:300px;font-family:ui-monospace,Menlo,Consol
 .phases{display:flex;gap:3px;margin-inline:auto}
 .phases button{padding:4px 9px;font-size:12px;border-radius:99px;background:transparent}
 .phases button.on{background:var(--brass);border-color:var(--brass);color:#1b1205;font-weight:800}
-.tools{display:flex;gap:4px}#pauseBtn.on{border-color:var(--brass);color:var(--brass)}.tools button{padding:4px 9px;font-size:12px}
+.tools{display:flex;gap:4px}#fsBtn{white-space:nowrap}#fsBtn .fs{display:none}@media (max-width:1599px){#fsBtn .fl{display:none}#fsBtn .fs{display:inline}}#pauseBtn.on{border-color:var(--brass);color:var(--brass)}.tools button{padding:4px 9px;font-size:12px}
 
 .card{position:relative;width:var(--cw);aspect-ratio:488/680;border-radius:4.6%/3.3%;flex:none;background:#243b40;box-shadow:0 2px 6px #0008;transition:transform .15s,filter .15s,margin .15s;cursor:pointer;touch-action:none}
 .card img{position:absolute;inset:0;width:100%;height:100%;border-radius:inherit;display:block;pointer-events:none}
@@ -455,6 +455,7 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
         <button id="handBtn" title="Hand actions">✋ <span>Hand</span></button>
         <button id="practiceBtn" hidden title="Put things on Practice's side of the table: creatures to block, a planeswalker, other permanents">⚑ <span>Practice</span></button>
         <button id="pauseBtn" title="Stop your opponent's next turn in their upkeep or draw step so you can act">⏸ <span>Pause</span></button>
+        <button id="fsBtn" hidden title="Exit full screen">⤢ <span class="fl">Exit full screen</span><span class="fs">Exit</span></button>
         <button id="menuBtn" title="Table menu">☰</button>
       </div>
     </div>
@@ -485,10 +486,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.19';
+const VERSION = 'v4.20';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.20','Oct 23',"Full screen: choose Full screen in the ☰ menu. An Exit full screen button appears beside the menu while you're in it. In Chrome and Edge, Esc still works in the game (hold Esc to leave full screen); in other browsers Esc leaves full screen."],
   ['v4.19','Oct 23',"Card fixes from Ben's notes. Chef's Kiss takes the spell, copies it and picks new targets at random for both (never you or your permanents). Out of Time phases out every creature (they turn grey and wait, counters and Equipment and all) and phases them back in when it leaves; its time counters come off each upkeep. String of Disappearances opens the pay window for {U}{U}, and the offer goes to whoever controls the bounced creature. Summon: Brynhildr counts lore counters, keeps its exiled card playable on your turns while it's out, and shows a box when your next creature spell will gain haste. Forecast cards (Piercing Rays) can be used from your hand in your upkeep, and the pause button can stop your own next turn in your upkeep. Graveyards show THRESHOLD when a deck cares, and a card Null Summoner exiles says so (and when it can be cast with mana of any type). Warrior's Blades asks where to equip first, then charges {1} less for each +1/+1 counter on that creature."],
   ['v4.18','Oct 23',"Ketramose now sees its own exile: when Phelia, Flickerwisp or a removal spell exiles it during your turn, you still draw a card and lose 1 life."],
   ['v4.17','Oct 23',"Practice games now have an opponent called Practice, at 20 life, so you can see combat damage and burn land. The Practice button in the middle can give it creatures (with flying, reach, deathtouch and so on), a planeswalker, an artifact, an enchantment or a land, or put a battle on your side to attack; you declare its blocks. Attack with all chooses every creature that can attack, and Reset attackers starts over. Phelia and Flickerwisp keep asking for their target until you click one or press No target. An Overlord cast for its impending cost no longer counts as a creature entering (Guide of Souls)."],
@@ -5977,6 +5979,16 @@ function gyMenu(x,y){
     ['Shuffle graveyard and put it on the bottom of library',()=>{ const n=m.gy.length; if(!n) return; G.noUndo=true; for(const c of shuffle([...m.gy])) move(c.id,'lib',{silent:true,pos:'bottom'}); log(`${m.name} shuffles their graveyard (${n} card${n>1?'s':''}) and puts it on the bottom of their library.`); changed(); }],
     ['Shuffle graveyard into library',()=>{ const n=m.gy.length; if(!n) return; for(const c of [...m.gy]) move(c.id,'lib',{silent:true}); shuffleLib(true); log(`${m.name} shuffles their graveyard (${n}) into their library.`); changed(); }] ]);
 }
+/* Full screen (v4.20): ☰ menu item; while full screen an Exit full screen button sits in the tools bar. Where the browser allows it
+   (Chrome, Edge) Esc stays with the game (navigator.keyboard.lock): the browser then asks you to hold Esc to leave full screen. */
+const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement || null;
+const fsCan = () => !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
+function fsEnter(){ const d=document.documentElement; let p;
+  try{ p = d.requestFullscreen ? d.requestFullscreen({navigationUI:'hide'}) : d.webkitRequestFullscreen(); }catch(e){ toast('Your browser did not allow full screen.'); return; }
+  Promise.resolve(p).then(()=>{ const kl=navigator.keyboard && navigator.keyboard.lock; if(kl) navigator.keyboard.lock(['Escape']).then(()=>toast('Full screen. Esc still works in the game: hold Esc, or click ⤢ Exit beside the menu, to leave.')).catch(()=>toast('Full screen. Press Esc, or click ⤢ Exit beside the menu, to leave.')); else toast('Full screen. Press Esc, or click ⤢ Exit beside the menu, to leave.'); }).catch(()=>toast('Your browser did not allow full screen.')); }
+function fsExit(){ try{ if(navigator.keyboard && navigator.keyboard.unlock) navigator.keyboard.unlock(); }catch(e){} try{ if(document.exitFullscreen) document.exitFullscreen(); else if(document.webkitExitFullscreen) document.webkitExitFullscreen(); }catch(e){} }
+function fsSync(){ const b=$('#fsBtn'); if(b) b.hidden=!fsEl(); if(!fsEl()){ try{ if(navigator.keyboard && navigator.keyboard.unlock) navigator.keyboard.unlock(); }catch(e){} } setTimeout(()=>{ render(); drawArrows(); for(const el of [$('#pactPanel'), $('#payPanel')]) if(el && !el.hidden) placePay(el); }, 60); }
+document.addEventListener('fullscreenchange', fsSync); document.addEventListener('webkitfullscreenchange', fsSync);
 function tableMenu(x,y){
   menu(x,y,[
     ['New game / sideboard',()=>confirmBox('Start a new game?','Both players go back to 20 life and reshuffle. You can sideboard first.',()=>newGame())],
@@ -5985,6 +5997,7 @@ function tableMenu(x,y){
     ['Change deck',()=>showDecks()], ['Take the turn',()=>{ setTurn({active:G.myId, phase:2, n:Math.max(1,G.turn.n)}); }],
     [S.autoDraw?'Turn off auto-draw each turn':'Turn on auto-draw each turn',()=>{ S.autoDraw=!S.autoDraw; store.set('mt_settings',S); toast('Auto-draw is '+(S.autoDraw?'on':'off')); }],
     [`Auto-pay from mana pool: ${S.autoPay!==false?'On':'Off'}`,()=>{ S.autoPay=S.autoPay===false; store.set('mt_settings',S); toast(S.autoPay ? 'Auto-pay is on: spells and abilities take their cost from your mana pool.' : 'Auto-pay is off: spells go straight to the stack; spend mana by clicking its symbols.'); }],
+    fsCan() && [fsEl() ? 'Exit full screen' : 'Full screen', ()=>fsEl() ? fsExit() : fsEnter()],
     ['Clear my arrows',()=>{ G.me.arrows=[]; changed(); }], ['Shortcuts and help',()=>helpModal()], ["What's new",()=>newsModal()], ['Send feedback',()=>openFeedback()], '-',
     ['Leave the table',()=>confirmBox('Leave this table?','Your seat is kept on this computer, so you can come back from the front page.',()=>{ save(); location.href=location.pathname+location.search; })] ]);
 }
@@ -6284,6 +6297,7 @@ document.addEventListener('click', e=>{
 });
 $('#next').onclick=()=>nextPhase();
 $('#drawBtn').onclick=()=>{ if(G.me.gate){ if(Date.now()-G.me.gate.at < GATE_MS) return; log(`${G.me.name} goes ahead with the draw without an answer from ${G.opp?G.opp.name:'their opponent'}.`); releaseGate(); return; } if(draw(1,false,true)) G.me.drew=G.turn.n; if(G.turn.active===G.myId && G.turn.phase===1 && !G.turn.hold && pauseAt('post')) setTurn({...G.turn, hold:pauseHold('post')}); changed(); };
+$('#fsBtn').onclick=()=>fsExit();
 $('#menuBtn').onclick=e=>{ const r=e.currentTarget.getBoundingClientRect(); tableMenu(r.left, r.bottom+4); };
 $('#handBtn').onclick=e=>{ const r=e.currentTarget.getBoundingClientRect(); handMenu(r.left, r.bottom+4); };
 $('#practiceBtn').onclick=e=>{ const r=e.currentTarget.getBoundingClientRect(); practiceMenu(r.left, r.bottom+4); };
