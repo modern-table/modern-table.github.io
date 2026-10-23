@@ -97,7 +97,9 @@ textarea#paste{width:100%;min-height:300px;font-family:ui-monospace,Menlo,Consol
 .row{--rp:calc(var(--ch)*.22);height:calc(var(--ch) + 2*var(--rp));display:flex;align-items:center;gap:6px;padding:var(--rp) 10px;margin:calc(-1*var(--rp)) 0;background-clip:content-box;overflow-x:auto;overflow-y:hidden;flex:none;scrollbar-width:thin}
 #mid>*{position:relative;z-index:4}
 #loopBtn{position:absolute;left:12px;z-index:30;padding:8px 12px;border-radius:8px}
-#blockBar{position:absolute;left:12px;z-index:30;display:flex;flex-direction:column;gap:6px;align-items:stretch;width:178px;padding:8px 10px;background:#0b1417f2;border:1px solid var(--brass);border-radius:10px;box-shadow:0 8px 24px #000a}#blockBar span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);font-weight:800;text-align:center}#blockBar button{font-size:12.5px}
+#atkBar span.sub{font-size:11px;letter-spacing:0;text-transform:none;color:var(--dim);font-weight:400}#atkBar span.sub.must{color:var(--brass);font-weight:600}
+.card.asel{outline:3px solid var(--brass);outline-offset:2px;transform:translateY(-6%)}.card.asel::after{content:'ATTACK';position:absolute;left:50%;top:-11px;transform:translateX(-50%);font:800 9px var(--ui);letter-spacing:.12em;color:#1b1408;background:var(--brass);padding:1px 6px;border-radius:3px}
+#blockBar,#atkBar{position:absolute;left:12px;z-index:30;display:flex;flex-direction:column;gap:6px;align-items:stretch;width:178px;padding:8px 10px;background:#0b1417f2;border:1px solid var(--brass);border-radius:10px;box-shadow:0 8px 24px #000a}#blockBar span,#atkBar span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);font-weight:800;text-align:center}#blockBar button,#atkBar button{font-size:12.5px}
 .row .gap{flex:1;min-width:12px}
 .row{position:relative}.row.ovf:hover{z-index:6}
 .row::-webkit-scrollbar{height:9px}.row::-webkit-scrollbar-thumb{background:#d9b25f99;border-radius:5px}.row::-webkit-scrollbar-track{background:#0004}
@@ -450,7 +452,7 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
         <button id="menuBtn" title="Table menu">☰</button>
       </div>
     </div>
-    <div id="blockBar" hidden></div><button id="loopBtn" class="go" hidden>Repeat the loop…</button>
+    <div id="blockBar" hidden></div><div id="atkBar" hidden></div><button id="loopBtn" class="go" hidden>Repeat the loop…</button>
     <div id="myFront" class="row front" data-drop="bf"></div>
     <div id="myBack" class="row" data-drop="bf"></div>
     <div id="myHand" class="handrow" data-drop="hand"></div>
@@ -477,10 +479,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.14';
+const VERSION = 'v4.15';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.15','Oct 23',"Declare attackers with buttons: in your combat, Choose attackers, click your creatures (chosen ones get a gold ATTACK tag), then Attack, or No attacks to go straight to your second main phase. Creatures that must attack (Dragon's Rage Channeler with delirium) start chosen. If your opponent has a planeswalker, each attacker then shows an arrow and asks what it attacks, with the choices lit. The A key still works. Dragon's Rage Channeler shows the flying icon while you have delirium."],
   ['v4.14','Oct 23',"Plotted cards (Slickshot Show-Off) wait in a PLOTTED box on their owner's side of the table, which says FREE ON A LATER TURN until they can be cast, then CAST IT FREE; click the card there to cast it. In the exile viewer they carry a PLOTTED band. Casting one on the same turn or outside your main phase asks first."],
   ['v4.13','Oct 22',"More of the draft sets play themselves: bouncing two creatures or a whole group, counters on whole groups, \"top or bottom of its owner's library\" (the owner picks on their own screen), shuffling a creature into its owner's library, explore, fogs, Duneblast, End the turn, \"sacrifice the creature with the greatest power\", lands and enchantments that become creatures (Mishra's Factory, Ride the Shoopuf), damage and life counted from the board (\"damage equal to the number of …\", \"lose 1 life for each Spider\"), and spells that make a token and then do something else."],
   ['v4.12','Oct 22',"A big step for the draft sets. Team pumps, base power and toughness, switching and doubling stats, \"can't block\" and \"doesn't untap next turn\" effects, tapping several creatures, and steal-and-untap effects now happen by themselves. Reality Fracture's Cadet and Heartwood tokens and named tokens like Angelo and Mowu are made for you. Raid, ferocious, hellbent and kicker upgrades only add the difference. Final Fantasy's double-faced cards transform when the card says so (Jace, Vryn's Prodigy and Sephiroth too). Morph can be cast face down for {3} and turned face up for its cost, and outlast, suspend, modular and living weapon work. Changelings count as every creature type."],
@@ -2045,6 +2048,7 @@ const allColorsBy = pid => { for(const x of sideOf(pid).bf||[]){ if(!x.fd && (x.
 /* keywords a creature gets from its controller's permanents: Scion of Draco ("Each creature you control has vigilance if it's white, hexproof if it's blue, …")
    and plain anthems ("Creatures you control have flying", "Other creatures you control have …") → [{k, src}] */
 function grantedKw(c, pid){ if(c.fd || !pid) return []; if(!isCreature(c)) return (c.tkw && c.tkw.n===G.turn.n) ? c.tkw.k.map(k=>({k, src:'until end of turn'})) : []; const out=[], cols=cardColors(c);
+  for(const k of condKw(c)) if(KW.includes(k)) out.push({k, src:'delirium'});   // Dragon's Rage Channeler: flying while you have delirium
   if(c.tkw && c.tkw.n===G.turn.n) for(const k of c.tkw.k) out.push({k, src:'until end of turn'});   // "<this creature> gains flying until end of turn"
   for(const bf of [G.me.bf, (G.opp&&G.opp.bf)||[]]) for(const x of bf){ if(x.att!==c.id || x.fd || (!x.k && !x.cu)) continue; const src=cdata(x).n.split(',')[0];   // "Equipped creature gets +1/+1 and has trample and haste."
     for(const m of (frontText(x)||'').matchAll(/(?:^|\n)(?:Equipped|Enchanted) creature (?:gets [^.\n]*? and )?has ([^.\n"]+)\./gi)) for(const it of m[1].split(/,\s*(?:and\s+)?|\s+and\s+/)){ const k=it.trim().toLowerCase(); if(KW.includes(k) && !out.some(o=>o.k===k)) out.push({k, src}); } }
@@ -4548,7 +4552,7 @@ function playBack(id, zone, tapped, pd){
   else { move(id,'st',{silent:true}); c.flip=true; log(`${G.me.name} casts ${nm}, the other side of ${cname(c)}${pd && pd.other ? ', paying for it another way' : pd && pd.text ? ', paying '+pd.text : ''}.`); if(pd && pd.mana===0) c.nm=1; applyRiders(c, pd); }
   changed();
 }
-function attack(id, vig){
+function attack(id, vig, ao){
   const f=find(id); if(!f || f.z!=='bf') return; const c=f.c;
   if(G.turn.phase===3 && G.turn.cs && G.turn.active===G.myId && !G.me.ctl){ toast('Attackers are already declared.'); return; }
   if(c.atk){ c.atk=false; G.me.arrows=G.me.arrows.filter(a=>!(a.atk && a.a===id)); changed(); return; }
@@ -4559,7 +4563,7 @@ function attack(id, vig){
     if(w.length){ log(w.join('. ')+'.'); toast(unlink(w[0]+'.')); } }
   c.atk=true; if(!vig) c.tap=true; log(`${G.me.name} attacks with ${cname(c)}${vig?' (vigilance, stays untapped)':''}.`); changed();
   atkTrigs(c); youAttack(); changed(); { const mb=(frontText(c)||'').match(/(?:^|\n)Mobilize (\d+)/i); if(mb){ const d=cdata(c), sn=d.n.split(',')[0]; G.me.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:c.id, tr:true}, cu:{n:`${sn}: mobilize ${mb[1]}`, t:'Triggered ability', o:`Create ${mb[1]} tapped and attacking 1/1 red Warrior creature tokens. Sacrifice them at the beginning of the next end step.`, img:d.img||''}})); log(`${sn} attacks: mobilize ${mb[1]} goes on the stack.`); changed(); } }
-  { const pws=((G.opp&&G.opp.bf)||[]).filter(x=>!x.fd && isPW(x)); if(pws.length) pickP(`${cdata(c).n.split(',')[0]} attacks: whom?`, pws, `${G.opp.name} (the player)`).then(pk=>{ if(!pk || !find(id) || !c.atk) return; G.me.arrows=G.me.arrows.filter(a=>!(a.atk && a.a===id)); G.me.arrows.push({a:id, b:pk.id, atk:1}); log(`${cname(c)} attacks ${G.opp.name}'s ${cname(pk)}.`); changed(); }); }
+  { const pws=((G.opp&&G.opp.bf)||[]).filter(x=>!x.fd && isPW(x)); if(pws.length && !(ao&&ao.noPick)) pickP(`${cdata(c).n.split(',')[0]} attacks: whom?`, pws, `${G.opp.name} (the player)`).then(pk=>{ if(!pk || !find(id) || !c.atk) return; G.me.arrows=G.me.arrows.filter(a=>!(a.atk && a.a===id)); G.me.arrows.push({a:id, b:pk.id, atk:1}); log(`${cname(c)} attacks ${G.opp.name}'s ${cname(pk)}.`); changed(); }); }
   { const b=blinkTrig(c); if(b && b.when==='attacks'){ blinkAuto(c, b); changed(); } }
 }
 function emptyPool(){ const m=G.me; let ch=false; if(m.mana && MANA.some(k=>m.mana[k])){ m.mana=noMana(); ch=true; } if(m.smana && m.smana.length){ m.smana=[]; ch=true; } return ch; }
@@ -4730,6 +4734,34 @@ function combatLabel(){ const t=G.turn, on=G.opp?G.opp.name:'opponent'; if(t.pha
   if(t.cs==='blk') return {text:`Waiting for ${on}'s blocks`, wait:1}; if(t.cs==='blkd') return {text: G.opp && !G.solo ? (combatHasFS() ? 'Apply first strike damage' : 'Apply combat damage') : 'Combat damage'};
   if(t.cs==='fs') return {text:'Apply combat damage'};
   if(!t.cs && G.me.bf.some(c=>c.atk)) return {text: G.opp && !G.solo ? `Attackers declared → ${on} blocks` : 'Combat damage'}; return null; }
+/* Declare attackers (v4.15): during my combat, before attackers are declared, the attack bar lets me click creatures to choose them, then Attack
+   (or No attacks). Creatures that must attack (Dragon's Rage Channeler with delirium) start chosen. When the opponent has planeswalkers (or I
+   control a battle they protect), each attacker in turn gets a starter arrow and the legal things to attack are lit. The A / V keys still work. */
+const atkStep = () => { const t=G.turn; return !!t.n && t.phase===3 && !t.cs && !t.passed && !t.hold && t.active===G.myId && !G.me.ctl; };
+const canAttackNow = c => !c.fd && isCreature(c) && !c.tap && !c.atk && (!c.sick || hasHaste(c));
+function mustAttackIds(){ return G.me.bf.filter(c=>canAttackNow(c) && noRemind(c).split(/\n|(?<=\.)\s+/).some(sen=>/\battacks each (?:combat|turn) if able\b/i.test(sen) && (!/four or more card types among cards in your graveyard/i.test(sen) || deliriumOn(c)) && !(/\bas long as\b/i.test(sen) && !/card types among cards in your graveyard/i.test(sen)))).map(c=>c.id); }
+const atkTargets = () => [oppId(), ...((G.opp&&G.opp.bf)||[]).filter(x=>!x.fd && isPW(x)).map(x=>x.id), ...G.me.bf.filter(x=>!x.fd && /\bBattle\b/.test(faceType(x))).map(x=>x.id)];
+function atkChoose(){ if(!atkStep()) return; G.atkSel=new Set(mustAttackIds()); const n=G.atkSel.size; toast(n ? `${n} creature${n>1?'s':''} that must attack ${n>1?'are':'is'} already chosen. Click creatures to add or remove them, then Attack.` : 'Click the creatures to attack with, then Attack.'); render(); }
+function atkToggle(id){ const f=find(id); if(!f || f.z!=='bf' || !isCreature(f.c)) { toast('Click one of your creatures.'); return; } const c=f.c;
+  if(G.atkSel.has(id)){ G.atkSel.delete(id); render(); return; }
+  if(c.tap) toast(`${cdata(c).n} is tapped; it can only attack if you both agree.`); else if(c.sick && !hasHaste(c)) toast(`${cdata(c).n} is summoning sick; it can only attack if you both agree.`);
+  G.atkSel.add(id); render(); }
+function atkCommit(){ const ids=[...(G.atkSel||[])].filter(id=>{ const f=find(id); return f && f.z==='bf'; }); G.atkSel=null; if(!ids.length){ atkNone(); return; }
+  for(const id of ids) attack(id, false, {noPick:true});
+  const tg=atkTargets(); G.atkQ = tg.length>1 ? ids.filter(id=>{ const f=find(id); return f && f.c.atk; }) : []; atkNext(); }
+function atkNext(){ const q=G.atkQ||[]; while(q.length){ const id=q.shift(), f=find(id); if(!f || !f.c.atk) continue; G.mode={type:'atktgt', from:id}; toast(`${cdata(f.c).n.split(',')[0]} attacks: click ${G.opp?G.opp.name:'your opponent'} or what it attacks (Esc: the player).`); render(); return; }
+  G.atkQ=null; G.mode=null; render(); if(G.me.bf.some(c=>c.atk)) nextPhase(); }
+function atkTarget(md, target){ const f=find(md.from); if(!f || !f.c.atk){ atkNext(); return; } const ok=atkTargets().includes(target);
+  if(!ok){ toast(`${cdata(f.c).n.split(',')[0]} can attack ${G.opp?G.opp.name:'your opponent'}, their planeswalkers, or a battle they protect.`); G.mode=md; render(); return; }
+  G.me.arrows=G.me.arrows.filter(a=>!(a.atk && a.a===md.from));
+  if(target===oppId()) log(`${cname(f.c)} attacks ${G.opp?G.opp.name:'the opponent'}.`); else { G.me.arrows.push({a:md.from, b:target, atk:1}); const t=findAny(target); log(`${cname(f.c)} attacks ${t && !t.mine ? (G.opp?G.opp.name+"'s ":'') : ''}${t?cname(t.c):'it'}.`); }
+  changed(); atkNext(); }
+function atkNone(){ G.atkSel=null; G.me.bf.forEach(c=>{ if(c.atk){ c.atk=false; } }); G.me.arrows=G.me.arrows.filter(a=>!a.atk); const t=G.turn; log(`${G.me.name} declares no attackers.`); setTurn({...t, phase:4}); changed(); }
+function atkBarHTML(){ const sel=G.atkSel, any=G.me.bf.some(c=>canAttackNow(c) || c.atk), must=mustAttackIds().map(id=>cdata(find(id).c).n.split(',')[0]);
+  if(G.mode && G.mode.type==='atktgt') return `<span>Choose what it attacks</span><span class="sub">Click the player, a lit planeswalker or a battle</span>`;
+  if(sel) return `<span>${sel.size ? sel.size+' attacker'+(sel.size>1?'s':'')+' chosen' : 'Choose attackers'}</span><span class="sub">Click your creatures to choose them</span>${must.length ? `<span class="sub must">Must attack if able: ${esc(must.join(', '))}</span>` : ''}<button class="go" data-ak="go"${sel.size?'':' disabled'}>Attack</button><button data-ak="cancel">Cancel</button><button data-ak="none">No attacks</button>`;
+  if(G.me.bf.some(c=>c.atk)) return `<span>Attackers chosen</span><span class="sub">Press Next to declare them, or</span><button data-ak="choose">Change attackers</button>`;
+  return `<span>Declare attackers</span>${must.length ? `<span class="sub must">Must attack if able: ${esc(must.join(', '))}</span>` : ''}${any ? '<button class="go" data-ak="choose">Choose attackers</button>' : '<span class="sub">No creature can attack</span>'}<button data-ak="none">No attacks</button>`; }
 function combatStep(){ const t=G.turn, atk=G.me.bf.filter(c=>c.atk);
   if(t.cs==='blk'){ toast(`Waiting for ${G.opp?G.opp.name:'your opponent'} to declare blockers.`); return true; }
   if(t.cs==='dmg') return false;
@@ -5060,7 +5092,7 @@ function cardHTML(c, z, mine, cls=''){
   if(z==='ex' && c.warp && !backUp) b+='<span class="wrpban">WARPED</span>';
   if(z==='ex' && c.pl && !backUp){ cls+=' pl'; b+=`<span class="plban">PLAYABLE · ${c.pl==='this'?'THIS TURN':'NEXT TURN'}</span>`; }
   else if(z==='ex' && c.plot && !backUp){ b+='<span class="plban pltd">PLOTTED</span>'; }
-  return `<div class="card ${mine?'':'opp'} ${c.tap?'tap':''} ${c.atk?'atk':''} ${!mine && c.atk && z==='bf' && blkDim(c) ? 'nblk' : ''} ${tgtDim(c, z)} ${c.fd&&mine?'fdmine':''} ${cls}" data-id="${c.id}" data-z="${z}" data-o="${mine?'me':'opp'}">${inner}${b}${extra}</div>`;
+  return `<div class="card ${mine?'':'opp'} ${c.tap?'tap':''} ${c.atk?'atk':''} ${!mine && c.atk && z==='bf' && blkDim(c) ? 'nblk' : ''} ${tgtDim(c, z)} ${mine && z==='bf' && G.atkSel && G.atkSel.has(c.id) ? 'asel' : ''} ${c.fd&&mine?'fdmine':''} ${cls}" data-id="${c.id}" data-z="${z}" data-o="${mine?'me':'opp'}">${inner}${b}${extra}</div>`;
 }
 /* marker icons (v4.08, Ben): one drawn style instead of emoji: rounded white outline with filled details; they take the text colour */
 const ICO = (()=>{ const sv=(b)=>`<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">${b}</svg>`;
@@ -5160,7 +5192,7 @@ function render(){
   }
   $('#oppAv').className = 'avatar'+(G.turn.n&&G.turn.active===oppId()?' active':'')+(G.mode?' tgt':'')+(TGS && !tgtCheck(TGS, oppId()).ok ? ' ntg' : ''); $('#oppAv').dataset.pl=oppId();
   $('#myAv').innerHTML = avatarHTML(m, G.myId, true);
-  $('#myAv').className = 'avatar me'+(G.turn.n&&G.turn.active===G.myId?' active':'')+(G.mode?' tgt':'')+(TGS && !tgtCheck(TGS, G.myId).ok ? ' ntg' : ''); $('#myAv').dataset.pl=G.myId;
+  $('#myAv').className = 'avatar me'+(G.turn.n&&G.turn.active===G.myId?' active':'')+(G.mode?' tgt':'')+((TGS && !tgtCheck(TGS, G.myId).ok) || (G.mode && G.mode.type==='atktgt') ? ' ntg' : ''); $('#myAv').dataset.pl=G.myId;
   const st = [...m.st.map(c=>[c,true]), ...((o&&o.st)||[]).map(c=>[c,false])].sort((a,b)=>(a[0].ts||0)-(b[0].ts||0));
   { const se=$('#stack'), keep=se.scrollLeft; se.innerHTML = st.map(([c,mine])=>cardHTML(c,'st',mine)).join(''); $('#stackN').textContent = st.length>1 ? '· '+st.length : '';
     if(st.length>(render.stN||0)) se.scrollLeft=se.scrollWidth; else se.scrollLeft=keep; render.stN=st.length; }   // something new on the stack: show the top
@@ -5183,6 +5215,7 @@ function render(){
   $('#drawBtn').textContent = gate ? (gateOld ? 'Draw anyway' : `Waiting for ${o?o.name:'opponent'}…`) : 'Draw a card'; $('#drawBtn').disabled = !!gate && !gateOld;
   { const bb=$('#blockBar'); if(blockStep()){ const n=G.me.arrows.filter(a=>a.blk).length; bb.hidden=false;
       const atks=(G.opp&&G.opp.bf||[]).filter(c=>c.atk), more=blockersLeft().some(b=>atks.some(a=>!blockIssues(b,a).length)), must=mustBlockNotes(); bb.innerHTML = `<span>${n ? n+' blocker'+(n>1?'s':'')+' declared' : 'You are being attacked'}</span>${must.map(x=>`<span style="text-transform:none;letter-spacing:0;color:var(--brass);font-weight:600">${esc(unlink(x))}</span>`).join('')}${more ? `<button class="go" data-bk="declare">${n?'Declare another blocker':'Declare a blocker'}</button>` : (n ? '' : '<span style="text-transform:none;letter-spacing:0;color:var(--dim);font-weight:400">None of your creatures can block these attackers</span>')}${n ? '<button data-bk="reset">Reset blockers</button><button class="go" data-bk="finish">Finish declaring blocks</button>' : '<button data-bk="finish">No blocks</button>'}`; const fr=$('#myFront'), mid=$('#mid'); bb.style.top=Math.max(mid.offsetTop + mid.offsetHeight + 8, fr.offsetTop + (fr.offsetHeight - bb.offsetHeight)/2)+'px'; } else if(!bb.hidden){ bb.hidden=true; bb.innerHTML=''; } }
+  { const ab=$('#atkBar'); if(G.atkSel && !atkStep()) G.atkSel=null; if(atkStep() && !blockStep()){ ab.hidden=false; ab.innerHTML=atkBarHTML(); const fr=$('#myFront'), mid=$('#mid'); ab.style.top=Math.max(mid.offsetTop + mid.offsetHeight + 8, fr.offsetTop + (fr.offsetHeight - ab.offsetHeight)/2)+'px'; } else if(!ab.hidden) ab.hidden=true; }
   { const lb=$('#loopBtn'); const ok=!blockStep() && (!!loopSpec() || !!samSpec()); if(ok){ lb.hidden=false; const fr=$('#myFront'), mid=$('#mid'); lb.style.top=Math.max(mid.offsetTop + mid.offsetHeight + 8, fr.offsetTop + 8)+'px'; } else if(!lb.hidden) lb.hidden=true; }
   markOverflow();
   { const pb=$('#pauseBtn'), pa=m.pauseAsk&&m.pauseAsk.at; pb.hidden=!(G.opp && !G.solo && t.n); pb.classList.toggle('on', !!pa); pb.querySelector('span').textContent = pa ? 'Pause: '+PAUSE_SHORT[pa] : 'Pause'; }
@@ -5238,7 +5271,7 @@ function render(){
     bn.hidden=false; bn.innerHTML = `<h3>${h}</h3>${st}<div>${btn}</div>`;
   }
   else bn.hidden=true;
-  $('#modebar').hidden = !G.mode; if(G.mode) $('#modebar').textContent = (G.mode.type==='exhold'||G.mode.type==='exvoid' ? 'Click the card that is doing the exiling' : G.mode.type==='attach' ? 'Click the permanent to attach to' : G.mode.type==='block' ? 'Click the attacker to block' : G.mode.type==='pickblocker' ? 'Click one of your untapped creatures to block with' : (TGS ? tgtHint(TGS) : 'Click a target: a card or a player')) + ' · Esc cancels';
+  $('#modebar').hidden = !G.mode; if(G.mode) $('#modebar').textContent = (G.mode.type==='exhold'||G.mode.type==='exvoid' ? 'Click the card that is doing the exiling' : G.mode.type==='attach' ? 'Click the permanent to attach to' : G.mode.type==='block' ? 'Click the attacker to block' : G.mode.type==='pickblocker' ? 'Click one of your untapped creatures to block with' : G.mode.type==='atktgt' ? `${(find(G.mode.from)?cdata(find(G.mode.from).c).n.split(',')[0]:'It')} attacks: click ${G.opp?G.opp.name:'your opponent'}, a planeswalker or a battle (lit)` : (TGS ? tgtHint(TGS) : 'Click a target: a card or a player')) + ' · Esc cancels';
   if(!G.mode){ const ic=iControl(), ctlMe=m.ctl && G.turn.active===G.myId; if(ic || ctlMe || m.ctlNext || (o&&o.ctlNext)){ $('#modebar').hidden=false; $('#modebar').textContent = ic ? `You control ${o.name}'s turn: click and right-click their cards, and use the Next button` : ctlMe ? `${o?o.name:'Opponent'} controls this turn. You take an extra turn afterwards` : m.ctlNext ? `${o?o.name:'Opponent'} will control your next turn` : `You will control ${o.name}'s next turn`; } }
   const hd=$('#myHand'), n=m.hand.length, fc=hd.firstElementChild;
   if(fc && n>1){ const w=fc.offsetWidth, step=Math.min(w*.86, (hd.clientWidth-24-w)/(n-1)); hd.style.setProperty('--hm', (-(w-step)/2)+'px'); }
@@ -5612,7 +5645,7 @@ function tgtCheck(sp, target){ if(sp.distinct && G.me.arrows.some(x=>x.a===sp.sr
   const r={ok:true}; if(sp.cond && a && sp.cond.mv!=null && mv!=null && mv>sp.cond.mv){ r.cok=false; r.cwhy=`${sp.cond.note}, and it has mana value ${mv}`; } return r; }
 const tgtSrcSpec = () => { const md=G.mode; if(!md || md.type!=='arrow' || !md.from) return null; const f=find(md.from); return f && f.z==='st' ? tgtSpec(f.c) : null; };
 let TGS=null;   // spec of the arrow mode in progress, set each render
-function tgtDim(c, z){ if(!TGS || !(z==='bf' || z==='st')) return ''; if(c.id===(G.mode&&G.mode.from)) return ''; const r=tgtCheck(TGS, c.id); return !r.ok ? 'ntg' : r.cok===false ? 'ntg2' : ''; }
+function tgtDim(c, z){ if(G.mode && G.mode.type==='atktgt'){ if(z!=='bf' || c.id===G.mode.from) return ''; return atkTargets().includes(c.id) ? '' : 'ntg'; } if(!TGS || !(z==='bf' || z==='st')) return ''; if(c.id===(G.mode&&G.mode.from)) return ''; const r=tgtCheck(TGS, c.id); return !r.ok ? 'ntg' : r.cok===false ? 'ntg2' : ''; }
 function tgtHint(sp){ const n=srcName(sp.src); return `${n}: click ${sp.phrase}${sp.cond ? ` · ${sp.cond.note}` : ''}${sp.upto ? ' · Esc for none' : ''}`; }
 /* finishMode: a stack source's arrow onto an illegal (or pointless) target asks first */
 function tgtGate(md, target){ if(md.tgtOK) return false; const f=find(md.from); if(!f || f.z!=='st') return false; const sp=tgtSpec(f.c, md.slot||0); if(!sp) return false;
@@ -5623,6 +5656,7 @@ function tgtGate(md, target){ if(md.tgtOK) return false; const f=find(md.from); 
     [['Pick another target', again, 'ghost'], ['Target anyway', anyway, 'go']]); render(); return true; }
 function finishMode(target){
   const md=G.mode; G.mode=null; if(!md) return;
+  if(md.type==='atktgt'){ atkTarget(md, target); return; }
   if(md.type==='pickblocker'){ const f=find(target); if(!f || f.z!=='bf' || !isCreature(f.c) || f.c.tap){ toast('Click one of your untapped creatures.'); G.mode=md; render(); return; } if(!blockersLeft().some(x=>x.id===target)){ toast(`${cdata(f.c).n} is already blocking. Pick another creature, or Reset blockers.`); G.mode=md; render(); return; } G.mode={type:'block', from:target}; toast(`${cdata(f.c).n}: now click the attacker it blocks.`); render(); return; }
   if(md.type==='arrow' && blockStep()){ const f=find(md.from), t=findAny(target); if(f && f.z==='bf' && isCreature(f.c) && !f.c.tap && t && !t.mine && t.z==='bf' && t.c.atk) md.type='block'; }   // an arrow from my creature to an attacker is a block
   if(md.type==='exhold' || md.type==='exvoid'){ exileWith(md.from, target, md.type==='exhold'?'hold':'play'); changed(); return; }
@@ -5667,6 +5701,7 @@ document.addEventListener('pointerup', e=>{
   }
   if(e.button!==0) return;
   if(G.mode){ finishMode(d.id); return; }
+  if(G.atkSel && d.mine && d.z==='bf' && atkStep()){ atkToggle(d.id); return; }
   if(!d.mine){ if(iControl()) remoteClick(d.id, d.z, e.clientX, e.clientY); return; }
   if(d.z==='hand'){ const f=find(d.id); if(e.shiftKey && f && isLand(f.c)){ move(d.id,'bf',{tap:true}); changed(); } else playFromHand(d.id); } else if(d.z==='bf'){ const f=find(d.id); if(blockStep() && f && isCreature(f.c) && !f.c.tap){ startMode('block', d.id); return; } toggleTap(d.id, e.clientX, e.clientY); } else if(d.z==='st') resolve(d.id);
   else if(d.z==='side'){ const f=find(d.id); if(f && f.c.comp && d.el.closest('.playbox')) menu(e.clientX, e.clientY, compItems(f.c, d.id)); }
@@ -5727,6 +5762,7 @@ document.addEventListener('click', e=>{
   const cy=t.closest('[data-cy]'); if(cy){ if(!cy.disabled) cycAction(cy.dataset.cy); return; }
   const py=t.closest('[data-pay]'); if(py){ if(!py.disabled) payAction(py.dataset.pay); return; }
   if(t.closest('#loopBtn')){ if(loopSpec()) loopAsk(); else samLoop(); return; }
+  const akb=t.closest('[data-ak]'); if(akb){ const k=akb.dataset.ak; if(!atkStep()) return; if(k==='choose'){ G.me.bf.forEach(c=>{ if(c.atk){ c.atk=false; if(!hasKw(c, G.myId, 'vigilance')) c.tap=false; } }); G.me.arrows=G.me.arrows.filter(a=>!a.atk); atkChoose(); } else if(k==='go') atkCommit(); else if(k==='cancel'){ G.atkSel=null; render(); } else if(k==='none') atkNone(); return; }
   const bk=t.closest('[data-bk]'); if(bk){ const k=bk.dataset.bk; if(!blockStep()) return; if(k==='declare'){ G.mode={type:'pickblocker'}; toast('Click one of your untapped creatures to block with.'); render(); } else if(k==='reset'){ const n=G.me.arrows.filter(a=>a.blk).length; G.me.arrows=G.me.arrows.filter(a=>!a.blk); G.mode=null; if(n) log(`${G.me.name} resets their blocks.`); changed(); } else if(k==='finish'){ G.mode=null; doneBlocking(); } return; }
   const smp=t.closest('[data-smana]'); if(smp){ spendSpecial(+smp.dataset.smana); return; }
   const lifeB=t.closest('[data-life]'); if(lifeB){ const d=(+lifeB.dataset.life)*(e.shiftKey?5:1); if(lifeB.dataset.pl===G.myId) setLife(d); else if(G.opp){ send({t:'adj', life:d}); log(`${G.me.name} changes ${G.opp.name}'s life by ${d>0?'+':''}${d}.`); } return; }
@@ -5762,7 +5798,7 @@ $('#diceBtn').onclick=e=>{ const r=e.currentTarget.getBoundingClientRect(), roll
   menu(r.left, r.bottom+4, [['Roll a d20',roll(20)],['Roll a d6',roll(6)],['Flip a coin',()=>log(`${G.me.name} flips a coin: ${Math.random()<.5?'heads':'tails'}.`)]]); };
 $('#chat').onkeydown=e=>{ e.stopPropagation(); if(e.key==='Enter' && e.target.value.trim()){ const text=`${G.me.name}: ${e.target.value.trim()}`; addLog(text,'cm'); send({t:'log', text, chat:1}); e.target.value=''; } };
 document.addEventListener('keydown', e=>{
-  if(e.key==='Escape'){ if(PAY && !G.mode && $('#modal').hidden){ payAction('cancel'); closeMenu(); return; } if(G.mode){ if(!tgtNextSlot(G.mode, true)) G.mode=null; render(); } closeMenu(); if(!$('#modal')._noClose) closeModal(); return; }
+  if(e.key==='Escape'){ if(PAY && !G.mode && $('#modal').hidden){ payAction('cancel'); closeMenu(); return; } if(G.mode && G.mode.type==='atktgt'){ const md=G.mode; G.mode=null; atkTarget(md, oppId()); closeMenu(); return; } if(G.atkSel && !G.mode){ G.atkSel=null; render(); closeMenu(); return; } if(G.mode){ if(!tgtNextSlot(G.mode, true)) G.mode=null; render(); } closeMenu(); if(!$('#modal')._noClose) closeModal(); return; }
   if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='z' && !/INPUT|TEXTAREA/.test(document.activeElement.tagName) && !$('#table').hidden && $('#modal').hidden){ e.preventDefault(); undo(); return; }
   if(/INPUT|TEXTAREA/.test(document.activeElement.tagName) || $('#table').hidden || !$('#modal').hidden || e.ctrlKey || e.metaKey || e.altKey) return;
   const k=e.key.toLowerCase();
