@@ -494,10 +494,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 </script>
 <script>
 "use strict";
-const VERSION = 'v4.21';
+const VERSION = 'v4.22';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.22','Oct 23',"Urza's Saga played while Blood Moon is out now enters with no lore counters (entering with one is the Saga's own ability, which Blood Moon takes away)."],
   ['v4.21','Oct 23',"Urza's Saga under Blood Moon (or Magus of the Moon) stays on the battlefield as a Mountain: it keeps its lore counters and the abilities its chapters already gave it, but gets no new lore counters or chapters."],
   ['v4.20','Oct 23',"Full screen: choose Full screen in the ☰ menu. An Exit full screen button appears beside the menu while you're in it. In Chrome and Edge, Esc still works in the game (hold Esc to leave full screen); in other browsers Esc leaves full screen."],
   ['v4.19','Oct 23',"Card fixes from Ben's notes. Chef's Kiss takes the spell, copies it and picks new targets at random for both (never you or your permanents). Out of Time phases out every creature (they turn grey and wait, counters and Equipment and all) and phases them back in when it leaves; its time counters come off each upkeep. String of Disappearances opens the pay window for {U}{U}, and the offer goes to whoever controls the bounced creature. Summon: Brynhildr counts lore counters, keeps its exiled card playable on your turns while it's out, and shows a box when your next creature spell will gain haste. Forecast cards (Piercing Rays) can be used from your hand in your upkeep, and the pause button can stop your own next turn in your upkeep. Graveyards show THRESHOLD when a deck cares, and a card Null Summoner exiles says so (and when it can be cast with mana of any type). Warrior's Blades asks where to equip first, then charges {1} less for each +1/+1 counter on that creature."],
@@ -1370,7 +1371,7 @@ function entered(c){
   { const stop=trg.length && etbStop(c); if(stop) etbStopped(c, stop, trg); else { const dbl=trg.some(t=>t[2]) && nornDouble(); if(dbl) log(`${dbl}: ${cname(c)} entering makes ${G.me.name}'s triggers trigger an additional time.`); trg.forEach(t=>{ t[1](); if(dbl && t[2]) t[1](); }); } }
   { const ce=copyEntry(c); if(ce){ setTimeout(()=>vesuvaPrompt(c, ce), 0); return; } }
   if(exilesAllGy(c)){ const d=cdata(c); G.me.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:c.id, gyall:true}, cu:{n:`${d.n}: trigger`, t:'Triggered ability', o:'Exile all graveyards.', img:d.img||''}})); log(`${d.n} enters. Its trigger goes on the stack: exile all graveyards.`); return; }
-  if(isSaga(c)){ c.c=1; c.lt=G.turn.n; { const mn=moonSaga(c); if(mn){ log(`${cname(c)} enters with a lore counter, but under ${mn} it is a Mountain with no chapter abilities: no chapter goes on the stack.`); return; } } addChapter(c,1); log(`${cname(c)} gets its first lore counter. Chapter I goes on the stack.`); return; }
+  if(isSaga(c)){ c.lt=G.turn.n; { const mn=moonSaga(c); if(mn){ c.c=0; log(`${mn}: ${cname(c)} enters as a Mountain with no lore counters (entering with one is the Saga's own ability, which it doesn't have now) and no chapters.`); return; } } c.c=1; addChapter(c,1); log(`${cname(c)} gets its first lore counter. Chapter I goes on the stack.`); return; }
   const e=entersWith(c); if(!e) return; const cr=isCreature(c), many=e.n>1 ? e.n+' '+e.name+' counters' : 'a '+e.name+' counter';
   if(e.name==='+1/+1' || e.name==='-1/-1'){ if(!cr) return; c.c=(c.c||0)+(e.name==='+1/+1'?e.n:-e.n); }
   else if(KW.includes(e.name)){ if(!(c.kw||[]).includes(e.name)) c.kw=[...(c.kw||[]), e.name]; }
@@ -1854,7 +1855,7 @@ function scryWin(n, kind, by){ return new Promise(res=>{ const m=G.me, cards=m.l
     if(s==='t' || s==='b'){ x.top = s==='t'; st.splice(i,1); if(x.top){ const li=st.map(y=>y.top).lastIndexOf(true); st.splice(li+1,0,x); } else st.push(x); }
     else { const tops=st.filter(y=>y.top), j=tops.indexOf(x), k=s==='l' ? j-1 : j+1; if(k<0 || k>=tops.length) return; const o=tops[k], a=st.indexOf(x), bI=st.indexOf(o); st[a]=o; st[bI]=x; }
     paint(); }; }); }
-/* v4.21 (Ben's call, not the official ruling, which sacrifices it): a Saga land under Blood Moon (Urza's Saga) stays. It is a Mountain with no
+/* v4.21–v4.22 (Ben's reading of the current Saga rules): entering with a lore counter is the Saga's own (intrinsic) ability, so under Blood Moon it enters with none; a Saga land under Blood Moon (Urza's Saga) stays. It is a Mountain with no
    chapter abilities, so it gets no new lore counters and no chapters, keeps the lore counters it has, and keeps the abilities its resolved
    chapters gave it ("This Saga gains '…'" for chapters up to its lore count): `sagaGained`, used by abilitiesOf and manaAbilities0. */
 const moonSaga = c => { if(!c || c.fd || !isSaga(c) || !isLand(c)) return null; const mine=G.me.bf.includes(c), opp=!mine && ((G.opp&&G.opp.bf)||[]).includes(c); if(!mine && !opp) return null;
