@@ -502,10 +502,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.29';
+const VERSION = 'v4.30';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.30','Oct 24',"Wild Nacatl and other cards that get bigger while you control a certain land show their current power and toughness again."],
   ['v4.29','Oct 24',"Casting a card from your opponent's exile (Ragavan's exiled card, Dauthi Voidwalker's) now opens the usual payment window, and it works against Practice too."],
   ['v4.28','Oct 24',"The tour offer now sits at the top of the front page, with an × to close it. It goes away for good once you've taken the tour or closed it (the tour stays in the ☰ menu at the table)."],
   ['v4.27','Oct 24',"New: a two-minute tour of the table. Start it from the front page (Take the two-minute tour) or from the ☰ menu: it walks you through opening a table and sharing the code, choosing a deck, every part of the screen, Undo, and what to do when a card doesn't work by itself. The help page is up to date too."],
@@ -4880,7 +4881,7 @@ function dynPT(c, pid){
       gp+=(+g[1])*k; gt+=(+g[2])*k; dyn=true; why.push(`+${g[1]}/+${g[2]} for ${g[3].trim()} ${g[5]}: ${cnt}${per>1 ? ' → '+k+'×' : ''}`); } };
   grow(o, '(?:this creature|this token|'+faceName(c,0).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')');
   for(const g of o.matchAll(/as long as there are four or more card types among cards in your graveyard, (?:this creature|it|[^,]+?) gets \+(\d+)\/\+(\d+)/gi)){ const s=sideOf(pid); if(s && gyTypes(s.gy||[]).length>=4){ gp+=+g[1]; gt+=+g[2]; dyn=true; why.push(`+${g[1]}/+${g[2]}: delirium`); } }
-  for(const g of o.matchAll(new RegExp('\\b(?:this creature|it|'+escRe(faceName(c,0))+') gets \\+(\\d+)\\/\\+(\\d+) as long as you control an? ([A-Z][a-z]+)','g'))){ if(controlsType(pid, g[3])){ gp+=+g[1]; gt+=+g[2]; dyn=true; why.push(`+${g[1]}/+${g[2]}: you control a ${g[3]}`); } }
+  for(const g of o.matchAll(new RegExp('\\b(?:this creature|it|'+escRe(faceName(c,0))+') gets \\+(\\d+)\\/\\+(\\d+) as long as you control an? ([A-Za-z]+)','gi'))){ if(controlsType(pid, g[3][0].toUpperCase()+g[3].slice(1))){ gp+=+g[1]; gt+=+g[2]; dyn=true; why.push(`+${g[1]}/+${g[2]}: you control a ${g[3]}`); } }
   for(const [bf] of [[sideOf(G.myId).bf],[sideOf(oppId()).bf]]) for(const e of bf) if(e.att===c.id && !e.fd && (e.k || e.cu)){ grow(frontText(e), 'Equipped creature'); for(const g of (frontText(e)||'').matchAll(/\b(?:Enchanted|Equipped) creature gets ([+\-−]\d+)\/([+\-−]\d+)\b(?! for each)/gi)){ const v=x=>parseInt(x.replace('−','-'),10); gp+=v(g[1]); gt+=v(g[2]); dyn=true; why.push(`${cdata(e).n}: ${g[1]}/${g[2]}`); } }
   { const st=faceType(c), v=x=>parseInt(String(x).replace('−','-'),10), add=(x,p,t)=>{ gp+=v(p); gt+=v(t); dyn=true; why.push(`${cdata(x).n.split(',')[0]}: ${p.replace('-','−')}/${t.replace('-','−')}`); };
     for(const x of sideOf(pid).bf||[]){ if(x.fd || (!x.k && !x.cu)) continue; const ox=noRemind(x);
