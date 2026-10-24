@@ -291,7 +291,8 @@ body.t90r .row .card.tap:is(.under,.tokunder) + .card.tap{margin-left:0}body.t90
 .pile .cmcban{display:none}
 .nmban{position:absolute;left:0;right:0;top:56%;text-align:center;font:800 calc(var(--cw)*.095)/1.15 var(--ui);letter-spacing:.06em;color:#fff;background:#000e;border-top:1px solid #fffa;border-bottom:1px solid #fffa;padding:calc(var(--cw)*.02) 0;box-shadow:0 2px 6px #0009;pointer-events:none}
 .wrpban{position:absolute;left:0;right:0;top:44%;text-align:center;font:800 calc(var(--cw)*.13)/1.1 var(--ui);letter-spacing:.14em;color:#fff;background:#000e;border-top:1px solid #fffa;border-bottom:1px solid #fffa;padding:calc(var(--cw)*.025) 0;box-shadow:0 2px 6px #0009;pointer-events:none}
-.warpmark{position:absolute;left:50%;top:8%;transform:translateX(-50%);width:calc(var(--cw)*.3);height:calc(var(--cw)*.3);pointer-events:none;filter:drop-shadow(0 1px 3px #000c)}
+/* warp (v4.24, Ben): a WARP banner on a permanent cast for its warp cost, in the WARPED banner's place and style, with when it leaves underneath */
+.wpban{position:absolute;left:0;right:0;top:40%;text-align:center;font:800 calc(var(--cw)*.13)/1.05 var(--ui);letter-spacing:.16em;color:#fff;background:#000e;border-top:1px solid #fffa;border-bottom:1px solid #fffa;padding:calc(var(--cw)*.025) 0 calc(var(--cw)*.02);box-shadow:0 2px 6px #0009;pointer-events:none}.wpban small{display:block;font-size:.5em;letter-spacing:.1em;color:#d8d8d8;margin-top:1px}
 .badge.zz{left:4%;bottom:6%;border-color:#b9a7ff;color:#d6ccff;background:#120d2bdd;font-size:calc(var(--cw)*.15);white-space:nowrap}
 .badge.held{left:4%;top:4%;border-color:var(--opp);color:var(--opp)}
 .offer{display:flex;gap:10px;align-items:center;margin-top:4px}.offer .card{width:calc(var(--cw)*.6)}.offer span{font-size:12px;color:var(--dim);display:block;margin-bottom:6px}.offer button{font-size:12px;padding:5px 10px}
@@ -490,10 +491,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.23';
+const VERSION = 'v4.24';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.24','Oct 24',"A card cast for its warp cost now carries a WARP banner (with when it leaves) instead of the spiral icon."],
   ['v4.23','Oct 24',"Tapping and untapping now turn the card smoothly instead of snapping. New in the ☰ menu: Tapped cards, to choose a slight turn (as before) or a full sideways turn, with or without making room beside the tapped card."],
   ['v4.22','Oct 23',"Urza's Saga played while Blood Moon is out now enters with no lore counters (entering with one is the Saga's own ability, which Blood Moon takes away)."],
   ['v4.21','Oct 23',"Urza's Saga under Blood Moon (or Magus of the Moon) stays on the battlefield as a Mountain: it keeps its lore counters and the abilities its chapters already gave it, but gets no new lore counters or chapters."],
@@ -4974,7 +4976,7 @@ function exileWith(id, target, mode){
   if(f2){ f2.c.by={id:target, pid, n:en, mode}; }
   log(mode==='hold' ? `${nm} is exiled by ${en} until ${en} leaves the battlefield.` : `${nm} is exiled with a void counter by ${en}. ${ctl} may play it later.`);
 }
-const WARP_SVG = '<svg class="warpmark" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11.5" fill="#000" stroke="#fff" stroke-width=".8"/><path d="M12 12.2c.1-1.6 2.6-1.5 2.6.6 0 2.600-4.6 3-5.400-.2-.7-3 2.300-5.700 5.500-4.600 3.700 1.300 4.300 6 1.700 8.600" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>';
+const WARP_BAN = c => `<span class="wpban" title="Cast for its warp cost: it goes to the warp zone at the ${c.wp.end?'next ':''}end step">WARP<small>${c.wp.end?'EXILED AT NEXT END STEP':'EXILED AT END STEP'}</small></span>`;
 const faceName = (c,i) => { const p=(cdata(c).n||'').split(' // '); return p[i]||p[0]||'this card'; };
 const faceTypeOf = (c,i) => { const p=(cdata(c).t||'').split(' // '); return p[i]||p[0]||''; };
 const spectacleOf = c => { if(c.fd || (!c.k && !c.cu)) return ''; const m=(frontText(c)||'').match(/(?:^|\n)Spectacle\s*((?:\{[^}]+\})+)/i); return m ? m[1] : ''; };
@@ -5570,7 +5572,7 @@ function cardHTML(c, z, mine, cls=''){
     inner = `<div class="txt"><b>${esc(d.n)}</b><i>${esc(d.t||'')}</i><span>${esc(d.pt||'')}</span></div>` + (img ? `<img src="${esc(img)}" alt="${esc(d.n)}" draggable="false" loading="lazy" onerror="this.remove()">` : ''); }
   const pw = z==='bf' && !backUp && isPW(c), cr = !pw && isCreature(c) && !c.imp;
   const heldN = z==='bf' ? (HELD[c.id]||0) : 0;
-  const extra = (heldN ? `<span class="badge held">holds ${heldN}</span>` : '') + (c.wp && z==='bf' && !backUp ? WARP_SVG : '');
+  const extra = (heldN ? `<span class="badge held">holds ${heldN}</span>` : '') + (c.wp && z==='bf' && !backUp ? WARP_BAN(c) : '');
   const cast = mine ? G.me.cast : (G.opp && G.opp.cast); let dpt=null;
   let b = (pw ? `<span class="loy"><b>${c.c||0}</b></span>` : c.c ? (backUp ? `<span class="badge ctr">${c.c}</span>` : counterBadge(c, cr)) : '')
     + (z==='bf' && !backUp ? (gk=>((c.kw&&c.kw.length)||gk.length) ? `<span class="kcs">${(c.kw||[]).map(kcHTML).join('')}${gk.filter(o=>!(c.kw||[]).includes(o.k)).map(o=>`<span class="kc gr" title="${esc(o.k)} (${esc(o.src)})"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[o.k]||''}</svg></span>`).join('')}</span>` : '')(grantedKw(c, mine?G.myId:oppId())) : '')
@@ -5937,7 +5939,7 @@ function cardMenu(id, x, y){
     ['Attach to…',()=>startMode('attach',id)], c.att&&['Detach',()=>{ c.att=null; ch(); }],
     ['Move to the other row',()=>{ const cur=c.row||((c.fd||isCreature(c))?'f':'b'); c.row=cur==='f'?'b':'f'; ch(); }],
     /\bwarp\b/i.test(d.o||'')&&[c.wp?'Send to warp zone now (instead of at the end step)':'Send to warp zone (exiled, can be cast later)',()=>{ warpOut(c); ch(); }],
-    c.wp&&['Keep it (remove the warp spiral)',()=>{ delete c.wp; log(`${G.me.name}'s ${cname(c)} will not go to the warp zone.`); ch(); }],
+    c.wp&&['Keep it (remove the warp banner)',()=>{ delete c.wp; log(`${G.me.name}'s ${cname(c)} will not go to the warp zone.`); ch(); }],
     ['Make a token copy',()=>{ const tk=mk(c.k,{tok:true,cu:c.cu,c:0,sick:!!G.turn.n}); tk.tokT=G.turn.n; G.me.bf.push(tk); log(`${G.me.name} makes a token copy of ${cname(c)}.`); entered(tk); ch(); }],
     G.opp&&['Give control to opponent',()=>{ G.noUndo=true; G.me.bf.splice(find(id).i,1); c.att=null; c.atk=false; send({t:'give',card:c,zone:'bf'}); log(`${G.me.name} gives control of ${cname(c)} to ${G.opp.name}.`); ch(); }], '-', ...dest ];
   else if(z==='hand') items=[
