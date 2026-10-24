@@ -486,10 +486,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.20';
+const VERSION = 'v4.21';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.21','Oct 23',"Urza's Saga under Blood Moon (or Magus of the Moon) stays on the battlefield as a Mountain: it keeps its lore counters and the abilities its chapters already gave it, but gets no new lore counters or chapters."],
   ['v4.20','Oct 23',"Full screen: choose Full screen in the ☰ menu. An Exit full screen button appears beside the menu while you're in it. In Chrome and Edge, Esc still works in the game (hold Esc to leave full screen); in other browsers Esc leaves full screen."],
   ['v4.19','Oct 23',"Card fixes from Ben's notes. Chef's Kiss takes the spell, copies it and picks new targets at random for both (never you or your permanents). Out of Time phases out every creature (they turn grey and wait, counters and Equipment and all) and phases them back in when it leaves; its time counters come off each upkeep. String of Disappearances opens the pay window for {U}{U}, and the offer goes to whoever controls the bounced creature. Summon: Brynhildr counts lore counters, keeps its exiled card playable on your turns while it's out, and shows a box when your next creature spell will gain haste. Forecast cards (Piercing Rays) can be used from your hand in your upkeep, and the pause button can stop your own next turn in your upkeep. Graveyards show THRESHOLD when a deck cares, and a card Null Summoner exiles says so (and when it can be cast with mana of any type). Warrior's Blades asks where to equip first, then charges {1} less for each +1/+1 counter on that creature."],
   ['v4.18','Oct 23',"Ketramose now sees its own exile: when Phelia, Flickerwisp or a removal spell exiles it during your turn, you still draw a card and lose 1 life."],
@@ -1112,7 +1113,9 @@ function manaAbilities(c){ let out=manaAbilities0(c); if(G.me.mtnR===G.turn.n &&
   const r=[]; for(const a of out){ const b = [...a.out].length>1 ? Object.assign({}, a, {out:'C', damp:1}) : a; if(!r.some(x=>x.out===b.out && x.cost===b.cost)) r.push(b); } return r; }
 function manaAbilities0(c){
   const lt = isLand(c) ? landTypes(c, G.me.bf.some(x=>x.id===c.id) ? G.myId : oppId(), landEffects()) : null;
-  if(lt && lt.main) return [...lt.main, ...lt.plus].map(t=>({out:BASIC[t], cost:'', exert:false, rem:false}));
+  if(lt && lt.main){ const base=[...lt.main, ...lt.plus].map(t=>({out:BASIC[t], cost:'', exert:false, rem:false}));
+    if(isSaga(c)) for(const a of sagaGained(c)){ const o=a.eff.match(/^Add ((?:\{[WUBRGC]\})+)/i); if(o && /^\{T\}$/i.test(a.cost)){ const out=[...o[1].matchAll(/\{([WUBRGC])\}/g)].map(x=>x[1]).join(''); if(!base.some(b=>b.out===out)) base.push({out, cost:'', exert:false, rem:false}); } }
+    return base; }
   let TCR=false, SACO='', SACS=false, DMG=0, LIFE=0; const out=[], cond=[], txt=cdata(c).o||'', add=(list,o,cost,exert,rem,only,rider)=>{ if(o && !list.some(a=>a.out===o && a.cost===cost)) list.push(Object.assign({out:o, cost, exert, rem}, only ? {only} : {}, rider ? {rider} : {}, TCR ? {tcr:1} : {}, SACS ? {sacs:1} : {}, DMG ? {dmg:DMG} : {}, LIFE ? {life:LIFE} : {}, SACO && !/^(this|it)$/i.test(SACO) ? {saco:SACO} : {})); };
   for(const m of txt.matchAll(/\badd ([^.\n]*)/gi)){ const cl=m[1];
     const pre=txt.slice(txt.lastIndexOf('\n', m.index)+1, m.index), ci=pre.lastIndexOf(':'), costPart=ci>=0 ? pre.slice(0,ci) : '';
@@ -1359,7 +1362,7 @@ function entered(c){
   { const stop=trg.length && etbStop(c); if(stop) etbStopped(c, stop, trg); else { const dbl=trg.some(t=>t[2]) && nornDouble(); if(dbl) log(`${dbl}: ${cname(c)} entering makes ${G.me.name}'s triggers trigger an additional time.`); trg.forEach(t=>{ t[1](); if(dbl && t[2]) t[1](); }); } }
   { const ce=copyEntry(c); if(ce){ setTimeout(()=>vesuvaPrompt(c, ce), 0); return; } }
   if(exilesAllGy(c)){ const d=cdata(c); G.me.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:c.id, gyall:true}, cu:{n:`${d.n}: trigger`, t:'Triggered ability', o:'Exile all graveyards.', img:d.img||''}})); log(`${d.n} enters. Its trigger goes on the stack: exile all graveyards.`); return; }
-  if(isSaga(c)){ c.c=1; c.lt=G.turn.n; addChapter(c,1); log(`${cname(c)} gets its first lore counter. Chapter I goes on the stack.`); return; }
+  if(isSaga(c)){ c.c=1; c.lt=G.turn.n; { const mn=moonSaga(c); if(mn){ log(`${cname(c)} enters with a lore counter, but under ${mn} it is a Mountain with no chapter abilities: no chapter goes on the stack.`); return; } } addChapter(c,1); log(`${cname(c)} gets its first lore counter. Chapter I goes on the stack.`); return; }
   const e=entersWith(c); if(!e) return; const cr=isCreature(c), many=e.n>1 ? e.n+' '+e.name+' counters' : 'a '+e.name+' counter';
   if(e.name==='+1/+1' || e.name==='-1/-1'){ if(!cr) return; c.c=(c.c||0)+(e.name==='+1/+1'?e.n:-e.n); }
   else if(KW.includes(e.name)){ if(!(c.kw||[]).includes(e.name)) c.kw=[...(c.kw||[]), e.name]; }
@@ -1843,6 +1846,14 @@ function scryWin(n, kind, by){ return new Promise(res=>{ const m=G.me, cards=m.l
     if(s==='t' || s==='b'){ x.top = s==='t'; st.splice(i,1); if(x.top){ const li=st.map(y=>y.top).lastIndexOf(true); st.splice(li+1,0,x); } else st.push(x); }
     else { const tops=st.filter(y=>y.top), j=tops.indexOf(x), k=s==='l' ? j-1 : j+1; if(k<0 || k>=tops.length) return; const o=tops[k], a=st.indexOf(x), bI=st.indexOf(o); st[a]=o; st[bI]=x; }
     paint(); }; }); }
+/* v4.21 (Ben's call, not the official ruling, which sacrifices it): a Saga land under Blood Moon (Urza's Saga) stays. It is a Mountain with no
+   chapter abilities, so it gets no new lore counters and no chapters, keeps the lore counters it has, and keeps the abilities its resolved
+   chapters gave it ("This Saga gains '…'" for chapters up to its lore count): `sagaGained`, used by abilitiesOf and manaAbilities0. */
+const moonSaga = c => { if(!c || c.fd || !isSaga(c) || !isLand(c)) return null; const mine=G.me.bf.includes(c), opp=!mine && ((G.opp&&G.opp.bf)||[]).includes(c); if(!mine && !opp) return null;
+  const lt=landTypes(c, mine ? G.myId : oppId(), landEffects()); if(!(lt && lt.main)) return null;
+  for(const [bf] of [[G.me.bf],[(G.opp&&G.opp.bf)||[]]]) for(const x of bf){ if(!x.fd && (x.k||x.cu) && /\bNonbasic lands are (?:Plains|Islands|Swamps|Mountains|Forests)\b/i.test(frontText(x)||'')) return cdata(x).n; }
+  return 'a land-type effect'; };
+function sagaGained(c){ const out=[], ch=chapters(c); for(let n=1;n<=Math.min(c.c||0, ch.last||0);n++){ const t=ch.text[n]||''; for(const g of t.matchAll(/gains "([^":]{1,120}): ([^"]+)"/g)) out.push({cost:g[1].trim(), eff:g[2].trim()}); } return out; }
 /* Sagas: a lore counter as it enters and at its controller's first main phase; each chapter waits on the stack as a marker */
 function chapters(c){
   const text={}; let last=0;
@@ -1858,6 +1869,7 @@ function sagaTick(turnN){
   let ch=false;
   for(const c of [...G.me.bf]){ if(c.fd || c.lt===turnN || !isSaga(c)) continue; c.lt=turnN;
     const last=chapters(c).last; if(last && (c.c||0)>=last) continue;
+    { const mn=moonSaga(c); if(mn){ log(`${mn}: ${cname(c)} is a Mountain with no chapter abilities, so it gets no lore counter this turn (it stays at ${roman(c.c||0)||'0'}).`); continue; } }
     c.c=(c.c||0)+1; addChapter(c, c.c); log(`${cname(c)} gets a lore counter (${roman(c.c)}). Chapter ${roman(c.c)} goes on the stack.`); ch=true; }
   return ch;
 }
@@ -4320,7 +4332,7 @@ function landBanner(lt){
    (tap, loyalty, life, removing its own counters, sacrificing itself, mana if it is in the pool) and puts a marker on the stack */
 function abilitiesOf(c){
   if(c.fd || (!c.k && !c.cu)) return []; const out=[], nm=faceName(c,c.flip?1:0), pw=isPW(c);
-  if(isLand(c)){ const lt=landTypes(c, G.me.bf.some(x=>x.id===c.id) ? G.myId : oppId(), landEffects()); if(lt && lt.main) return []; }
+  if(isLand(c)){ const lt=landTypes(c, G.me.bf.some(x=>x.id===c.id) ? G.myId : oppId(), landEffects()); if(lt && lt.main) return isSaga(c) ? sagaGained(c).filter(a=>!/^add\b/i.test(a.eff)) : []; }
   const push=(cost,eff)=>{ cost=cost.trim(); eff=eff.trim(); if(!cost || !eff || /^add\b/i.test(eff) || /\bthis card\b/i.test(cost) || /\bempower Jace\b/i.test(eff)) return; if(!out.some(a=>a.cost===cost && a.eff===eff)) out.push({cost, eff}); };
   for(const a of grantedPwAbils(c)) push(a.cost, a.eff);
   for(let line of frontText(c).split('\n')){
@@ -5038,7 +5050,7 @@ const minCounters = c => (isCreature(c) && !isPW(c)) ? -99 : 0;
 const impendingN = c => { const m=(cdata(c).o||'').match(/\bImpending (\d+)/i); return m ? +m[1] : 0; };
 function impDone(c){ if(c.imp && !(c.c>0)){ c.imp=0; c.c=0; log(`The last time counter is off ${cname(c)}. It is now a creature.`); } }
 function addCounter(id, d){ const f=find(id); if(!f) return; const c=f.c, was=c.c||0; c.c=Math.max(c.imp?0:minCounters(c),was+d); impDone(c);
-  if(d>0 && f.z==='bf' && !c.fd && c.c>was && isSaga(c)){ const last=chapters(c).last; if(!last || c.c<=last){ addChapter(c, c.c); log(`${cname(c)} gets a lore counter (${roman(c.c)}). Chapter ${roman(c.c)} goes on the stack.`); } }
+  if(d>0 && f.z==='bf' && !c.fd && c.c>was && isSaga(c)){ const last=chapters(c).last, mn=moonSaga(c); if(mn){ log(`${cname(c)} gets a lore counter by hand (${roman(c.c)}); under ${mn} it has no chapter abilities, so no chapter goes on the stack.`); } else if(!last || c.c<=last){ addChapter(c, c.c); log(`${cname(c)} gets a lore counter (${roman(c.c)}). Chapter ${roman(c.c)} goes on the stack.`); } }
   changed(); }
 function setLife(d){ if(d>0 && noGainBy()){ toast(`${G.me.name} can't gain life: ${noGainBy()}.`); return; } G.me.life+=d; clearTimeout(setLife.t); setLife.acc=(setLife.acc||0)+d; setLife.t=setTimeout(()=>{ const a=setLife.acc; setLife.acc=0; if(a) log(`${G.me.name}'s life: ${G.me.life} (${a>0?'+':''}${a}).`); }, 900); changed(); }
 function setTurn(t, fresh){ if(t.phase!==3 && 'cs' in t){ t=Object.assign({}, t); delete t.cs; } const prev=G.turn; G.turn=t; send({t:'turn', turn:t, fresh:!!fresh}); if(turnCleanup(prev, t)) changed(); else { render(); save(); } }
