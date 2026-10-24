@@ -99,7 +99,8 @@ textarea#paste{width:100%;min-height:300px;font-family:ui-monospace,Menlo,Consol
 #loopBtn{position:absolute;left:12px;z-index:30;padding:8px 12px;border-radius:8px}
 #atkBar span.sub,#blockBar span.sub{font-size:11px;letter-spacing:0;text-transform:none;color:var(--dim);font-weight:400}#atkBar span.sub.must{color:var(--brass);font-weight:600}
 .card.asel{outline:3px solid var(--brass);outline-offset:2px;transform:translateY(-6%)}.card.asel::after{content:'ATTACK';position:absolute;left:50%;top:-11px;transform:translateX(-50%);font:800 9px var(--ui);letter-spacing:.12em;color:#1b1408;background:var(--brass);padding:1px 6px;border-radius:3px}
-#blockBar,#atkBar{position:absolute;left:12px;z-index:30;display:flex;flex-direction:column;gap:6px;align-items:stretch;width:178px;padding:8px 10px;background:#0b1417f2;border:1px solid var(--brass);border-radius:10px;box-shadow:0 8px 24px #000a}#blockBar span,#atkBar span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);font-weight:800;text-align:center}#blockBar button,#atkBar button{font-size:12.5px}
+#blockBar,#atkBar,#pracBar{position:absolute;left:12px;z-index:30;display:flex;flex-direction:column;gap:6px;align-items:stretch;width:178px;padding:8px 10px;background:#0b1417f2;border:1px solid var(--brass);border-radius:10px;box-shadow:0 8px 24px #000a}#pracBar span{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--brass);font-weight:800}#pracBar .sub{text-transform:none;letter-spacing:0;color:var(--dim);font-weight:400}#pracBar{border-color:#7fb3ff}#pracBar span{color:#9cc4ff}
+#blockBar span,#atkBar span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);font-weight:800;text-align:center}#blockBar button,#atkBar button{font-size:12.5px}
 .row .gap{flex:1;min-width:12px}
 .row{position:relative}.row.ovf:hover{z-index:6}
 .row::-webkit-scrollbar{height:9px}.row::-webkit-scrollbar-thumb{background:#d9b25f99;border-radius:5px}.row::-webkit-scrollbar-track{background:#0004}
@@ -464,7 +465,7 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
         <button id="menuBtn" title="Table menu">☰</button>
       </div>
     </div>
-    <div id="blockBar" hidden></div><div id="atkBar" hidden></div><button id="loopBtn" class="go" hidden>Repeat the loop…</button>
+    <div id="blockBar" hidden></div><div id="atkBar" hidden></div><div id="pracBar" hidden></div><button id="loopBtn" class="go" hidden>Repeat the loop…</button>
     <div id="myFront" class="row front" data-drop="bf"></div>
     <div id="myBack" class="row" data-drop="bf"></div>
     <div id="myHand" class="handrow" data-drop="hand"></div>
@@ -491,10 +492,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.25';
+const VERSION = 'v4.26';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.26','Oct 24',"Practice can bring a real deck: start a practice game and pick its deck or take a random one. It has a library and a hidden hand, so Ragavan, Thoughtseize and peeks work on it, and the Practice button puts a random creature, planeswalker or land from its deck onto the battlefield. Turn on \"Practice takes turns\" in the Practice button to click through its turns with the controls on its side: it untaps, draws, and you choose its attackers and block them."],
   ['v4.25','Oct 24',"Practice games: when a card would reach into Practice's library or hand (Ragavan's exile, Thoughtseize, a peek, a draw), the log now says Practice has none, instead of nothing happening."],
   ['v4.24','Oct 24',"A card cast for its warp cost now carries a WARP banner (with when it leaves) instead of the spiral icon."],
   ['v4.23','Oct 24',"Tapping and untapping now turn the card smoothly instead of snapping. New in the ☰ menu: Tapped cards, to choose a slight turn (as before) or a full sideways turn, with or without making room beside the tapped card."],
@@ -885,7 +887,7 @@ function peerOpts(){
   return { host, port:+port || 443, path:q.get('peerpath') || '/', secure:q.get('peersecure') !== '0' };
 }
 function setNet(s){ G.net=s; renderNet(); }
-function send(m){ if(G.opp && G.opp.dummy){ dummyRoute(m); return; } if(G.conn && G.conn.open){ try{ G.conn.send(m); }catch(e){} } }
+function send(m){ if(DSW || (G.opp && G.opp.dummy)){ dummyRoute(m); return; }   /* DSW: Practice speaking, while the sides are swapped */ if(G.conn && G.conn.open){ try{ G.conn.send(m); }catch(e){} } }
 function connect(){
   if(G.solo){ setNet('solo'); return; }
   if(typeof Peer==='undefined'){ setNet('error'); return; }
@@ -1102,7 +1104,7 @@ function move(id, zone, o={}){
   if(zone==='bf' && from!=='bf' && !o.later) entered(c);
   if(zone==='bf' && from!=='bf' && o.tap && c.tap) enteredTapped(c);
 }
-function draw(n=1, quiet, step){ const m=G.me; let k=0; { const ns=((G.opp&&G.opp.bf)||[]).find(x=>!x.fd && (x.k||x.cu) && /Each opponent can(?:'|’)t draw more than one card each turn/i.test(frontText(x)||'')); if(ns){ if(!m.dn || m.dn.t!==G.turn.n) m.dn={t:G.turn.n, k:0}; const room=Math.max(0, 1-m.dn.k); if(n>room){ if(!quiet) log(`${cdata(ns).n.split(',')[0]}: ${m.name} can't draw more than one card this turn${room?'':', so they draw nothing'}.`); n=room; } m.dn.k+=n; if(!n) return 0; } } if(step && n===1 && !draw.noDredge && m.gy.some(x=>dredgeN(x) && m.lib.length>=dredgeN(x))){ setTimeout(dredgeAsk, 0); return 1; } if(n>0 && m.hand.length<=1){ const rq=m.bf.filter(x=>!x.fd && (x.k||x.cu) && /As long as you have one or fewer cards in hand, if you would draw one or more cards, you draw that many cards plus one instead/i.test(frontText(x)||'')); if(rq.length){ n+=rq.length; if(!quiet) log(`${rq.map(x=>cdata(x).n).join(', ')}: ${m.name} has one or fewer cards in hand, so they draw ${n} instead.`); } } const want=n; while(n-- > 0 && m.lib.length){ m.hand.push(m.lib.shift()); k++; } if(k<want && G.turn.n && m.kept){ G.emptyDraw=true; lossCheck(); } if(!quiet) log(`${m.name} draws ${k===1?'a card':k+' cards'}.`); if(k && G.turn.n) drawTrigs(k); if(!k && !quiet) toast('Your library is empty.'); if(k && !quiet && G.opp && G.turn.n) send({t:'drew', n:k, first:step?1:0}); return k; }
+function draw(n=1, quiet, step){ const m=G.me; let k=0; { const ns=((G.opp&&G.opp.bf)||[]).find(x=>!x.fd && (x.k||x.cu) && /Each opponent can(?:'|’)t draw more than one card each turn/i.test(frontText(x)||'')); if(ns){ if(!m.dn || m.dn.t!==G.turn.n) m.dn={t:G.turn.n, k:0}; const room=Math.max(0, 1-m.dn.k); if(n>room){ if(!quiet) log(`${cdata(ns).n.split(',')[0]}: ${m.name} can't draw more than one card this turn${room?'':', so they draw nothing'}.`); n=room; } m.dn.k+=n; if(!n) return 0; } } if(step && n===1 && !draw.noDredge && m.gy.some(x=>dredgeN(x) && m.lib.length>=dredgeN(x))){ setTimeout(dredgeAsk, 0); return 1; } if(n>0 && m.hand.length<=1){ const rq=m.bf.filter(x=>!x.fd && (x.k||x.cu) && /As long as you have one or fewer cards in hand, if you would draw one or more cards, you draw that many cards plus one instead/i.test(frontText(x)||'')); if(rq.length){ n+=rq.length; if(!quiet) log(`${rq.map(x=>cdata(x).n).join(', ')}: ${m.name} has one or fewer cards in hand, so they draw ${n} instead.`); } } const want=n; while(n-- > 0 && m.lib.length){ m.hand.push(m.lib.shift()); k++; } if(k<want && G.turn.n && m.kept){ if(m.dummy) m.emptyDraw=1; else { G.emptyDraw=true; lossCheck(); } } if(!quiet) log(`${m.name} draws ${k===1?'a card':k+' cards'}.`); if(k && G.turn.n) drawTrigs(k); if(!k && !quiet) toast('Your library is empty.'); if(k && !quiet && G.opp && G.turn.n) send({t:'drew', n:k, first:step?1:0}); return k; }
 function shuffleLib(quiet){ G.noUndo=true; shuffle(G.me.lib); if(!quiet) log(`${G.me.name} shuffles their library.`); }
 const ORDW=['','first','second','third','fourth','fifth','sixth','seventh','eighth','ninth','tenth'];
 function playFromHand(id){ const f=find(id); if(!f) return; if(isLand(f.c)){ const m=G.me, n=G.turn.n||0, fz=f.z; if(!m.lp || m.lp.n!==n) m.lp={n, k:0}; m.lp.k++; const k=m.lp.k;
@@ -5318,6 +5320,7 @@ function nextPhase(){
   if(G.me.ctl){ G.me.ctl=false; log(`The controlled turn ends. ${G.me.name} takes an extra turn under their own control.`); G.turn={active:G.myId, phase:0, n:t.n+1}; startMyTurn(); return; }
   if((!vsReal() || (G.me.xturns||0)>0) && G.me.hand.length>handMax(G.me.bf) && !noMaxMe() && !G.cleanDone){ cleanupDiscard(()=>{ G.cleanDone=1; nextPhase(); G.cleanDone=0; }); return; }
   if((G.me.xturns||0)>0){ G.me.xturns--; log(`${G.me.name} ends the turn and takes an extra turn${G.me.xturns ? ` (${G.me.xturns} more after it)` : ''}.`); G.turn={active:G.myId, phase:0, n:t.n+1}; startMyTurn(); return; }   // v4.07: Time Warp, Emrakul
+  if(dummyTurns()){ log(`${G.me.name} ends the turn.`); dummyTurnStart(t.n+1); return; }
   if(!vsReal()){ log(`${G.me.name} ends the turn.`); G.turn={active:G.myId, phase:0, n:t.n+1}; startMyTurn(); }
   else { log(`${G.me.name} passes the turn. ${G.opp.name} starts their turn when ready.`); setTurn({...t, passed:true}); changed(); }
 }
@@ -5467,23 +5470,111 @@ function asDummy(fn){ if(!dummy()) return; const me=G.me, id=G.myId, d=G.opp; G.
   try{ fn(); }catch(e){ console.warn('Practice opponent:', e); } finally { DSW--; G.me=me; G.opp=d; G.myId=id; } }
 function dummyRoute(m){ if(!m || ['state','log','turn','hello','mt','gameover','goready','goback'].includes(m.t)) return;
   if(DSW){ DUMQ.push(m); return; }                                   // from Practice to me: handled after the swap
+  if(DUMMY_DECK.has(m.t) && dummyHasDeck()){ asDummy(()=>{ onMsg(m); }); for(const x of DUMQ.splice(0)) onMsg(x); dummySync(); dummyLoss(); changed(); return; }
   if(!DUMMY_OK.has(m.t)){ const why=DUMMY_NO[m.t] || (m.t==='q' && m.q && DUMMY_NO[m.q.kind]); if(why) log(`${m.by?String(m.by).slice(0,60)+': ':''}Practice has no library or hand, so ${why}.`); return; } if(m.t==='edict') m=Object.assign({}, m, {auto:1});
   asDummy(()=>{ onMsg(m); combatDeaths(); });
   for(const x of DUMQ.splice(0)) onMsg(x);
   dummyLoss(); changed(); }
-function dummyLoss(){ if(!dummy()) return; const d=G.opp, why = d.life<=0 ? 'Practice has 0 or less life' : (d.ctr.poison||0)>=10 ? 'Practice has 10 poison counters' : null;
+function dummyLoss(){ if(!dummy()) return; const d=G.opp, why = d.life<=0 ? 'Practice has 0 or less life' : (d.ctr.poison||0)>=10 ? 'Practice has 10 poison counters' : d.emptyDraw ? 'Practice drew from an empty library' : null;
   if(!why){ d.lost=0; return; } if(d.lost) return; d.lost=1; setTimeout(()=>gameOver(oppId(), why, true), 300); }
 /* start of each of my turns: Practice's permanents untap, lose damage and until-end-of-turn changes */
-function dummyRefresh(){ if(!dummy()) return; for(const c of G.opp.bf){ c.tap=false; c.atk=false; delete c.dmg; delete c.dtd; delete c.tp; delete c.tt; delete c.tkw; delete c.lhit; } G.opp.arrows=[]; G.opp.mana=noMana(); }
-function dummyReset(full){ if(!dummy()) return; const d=G.opp; d.life=20; d.ctr={poison:0, energy:0}; d.lost=0; d.arrows=[]; d.monarch=false; if(full){ d.bf=[]; d.gy=[]; d.ex=[]; d.st=[]; } }
+function dummyRefresh(){ if(!dummy()) return; for(const c of G.opp.bf){ if(!G.opp.turns) c.tap=false; c.atk=false; delete c.dmg; delete c.dtd; delete c.tp; delete c.tt; delete c.tkw; delete c.lhit; } G.opp.arrows=[]; G.opp.mana=noMana(); }
+function dummyReset(full){ if(!dummy()) return; const d=G.opp; d.life=20; d.ctr={poison:0, energy:0}; d.lost=0; d.emptyDraw=0; d.arrows=[]; d.monarch=false; d.reveal=false; if(full){ d.bf=[]; d.gy=[]; d.ex=[]; d.st=[]; d.ph=[]; if(d.deckSpec) dummyBuild(); } }
+/* Practice's deck (v4.26, Ben): a tournament deck (random or chosen) or a saved one; a shuffled library and seven cards in hand, hidden like a
+   real opponent's. Cards that reach into an opponent's library or hand (DUMMY_DECK messages) then work on Practice too. Its cards are made
+   inside asDummy so they belong to Practice's side. */
+const DUMMY_DECK=new Set(['ragavan','peek','peekhand','reveal','discardpick','youdraw','exlib','oppsearch','guide','each','yield','gytuck','tuck','tuckch','topbottom','gybottom','extract','exgy','give','bounceall']);
+const dummyHasDeck = () => dummy() && !!G.opp.deckSpec;
+function dummySync(){ if(!dummy()) return; const d=G.opp; d.libN=(d.lib||[]).length; d.handN=(d.hand||[]).length; d.sideN=(d.side||[]).length; }
+function dummyBuild(){ const d=G.opp, sp=d.deckSpec; if(!sp) return; const art=sp.d.art||{}, kk=n=>art[keyOf(n)]||keyOf(n);
+  asDummy(()=>{ const m=G.me; for(const z of ['lib','hand','bf','gy','ex','st','side','ph']) m[z]=[]; for(const [n,c] of sp.d.main) for(let i=0;i<c;i++) m.lib.push(mk(kk(n))); for(const [n,c] of sp.d.side) for(let i=0;i<c;i++) m.side.push(mk(kk(n))); shuffle(m.lib); m.hand=m.lib.splice(0,7); });
+  d.deck=sp.name; d.reveal=false; dummySync(); }
+async function dummyDeck(dk, name){ if(!dummy()) return; const art=dk.art||{}, kk=n=>art[keyOf(n)]||keyOf(n);
+  toast(`Practice is shuffling up ${name}…`); await ensureCards([...dk.main, ...dk.side].map(x=>kk(x[0])));
+  G.opp.deckSpec={d:{main:dk.main, side:dk.side, art}, name}; dummyBuild(); log(`Practice brings ${name}, shuffles up and draws seven cards.`); changed(); }
+const deckLabel = x => `${x.arch||'Deck'}${x.place?` · ${/^\d+$/.test(x.place)?ordinal(+x.place):x.place}`:''}${x.ev?` · ${x.ev}`:''}`;
+function ordinal(n){ const s=['th','st','nd','rd'], v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); }
+function dummyRandomDeck(){ const list=(DECKS&&DECKS.length?DECKS:BUILTIN); if(!list.length){ toast('No decks to pick from.'); return; } const x=list[Math.floor(Math.random()*list.length)]; dummyDeck({main:x.main, side:x.side||[]}, x.arch||'a tournament deck'); }
+function practiceDeckPick(){ const list=(DECKS&&DECKS.length?DECKS:BUILTIN), sv=store.get('mt_decks',[]);
+  const row=(i,label,sub)=>`<button class="ghost pdk" data-pdk="${i}" style="display:block;width:100%;text-align:left;margin:0 0 4px;text-transform:none;letter-spacing:0"><b>${esc(label)}</b>${sub?`<span style="color:var(--dim);font-weight:400"> · ${esc(sub)}</span>`:''}</button>`;
+  const el=modal("Choose Practice's deck", `<div style="max-height:60vh;overflow:auto;padding-right:6px">${sv.length?'<h5 style="margin:2px 0 6px">Your saved decks</h5>'+sv.map((x,i)=>row('s'+i, x.name, '')).join(''):''}<h5 style="margin:8px 0 6px">Tournament decks</h5>${list.map((x,i)=>row('b'+i, x.arch||'Deck', [x.place?(/^\d+$/.test(x.place)?ordinal(+x.place):x.place):'', x.ev].filter(Boolean).join(' · '))).join('')}</div>`, [['Cancel',()=>closeModal(),'ghost'],['Random deck',()=>{ closeModal(); dummyRandomDeck(); },'go']]);
+  el.querySelectorAll('[data-pdk]').forEach(b=>b.onclick=()=>{ const k=b.dataset.pdk; closeModal(); if(k[0]==='s'){ const x=sv[+k.slice(1)]; if(x) dummyDeck(parseDeck(x.text), x.name); } else { const x=list[+k.slice(1)]; if(x) dummyDeck({main:x.main, side:x.side||[]}, x.arch||'a tournament deck'); } }); }
+function practiceDeckOffer(){ if(!dummy() || G.opp.deckAsked || G.opp.deckSpec) return; G.opp.deckAsked=1;
+  modal("Practice's deck", `<span class="hint">Practice can bring a real deck: a shuffled library and seven cards in hand, hidden like a real opponent's. Your cards that reach into an opponent's library or hand (Ragavan, Thoughtseize, a peek) then work on it, and the Practice button can put a random creature, planeswalker or land from its deck onto the battlefield.<br><br>Practice never plays on its own: you decide what it does.</span>`,
+    [['No deck',()=>{ closeModal(); log('Practice plays without a deck (use the Practice button to give it one later).'); },'ghost'],['Choose its deck…',()=>{ closeModal(); practiceDeckPick(); },'ghost'],['Random deck',()=>{ closeModal(); dummyRandomDeck(); },'go']]); }
+/* the Practice button's "from its deck" items: a random card of a kind from its library (else its hand) straight onto its battlefield, without its enter triggers */
+function dummyFromDeck(kind){ const d=G.opp, test = kind==='cre' ? (c=>isCreature(c) && !isLand(c)) : kind==='pw' ? isPW : isLand;
+  const pool=[...d.lib.filter(test).map(c=>['lib',c]), ...(d.lib.some(test)?[]:d.hand.filter(test).map(c=>['hand',c]))];
+  if(!pool.length){ toast(`Practice's deck has no ${kind==='cre'?'creature':kind==='pw'?'planeswalker':'land'} left in its library or hand.`); return; }
+  const [z,c]=pool[Math.floor(Math.random()*pool.length)]; d[z].splice(d[z].indexOf(c),1);
+  Object.assign(c, {tap:false, atk:false, c: kind==='pw' ? (+cdata(c).loy||0) : 0, ent:newEnt(), sick:false}); d.bf.push(c); dummySync();
+  log(`Practice puts ${cname(c)} from its ${z==='lib'?'library':'hand'} onto the battlefield.`); changed(); }
+/* Practice's turns (v4.26, Ben): with "Practice takes turns" on, ending my turn starts Practice's. It untaps, draws in its draw step, and I click
+   through its steps with the bar on its side of the table (#pracBar), choose its attackers and block them with my own blockers bar. Its combat
+   damage runs through the normal applyCombat with the sides swapped (asDummyA keeps them swapped across the awaits). My cards that care about
+   the opponent's turn (Oculus's upkeep, "each end step", flash) work as at a real table. Practice's own triggers wait on its stack for me to
+   do by hand and remove. */
+const dummyTurns = () => dummy() && !!G.opp.turns;
+const pturn = () => dummy() && !!G.turn.n && G.turn.active===oppId() && !G.turn.passed;
+async function asDummyA(fn){ if(!dummy()) return; const me=G.me, id=G.myId, d=G.opp; G.me=d; G.opp=me; G.myId = id==='p1' ? 'p2' : 'p1'; DSW++;
+  try{ await fn(); }catch(e){ console.warn('Practice opponent:', e); } finally { DSW--; G.me=me; G.opp=d; G.myId=id; }
+  for(const x of DUMQ.splice(0)) onMsg(x); dummySync(); dummyLoss(); changed(); }
+function dummyTurnStart(n){ const d=G.opp; G.patk=null; if(G.mode && G.mode.type==='patk') G.mode=null;
+  for(const c of d.bf){ c.atk=false; delete c.sick; delete c.dmg; delete c.dtd; delete c.tp; delete c.tt; delete c.tkw; delete c.lhit; if(c.tap && c.stun>0) c.stun--; else c.tap=false; } d.arrows=[]; d.mana=noMana();
+  log(`Turn ${n}: Practice untaps.`); setTurn({active:oppId(), phase:0, n}); changed(); }
+function dummyNext(){ if(!pturn()) return; const t=G.turn, d=G.opp;
+  if(t.phase===3 && t.cs && t.cs!=='dmg') return;
+  if(t.phase===3) d.bf.forEach(c=>c.atk=false);
+  if(t.phase < PH.length-1){ const p=t.phase+1; G.patk=null; if(G.mode && G.mode.type==='patk') G.mode=null; setTurn({...t, phase:p});
+    if(p===1 && d.deckSpec){ asDummy(()=>{ draw.noDredge=1; try{ draw(1, false, true); } finally { draw.noDredge=0; } }); for(const x of DUMQ.splice(0)) onMsg(x); dummySync(); dummyLoss(); }
+    changed(); return; }
+  d.bf.forEach(c=>c.atk=false); d.arrows=[]; log('Practice ends its turn.'); G.turn={active:G.myId, phase:0, n:t.n+1}; startMyTurn(); }
+const pAttackers = () => G.opp.bf.filter(c=>!c.fd && isCreature(c) && !c.tap && !c.atk);
+function patkClick(target){ const c=G.opp.bf.find(x=>x.id===target); G.mode={type:'patk'}; if(!G.patk) G.patk=new Set();
+  if(!c || !isCreature(c) || (c.tap && !G.patk.has(target))){ toast("Click Practice's untapped creatures to choose its attackers."); render(); return; }
+  if(G.patk.has(target)) G.patk.delete(target); else G.patk.add(target); render(); }
+function dummyAttack(ids){ const d=G.opp, t=G.turn, cs=ids.map(id=>d.bf.find(x=>x.id===id)).filter(Boolean); G.patk=null; G.mode=null;
+  if(!cs.length){ log('Practice declares no attackers.'); setTurn({...t, phase:4}); changed(); return; }
+  for(const c of cs){ c.atk=true; if(!kwOn(c,'vigilance')) c.tap=true; }
+  log(`Practice attacks ${G.me.name} with ${cs.map(cname).join(', ')}.`); setTurn({...t, cs:'blk'}); changed(); }
+function pracBtn(k){ const d=G.opp; if(!dummy()) return;
+  if(k==='next') dummyNext();
+  else if(k==='choose'){ G.patk=new Set(); G.mode={type:'patk'}; toast("Click Practice's creatures to choose its attackers, then Attack."); render(); }
+  else if(k==='all'){ G.patk=new Set(pAttackers().map(c=>c.id)); G.mode={type:'patk'}; render(); }
+  else if(k==='go') dummyAttack([...(G.patk||[])]);
+  else if(k==='cancel'){ G.patk=null; G.mode=null; render(); }
+  else if(k==='none') dummyAttack([]);
+  else if(k==='dmg'){ const t=G.turn; let fs=false; asDummy(()=>{ fs=combatHasFS(); }); asDummyA(()=>applyCombat(t.cs==='fs' ? 'reg' : (fs ? 'fs' : 'reg'))); }
+  else if(k==='stk'){ const c=d.st[d.st.length-1]; if(c){ d.st.pop(); log(`${cdata(c).n} is taken off Practice's stack (do what it says by hand if it matters).`); changed(); } } }
+function pracBarHTML(){ if(!dummy()) return ''; const d=G.opp, t=G.turn, top=d.st[d.st.length-1];
+  const stk = top ? `<span class="sub">On Practice's stack: ${esc(unlink(cdata(top).n))}</span><button data-prb="stk">Done with it (remove)</button>` : '';
+  if(!pturn()) return stk ? `<span>Practice</span>${stk}` : '';
+  let h=`<span>Practice's turn · ${PH[t.phase]}</span>`;
+  if(t.phase===3 && !t.cs){ const sel=G.patk; if(sel) h+=`<span class="sub">Click Practice's creatures to attack you</span><button class="go" data-prb="go">${sel.size ? `Attack with ${sel.size}` : 'Attack with none'}</button><button data-prb="all">Select all</button><button data-prb="cancel">Cancel</button>`;
+    else h+= pAttackers().length ? '<button class="go" data-prb="choose">Choose attackers</button><button data-prb="all">Attack with all</button><button data-prb="none">No attacks</button>' : '<span class="sub">Practice has no untapped creatures</span><button class="go" data-prb="none">No attacks</button>'; }
+  else if(t.phase===3 && t.cs==='blk') h+='<span class="sub">Declare your blockers with your blockers bar</span>';
+  else if(t.phase===3 && (t.cs==='blkd' || t.cs==='fs')){ let fs=false; if(t.cs==='blkd') asDummy(()=>{ fs=combatHasFS(); }); h+=`<button class="go" data-prb="dmg">${fs ? 'Apply first strike damage' : 'Apply combat damage'}</button>`; }
+  else h+=`<button class="go" data-prb="next">${t.phase < PH.length-1 ? 'Next: '+PH[t.phase+1] : "End Practice's turn"}</button>`;
+  return h + stk; }
+function dummyDraw(n){ const d=G.opp; let k=0; for(let i=0;i<(n||1);i++){ const c=d.lib.shift(); if(!c) break; d.hand.push(c); k++; } dummySync(); log(k ? `Practice draws ${k===1?'a card':k+' cards'}.` : "Practice's library is empty."); if(k<(n||1) && G.turn.n){ d.emptyDraw=1; dummyLoss(); } changed(); }
+
 function dummyAdd(cu, extra){ let made=null; asDummy(()=>{ made=mk(null, Object.assign({cu:Object.assign({img:'', cl:[], o:''}, cu)}, extra||{})); G.me.bf.push(made); }); return made; }
 const PKW=['flying','reach','first strike','deathtouch','lifelink','indestructible','vigilance','menace','trample','hexproof'];
 function dummyCreature(p, t, kws, n){ const k=(kws||[]).map(x=>x[0].toUpperCase()+x.slice(1)).join(', '), nm=`Practice ${p}/${t}${k?' with '+k.toLowerCase().replace(/, ([^,]+)$/,' and $1'):''}`; for(let i=0;i<(n||1);i++) dummyAdd({n:nm, t:'Creature — Practice', o:k, pt:`${p}/${t}`});
   log(`Practice: ${n>1?n+' ':'a '}${p}/${t} creature${n>1?'s':''}${k?' with '+k.toLowerCase():''} ${n>1?'are':'is'} added to Practice's battlefield.`); changed(); }
 function practiceCreature(){ modal('Add a creature for Practice', `<div class="joinrow" style="gap:12px;flex-wrap:wrap"><label>Power <input id="pcP" type="number" value="2" min="0" max="20" style="width:64px"></label><label>Toughness <input id="pcT" type="number" value="2" min="1" max="20" style="width:64px"></label><label>How many <input id="pcN" type="number" value="1" min="1" max="6" style="width:64px"></label></div><div id="pcKw" style="display:grid;grid-template-columns:repeat(3,auto);gap:4px 14px;margin-top:10px">${PKW.map(k=>`<label style="text-transform:none;letter-spacing:0"><input type="checkbox" value="${k}"> ${k}</label>`).join('')}</div>`,
   [['Cancel',()=>closeModal(),'ghost'],['Add',()=>{ const p=Math.max(0,Math.min(20,parseInt($('#pcP').value,10)||0)), t=Math.max(1,Math.min(20,parseInt($('#pcT').value,10)||1)), n=Math.max(1,Math.min(6,parseInt($('#pcN').value,10)||1)), kws=[...$$('#pcKw input:checked')].map(x=>x.value); closeModal(); dummyCreature(p, t, kws, n); },'go']]); }
-function practiceMenu(x, y){ if(!dummy()) return; const d=G.opp, any=d.bf.length>0;
-  menu(x, y, [['Add a creature…', practiceCreature], ['Add a 2/2 creature', ()=>dummyCreature(2,2,[],1)], ['Add a 1/1 creature with flying', ()=>dummyCreature(1,1,['flying'],1)], ['Add a 0/4 creature with reach', ()=>dummyCreature(0,4,['reach'],1)],
+function practiceMenu(x, y){ if(!dummy()) return; const d=G.opp, any=d.bf.length>0, dk=!!d.deckSpec, has=t=>dk && [...d.lib, ...d.hand].some(t);
+  menu(x, y, [
+    dk && has(c=>isCreature(c) && !isLand(c)) && ['Put a random creature from its deck onto the battlefield', ()=>dummyFromDeck('cre')],
+    dk && has(isPW) && ['Put a random planeswalker from its deck onto the battlefield', ()=>dummyFromDeck('pw')],
+    dk && has(isLand) && ['Put a random land from its deck onto the battlefield', ()=>dummyFromDeck('land')],
+    dk && ['Practice draws a card', ()=>dummyDraw(1)],
+    dk && [d.reveal ? "Hide Practice's hand" : "Show Practice's hand", ()=>{ d.reveal=!d.reveal; log(d.reveal ? "Practice's hand is shown face up." : "Practice's hand is hidden again."); changed(); }],
+    [dk ? `Change Practice's deck (now ${d.deck})…` : 'Give Practice a deck…', practiceDeckPick],
+    [`Practice takes turns: ${d.turns ? 'On' : 'Off'}`, ()=>{ d.turns=!d.turns; log(d.turns ? "Practice takes turns: when you end your turn, Practice's turn begins. Its controls are on its side of the table." : 'Practice no longer takes turns.'); if(!d.turns && pturn()){ G.patk=null; G.mode=null; d.bf.forEach(c=>c.atk=false); G.turn={active:G.myId, phase:0, n:G.turn.n+1}; startMyTurn(); return; } changed(); }],
+    dk && '-',
+['Add a creature…', practiceCreature], ['Add a 2/2 creature', ()=>dummyCreature(2,2,[],1)], ['Add a 1/1 creature with flying', ()=>dummyCreature(1,1,['flying'],1)], ['Add a 0/4 creature with reach', ()=>dummyCreature(0,4,['reach'],1)],
     ['Add a planeswalker…', async ()=>{ const n=await askN('Planeswalker loyalty', 4); if(n==null) return; dummyAdd({n:'Practice Walker', t:'Legendary Planeswalker — Practice'}, {c:Math.max(1,Math.min(20,n))}); log(`Practice: a planeswalker with loyalty ${Math.max(1,Math.min(20,n))} is added to Practice's battlefield.`); changed(); }],
     ['Add an artifact', ()=>{ dummyAdd({n:'Practice Trinket', t:'Artifact'}); log("Practice: an artifact is added to Practice's battlefield."); changed(); }],
     ['Add an enchantment', ()=>{ dummyAdd({n:'Practice Charm', t:'Enchantment'}); log("Practice: an enchantment is added to Practice's battlefield."); changed(); }],
@@ -5606,7 +5697,7 @@ function cardHTML(c, z, mine, cls=''){
   if(z==='ex' && c.pl && !backUp){ cls+=' pl'; b+=`<span class="plban">PLAYABLE · ${c.pl==='this'?'THIS TURN':'NEXT TURN'}</span>`; }
   else if(z==='ex' && c.plot && !backUp){ b+='<span class="plban pltd">PLOTTED</span>'; }
   if(c.phz){ cls+=' phz'; b+='<span class="phban">PHASED OUT</span>'; }
-  return `<div class="card ${mine?'':'opp'} ${c.tap?'tap':''} ${c.atk?'atk':''} ${!mine && c.atk && z==='bf' && blkDim(c) ? 'nblk' : ''} ${tgtDim(c, z)} ${mine && z==='bf' && G.atkSel && G.atkSel.has(c.id) ? 'asel' : ''} ${c.fd&&mine?'fdmine':''} ${cls}" data-id="${c.id}" data-z="${z}" data-o="${mine?'me':'opp'}">${inner}${b}${extra}</div>`;
+  return `<div class="card ${mine?'':'opp'} ${c.tap?'tap':''} ${c.atk?'atk':''} ${!mine && c.atk && z==='bf' && blkDim(c) ? 'nblk' : ''} ${tgtDim(c, z)} ${z==='bf' && (mine ? G.atkSel : G.patk) && (mine ? G.atkSel : G.patk).has(c.id) ? 'asel' : ''} ${c.fd&&mine?'fdmine':''} ${cls}" data-id="${c.id}" data-z="${z}" data-o="${mine?'me':'opp'}">${inner}${b}${extra}</div>`;
 }
 /* marker icons (v4.08, Ben): one drawn style instead of emoji: rounded white outline with filled details; they take the text colour */
 const ICO = (()=>{ const sv=(b)=>`<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">${b}</svg>`;
@@ -5715,8 +5806,9 @@ function render(){
     + (m.side.length ? pileHTML('side','Sideboard',m.side,m.side.length,true, back) : '');
   if(o){
     const or=rowsHTML([...(o.bf||[]), ...(o.ph||[])],false); $('#oppFront').innerHTML=or.front + playBoxes(o.ex,false,['this']) + (o.hasteNext && o.hasteNext===G.turn.n ? '<div class="hnbox">THEIR NEXT CREATURE SPELL THIS TURN GAINS HASTE</div>' : ''); $('#oppBack').innerHTML=or.back + warpHTML(o.ex||[],false) + flBox(o.ex,false) + plotBox(o.ex,false) + playBoxes(o.ex,false,['next']) + compBox(o.comp||[], false) + markersHTML([((o.ctr||{}).energy||0)>0 && markerHTML(o.ctr.energy, oppId()), ((o.ctr||{}).poison||0)>0 && poisonHTML(o.ctr.poison, oppId()), o.monarch && monarchHTML(oppId())]);
-    const oh=$('#oppHand'); oh.classList.toggle('shown', !!o.hand);
-    oh.innerHTML = (o.trk && o.trk.list && o.trk.list.length ? `<span class="tnote" data-tnote title=""><b>${o.trk.list.length}</b></span>` : '') + `<span class="hn">${esc(o.name||'Opponent')}'s hand <b>${o.handN}</b>${o.hand && !o.dummy?' · revealed':''}</span>` + (o.hand ? o.hand.map(c=>cardHTML(c,'hand',false)).join('') : back.repeat(Math.min(o.handN,30)));
+    if(o.dummy) dummySync(); const oHand = o.dummy ? (o.reveal ? o.hand : null) : o.hand;
+    const oh=$('#oppHand'); oh.classList.toggle('shown', !!oHand);
+    oh.innerHTML = (o.trk && o.trk.list && o.trk.list.length ? `<span class="tnote" data-tnote title=""><b>${o.trk.list.length}</b></span>` : '') + `<span class="hn">${esc(o.name||'Opponent')}'s hand <b>${o.handN}</b>${oHand && !o.dummy?' · revealed':''}${oHand && o.dummy?' · shown':''}</span>` + (oHand ? oHand.map(c=>cardHTML(c,'hand',false)).join('') : back.repeat(Math.min(o.handN||0,30)));
     $('#oppPiles').innerHTML = `<div class="railh"><b>${esc(o.name||'Opponent')}</b></div>` + pileHTML('hand','Hand',null,o.handN,false, o.handN?back:'') + pileHTML('lib','Library',null,o.libN,false, o.libN?back:'')
       + pileHTML('gy','Graveyard',o.gy,o.gy.length,false, o.gy.length?cardHTML(o.gy[o.gy.length-1],'gy',false):'')
       + pileHTML('ex','Exile',o.ex,o.ex.length,false, o.ex.length?cardHTML(o.ex[o.ex.length-1],'ex',false):'');
@@ -5754,6 +5846,7 @@ function render(){
   { const bb=$('#blockBar'); if(pblockStep()){ bb.hidden=false; bb.innerHTML=pblockBarHTML(); const fr=$('#myFront'), mid=$('#mid'); bb.style.top=Math.max(mid.offsetTop + mid.offsetHeight + 8, fr.offsetTop + (fr.offsetHeight - bb.offsetHeight)/2)+'px'; } else if(blockStep()){ const n=G.me.arrows.filter(a=>a.blk).length; bb.hidden=false;
       const atks=(G.opp&&G.opp.bf||[]).filter(c=>c.atk), more=blockersLeft().some(b=>atks.some(a=>!blockIssues(b,a).length)), must=mustBlockNotes(); bb.innerHTML = `<span>${n ? n+' blocker'+(n>1?'s':'')+' declared' : 'You are being attacked'}</span>${must.map(x=>`<span style="text-transform:none;letter-spacing:0;color:var(--brass);font-weight:600">${esc(unlink(x))}</span>`).join('')}${more ? `<button class="go" data-bk="declare">${n?'Declare another blocker':'Declare a blocker'}</button>` : (n ? '' : '<span style="text-transform:none;letter-spacing:0;color:var(--dim);font-weight:400">None of your creatures can block these attackers</span>')}${n ? '<button data-bk="reset">Reset blockers</button><button class="go" data-bk="finish">Finish declaring blocks</button>' : '<button data-bk="finish">No blocks</button>'}`; const fr=$('#myFront'), mid=$('#mid'); bb.style.top=Math.max(mid.offsetTop + mid.offsetHeight + 8, fr.offsetTop + (fr.offsetHeight - bb.offsetHeight)/2)+'px'; } else if(!bb.hidden){ bb.hidden=true; bb.innerHTML=''; } }
   { const ab=$('#atkBar'); if(G.atkSel && !atkStep()) G.atkSel=null; if(atkStep() && !blockStep()){ ab.hidden=false; ab.innerHTML=atkBarHTML(); const fr=$('#myFront'), mid=$('#mid'); ab.style.top=Math.max(mid.offsetTop + mid.offsetHeight + 8, fr.offsetTop + (fr.offsetHeight - ab.offsetHeight)/2)+'px'; } else if(!ab.hidden) ab.hidden=true; }
+  { const pb=$('#pracBar'); const h=pracBarHTML(); if(h){ pb.hidden=false; pb.innerHTML=h; const ob=$('#oppBack'), of=$('#oppFront'); pb.style.top=Math.max(8, ob.offsetTop + Math.max(0, (of.offsetTop + of.offsetHeight - ob.offsetTop - pb.offsetHeight)/2))+'px'; } else if(!pb.hidden){ pb.hidden=true; pb.innerHTML=''; } }
   { const lb=$('#loopBtn'); const ok=!blockStep() && (!!loopSpec() || !!samSpec()); if(ok){ lb.hidden=false; const fr=$('#myFront'), mid=$('#mid'); lb.style.top=Math.max(mid.offsetTop + mid.offsetHeight + 8, fr.offsetTop + 8)+'px'; } else if(!lb.hidden) lb.hidden=true; }
   markOverflow();
   { const pb=$('#pauseBtn'), pa=m.pauseAsk&&m.pauseAsk.at; pb.hidden=!(vsReal() && t.n); { const pr=$('#practiceBtn'); if(pr) pr.hidden=!dummy(); } pb.classList.toggle('on', !!pa); pb.querySelector('span').textContent = pa ? 'Pause: '+PAUSE_SHORT[pa] : 'Pause'; }
@@ -5762,7 +5855,7 @@ function render(){
   else if(t.passed){ nb.disabled=mine; nb.textContent = mine ? `Waiting for ${o&&o.name||'opponent'}` : 'Start my turn'; }
   else if(t.hold){ const me=t.hold.pid===G.myId; nb.disabled=!me; nb.textContent = me ? 'Pass priority back' : `Paused: ${o&&o.name||'opponent'} has priority`; }
   else if(iControl()){ nb.disabled=false; nb.textContent = (t.phase<PH.length-1 ? 'Next: '+PH[t.phase+1] : 'End their turn'); }
-  else if(!mine){ if(blockStep()){ nb.disabled=false; nb.textContent='Done blocking'; } else { nb.textContent="Opponent's turn"; nb.disabled=true; } }
+  else if(!mine){ if(blockStep()){ nb.disabled=false; nb.textContent='Done blocking'; } else { nb.textContent = dummy() ? "Practice's turn: its controls are on its side" : "Opponent's turn"; nb.disabled=true; } }
   else if(combatLabel()){ const L=combatLabel(); nb.disabled=!!L.wait; nb.textContent=L.text; }
   else { nb.disabled=false; nb.textContent = t.phase<PH.length-1 ? 'Next: '+PH[t.phase+1] : 'End turn'; }
   // pre-game banner
@@ -6210,6 +6303,7 @@ function finishMode(target){
   if(md.type==='atktgt'){ atkTarget(md, target); return; }
   if(md.type==='eqtgt'){ const t=find(target); if(!t || t.z!=='bf' || !isCreature(t.c) || target===md.from){ toast('Click a creature you control (Esc to cancel).'); G.mode=md; render(); return; } activate(md.from, md.a, md.evDone, {eqT:target}); return; }
   if(md.type==='pblock' || md.type==='pblock2'){ pblockClick(md, target); return; }
+  if(md.type==='patk'){ patkClick(target); return; }
   if(md.auto){ const w=find(md.from); if(w && w.z==='st' && !blinkArrow(md, target)) toast(`${srcName(w.c)}: click ${w.c.ab.what||'its target'}, or NO TARGET.`); render(); return; }
   if(md.type==='pickblocker'){ const f=find(target); if(!f || f.z!=='bf' || !isCreature(f.c) || f.c.tap){ toast('Click one of your untapped creatures.'); G.mode=md; render(); return; } if(!blockersLeft().some(x=>x.id===target)){ toast(`${cdata(f.c).n} is already blocking. Pick another creature, or Reset blockers.`); G.mode=md; render(); return; } G.mode={type:'block', from:target}; toast(`${cdata(f.c).n}: now click the attacker it blocks.`); render(); return; }
   if(md.type==='arrow' && blockStep()){ const f=find(md.from), t=findAny(target); if(f && f.z==='bf' && isCreature(f.c) && !f.c.tap && t && !t.mine && t.z==='bf' && t.c.atk) md.type='block'; }   // an arrow from my creature to an attacker is a block
@@ -6318,6 +6412,7 @@ document.addEventListener('click', e=>{
   if(t.closest('#loopBtn')){ if(loopSpec()) loopAsk(); else samLoop(); return; }
   const ntb=t.closest('[data-notgt]'); if(ntb){ autoNone(ntb.dataset.notgt); return; }
   const pbb=t.closest('[data-pbk]'); if(pbb){ pblockBtn(pbb.dataset.pbk); return; }
+  const prb=t.closest('[data-prb]'); if(prb){ pracBtn(prb.dataset.prb); return; }
   const akb=t.closest('[data-ak]'); if(akb){ const k=akb.dataset.ak; if(!atkStep()) return; if(k==='choose'){ G.me.bf.forEach(c=>{ if(c.atk){ c.atk=false; if(!hasKw(c, G.myId, 'vigilance')) c.tap=false; } }); G.me.arrows=G.me.arrows.filter(a=>!a.atk); atkChoose(); } else if(k==='go') atkCommit(); else if(k==='all') atkAll(); else if(k==='reset'){ G.atkSel=new Set(mustAttackIds()); toast('Attackers reset.'); render(); } else if(k==='cancel'){ G.atkSel=null; render(); } else if(k==='none') atkNone(); return; }
   const bk=t.closest('[data-bk]'); if(bk){ const k=bk.dataset.bk; if(!blockStep()) return; if(k==='declare'){ G.mode={type:'pickblocker'}; toast('Click one of your untapped creatures to block with.'); render(); } else if(k==='reset'){ const n=G.me.arrows.filter(a=>a.blk).length; G.me.arrows=G.me.arrows.filter(a=>!a.blk); G.mode=null; if(n) log(`${G.me.name} resets their blocks.`); changed(); } else if(k==='finish'){ G.mode=null; doneBlocking(); } return; }
   const smp=t.closest('[data-smana]'); if(smp){ spendSpecial(+smp.dataset.smana); return; }
@@ -6446,7 +6541,7 @@ function viewDeck(d, name, sub, link, canSave, savedIdx){
   v.querySelector('.dvtabs').onclick=e=>{ const t=e.target.closest('[data-dv]'); if(!t) return; store.set('mt_dview', t.dataset.dv); v.querySelectorAll('[data-dv]').forEach(x=>x.classList.toggle('on', x===t)); paint(); };
   let loading=true; const tick=setInterval(()=>{ if(v.dataset.tok!==tok || !loading){ clearInterval(tick); return; } if(dvMode()!=='list' && !ready()){ const msg=$('#dvMsg'); if(msg && SF_HOLD>Date.now()) paint(); } }, 1000);
   const load=()=>{ loading=true; paint(); ensureCards([...d.main,...d.side].map(x=>kk(x[0]))).finally(()=>{ loading=false; paint(); }); }; load();
-  $('#useDeck').onclick=async()=>{ const b=$('#useDeck'); b.disabled=true; $('#deckMsg').textContent='Fetching cards…'; await loadDeck(d, name, (a,t)=>{ $('#deckMsg').textContent=`Fetching cards ${a}/${t}…`; }); showTable(); changed(); if(missingCards().length){ toast('Scryfall is not answering, so some cards show as text for now. Their images will fill in when it answers.'); retryMissing(); } };
+  $('#useDeck').onclick=async()=>{ const b=$('#useDeck'); b.disabled=true; $('#deckMsg').textContent='Fetching cards…'; await loadDeck(d, name, (a,t)=>{ $('#deckMsg').textContent=`Fetching cards ${a}/${t}…`; }); showTable(); changed(); setTimeout(practiceDeckOffer, 250); if(missingCards().length){ toast('Scryfall is not answering, so some cards show as text for now. Their images will fill in when it answers.'); retryMissing(); } };
   const sb=$('#saveDeck'); if(sb) sb.onclick=()=>{ const sv=store.get('mt_decks',[]); sv.unshift({name, text:deckText(d)}); store.set('mt_decks',sv); toast('Saved'); };
   const db=$('#delDeck'); if(db) db.onclick=()=>{ const sv=store.get('mt_decks',[]); sv.splice(savedIdx,1); store.set('mt_decks',sv); renderTab(); };
 }
