@@ -499,10 +499,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 </script>
 <script>
 "use strict";
-const VERSION = 'v4.24';
+const VERSION = 'v4.25';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.25','Oct 24',"Practice games: when a card would reach into Practice's library or hand (Ragavan's exile, Thoughtseize, a peek, a draw), the log now says Practice has none, instead of nothing happening."],
   ['v4.24','Oct 24',"A card cast for its warp cost now carries a WARP banner (with when it leaves) instead of the spiral icon."],
   ['v4.23','Oct 24',"Tapping and untapping now turn the card smoothly instead of snapping. New in the ☰ menu: Tapped cards, to choose a slight turn (as before) or a full sideways turn, with or without making room beside the tapped card."],
   ['v4.22','Oct 23',"Urza's Saga played while Blood Moon is out now enters with no lore counters (entering with one is the Saga's own ability, which Blood Moon takes away)."],
@@ -5465,6 +5466,8 @@ var DSW=0, DUMQ=[];
 const dummy = () => !!(G.opp && G.opp.dummy);
 const vsReal = () => !G.solo && !!G.opp && !G.opp.dummy;           // a real two-player table
 const vsAny = () => !!G.opp && (!G.solo || !!G.opp.dummy);          // someone to fight: a friend or Practice
+/* messages Practice can't answer because it has no library or hand (v4.25, Ben: Ragavan seemed not to exile): the log says so instead of nothing happening */
+const DUMMY_NO={ragavan:"nothing is exiled from the top of its library", peek:"there is no top card to look at", peekhand:"there is no hand to look at", reveal:"there is no hand to reveal", youdraw:"it draws nothing", exlib:"there is no library to exile", oppsearch:"there is nothing to search", guide:"there is no top card to reveal", libtop:"there are no cards to look at", each:"it has no hand or library to do that with"};
 const DUMMY_OK=new Set(['adj','dmg','loy','hit','mod','pump','cdmg','tapstun','wipe','gyall','gyexile','exhold','left','edict','mill','monarch']);
 const newDummy = () => Object.assign(newPlayer(), {name:'Practice', dummy:true, deck:'Practice opponent', libN:0, handN:0, sideN:0, dealt:true, kept:true, compDone:true, deckReady:true, comp:[], lost:0});
 function makeDummy(){ if(G.opp && !G.opp.dummy) return; if(!G.opp) G.opp=newDummy(); }
@@ -5472,7 +5475,7 @@ function asDummy(fn){ if(!dummy()) return; const me=G.me, id=G.myId, d=G.opp; G.
   try{ fn(); }catch(e){ console.warn('Practice opponent:', e); } finally { DSW--; G.me=me; G.opp=d; G.myId=id; } }
 function dummyRoute(m){ if(!m || ['state','log','turn','hello','mt','gameover','goready','goback'].includes(m.t)) return;
   if(DSW){ DUMQ.push(m); return; }                                   // from Practice to me: handled after the swap
-  if(!DUMMY_OK.has(m.t)) return; if(m.t==='edict') m=Object.assign({}, m, {auto:1});
+  if(!DUMMY_OK.has(m.t)){ const why=DUMMY_NO[m.t] || (m.t==='q' && m.q && DUMMY_NO[m.q.kind]); if(why) log(`${m.by?String(m.by).slice(0,60)+': ':''}Practice has no library or hand, so ${why}.`); return; } if(m.t==='edict') m=Object.assign({}, m, {auto:1});
   asDummy(()=>{ onMsg(m); combatDeaths(); });
   for(const x of DUMQ.splice(0)) onMsg(x);
   dummyLoss(); changed(); }
