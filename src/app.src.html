@@ -126,15 +126,19 @@ textarea#paste{width:100%;min-height:300px;font-family:ui-monospace,Menlo,Consol
 .card .txt i{color:var(--dim);font-style:normal;font-size:.85em}.card .txt span{margin-top:auto;align-self:flex-end;font-weight:800}
 .card .back:has(img){border-width:0}
 .card .back{position:absolute;inset:0;overflow:hidden;border-radius:inherit;border:calc(var(--cw)*.05) solid #15100a;background:radial-gradient(circle at 50% 50%,#c79a4a 0 18%,#5a3a1c 19% 34%,#2c2136 35% 62%,#1a1422 63%);pointer-events:none}
-.card.tap{transform:rotate(18deg) scale(.94);filter:brightness(.62) saturate(.7)}
+:root{--ta:18deg}body.t90{--ta:90deg}
+.card.tap{transform:rotate(var(--ta)) scale(.94);filter:brightness(.62) saturate(.7)}
 .card.atk{transform:translateY(-14%);box-shadow:0 0 0 3px var(--brass),0 0 16px 3px #d9b25faa,0 8px 14px #000a}
 .card.atk.tap{filter:brightness(.8) saturate(.85)}
 .card.nblk,.card.atk.nblk,.card.atk.tap.nblk{filter:grayscale(.9) brightness(.4)}
 .card.ntg{filter:grayscale(.9) brightness(.4)}.card.ntg2{filter:grayscale(.6) brightness(.65)}
 .avatar.tgt.ntg{outline:none;opacity:.45;cursor:default}
 .opp .card.atk,.card.opp.atk{transform:translateY(14%)}
-.card.atk.tap{transform:translateY(-14%) rotate(18deg) scale(.94)}
-.card.opp.atk.tap{transform:translateY(14%) rotate(18deg) scale(.94)}
+.card.atk.tap{transform:translateY(-14%) rotate(var(--ta)) scale(.94)}
+.card.opp.atk.tap{transform:translateY(14%) rotate(var(--ta)) scale(.94)}
+/* sideways tap with room (v4.23): a tapped card is about a third wider, so it gets that much margin; a pile of identical tapped lands or tokens keeps its tight step and gets the room only at its ends */
+body.t90r .row .card.tap{margin-left:calc(var(--cw)*.16);margin-right:calc(var(--cw)*.16)}body.t90r .row .card.tap.under{margin-right:calc(var(--cw)*-.74)}body.t90r .row .card.tap.tokunder{margin-right:calc(var(--cw)*-.86)}
+body.t90r .row .card.tap:is(.under,.tokunder) + .card.tap{margin-left:0}body.t90r .row .card.tap.tokhide + .card.tap{margin-left:calc(var(--cw)*.16)}
 .card.under{margin-right:calc(var(--cw)*-.74)}
 .card.tokunder{margin-right:calc(var(--cw)*-.86)}.card.tokhide{display:none}.card.tokunder>:not(img){visibility:hidden}
 .tokn{position:absolute;right:4%;top:40%;padding:1px 6px;font:800 calc(var(--cw)*.16)/1.2 var(--ui);color:#fff;background:#000d;border:1px solid #fff;border-radius:3px;pointer-events:none;font-variant-numeric:tabular-nums}
@@ -486,10 +490,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.22';
+const VERSION = 'v4.23';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.23','Oct 24',"Tapping and untapping now turn the card smoothly instead of snapping. New in the ☰ menu: Tapped cards, to choose a slight turn (as before) or a full sideways turn, with or without making room beside the tapped card."],
   ['v4.22','Oct 23',"Urza's Saga played while Blood Moon is out now enters with no lore counters (entering with one is the Saga's own ability, which Blood Moon takes away)."],
   ['v4.21','Oct 23',"Urza's Saga under Blood Moon (or Magus of the Moon) stays on the battlefield as a Mountain: it keeps its lore counters and the abilities its chapters already gave it, but gets no new lore counters or chapters."],
   ['v4.20','Oct 23',"Full screen: choose Full screen in the ☰ menu. An Exit full screen button appears beside the menu while you're in it. In Chrome and Edge, Esc still works in the game (hold Esc to leave full screen); in other browsers Esc leaves full screen."],
@@ -5665,9 +5670,32 @@ function avatarHTML(p, pid, mine){
     <div class="life"><button data-life="-1" data-pl="${pid}" aria-label="Lose 1 life">−</button><b>${p.life}</b><button data-life="1" data-pl="${pid}" aria-label="Gain 1 life">+</button></div>
     <div class="dk">${esc(p.deck||'No deck yet')}${p.mull?` · ${p.mull} mulligan${p.mull>1?'s':''}`:''}</div><div class="mana">${MANA.map(k=>{ const n=(p.mana||{})[k]||0; return `<span class="mp ${n?'on':''} ${mine?'mine':''}" ${mine?`data-mana="${k}"`:''} title="${MNAME[k]} mana${mine?': click to spend one, Shift-click or right-click to add one':''}">${n>1?`<b>${n}</b>`:''}<i class="ms ms-${k}">${k}<img src="https://svgs.scryfall.io/card-symbols/${k}.svg" alt="" draggable="false" onerror="this.remove()"></i></span>`; }).join('')}</div>${smanaHTML(p, mine)}<div class="chips">${chips}<span class="winmark ${p.wins?'on':''}" data-win="${pid}" title="Click to mark a game win. Right-click to take one back."><i></i>${p.wins>=2?'Match won':p.wins?'1 game won':'Game win'}</span></div>`;
 }
+/* smooth taps (v4.23, Ben): render() rebuilds the rows, so CSS transitions never play on a tap. tapSnap notes where each battlefield card is
+   and how it is turned just before a render; tapAnim then animates every card that moved or turned from that pose to its new one (FLIP),
+   so taps, untaps and the neighbours making room glide. A pose read mid-animation is where the card is on screen, so a render during an
+   animation carries on from there. Arrows are redrawn when the cards have settled. */
+const BFCARDS = '#myFront .card[data-id],#myBack .card[data-id],#oppFront .card[data-id],#oppBack .card[data-id]';
+const RMOT = window.matchMedia ? matchMedia('(prefers-reduced-motion: reduce)') : {matches:false};
+function cardPose(el){ const r=el.getBoundingClientRect(), cs=getComputedStyle(el), t=cs.transform||'none'; let e=0, f=0; if(t!=='none'){ try{ const m=new DOMMatrixReadOnly(t); e=m.e; f=m.f; }catch(x){} }
+  return {x:r.left+r.width/2-e, y:r.top+r.height/2-f, t, f:cs.filter||'none'}; }
+function tapSnap(){ if(RMOT.matches || !document.body.animate) return null; const s=new Map(); for(const el of document.querySelectorAll(BFCARDS)) if(el.offsetParent) s.set(el.dataset.id, cardPose(el)); return s; }
+function tapAnim(s){ if(!s || !s.size) return; let any=0;
+  for(const el of document.querySelectorAll(BFCARDS)){ const a=s.get(el.dataset.id); if(!a || !el.offsetParent) continue; const b=cardPose(el), dx=a.x-b.x, dy=a.y-b.y;
+    if(Math.abs(dx)<1 && Math.abs(dy)<1 && a.t===b.t && a.f===b.f) continue;
+    const k0={transform:`translate(${dx}px,${dy}px)${a.t==='none'?'':' '+a.t}`}, k1={transform:b.t==='none'?'translate(0px,0px)':b.t}; if(a.f!==b.f){ k0.filter=a.f; k1.filter=b.f; }
+    try{ el.animate([k0,k1], {duration:230, easing:'cubic-bezier(.2,.7,.3,1)'}); any=1; }catch(x){} }
+  if(any){ clearTimeout(tapAnim.tm); tapAnim.tm=setTimeout(drawArrows, 250); } }
+/* tapped cards (v4.23, Ben): turned slightly (18°, as before), sideways (90°) over their neighbours, or sideways with room made for them. Per player, saved in mt_settings */
+const TAPST = {'18':'Turned slightly (18°)', '90':'Sideways (90°), overlapping neighbours', '90r':'Sideways (90°), with room made'};
+function applyTapStyle(){ const v=S.tap||'18', b=document.body; if(!b) return; b.classList.toggle('t90', v!=='18'); b.classList.toggle('t90r', v==='90r'); }
+if(document.body) applyTapStyle(); else document.addEventListener('DOMContentLoaded', applyTapStyle);
+function tapStyleModal(){ const cur=S.tap||'18';
+  const pick = v => { S.tap=v; store.set('mt_settings',S); closeModal(); applyTapStyle(); setTimeout(()=>{ render(); drawArrows(); }, 200); toast('Tapped cards: '+TAPST[v].replace(/,.*/,'')+(v==='90r'?', with room':'')+'.'); };
+  modal('Tapped cards', `<span class="hint">How your tapped cards are turned on your screen. It changes only what you see; your opponent picks their own.<br><br><b>Sideways with room</b> spreads each row out a little, so a crowded row may need scrolling sooner. Identical lands stay stacked either way.</span>`,
+    Object.entries(TAPST).map(([v,l])=>[l+(v===cur?'  ✓':''), ()=>pick(v), v===cur?'go':'ghost'])); }
 let NMW=null, CHAL=[];   /* name of a card that cares whether mana was spent, set each render */
 function render(){
-  if(DSW) return; if($('#table').hidden) return; autoArm(); TGS=tgtSrcSpec();
+  if(DSW) return; if($('#table').hidden) return; const TS0=tapSnap(); autoArm(); TGS=tgtSrcSpec();
   NMW=noManaWatch(); CHAL=chaliceWatch(); trackGain(); if(checkCity()) setTimeout(changed, 0);
   const m=G.me, o=G.opp;
   FX=landEffects();
@@ -5694,6 +5722,7 @@ function render(){
       : `<div class="nm">Waiting for your friend</div><div class="dk">Send them the code <b style="color:var(--brass);letter-spacing:.15em;user-select:text;-webkit-user-select:text">${esc(G.code)}</b></div><div class="chips"><span class="pill" id="netPill2"></span></div>`;
     if(!G.solo) renderNet();
   }
+  tapAnim(TS0);
   $('#oppAv').className = 'avatar'+(G.turn.n&&G.turn.active===oppId()?' active':'')+(G.mode?' tgt':'')+(TGS && !tgtCheck(TGS, oppId()).ok ? ' ntg' : ''); $('#oppAv').dataset.pl=oppId();
   $('#myAv').innerHTML = avatarHTML(m, G.myId, true);
   $('#myAv').className = 'avatar me'+(G.turn.n&&G.turn.active===G.myId?' active':'')+(G.mode?' tgt':'')+((TGS && !tgtCheck(TGS, G.myId).ok) || (G.mode && G.mode.type==='atktgt') ? ' ntg' : ''); $('#myAv').dataset.pl=G.myId;
@@ -6011,6 +6040,7 @@ function tableMenu(x,y){
     [S.autoDraw?'Turn off auto-draw each turn':'Turn on auto-draw each turn',()=>{ S.autoDraw=!S.autoDraw; store.set('mt_settings',S); toast('Auto-draw is '+(S.autoDraw?'on':'off')); }],
     [`Auto-pay from mana pool: ${S.autoPay!==false?'On':'Off'}`,()=>{ S.autoPay=S.autoPay===false; store.set('mt_settings',S); toast(S.autoPay ? 'Auto-pay is on: spells and abilities take their cost from your mana pool.' : 'Auto-pay is off: spells go straight to the stack; spend mana by clicking its symbols.'); }],
     fsCan() && [fsEl() ? 'Exit full screen' : 'Full screen', ()=>fsEl() ? fsExit() : fsEnter()],
+    [`Tapped cards: ${(S.tap||'18')==='18'?'18°':S.tap==='90'?'90°':'90° with room'}`,()=>tapStyleModal()],
     ['Clear my arrows',()=>{ G.me.arrows=[]; changed(); }], ['Shortcuts and help',()=>helpModal()], ["What's new",()=>newsModal()], ['Send feedback',()=>openFeedback()], '-',
     ['Leave the table',()=>confirmBox('Leave this table?','Your seat is kept on this computer, so you can come back from the front page.',()=>{ save(); location.href=location.pathname+location.search; })] ]);
 }
