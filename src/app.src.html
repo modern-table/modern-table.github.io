@@ -415,7 +415,7 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 #tourCard p{margin:0 0 8px;font-size:14px;line-height:1.45}#tourCard p:last-of-type{margin-bottom:10px}
 #tourCard .tfoot{display:flex;align-items:center;gap:6px}#tourCard .tfoot .n{margin-right:auto;font-size:12px;color:var(--dim)}
 #tourCard .tfoot button{padding:5px 11px;font-size:13px}
-#tourLine{margin:4px 0 12px}#tourLine.new{border:1px solid var(--brass);border-radius:8px;padding:8px 12px;background:#d9b25f14}
+#tourLine{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:10px 0 4px;border:1px solid var(--brass);border-radius:8px;padding:8px 8px 8px 12px;background:#d9b25f14;max-width:566px}#tourLine[hidden]{display:none}#tourLine span{flex:1;min-width:0}#tourX{padding:2px 9px;font-size:16px;line-height:1}
 </style>
 </head>
 <body>
@@ -424,7 +424,8 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
   <a class="corner" href="draft/" title="Booster draft for up to eight, then play your deck here">Draft Table →</a>
   <div class="lobbybox">
     <div class="lhead"><h1>Modern Table <small id="verTag" style="font:600 13px var(--ui);color:var(--dim);letter-spacing:.08em"></small></h1>
-    <p>A Magic table for two, in the browser. <b>Automatic first, by hand always:</b> the table plays your cards for you (triggers, targets, searches, combat damage), and anything it doesn't do, you can still do yourself, like paper.</p></div>
+    <p>A Magic table for two, in the browser. <b>Automatic first, by hand always:</b> the table plays your cards for you (triggers, targets, searches, combat damage), and anything it doesn't do, you can still do yourself, like paper.</p>
+    <p id="tourLine" hidden><a href="#" id="tourLink" style="color:var(--brass);font-weight:700">Take the two-minute tour</a> <span style="color:var(--dim)">· new here? see how the table works</span><button id="tourX" class="ghost" title="No thanks (the tour stays in the ☰ menu at the table)" aria-label="Close">×</button></p></div>
     <div class="lmain">
     <div class="field"><label for="nameIn">Your name</label><input id="nameIn" maxlength="20" placeholder="Planeswalker"></div>
     <div class="choices">
@@ -436,7 +437,6 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
       <button class="choice" id="resumeBtn" hidden><div><b>Return to your last table</b><span id="resumeTxt"></span></div><span>→</span></button>
     </div>
     <p id="lobbyMsg" style="color:var(--go)"></p>
-    <p id="tourLine"><a href="#" id="tourLink" style="color:var(--brass);font-weight:700">Take the two-minute tour</a> <span style="color:var(--dim)">· new here? see how the table works</span></p>
     <p><a href="#" id="fbLink" style="color:var(--brass)">Send feedback</a> <span style="color:var(--dim)">· report a bug or suggest a change</span></p>
     <p class="legal">Modern Table is unofficial Fan Content permitted under the <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Fan Content Policy</a>. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.<br>Card images and card data from <a href="https://scryfall.com/" target="_blank" rel="noopener">Scryfall</a>. Tournament decklists from <a href="https://www.mtggoldfish.com/" target="_blank" rel="noopener">MTGGoldfish</a>. Free to use, with no ads, and not affiliated with any of these sites.</p>
     </div>
@@ -502,10 +502,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.27';
+const VERSION = 'v4.28';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.28','Oct 24',"The tour offer now sits at the top of the front page, with an × to close it. It goes away for good once you've taken the tour or closed it (the tour stays in the ☰ menu at the table)."],
   ['v4.27','Oct 24',"New: a two-minute tour of the table. Start it from the front page (Take the two-minute tour) or from the ☰ menu: it walks you through opening a table and sharing the code, choosing a deck, every part of the screen, Undo, and what to do when a card doesn't work by itself. The help page is up to date too."],
   ['v4.26','Oct 24',"Practice can bring a real deck: start a practice game and pick its deck or take a random one. It has a library and a hidden hand, so Ragavan, Thoughtseize and peeks work on it, and the Practice button puts a random creature, planeswalker or land from its deck onto the battlefield. Turn on \"Practice takes turns\" in the Practice button to click through its turns with the controls on its side: it untaps, draws, and you choose its attackers and block them."],
   ['v4.25','Oct 24',"Practice games: when a card would reach into Practice's library or hand (Ragavan's exile, Thoughtseize, a peek, a draw), the log now says Practice has none, instead of nothing happening."],
@@ -6194,7 +6195,7 @@ function tourStart(from){ if(TOUR) tourEnd(); TOUR={from, list:[], i:0};
   else TOUR.list=TOUR_STEPS.table.filter(x=>x.t!=="You're all set").map(x=>({...x, scr:'table'}));
   const blk=document.createElement('div'); blk.id='tourBlock'; const hole=document.createElement('div'); hole.id='tourHole'; const card=document.createElement('div'); card.id='tourCard';
   document.body.append(blk, hole, card); card.onclick=e=>{ const b=e.target.closest('[data-tr]'); if(!b) return; const k=b.dataset.tr; if(k==='next') tourGo(1); else if(k==='back') tourGo(-1); else tourEnd(); };
-  blk.onclick=()=>{}; addEventListener('resize', tourPlace); store.set('mt_toured', true); const tl=$('#tourLine'); if(tl) tl.classList.remove('new'); tourShow(); }
+  blk.onclick=()=>{}; addEventListener('resize', tourPlace); store.set('mt_toured', true); const tl=$('#tourLine'); if(tl) tl.hidden=true; tourShow(); }
 function tourEnd(){ if(!TOUR) return; const wasLobby=TOUR.from==='lobby' && TOUR.i>=TOUR.list.length-1; TOUR=null; for(const id of ['tourBlock','tourHole','tourCard']){ const e=document.getElementById(id); if(e) e.remove(); } removeEventListener('resize', tourPlace); if(wasLobby) setTimeout(practiceDeckOffer, 200); }
 async function tourScreen(scr){ // the tour moves between screens itself: front page → a practice game's deck screen → the table with a random tournament deck
   if(scr==='decks' && $('#decks').hidden){ if(!$('#table').hidden) return; begin('solo'); await new Promise(r=>setTimeout(r, 150)); }
@@ -6701,7 +6702,7 @@ function paintTour(){
 }
 
 /* ================= lobby ================= */
-const nameIn=$('#nameIn'); nameIn.value=S.name; $('#verTag').textContent=VERSION; $('#fbLink').onclick=e=>{ e.preventDefault(); openFeedback(); }; $('#tourLink').onclick=e=>{ e.preventDefault(); tourStart('lobby'); }; if(!store.get('mt_toured', false)) $('#tourLine').classList.add('new');
+const nameIn=$('#nameIn'); nameIn.value=S.name; $('#verTag').textContent=VERSION; $('#fbLink').onclick=e=>{ e.preventDefault(); openFeedback(); }; $('#tourLink').onclick=e=>{ e.preventDefault(); tourStart('lobby'); }; $('#tourX').onclick=()=>{ store.set('mt_toured', true); $('#tourLine').hidden=true; }; $('#tourLine').hidden=!!store.get('mt_toured', false);
 $('#news').innerHTML = `<h4>What's new</h4>${NEWS.slice(0,6).map(newsRow).join('')}<a href="#" id="newsAll">See all changes</a>`; $('#newsAll').onclick=e=>{ e.preventDefault(); newsModal(); };
 function begin(role, code){
   S.name=(nameIn.value.trim()||'Player').slice(0,20); store.set('mt_settings',S);
