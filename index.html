@@ -112,7 +112,7 @@ textarea#paste{width:100%;min-height:300px;font-family:ui-monospace,Menlo,Consol
 .handrow.opp .hn{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}.handrow.opp .hn b{color:var(--brass);font-size:15px}
 .handrow.opp.shown .card{margin:0 2px;cursor:pointer}
 #myHand .card{width:calc(var(--cw)*1.12);margin:0 var(--hm,-10px);transition:transform .12s;flex:none}
-#myHand .card:hover{transform:translateY(-10%);z-index:5}
+#myHand .card:hover{transform:translateY(-10%);z-index:5}#myHand .card.insb{box-shadow:-5px 0 0 0 var(--brass),0 2px 6px #0008}#myHand .card.insa{box-shadow:5px 0 0 0 var(--brass),0 2px 6px #0008}
 #mid{flex:none;height:44px;display:flex;align-items:center;gap:10px;padding:0 10px;border-block:1px solid var(--line);background:#0b1417cc}
 #turnlbl{font-family:var(--display);font-size:17px;white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis}
 #turnlbl.mine{color:var(--brass)}
@@ -511,10 +511,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 </script>
 <script>
 "use strict";
-const VERSION = 'v4.32';
+const VERSION = 'v4.33';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.33','Oct 25',"You can rearrange your hand: drag a card and drop it where you want it (a gold edge shows the spot). Cards dragged into your hand from elsewhere land where you drop them too."],
   ['v4.32','Oct 25',"Other ways to cast are now in the payment window: click Quantum Riddler and the window offers both the full cost and warp, each lighting up when your mana covers it (also impending, dash, evoke, overload, spectacle, bestow, face down, and free costs like Solitude's). Kicker, replicate and gift are a checkbox or counter in the same window. Cards with another way to cast always open the window so you can choose."],
   ['v4.31','Oct 24',"The card Ragavan exiles can now be cast only until the end of that turn; after that it just stays in exile (practice games included)."],
   ['v4.30','Oct 24',"Wild Nacatl and other cards that get bigger while you control a certain land show their current power and toughness again."],
@@ -6460,6 +6461,12 @@ function finishMode(target){
 /* ================= input ================= */
 const drag={on:false};
 let down=null;
+/* rearranging the hand (v4.33, Ben): dropping a card on the hand puts it where it was dropped; while dragging, a brass edge marks the spot.
+   handSlot = the id of the hand card it goes before (null = at the end). Cards dragged in from other zones land there too. */
+function handSlot(x, dragId){ for(const el of $$('#myHand .card[data-id]')){ if(el.dataset.id===dragId) continue; const r=el.getBoundingClientRect(); if(x < r.left + r.width/2) return el.dataset.id; } return null; }
+function handMark(slot){ $$('#myHand .card.insb, #myHand .card.insa').forEach(el=>el.classList.remove('insb','insa')); if(slot===null || slot===undefined) return;
+  if(slot){ const el=$(`#myHand .card[data-id="${slot}"]`); if(el) el.classList.add('insb'); } else { const all=$$('#myHand .card[data-id]').filter(el=>el.style.opacity===''); const last=all[all.length-1]; if(last) last.classList.add('insa'); } }
+function handPlace(id, before){ const h=G.me.hand, i=h.findIndex(c=>c.id===id); if(i<0) return; const [c]=h.splice(i,1); const j=before ? h.findIndex(x=>x.id===before) : -1; if(j<0) h.push(c); else h.splice(j, 0, c); }
 document.addEventListener('pointerdown', e=>{
   if(e.button!==0) return; const el=e.target.closest('.card[data-id]'); if(!el || el.closest('#modal')) return;
   down={el, id:el.dataset.id, x:e.clientX, y:e.clientY, mine:el.dataset.o==='me', z:el.dataset.z};
@@ -6469,13 +6476,14 @@ document.addEventListener('pointermove', e=>{
   if(!drag.on && down.mine && !G.mode && Math.hypot(e.clientX-down.x, e.clientY-down.y) > 8){
     drag.on=true; hideZoom(); const g=down.el.cloneNode(true); g.id='ghost'; g.classList.remove('tap','atk','under'); g.style.width=down.el.getBoundingClientRect().width+'px'; g.style.margin='0'; document.body.appendChild(g); drag.g=g; down.el.style.opacity=.3;
   }
-  if(drag.on){ drag.g.style.left=e.clientX+'px'; drag.g.style.top=e.clientY+'px'; $$('.drop').forEach(d=>d.classList.remove('drop')); const t=document.elementFromPoint(e.clientX,e.clientY); const d=t&&t.closest('[data-drop]'); if(d) d.classList.add('drop'); }
+  if(drag.on){ drag.g.style.left=e.clientX+'px'; drag.g.style.top=e.clientY+'px'; $$('.drop').forEach(d=>d.classList.remove('drop')); const t=document.elementFromPoint(e.clientX,e.clientY); const d=t&&t.closest('[data-drop]'); if(d) d.classList.add('drop'); handMark(d && d.id==='myHand' ? handSlot(e.clientX, down.id) : null); }
 });
 document.addEventListener('pointerup', e=>{
   const d=down; down=null; if(!d) return;
   if(drag.on){
-    drag.on=false; drag.g.remove(); $$('.drop').forEach(x=>x.classList.remove('drop')); d.el.style.opacity='';
+    drag.on=false; drag.g.remove(); $$('.drop').forEach(x=>x.classList.remove('drop')); d.el.style.opacity=''; handMark(null);
     const t=document.elementFromPoint(e.clientX,e.clientY), dz=t&&t.closest('[data-drop]');
+    if(dz && dz.dataset.drop==='hand' && dz.id==='myHand'){ const f=find(d.id); if(f){ const slot=handSlot(e.clientX, d.id); if(f.z!=='hand'){ move(d.id, 'hand', {pos:'top'}); } handPlace(d.id, slot); changed(); } return; }
     if(dz){ const zone=dz.dataset.drop; const f=find(d.id); if(f && f.z!==zone){ if(zone==='st') castSpell(d.id); else if(zone==='gy' && f.z==='hand') discard([d.id]); else { move(d.id, zone, {pos:'top'}); changed(); } } }
     return;
   }
