@@ -141,6 +141,10 @@ textarea#paste{width:100%;min-height:300px;font-family:ui-monospace,Menlo,Consol
 body.t90r .row .card.tap{margin-left:calc(var(--cw)*.16);margin-right:calc(var(--cw)*.16)}body.t90r .row .card.tap.under{margin-right:calc(var(--cw)*-.74)}body.t90r .row .card.tap.tokunder{margin-right:calc(var(--cw)*-.86)}
 body.t90r .row .card.tap:is(.under,.tokunder) + .card.tap{margin-left:0}body.t90r .row .card.tap.tokhide + .card.tap{margin-left:calc(var(--cw)*.16)}
 .card.under{margin-right:calc(var(--cw)*-.74)}
+.pilT{display:contents}
+body.t90 .pilT{display:flex;flex-direction:row-reverse;align-items:center;flex:none}
+body.t90 .row .pilT>.card{margin-left:0!important;margin-right:0!important}body.t90 .row .pilT>.card.under:not(:last-child){margin-left:calc(var(--cw)*-.74)!important}body.t90 .row .pilT>.card.tokunder:not(:last-child){margin-left:calc(var(--cw)*-.86)!important}
+body.t90r .pilT{margin:0 calc(var(--cw)*.16)}
 .card.tokunder{margin-right:calc(var(--cw)*-.86)}.card.tokhide{display:none}.card.tokunder>:not(img){visibility:hidden}
 .tokn{position:absolute;right:4%;top:40%;padding:1px 6px;font:800 calc(var(--cw)*.16)/1.2 var(--ui);color:#fff;background:#000d;border:1px solid #fff;border-radius:3px;pointer-events:none;font-variant-numeric:tabular-nums}
 .card.fdmine img,.card.fdmine .txt{opacity:.45}
@@ -511,10 +515,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 </script>
 <script>
 "use strict";
-const VERSION = 'v4.39';
+const VERSION = 'v4.40';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.40','Oct 26',"With the 90° tap, a pile of tapped identical lands or tokens now overlaps the other way: the top card is on the left, and each card underneath shows its name and art on the right."],
   ['v4.39','Oct 26',"In practice games, when Practice has to choose (discard a card for Ozai's Cruelty, Archon of Cruelty or Geier Reach Sanitarium, put a spell on top or bottom), you choose for it once your own choices are done, and the choice now actually happens."],
   ['v4.38','Oct 26',"Demolition Field's menu now shows its destroy ability (it was labelled as a fetch). When Practice may search its library (Price of Freedom, Demolition Field, Field of Ruin), you choose a land from Practice's library for it, instead of searching your own."],
   ['v4.37','Oct 26',"Suspend (Rift Bolt) is now an option in the payment window. Spectacle (Skewer the Critics) lights up whenever your opponent has lost life this turn, in practice games too. Lands and permanents with a tap ability (Barbarian Ring) tap as soon as you choose the ability, so they can't pay for themselves. Abstergo Entertainment now returns a historic card from your graveyard."],
@@ -5911,13 +5916,17 @@ function rowsHTML(bf, mine){
   const front=[], lands=[], other=[];
   for(const c of free){ const r = c.row || ((c.fd || (isCreature(c) && !c.imp)) ? 'f' : 'b'); if(r==='f') front.push(c); else if(isLand(c) && !c.row) lands.push(c); else other.push(c); }
   lands.sort((a,b)=> (cdata(a).n||'').localeCompare(cdata(b).n||'') || (a.tap-b.tap));
-  let L=''; lands.forEach((c,i)=>{ const n=lands[i+1]; const same = n && n.k===c.k && n.tap===c.tap && !c.c && !c.lft && !n.lft && !host.has(c.id) && !host.has(n.id); L += same ? cardHTML(c,'bf',mine,'under') : one(c); });
+  // a pile of tapped identical cards is wrapped in .pilT: with a sideways tap (t90) it is drawn right to left, the top card leftmost, so each card
+  // underneath shows its right edge, which is the top of a tapped card (name and art) (v4.40, Ben). With the 18° tap the wrapper does nothing.
+  const wrapT = (g, html) => g.length>1 && g[0].tap ? `<span class="pilT">${html}</span>` : html;
+  let L='', run=[]; lands.forEach((c,i)=>{ run.push(c); const n=lands[i+1]; const same = n && n.k===c.k && n.tap===c.tap && !c.c && !c.lft && !n.lft && !host.has(c.id) && !host.has(n.id);
+    if(!same){ L += wrapT(run, run.map((x,j)=> j<run.length-1 ? cardHTML(x,'bf',mine,'under') : one(x)).join('')); run=[]; } });
   // identical tokens share a pile: same token, same state, nothing attached, not part of an arrow
   const arrowed=new Set(); for(const p of [G.me, G.opp]) for(const a of ((p&&p.arrows)||[])){ arrowed.add(a.a); arrowed.add(a.b); }
   const tkey = c => c.tok && !c.fd && !host.has(c.id) && !arrowed.has(c.id) && !c.cp ? [c.k||'', (c.cu&&c.cu.n)||'', (c.cu&&c.cu.pt)||'', (c.cu&&c.cu.t)||'', (c.cu&&c.cu.o)||'', !!c.tap, !!c.atk, !!showSick(c), c.c||0, c.dmg||0, c.tp||0, c.tt||0, (c.kw||[]).join(','), c.hst||0, c.gainLtb||''].join('|') : null;
   const piles = list => { const groups=[], byKey=new Map(); for(const c of list){ const k=tkey(c); if(k && byKey.has(k)){ byKey.get(k).push(c); continue; } const g=[c]; if(k) byKey.set(k,g); groups.push(g); }
     return groups.map(g=>{ if(g.length===1) return one(g[0]); const top=g[g.length-1], rest=g.slice(0,-1);
-      return rest.map((c,i)=>cardHTML(c,'bf',mine, i>=rest.length-3 ? 'tokunder' : 'tokunder tokhide')).join('') + cardHTML(top,'bf',mine,'tokpile').replace(/<\/div>$/, `<span class="tokn" title="${g.length} identical tokens">×${g.length}</span></div>`); }).join(''); };
+      return wrapT(g, rest.map((c,i)=>cardHTML(c,'bf',mine, i>=rest.length-3 ? 'tokunder' : 'tokunder tokhide')).join('') + cardHTML(top,'bf',mine,'tokpile').replace(/<\/div>$/, `<span class="tokn" title="${g.length} identical tokens">×${g.length}</span></div>`)); }).join(''); };
   return { front: piles(front), back: L + '<span class="gap"></span>' + piles(other) };
 }
 /* "your second / third card each turn" (Astrologian's Planisphere): the library shows the cards drawn this turn while such a card is on that side */
