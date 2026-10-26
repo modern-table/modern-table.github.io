@@ -503,10 +503,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.37';
+const VERSION = 'v4.38';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.38','Oct 26',"Demolition Field's menu now shows its destroy ability (it was labelled as a fetch). When Practice may search its library (Price of Freedom, Demolition Field, Field of Ruin), you choose a land from Practice's library for it, instead of searching your own."],
   ['v4.37','Oct 26',"Suspend (Rift Bolt) is now an option in the payment window. Spectacle (Skewer the Critics) lights up whenever your opponent has lost life this turn, in practice games too. Lands and permanents with a tap ability (Barbarian Ring) tap as soon as you choose the ability, so they can't pay for themselves. Abstergo Entertainment now returns a historic card from your graveyard."],
   ['v4.36','Oct 26',"This week's new decks: Omnath, Locus of Creation, Nissa, Resurgent Animist, Basim Ibn Ishaq, Skyclave Apparition, Mockingbird, Vampire Hexmage, Recruiter of the Guard, Forked Bolt, Stern Scolding, Strix Serenade, Crypt Incursion, Fade from History, Raise the Past, Settle the Wreckage, Tasha's Hideous Laughter, Visions of Beyond, Kozilek's Return, Way of the Paradox, Field of Ruin, Demolition Field, Castle Garenbrig, Sunken Citadel, Arid Archway, Choke and Wrenn and Six's +1 now work by themselves."],
   ['v4.35','Oct 25',"Picking up a card from your hand no longer leaves a fading copy sliding away: it disappears at once and the rest of the hand closes up."],
@@ -1868,9 +1869,27 @@ async function sodOffer(k, by){ if(!k) return; await ensureCards([k]); const nm=
 async function topTutor(by){ const m=G.me; const p=m.lib.length ? await pickP(`${by}: choose a card to put on top of your library`, m.lib.slice(), null) : null; shuffleLib(true);
   if(p){ const i=m.lib.findIndex(x=>x.id===p.id); if(i>=0){ const [x]=m.lib.splice(i,1); m.lib.unshift(x); } } G.noUndo=true; log(`${by}: ${m.name} searches their library, shuffles and puts a card on top.`); changed(); }
 function oppSearchAsk(msg){ const by=String(msg.by||'An effect').slice(0,80), who=String(msg.who||'Opponent').slice(0,40), sp=searchSpec(String(msg.text||'').slice(0,300)); if(!sp) return;
+  if(DSW){ const d=G.me; setTimeout(()=>dummySearchAsk(d, sp, by, who), 0); return; }   // v4.38: Practice was told it may search; the window opens after the swap, so it must search Practice's library, not mine
   const what=`a${/^[aeiou]/i.test(sp.desc)?'n':''} ${sp.desc} card${sp.basicType?' with a basic land type':''}`;
   setTimeout(()=>modal(`${who}'s ${by}`, `<span class="hint">You may search your library for ${esc(what)}, put it onto the battlefield${sp.tapped?' tapped':''}, then shuffle.</span>`,
     [["Don't search",()=>{ closeModal(); log(`${by}: ${G.me.name} doesn't search their library.`); },'ghost'], ['Search my library',()=>{ closeModal(); searchGate(()=>libSearch(sp, by, null), by); },'go']]), 0); }
+/* v4.38 (Ben): Practice "may search its library" (Price of Freedom, Demolition Field, Field of Ruin). I choose for it: a tile per matching name in
+   its library (up to N for "up to N basic land cards"), or Practice doesn't search. The cards go straight onto its battlefield. */
+function dummySearchAsk(d, sp, by, who){ if(!d || !d.dummy || G.opp!==d) return; const n = typeof sp.n==='number' ? sp.n : 1;
+  const cs=(d.lib||[]).filter(c=>matchesDesc(c, sp.desc) && (!sp.basicType || BASICS.some(t=>new RegExp('\\b'+t+'\\b').test(faceTypeOf(c,0))))), seen=new Set(), shown=cs.filter(c=>!seen.has(cdata(c).n) && seen.add(cdata(c).n));
+  const what=`${n>1?'up to '+n+' ':'a'+(/^[aeiou]/i.test(sp.desc)?'n ':' ')}${sp.desc} card${n>1?'s':''}`, sel=[];
+  const fin=ids=>{ closeModal(); const names=[]; for(const id of ids){ const c=d.lib.find(x=>x.id===id); if(!c) continue; d.lib.splice(d.lib.indexOf(c),1); Object.assign(c, {tap:!!sp.tapped, atk:false, c:0, ent:newEnt(), sick:false}); d.bf.push(c); names.push(cname(c)); }
+    shuffle(d.lib); dummySync(); log(names.length ? `${by}: Practice searches its library, puts ${names.join(', ')} onto the battlefield${sp.tapped?' tapped':''}, then shuffles.` : `${by}: Practice doesn't search its library.`); changed(); };
+  if(!d.lib || !d.lib.length){ log(`${by}: Practice has no library to search.`); return; }
+  const go=()=>{ if(!$('#modal').hidden){ setTimeout(go, 350); return; }
+    const el=modal(`${who}'s ${by}: Practice may search`, `<span class="hint">Practice may search its library for ${esc(what)}, put ${n>1?'them':'it'} onto the battlefield${sp.tapped?' tapped':''}, then shuffle. You choose for it.</span><div class="grid" id="dsGrid">${shown.map(c=>cardHTML(c,'lib',true)).join('') || `<span class="hint">There is no ${esc(sp.desc)} card in Practice's library.</span>`}</div>`,
+      [["Practice doesn't search",()=>fin([]),'ghost'], ...(shown.length ? [['Put it onto its battlefield',()=>{ if(sel.length) fin(sel); },'go']] : [])], {wide:shown.length>5, onClose:()=>{}});
+    const btn=$('footer button.go', el), upd=()=>{ if(btn){ btn.disabled=!sel.length; btn.textContent = sel.length ? `Put ${sel.map(id=>cname(cs.find(x=>x.id===id))).join(', ')} onto its battlefield` : (n>1?`Choose up to ${n}`:'Choose one'); } }; upd();
+    const g=$('#dsGrid', el); if(g) g.onclick=e=>{ const t=e.target.closest('.card[data-id]'); if(!t) return; const id=t.dataset.id, nm=cdata(cs.find(x=>x.id===id)).n;
+      if(n>1){ const more=cs.filter(x=>cdata(x).n===nm && !sel.includes(x.id)); if(sel.length<n && more.length) sel.push(more[0].id); else for(let i=sel.length-1;i>=0;i--) if(cdata(cs.find(y=>y.id===sel[i])).n===nm) sel.splice(i,1); }   // each click adds another copy; once full, it clears that name
+      else if(sel[0]===id) sel.length=0; else { sel.length=0; sel.push(id); }
+      g.querySelectorAll('.card').forEach(x=>{ const nm=cdata(cs.find(y=>y.id===x.dataset.id)).n, k2=sel.filter(i=>cdata(cs.find(y=>y.id===i)).n===nm).length; x.classList.toggle('sel', k2>0); }); upd(); }; };
+  setTimeout(go, 400); }   // after the rest of the effect, so my own "You may search" window (Demolition Field) does not replace this one
 /* Scry N / surveil N: the top N cards in a window; each is marked Top or Bottom (Graveyard for surveil) and the ones on top can be reordered.
    Resolution waits for it, so "Scry 1. Draw a card." draws after the scry. */
 function scryWin(n, kind, by){ return new Promise(res=>{ const m=G.me, cards=m.lib.slice(0,n), sv=kind==='surveil', ord=kind==='order';   // order: "look at the top N, then put them back in any order" (v4.04)
@@ -4435,7 +4454,7 @@ function abilitiesOf(c){
   return out;
 }
 const abText = a => a.kw ? a.eff+' '+a.cost : a.cost+': '+a.eff;
-const fetchOf = a => { if(!/\bsacrifice\b/i.test(a.cost) || !/\{T\}/.test(a.cost)) return null; const sp=searchSpec(a.eff); return sp && sp.dest==='bf' && /\b(land|plains|island|swamp|mountain|forest)\b/i.test(sp.desc) ? sp : null; };
+const fetchOf = a => { if(!/\bsacrifice\b/i.test(a.cost) || !/\{T\}/.test(a.cost) || !/^\s*search your library\b/i.test(a.eff||'')) return null; const sp=searchSpec(a.eff); return sp && sp.dest==='bf' && /\b(land|plains|island|swamp|mountain|forest)\b/i.test(sp.desc) ? sp : null; };
 const abLabel = a => { const fs=fetchOf(a); if(fs){ const l=a.cost.match(/pay (\d+) life/i); return `Fetch (${fs.desc}${fs.tapped?', enters tapped':''}${l?', pay '+l[1]+' life':''})`; } const t='Activate  '+abText(a); return t.length>84 ? t.slice(0,82)+'…' : t; };
 function activate(id, a, evDone, extra){
   { const f0=find(id); if(f0 && f0.z==='bf' && a && a.kw && /^Equip$/i.test(a.eff) && !(extra && extra.eqT) && /costs \{\d+\} less to activate for each \+1\/\+1 counter on the creature it targets/i.test(frontText(f0.c)||'')){ G.mode={type:'eqtgt', from:id, a, evDone}; toast(`${cdata(f0.c).n}: where would you like to equip it? Click a creature you control.`); render(); return; } }
