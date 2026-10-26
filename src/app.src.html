@@ -112,7 +112,7 @@ textarea#paste{width:100%;min-height:300px;font-family:ui-monospace,Menlo,Consol
 .handrow.opp .hn{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}.handrow.opp .hn b{color:var(--brass);font-size:15px}
 .handrow.opp.shown .card{margin:0 2px;cursor:pointer}
 #myHand .card{width:calc(var(--cw)*1.12);margin:0 var(--hm,-10px);transition:transform .12s,margin .16s ease-out,width .16s ease-out,opacity .16s;flex:none}
-#myHand .card:hover{transform:translateY(-10%);z-index:5}#myHand .card.insb{margin-left:calc(var(--hm,-10px) + var(--cw)*.9)}#myHand .card.insa{margin-right:calc(var(--hm,-10px) + var(--cw)*.9)}#myHand .card.dragsrc{width:0;margin:0;opacity:0;border-width:0;overflow:hidden}
+#myHand .card:hover{transform:translateY(-10%);z-index:5}#myHand .card.insb{margin-left:calc(var(--hm,-10px) + var(--cw)*.9)}#myHand .card.insa{margin-right:calc(var(--hm,-10px) + var(--cw)*.9)}#myHand .card.dragsrc{width:0;margin:0;opacity:0;visibility:hidden;border-width:0;overflow:hidden;transform:none;box-shadow:none;transition:width .16s ease-out,margin .16s ease-out}
 #mid{flex:none;height:44px;display:flex;align-items:center;gap:10px;padding:0 10px;border-block:1px solid var(--line);background:#0b1417cc}
 #turnlbl{font-family:var(--display);font-size:17px;white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis}
 #turnlbl.mine{color:var(--brass)}
@@ -503,10 +503,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.34';
+const VERSION = 'v4.35';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.35','Oct 25',"Picking up a card from your hand no longer leaves a fading copy sliding away: it disappears at once and the rest of the hand closes up."],
   ['v4.34','Oct 25',"Rearranging your hand: the cards now slide apart to open a space where the card you're dragging will go, instead of showing a gold edge."],
   ['v4.33','Oct 25',"You can rearrange your hand: drag a card and drop it where you want it (a gold edge shows the spot). Cards dragged into your hand from elsewhere land where you drop them too."],
   ['v4.32','Oct 25',"Other ways to cast are now in the payment window: click Quantum Riddler and the window offers both the full cost and warp, each lighting up when your mana covers it (also impending, dash, evoke, overload, spectacle, bestow, face down, and free costs like Solitude's). Kicker, replicate and gift are a checkbox or counter in the same window. Cards with another way to cast always open the window so you can choose."],
