@@ -503,10 +503,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.38';
+const VERSION = 'v4.39';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.39','Oct 26',"In practice games, when Practice has to choose (discard a card for Ozai's Cruelty, Archon of Cruelty or Geier Reach Sanitarium, put a spell on top or bottom), you choose for it once your own choices are done, and the choice now actually happens."],
   ['v4.38','Oct 26',"Demolition Field's menu now shows its destroy ability (it was labelled as a fetch). When Practice may search its library (Price of Freedom, Demolition Field, Field of Ruin), you choose a land from Practice's library for it, instead of searching your own."],
   ['v4.37','Oct 26',"Suspend (Rift Bolt) is now an option in the payment window. Spectacle (Skewer the Critics) lights up whenever your opponent has lost life this turn, in practice games too. Lands and permanents with a tap ability (Barbarian Ring) tap as soon as you choose the ability, so they can't pay for themselves. Abstergo Entertainment now returns a historic card from your graveyard."],
   ['v4.36','Oct 26',"This week's new decks: Omnath, Locus of Creation, Nissa, Resurgent Animist, Basim Ibn Ishaq, Skyclave Apparition, Mockingbird, Vampire Hexmage, Recruiter of the Guard, Forked Bolt, Stern Scolding, Strix Serenade, Crypt Incursion, Fade from History, Raise the Past, Settle the Wreckage, Tasha's Hideous Laughter, Visions of Beyond, Kozilek's Return, Way of the Paradox, Field of Ruin, Demolition Field, Castle Garenbrig, Sunken Citadel, Arid Archway, Choke and Wrenn and Six's +1 now work by themselves."],
@@ -986,7 +987,7 @@ function onMsg(m){
   else if(m.t==='totz'){ const z={gy:(m.gy||[]).slice(0,200), hand:(m.hand||[]).slice(0,60), lib:(m.lib||[]).slice(0,200)}; ensureCards([...z.gy,...z.hand,...z.lib].map(c=>c.k).filter(Boolean)).then(()=>totWin(z, String(m.name||''), String(m.by||'Test of Talents'), false)); }
   else if(m.t==='totx'){ totExile((m.ids||[]).slice(0,200).map(String), String(m.name||'').slice(0,80), String(m.by||'A spell').slice(0,60), String(m.who||'Opponent').slice(0,40)); }
   else if(m.t==='ctlnext'){ if(G.me.ctl || G.me.ctlNext) return; G.me.ctlNext=true; log(`${String(m.by||'Emrakul').slice(0,60)}: ${G.opp?G.opp.name:'The opponent'} will control ${G.me.name}'s next turn. ${G.me.name} takes an extra turn afterwards.`); changed(); }
-  else if(m.t==='each'){ if(['wheel','loot','rdisc','disc','dl','gyshuf','dh7','sat','mjx','mjret','exh','bal','ccl','krx','cres','mdh7','exl'].includes(m.op)) eachDo(m, m.by); }
+  else if(m.t==='each'){ if(['wheel','loot','rdisc','disc','dl','gyshuf','dh7','sat','mjx','mjret','exh','bal','ccl','krx','cres','mdh7','exl'].includes(m.op)) DPROM=eachDo(m, m.by); }
   else if(m.t==='edict'){ edictPick(m); }
   else if(m.t==='q'){ answerQ(m.rid, m.q); }
   else if(m.t==='libtake'){ const by=`${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'effect').slice(0,60)}`, take=m.take && find(m.take); G.noUndo=true; if(take && take.z==='lib'){ const c=take.c; G.me.lib.splice(take.i,1); send({t:'give', card:c, zone:'bf'}); log(`${by}: ${G.opp?G.opp.name:'the opponent'} puts ${cname(c)} from ${G.me.name}'s library onto the battlefield under their control.`); }
@@ -999,7 +1000,7 @@ function onMsg(m){
   else if(m.t==='suspendme'){ const f=find(m.id); if(f && f.z==='bf'){ move(m.id,'ex',{silent:true}); const g=find(m.id); if(g){ g.c.susp=1; g.c.c=Math.max(1, Math.min(20, +m.n||2)); } log(`${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'effect').slice(0,60)}: ${G.me.name}'s ${cname(f.c)} is exiled with ${+m.n||2} time counters and has suspend.`); changed(); } }
   else if(m.t==='peekfd'){ const f=find(m.id); if(f && f.z==='bf') send({t:'peektop', src:String(m.src||'').slice(0,80)+': face-down creature', card:{k:f.c.k, cu:f.c.cu||null}}); }
   else if(m.t==='fog'){ G.fogT=+m.n||0; log(`${String(m.who||'Opponent').slice(0,40)}: all combat damage this turn is prevented.`); changed(); }
-  else if(m.t==='tuckch'){ const f=find(m.id); if(f && (f.z==='bf' || f.z==='st')){ const nm=cname(f.c), by=`${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'effect').slice(0,60)}`; if(m.shuf){ toLibPos(m.id, Math.floor(Math.random()*(G.me.lib.length+1))); log(`${by}: ${G.me.name} shuffles ${nm} into their library.`); changed(); } else yesNo(by, `Put ${nm} on the top or the bottom of your library?`, 'Top', 'Bottom').then(top=>{ toLibPos(m.id, top ? 0 : 1e9); log(`${by}: ${G.me.name} puts ${nm} on the ${top?'top':'bottom'} of their library.`); changed(); }); } }
+  else if(m.t==='tuckch'){ const f=find(m.id); if(f && (f.z==='bf' || f.z==='st')){ const nm=cname(f.c), by=`${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'effect').slice(0,60)}`; if(m.shuf){ toLibPos(m.id, Math.floor(Math.random()*(G.me.lib.length+1))); log(`${by}: ${G.me.name} shuffles ${nm} into their library.`); changed(); } else DPROM=yesNo(by, `Put ${nm} on the top or the bottom of your library?`, 'Top', 'Bottom').then(top=>{ toLibPos(m.id, top ? 0 : 1e9); log(`${by}: ${G.me.name} puts ${nm} on the ${top?'top':'bottom'} of their library.`); changed(); }); } }
   else if(m.t==='qa'){ const f=QW[String(m.rid||'')]; if(f){ delete QW[String(m.rid||'')]; f(m.v); } }
   else if(m.t==='bounceall'){ if(['artifacts','creatures','nonland permanents'].includes(m.desc)) bounceAll(m.desc, `${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'An effect').slice(0,60)}`); }
   else if(m.t==='yield'){ const f=find(m.id); if(f && (f.z==='bf' || f.z==='ex' || (m.gy && f.z==='gy') || (m.zone==='ex' && f.z==='ex'))){ const c=f.c, z=m.zone==='hand' ? 'hand' : m.zone==='ex' ? 'ex' : 'bf', fromGy=f.z==='gy'; if(z==='ex' && m.pl){ c.pl='this'; c.plFree=1; } G.noUndo=true; G.me[f.z].splice(f.i,1); G.me.arrows=G.me.arrows.filter(a=>a.a!==c.id && a.b!==c.id); if(fromGy){ delete c.tap; delete c.c; } if(m.tap) c.tap=true; if(m.exEnd) c.exEnd={ent:'', by:String(m.by||'').slice(0,60)}; if(m.ctr) c.c=(c.c||0)+Math.max(0, Math.min(20, +m.ctr||0)); send({t:'give', card:c, zone:z}); log(fromGy ? `${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'effect').slice(0,60)} puts ${cname(c)} from ${G.me.name}'s graveyard ${z==='hand' ? 'into their hand' : 'onto the battlefield under their control'}.` : `${String(m.who||'Opponent').slice(0,40)} gains control of ${cname(c)}.`); changed(); } }
@@ -1038,7 +1039,7 @@ function onMsg(m){
   else if(m.t==='ragavan'){ const c=G.me.lib[0]; if(c){ move(c.id,'ex',{silent:true}); c.offer=G.turn.n||true; log(`${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'trigger').slice(0,60)}: ${G.me.name} exiles the top card of their library, ${cname(c)}. ${G.opp?G.opp.name:'The opponent'} may cast it this turn.`); changed(); } }
   else if(m.t==='livingend'){ livingEnd(`${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'Living End').slice(0,60)}`); }
   else if(m.t==='gybottom'){ gyBottom(String(m.by||'An effect').slice(0,60), String(m.who||'Opponent').slice(0,40)); }
-  else if(m.t==='topbottom'){ topBottom(m.id, String(m.by||'An effect').slice(0,60), String(m.who||'Opponent').slice(0,40)); }
+  else if(m.t==='topbottom'){ DPROM=topBottom(m.id, String(m.by||'An effect').slice(0,60), String(m.who||'Opponent').slice(0,40)); }
   else if(m.t==='mod'){ const f=find(m.id); if(f && f.z==='bf'){ const o=cleanMod(m.o); applyMod(f.c, o); changed(); } }   // the caster already logged it
   else if(m.t==='pump'){ const f=find(m.id); if(f && f.z==='bf'){ const p=Math.max(-20,Math.min(20,+m.p||0)), q=Math.max(-20,Math.min(20,+m.q||0)); boost(f.c, p, q); log(`${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'An effect').slice(0,60)}: ${cname(f.c)} gets ${String(m.txt||'').slice(0,12)} until end of turn.`); changed(); } }
   else if(m.t==='left'){ const off=[]; let ch=false; for(const x of G.me.bf) if(x.att===m.id){ x.att=null; ch=true; G.me.arrows=G.me.arrows.filter(a=>a.a!==x.id); if(x.bw){ delete x.bw; log(`${cname(x)} is no longer attached to a creature, so it becomes a creature again.`); } else if(isAura(x)) off.push(x.id); } if(off.length) auraOff(off); else if(ch) changed(); }
@@ -5611,10 +5612,26 @@ const DUMMY_NO={tasha:"there is no library to exile from", ragavan:"nothing is e
 const DUMMY_OK=new Set(['rmctr','adj','dmg','loy','hit','mod','pump','cdmg','tapstun','wipe','gyall','gyexile','exhold','left','edict','mill','monarch']);
 const newDummy = () => Object.assign(newPlayer(), {name:'Practice', dummy:true, deck:'Practice opponent', libN:0, handN:0, sideN:0, dealt:true, kept:true, compDone:true, deckReady:true, comp:[], lost:0});
 function makeDummy(){ if(G.opp && !G.opp.dummy) return; if(!G.opp) G.opp=newDummy(); }
+/* v4.39 (Ben): when Practice has to choose (discard a card, keep a creature, top or bottom), I choose for it in a window. The window's answer
+   is handled after a pause, when the quick swap of asDummy is long over, so it used to land on my side and do nothing. Such messages wait in
+   PQ until my own windows are closed, then run with the sides swapped until Practice's choice is done (DPROM: the handler's promise; a window
+   left closed for 4 s also ends it, so the table can't stay swapped). Keys are held off meanwhile. */
+let DPROM=null, PQ=[], DRUN=0;
+const dummyAsks = m => (m.t==='each' && ['exh','bal','ccl','krx','cres','mdh7','sat','disc','loot','dh7','mjret'].includes(m.op)) || m.t==='topbottom' || (m.t==='tuckch' && !m.shuf);
+function dqPump(){ if(DRUN || !PQ.length) return; if(!dummy()){ PQ.length=0; return; }
+  if(DSW || !$('#modal').hidden || !$('#payPanel').hidden || G.mode){ setTimeout(dqPump, 300); return; }
+  const m=PQ.shift(); DRUN=1; dummyRunA(m).finally(()=>{ DRUN=0; if(PQ.length) setTimeout(dqPump, 300); }); }
+function dummyWait(p){ return new Promise(res=>{ let idle=0, done=false; const fin=()=>{ if(done) return; done=true; clearInterval(t); res(); };
+  const t=setInterval(()=>{ if($('#modal').hidden && $('#payPanel').hidden){ if(++idle>=8) fin(); } else idle=0; }, 500); Promise.resolve(p).then(fin, fin); }); }
+async function dummyRunA(m){ if(!dummy()) return; const me=G.me, id=G.myId, d=G.opp; G.me=d; G.opp=me; G.myId = id==='p1' ? 'p2' : 'p1'; DSW++; DPROM=null;
+  try{ onMsg(m); const p=DPROM; DPROM=null; if(p && typeof p.then==='function') await dummyWait(p); }catch(e){ console.warn('Practice opponent:', e); } finally { DSW--; G.me=me; G.opp=d; G.myId=id; }
+  for(const x of DUMQ.splice(0)) onMsg(x); dummySync(); dummyLoss(); changed(); }
+document.addEventListener('keydown', e=>{ if(DRUN && !(e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) && e.key!=='Escape' && e.key!=='Enter') e.stopImmediatePropagation(); }, true);
 function asDummy(fn){ if(!dummy()) return; const me=G.me, id=G.myId, d=G.opp; G.me=d; G.opp=me; G.myId = id==='p1' ? 'p2' : 'p1'; DSW++;
   try{ fn(); }catch(e){ console.warn('Practice opponent:', e); } finally { DSW--; G.me=me; G.opp=d; G.myId=id; } }
 function dummyRoute(m){ if(!m || ['state','log','turn','hello','mt','gameover','goready','goback'].includes(m.t)) return;
   if(DSW){ DUMQ.push(m); return; }                                   // from Practice to me: handled after the swap
+  if(dummyAsks(m) && (DUMMY_OK.has(m.t) || (DUMMY_DECK.has(m.t) && dummyHasDeck()))){ PQ.push(m); setTimeout(dqPump, 300); return; }   // v4.39: Practice has to choose
   if(DUMMY_DECK.has(m.t) && dummyHasDeck()){ asDummy(()=>{ onMsg(m); }); for(const x of DUMQ.splice(0)) onMsg(x); dummySync(); dummyLoss(); changed(); return; }
   if(!DUMMY_OK.has(m.t)){ const why=DUMMY_NO[m.t] || (m.t==='q' && m.q && DUMMY_NO[m.q.kind]); if(why) log(`${m.by?String(m.by).slice(0,60)+': ':''}Practice has no library or hand, so ${why}.`); return; } if(m.t==='edict') m=Object.assign({}, m, {auto:1});
   asDummy(()=>{ onMsg(m); combatDeaths(); });
