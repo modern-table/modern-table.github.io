@@ -509,10 +509,11 @@ body.nomo *{transition:none!important}
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.44';
+const VERSION = 'v4.45';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.45','Oct 27',"When a library is laid out (Surgical Extraction, or looking through the whole library while searching), pointing at any card shows it enlarged, above or below its row so the row stays visible. This works for a friend's library and hand too."],
   ['v4.44','Oct 27',"Landfall triggers that target (Hedron Crab's \"target player mills three cards\") now ask for their target as soon as they go on the stack. With several such triggers at once, the arrow moves on to the next one; Esc means no target. Fractured Sanity no longer mills four extra cards when cast (that's only when you cycle it)."],
   ['v4.43','Oct 27',"Tapped cards now turn sideways (90°) unless you choose otherwise. Animations stay on even when your computer is set to reduce motion; the menu has a new Animations choice (on, off, or follow my computer)."],
   ['v4.42','Oct 27',"A library search always ends with a shuffle, even if you close its window (Practice's searches too). Field of Ruin's search window has no Close button: you take a basic land or fail to find, and the library is shuffled either way."],
@@ -1635,6 +1636,7 @@ async function extractSteps(e, by, all){ const nm=e.n, own=e.o===G.myId; let Z=n
   if(own) extractDo(pick, nm, by, ''); else send({t:'extractdo', ids:pick, name:nm, by, who:G.me.name});
   changed(); }
 function extractPick(by, nm, who, own, z, cards, all, next){ return new Promise(res=>{
+  for(const x of cards) PEEK.set(x.id, x);
   const label={gy:'graveyard', hand:'hand', lib:'library'}[z], whose=own ? 'your' : `${who}'s`, same=x=>cdata(x).n===nm, n=cards.filter(same).length, sel=new Set(all ? cards.filter(same).map(x=>x.id) : []);
   const hint = n ? (all ? `${by} exiles every ${nm}: ${n===1?'the one here has':'the '+n+' here have'} a gold aura.` : `Click each ${nm} to exile it (${n} here). Cards with a gold aura are exiled when you click the button; click one again to leave it.`) : `There is no ${nm} in ${whose} ${label}.`;
   const el=modal(`${by}: ${whose} ${label}`, `<span class="hint">${hint}${z==='lib' && cards.length ? ' The library is shown in its order, top card first; point at a card to see it whole.' : ''}</span><div class="grid${z==='lib'?' lfan':''}" id="exGrid">${cards.map(x=>cardHTML(x,'gy',true, (same(x)?'':'dim')+(sel.has(x.id)?' sel aura':''))).join('') || `<span class="hint">The ${label} is empty.</span>`}</div>`,
@@ -1948,7 +1950,8 @@ function dummySearchAsk(d, sp, by, who, must){ if(!d || !d.dummy || G.opp!==d) r
   setTimeout(go, 400); }   // after the rest of the effect, so my own "You may search" window (Demolition Field) does not replace this one
 /* v4.41: a library laid out in its order (top first), the cards overlapping in rows. The card under the pointer lifts and the rest of its row
    slides aside so it shows whole (transforms only, so the rows never re-wrap under the pointer). */
-function fanHTML(cards, ok, sel){ return cards.map(x=>cardHTML(x,'gy',true, (ok(x)?'':'dim')+(sel && sel.has(x.id)?' sel':''))).join(''); }
+const PEEK=new Map();   // v4.45: cards shown in a window that the table can't otherwise find (a friend's library or hand sent for Surgical Extraction, Practice's library), for the hover enlargement
+function fanHTML(cards, ok, sel){ for(const x of cards) PEEK.set(x.id, x); return cards.map(x=>cardHTML(x,'gy',true, (ok(x)?'':'dim')+(sel && sel.has(x.id)?' sel':''))).join(''); }
 function fanWire(g){ if(!g || g._fan) return; g._fan=1; const reset=()=>{ for(const k of g.children){ k.style.transform=''; k.style.zIndex=''; } };
   g.addEventListener('mouseover', e=>{ const cd=e.target.closest('.card'); if(!cd || cd.parentElement!==g) return; const kids=[...g.children], i=kids.indexOf(cd), top=cd.offsetTop, w=cd.offsetWidth;
     kids.forEach((k,j)=>{ const row=k.offsetTop===top; k.style.transform = k===cd ? 'translateY(-7%)' : row && j>i ? `translateX(${Math.round(w*.55)}px)` : row ? `translateX(${-Math.round(w*.08)}px)` : ''; k.style.zIndex = k===cd ? 3 : ''; }); });
@@ -6197,7 +6200,7 @@ function modal(title, bodyHTML, buttons=[], opts={}){
   const x=$('[data-x]',el); if(x) x.onclick=()=>closeModal(); el._onclose=opts.onClose; el._noClose=opts.noClose;
   return el;
 }
-function closeModal(){ const el=$('#modal'); if(el.hidden) return; el.hidden=true; modalRefresh=null; const f=el._onclose; el._onclose=null; el.innerHTML=''; f && f(); }
+function closeModal(){ const el=$('#modal'); if(el.hidden) return; el.hidden=true; PEEK.clear(); hideZoom(); modalRefresh=null; const f=el._onclose; el._onclose=null; el.innerHTML=''; f && f(); }
 function ask(title, def, label){
   return new Promise(res=>{
     let done=false; const fin=v=>{ if(done) return; done=true; closeModal(); res(v); };
@@ -6230,13 +6233,21 @@ function zoneModal(title, src, zone, mine, footer=[], onClose){
   modalRefresh=paint; paint();
 }
 function hideZoom(){ $('#zoom').hidden=true; }
-function showZoom(d, rect, extra){
+function showZoom(d, rect, extra, fan){
   if(!d || (!d.img && !d.o && !d.n) || drag.on) return;
   const z=$('#zoom'); z.innerHTML = (d.img?`<img src="${esc(d.img)}" alt="">`:'') + `<div class="ztxt"><b>${esc(d.n)}</b> ${esc(d.mc||'')}<i>${esc(d.t||'')}${d.pt?' · '+esc(d.pt):''}${d.loy?' · loyalty '+esc(d.loy):''}</i>${esc(d.o||'')}${extra?'\n'+esc(extra):''}</div>`;
   z.hidden=false; const w=300, h=Math.min(innerHeight-12, 420+150);
   let x = rect.left+rect.width/2 < innerWidth/2 ? rect.right+12 : rect.left-w-12; x=Math.max(6,Math.min(x,innerWidth-w-6));
   let y = Math.max(6, Math.min(rect.top+rect.height/2-h/2, innerHeight-h-6));
-  z.style.left=x+'px'; z.style.top=y+'px';
+  z.style.left=x+'px'; z.style.top=y+'px'; z.style.maxHeight=''; z.style.overflow='';
+  z.style.width='';
+  if(fan){ // v4.45 (Ben): over a library laid out in rows, the enlargement goes below a card in the upper rows and above one in the lower rows, never over its own row
+    const rb=[...fan.children].map(k=>k.getBoundingClientRect()).filter(r=>Math.abs(r.top-rect.top)<rect.height*.35), top=Math.min(rect.top, ...rb.map(r=>r.top)), bot=Math.max(rect.bottom, ...rb.map(r=>r.bottom)), below=(rect.top+rect.bottom)/2 < innerHeight/2;
+    const room=(below ? innerHeight-bot : top)-16; if(z.offsetHeight>room){ z.style.width=Math.round(w*Math.max(.5, room/z.offsetHeight))+'px'; }
+    const zw=z.offsetWidth, zh=Math.min(z.offsetHeight, Math.max(120, room)); z.style.maxHeight=zh+'px'; z.style.overflow='hidden';
+    z.style.left=Math.max(6, Math.min(rect.left+rect.width/2-zw/2, innerWidth-zw-6))+'px';
+    z.style.top=(below ? Math.min(bot+8, innerHeight-zh-6) : Math.max(6, top-zh-8))+'px';
+    const im=z.querySelector('img'); if(im && !im.complete) im.onload=()=>{ if(!z.hidden) showZoom(d, rect, extra, fan); }; }   // measured again once the picture has loaded
 }
 document.addEventListener('pointerover', e=>{
   const tk=e.target.closest('[data-tk]'); if(tk){ const k=keyOf(tk.dataset.tk), pr=tk.closest('.tpad').getBoundingClientRect(), lr=tk.getBoundingClientRect(); if(DB[k]) showZoom(DB[k], {left:pr.left, right:pr.right, width:pr.width, top:lr.top, height:lr.height}); return; }
@@ -6245,7 +6256,9 @@ document.addEventListener('pointerover', e=>{
   const cr=e.target.closest('.cref,[data-kk]');
   if(cr){ const k=cr.dataset.k||cr.dataset.kk; if(k && DB[k]) showZoom(DB[k], cr.getBoundingClientRect()); return; }
   const el=e.target.closest('.card[data-id]'); if(!el){ hideZoom(); G.hover=null; return; }
-  G.hover=el.dataset.id; const f=findAny(el.dataset.id); if(!f){ if(el.dataset.id.startsWith('s:')) showZoom(DB[el.dataset.id.slice(2)], el.getBoundingClientRect()); return; }
+  G.hover=el.dataset.id; const fan=el.closest('.lfan'), pk=PEEK.get(el.dataset.id);
+  if(pk && (fan || !findAny(el.dataset.id))){ if(pk.k || pk.cu) showZoom(cdata(pk), el.getBoundingClientRect(), '', fan); else hideZoom(); return; }   // v4.45
+  const f=findAny(el.dataset.id); if(!f){ if(el.dataset.id.startsWith('s:')) showZoom(DB[el.dataset.id.slice(2)], el.getBoundingClientRect()); return; }
   const c=f.c; if((!c.k && !c.cu) || (c.fd && !f.mine)) { hideZoom(); return; }
   const d=cdata(c); showZoom((c.flip&&d.back)?{...d,img:d.back}:d, el.getBoundingClientRect(), ctrLine(c)+(c.note?`\nNote: ${c.note}`:'')+(f.z==='bf' && dynPT(c, f.mine?G.myId:oppId()) ? (x=>`\nNow ${x.p}/${x.t}${x.why?' ('+x.why+')':''}`)(dynPT(c, f.mine?G.myId:oppId())) : '')+(f.z==='bf' && c.cp ? `\n${c.cp.orig}, copying ${cdata(c).n}${c.cp.until?' until end of turn':''}` : '')+(f.z==='hand' && f.mine ? (x=>x ? `\nCost now: ${x.cost}${x.delta ? ` (printed ${x.printed}; ${x.why})` : ` (unchanged: ${x.why})`}` : '')(costNow(c)) : '')+(f.z==='bf' && c.eb ? '\nEarthbent: a creature with haste that is still a land; when it dies or is exiled, it returns tapped' : '')+(f.z==='bf' && c.bw && c.att ? '\nBestowed: an Aura while attached; it becomes a creature again if that creature leaves the battlefield' : '')+(f.z==='bf' ? (x=>x?'\n'+x:'')(giftsLine(c, f.mine?G.myId:oppId())) : '')+(f.z==='bf' && c.chosen ? `\nChosen: ${c.chosen}` : '')+(f.z==='bf' && c.dmg ? `\nDamage marked this turn: ${c.dmg}` : '')+(f.z==='bf' && c.lft ? '\nLand played this turn' : '')+(f.z==='bf' && c.wp ? '\nCast for its warp cost: goes to the warp zone at the beginning of the next end step' : '')+(f.z==='ex' && c.warp ? (c.warp===G.turn.n ? '\nIn the warp zone: may be cast again from the next turn on' : '\nIn the warp zone: may be cast from here') : '')+(f.z==='bf' && showSick(c) ? '\nSummoning sick: came under its controller\'s control this turn' : '')+(f.z==='st' && c.md && c.md.length && modesOf(c) ? '\nChosen:\n'+c.md.map(i=>'• '+(modesOf(c).modes[i-1]||'')).join('\n') : ''));
 });
