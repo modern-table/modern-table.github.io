@@ -102,7 +102,7 @@ textarea#paste{width:100%;min-height:300px;font-family:ui-monospace,Menlo,Consol
 #blockBar,#atkBar,#pracBar{position:absolute;left:12px;z-index:30;display:flex;flex-direction:column;gap:6px;align-items:stretch;width:178px;padding:8px 10px;background:#0b1417f2;border:1px solid var(--brass);border-radius:10px;box-shadow:0 8px 24px #000a}#pracBar span{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--brass);font-weight:800}#pracBar .sub{text-transform:none;letter-spacing:0;color:var(--dim);font-weight:400}#pracBar{border-color:#7fb3ff}#pracBar span{color:#9cc4ff}
 #blockBar span,#atkBar span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);font-weight:800;text-align:center}#blockBar button,#atkBar button{font-size:12.5px}
 .row .gap{flex:1;min-width:12px}
-.row{position:relative}.row.ovf:hover{z-index:6}
+.row{position:relative;isolation:isolate}.row.ovf:hover{z-index:6}.row .card[data-z="bf"]{z-index:var(--zg,auto)}
 .row::-webkit-scrollbar{height:9px}.row::-webkit-scrollbar-thumb{background:#d9b25f99;border-radius:5px}.row::-webkit-scrollbar-track{background:#0004}
 .row.front{justify-content:safe center}
 #oppBack,#oppFront{background:#0000001c}
@@ -536,10 +536,11 @@ body.nomo *{transition:none!important}
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.49';
+const VERSION = 'v4.50';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.50','Oct 27',"Tapped cards of different kinds now overlap from left to right, so each card's name stays visible on top of its neighbour, as piles of identical cards already did. Double-faced cards listed by their full name (Glasspool Mimic // Glasspool Shore) no longer get the violet \"not learned yet\" ring."],
   ['v4.49','Oct 27',"An Aura now asks for its target when you cast it and resolves attached to it. An Aura or Equipment on the other player's permanent puts a teal banner on both cards (ENCHANTED BY … / ENCHANTING …), and pointing at either one lights up both. In the deck editor, each card and its − / + / side bar sit in one frame, and mana costs show as mana symbols."],
   ['v4.48','Oct 27',"Merfolk work. Lords pump their Merfolk and give islandwalk (Lord of Atlantis pumps everyone's), and islandwalk counts lands that Harbinger of the Seas or Tide Shaper made into Islands. Namor's power counts your Merfolk and he makes tokens for blue symbols. Chalice of the Void now counters matching spells by itself. Also new: Aether Vial, Disrupting Shoal, Mindspring Merfolk's draw, Hydroelectric Specimen taking a spell's target, Glasspool Mimic, Unable to Scream, and Mutavault with every creature type."],
   ['v4.47','Oct 27',"Deck editor: in Cards view each card now has its own − / + / side bar above its name, always in reach, and nothing pops forward when you point at a card (the enlargement shows it whole). The violet ring no longer shows through cards stacked on top. The tour now shows the deck editor."],
@@ -806,7 +807,7 @@ const ALIASES = /*__ALIASES__*/{};
    cards printed in the Draft Table's ready sets (READY_SETS, read from src/draft.src.html by the build), basic lands and cards with no rules text.
    Any other card can be played, by hand where needed, and carries a violet ring (.unlr) with a legend under the game log. */
 const READY_SETS = /*__READY__*/[], READY_NAMES = new Set(/*__READYN__*/[]);   // the ready cubes' card names
-const learnedK = k => { if(!k || BAKED[k]) return true; const e=DB[k]; if(!e) return true; if(READY_SETS.includes(e.set) || READY_NAMES.has(String(e.n||'').toLowerCase()) || READY_NAMES.has(k)) return true; if(/\bBasic\b[^—]*\bLand\b/.test(e.t||'')) return true; return !e.tmp && !String(e.o||'').replace(/\([^)]*\)/g,'').trim(); };
+const learnedK = k => { if(!k || BAKED[k]) return true; const e=DB[k]; if(!e) return true; { const n=String(e.n||'').toLowerCase(), f=n.split(' // ')[0], kf=String(k).split(' // ')[0]; if(BAKED[n] || BAKED[f] || BAKED[kf]) return true; }  /* v4.50: a double-faced card named in full or by printing is baked under its front face */ if(READY_SETS.includes(e.set) || READY_NAMES.has(String(e.n||'').toLowerCase()) || READY_NAMES.has(k)) return true; if(/\bBasic\b[^—]*\bLand\b/.test(e.t||'')) return true; return !e.tmp && !String(e.o||'').replace(/\([^)]*\)/g,'').trim(); };
 const unlearned = c => !!c && !!c.k && !c.tok && !c.cu && !c.fd && !learnedK(c.k);
 const sfName = n => ALIASES[plainName(n)] || n;
 if(!/[?&]nobake\b/.test(location.search)) for(const k in BAKED){ try{ const d=toDB(BAKED[k]); d.bk=1; DB[k]=d; }catch(e){} }
@@ -6098,15 +6099,18 @@ function rowsHTML(bf, mine){
   // a pile of tapped identical cards is wrapped in .pilT: with a sideways tap (t90) it is drawn right to left, the top card leftmost, so each card
   // underneath shows its right edge, which is the top of a tapped card (name and art) (v4.40, Ben). With the 18° tap the wrapper does nothing.
   const wrapT = (g, html) => g.length>1 && g[0].tap ? `<span class="pilT">${html}</span>` : html;
-  let L='', run=[]; lands.forEach((c,i)=>{ run.push(c); const n=lands[i+1]; const same = n && n.k===c.k && n.tap===c.tap && !c.c && !c.lft && !n.lft && !host.has(c.id) && !host.has(n.id);
-    if(!same){ L += wrapT(run, run.map((x,j)=> j<run.length-1 ? cardHTML(x,'bf',mine,'under') : one(x)).join('')); run=[]; } });
+  // v4.50: each group (a card, a pile, a card with what is attached to it) is drawn above the groups to its right, so a card tapped sideways
+  // overlaps its right-hand neighbour with its top (name and art) instead of being covered by that neighbour's bottom (Ben)
+  const zgOf = () => { let z=19; return html => { const v=Math.max(1, z--); return html.replace(/ data-z="bf"/g, ` data-z="bf" style="--zg:${v}"`); }; };
+  let L='', run=[]; const zB=zgOf(), zF=zgOf(); lands.forEach((c,i)=>{ run.push(c); const n=lands[i+1]; const same = n && n.k===c.k && n.tap===c.tap && !c.c && !c.lft && !n.lft && !host.has(c.id) && !host.has(n.id);
+    if(!same){ L += zB(wrapT(run, run.map((x,j)=> j<run.length-1 ? cardHTML(x,'bf',mine,'under') : one(x)).join(''))); run=[]; } });
   // identical tokens share a pile: same token, same state, nothing attached, not part of an arrow
   const arrowed=new Set(); for(const p of [G.me, G.opp]) for(const a of ((p&&p.arrows)||[])){ arrowed.add(a.a); arrowed.add(a.b); }
   const tkey = c => c.tok && !c.fd && !host.has(c.id) && !arrowed.has(c.id) && !c.cp ? [c.k||'', (c.cu&&c.cu.n)||'', (c.cu&&c.cu.pt)||'', (c.cu&&c.cu.t)||'', (c.cu&&c.cu.o)||'', !!c.tap, !!c.atk, !!showSick(c), c.c||0, c.dmg||0, c.tp||0, c.tt||0, (c.kw||[]).join(','), c.hst||0, c.gainLtb||''].join('|') : null;
-  const piles = list => { const groups=[], byKey=new Map(); for(const c of list){ const k=tkey(c); if(k && byKey.has(k)){ byKey.get(k).push(c); continue; } const g=[c]; if(k) byKey.set(k,g); groups.push(g); }
-    return groups.map(g=>{ if(g.length===1) return one(g[0]); const top=g[g.length-1], rest=g.slice(0,-1);
-      return wrapT(g, rest.map((c,i)=>cardHTML(c,'bf',mine, i>=rest.length-3 ? 'tokunder' : 'tokunder tokhide')).join('') + cardHTML(top,'bf',mine,'tokpile').replace(/<\/div>$/, `<span class="tokn" title="${g.length} identical tokens">×${g.length}</span></div>`)); }).join(''); };
-  return { front: piles(front), back: L + '<span class="gap"></span>' + piles(other) };
+  const piles = (list, zg) => { const groups=[], byKey=new Map(); for(const c of list){ const k=tkey(c); if(k && byKey.has(k)){ byKey.get(k).push(c); continue; } const g=[c]; if(k) byKey.set(k,g); groups.push(g); }
+    return groups.map(g=>{ if(g.length===1) return zg(one(g[0])); const top=g[g.length-1], rest=g.slice(0,-1);
+      return zg(wrapT(g, rest.map((c,i)=>cardHTML(c,'bf',mine, i>=rest.length-3 ? 'tokunder' : 'tokunder tokhide')).join('') + cardHTML(top,'bf',mine,'tokpile').replace(/<\/div>$/, `<span class="tokn" title="${g.length} identical tokens">×${g.length}</span></div>`))); }).join(''); };
+  return { front: piles(front, zF), back: L + '<span class="gap"></span>' + piles(other, zB) };
 }
 /* "your second / third card each turn" (Astrologian's Planisphere): the library shows the cards drawn this turn while such a card is on that side */
 function drawWatch(side){ let k=0; for(const x of (side&&side.bf)||[]){ if(x.fd || (!x.k && !x.cu)) continue; const m=(frontText(x)||'').match(/draw your (second|third) card each turn/i); if(m){ const v=m[1].toLowerCase()==='second'?2:3; k=k?Math.min(k,v):v; } } return k; }
