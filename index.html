@@ -163,6 +163,11 @@ body.t90r .row .card.tap:is(.under,.tokunder) + .card.tap{margin-left:0}body.t90
 :root{--new:#b892ff}
 .unlr{position:absolute;inset:0;border:2px solid var(--new);border-radius:inherit;box-shadow:inset 0 0 12px 3px #b892ff77;pointer-events:none}
 .unlr.inl{position:static;display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:-1px;box-shadow:0 0 6px #b892ff88}
+#camBox{position:relative;flex:none;width:100%;aspect-ratio:16/9;margin-top:6px;border-radius:8px;overflow:hidden;background:#05090b;border:1px solid #ffffff1f}
+.camopts{display:flex;flex-direction:column;gap:8px;margin-top:12px}.camopt{display:flex;align-items:center;gap:8px;font-size:13px}.camopt select{flex:1;min-width:0}
+#camBox.space{border:1px dashed #ffffff33;background:#05090b}#camBox video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}#camBox.live video{display:block}#camBox.mir video{transform:scaleX(-1)}
+#camMsg{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:10px;font:800 10px/1.45 var(--ui);letter-spacing:.14em;color:#ffffff40}#camBox.live #camMsg{display:none}#camMsg.err{letter-spacing:.02em;font-weight:600;font-size:11.5px;color:#ffcf9a}
+#camSet{position:absolute;right:5px;top:5px;width:24px;height:24px;padding:0;border-radius:50%;font-size:13px;line-height:1;opacity:0;transition:opacity .15s;background:#000a;border:1px solid #ffffff40;color:#fff}#camBox:hover #camSet{opacity:1}
 #unlBox{margin:6px 0 2px;padding:8px 10px;background:#241d38;border:1px solid var(--new);border-radius:6px;font-size:12px;line-height:1.4;display:flex;flex-direction:column;gap:4px}
 #unlBox[hidden]{display:none}#unlBox b{color:var(--new);display:flex;gap:6px;align-items:center}#unlBox a{color:var(--brass)}
 .ptnote{grid-column:1/-1;margin-top:2px;padding:3px 7px;border:1px dashed var(--brass);border-radius:4px;color:var(--brass);font-size:11.5px;font-weight:700;line-height:1.3}
@@ -523,7 +528,7 @@ body.nomo *{transition:none!important}
     <div class="avatar" id="oppAv"></div>
     <div id="stackwrap"><h4>Stack<b id="stackN"></b></h4><div id="stack" data-drop="st"></div></div>
     <div id="offerwrap" hidden><h4>Exiled by cards</h4><div id="offers"></div></div>
-    <div id="logwrap"><h4>Game log</h4><div id="log"></div><div id="unlBox" hidden></div><input id="chat" placeholder="Say something…" maxlength="200" aria-label="Chat"></div>
+    <div id="logwrap"><h4>Game log</h4><div id="log"></div><div id="unlBox" hidden></div><div id="camBox" hidden><video id="camVid" autoplay muted playsinline></video><div id="camMsg"></div><button id="camSet" title="Streamer mode settings" aria-label="Streamer mode settings">⚙</button></div><input id="chat" placeholder="Say something…" maxlength="200" aria-label="Chat"></div>
     <div class="avatar me" id="myAv"></div>
     <button id="drawBtn" hidden>Draw a card</button>
     <button id="next" class="go"></button>
@@ -549,10 +554,11 @@ body.nomo *{transition:none!important}
 </script>
 <script>
 "use strict";
-const VERSION = 'v4.51';
+const VERSION = 'v4.52';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.52','Oct 27',"Streamer mode (☰ menu), for streaming or recording your games: a box at the bottom of the game log, where a camera covers nothing you need. Choose Camera space to leave it empty for your streaming app's camera, or My camera to show your webcam right there. Your camera only shows on your own screen; nothing is sent to your opponent."],
   ['v4.51','Oct 27',"Landwalk shows on the card: islandwalk, swampwalk, forestwalk, mountainwalk and plainswalk each have their own chip, and it glows in the land's colour while the defending player controls that land type, so you can see at a glance that the creature can't be blocked."],
   ['v4.50','Oct 27',"Tapped cards of different kinds now overlap from left to right, so each card's name stays visible on top of its neighbour, as piles of identical cards already did. Double-faced cards listed by their full name (Glasspool Mimic // Glasspool Shore) no longer get the violet \"not learned yet\" ring."],
   ['v4.49','Oct 27',"An Aura now asks for its target when you cast it and resolves attached to it. An Aura or Equipment on the other player's permanent puts a teal banner on both cards (ENCHANTED BY … / ENCHANTING …), and pointing at either one lights up both. In the deck editor, each card and its − / + / side bar sit in one frame, and mana costs show as mana symbols."],
@@ -6176,6 +6182,31 @@ const noMotion = () => S.anim==='off' || (S.anim==='auto' && RMOT.matches);
 function applyMotion(){ if(document.body) document.body.classList.toggle('nomo', noMotion()); }
 if(document.body) applyMotion(); else document.addEventListener('DOMContentLoaded', applyMotion);
 const ANIMST = {on:'On', off:'Off', auto:"Follow my computer's setting"};
+/* Streamer mode (v4.52): a 16:9 box at the bottom of the game log, where a streamer's camera fits without covering anything that matters.
+   S.stream: 'off' | 'space' (an empty framed box to lay an OBS camera over) | 'cam' (this computer's webcam, shown only here: nothing is sent to the opponent).
+   S.camId picks the camera, S.camMir mirrors it (default on). The ⚙ on the box (shown on hover, so recordings stay clean) opens the settings. */
+const STREAMST={off:'Off', space:'Camera space (for your own overlay)', cam:'My camera'};
+let CAMSTREAM=null;
+function camStop(){ if(CAMSTREAM){ for(const t of CAMSTREAM.getTracks()) t.stop(); CAMSTREAM=null; } const v=$('#camVid'); if(v) v.srcObject=null; }
+async function applyStream(){ const box=$('#camBox'); if(!box) return; const mode=S.stream||'off', msg=$('#camMsg');
+  box.hidden=mode==='off'; box.classList.toggle('space', mode==='space'); box.classList.toggle('mir', S.camMir!==false); msg.className='';
+  if(mode!=='cam'){ camStop(); box.classList.remove('live'); msg.textContent = mode==='space' ? 'CAMERA SPACE' : ''; return; }
+  if($('#table').hidden){ camStop(); box.classList.remove('live'); msg.textContent=''; return; }   // the camera runs only while the table is on screen
+  if(CAMSTREAM && CAMSTREAM.active && (!S.camId || CAMSTREAM.getVideoTracks().some(t=>t.getSettings().deviceId===S.camId))){ box.classList.add('live'); return; }
+  camStop(); box.classList.remove('live'); msg.textContent='STARTING CAMERA…';
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ msg.className='err'; msg.textContent="This browser can't show a camera here."; return; }
+  try{ const v={width:{ideal:1280}, height:{ideal:720}}; if(S.camId) v.deviceId={exact:S.camId};
+    CAMSTREAM=await navigator.mediaDevices.getUserMedia({video:v, audio:false}).catch(e=>{ if(S.camId && /NotFound|Overconstrained/.test(e.name)){ S.camId=''; store.set('mt_settings',S); return navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280}, height:{ideal:720}}, audio:false}); } throw e; });
+    if((S.stream||'off')!=='cam'){ camStop(); return; } const vid=$('#camVid'); vid.srcObject=CAMSTREAM; vid.play().catch(()=>{}); box.classList.add('live'); }
+  catch(e){ camStop(); msg.className='err'; msg.textContent = e && e.name==='NotAllowedError' ? 'The camera is blocked. Allow it from the camera icon in the address bar, then choose My camera again.' : e && e.name==='NotFoundError' ? 'No camera was found on this computer.' : e && e.name==='NotReadableError' ? 'The camera is busy in another app. Close it there, then choose My camera again.' : "The camera couldn't start."; } }
+async function streamModal(){ const cur=S.stream||'off'; let cams=[];
+  try{ if(navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) cams=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput'); }catch(e){}
+  const named=cams.filter(d=>d.label), pick = cur==='cam' && named.length>1 ? `<label class="camopt">Camera <select id="camPick">${named.map(d=>`<option value="${esc(d.deviceId)}" ${d.deviceId===(S.camId||'') || (!S.camId && CAMSTREAM && CAMSTREAM.getVideoTracks().some(t=>t.getSettings().deviceId===d.deviceId)) ? 'selected' : ''}>${esc(d.label)}</option>`).join('')}</select></label>` : '';
+  const el=modal('Streamer mode', `<span class="hint">For streaming or recording your games: a box at the bottom of the game log, where a camera covers nothing you need. <b>Camera space</b> leaves the box empty for a camera you add in your streaming app (OBS and the like). <b>My camera</b> shows this computer's webcam in the box, so any screen recording picks it up. Your camera stays on your screen: nothing is sent to your opponent. Point at the box for its ⚙ settings.</span>
+    ${cur==='cam' ? `<div class="camopts">${pick}<label class="camopt"><input type="checkbox" id="camMir" ${S.camMir!==false?'checked':''}> Mirror the picture (like a selfie)</label></div>` : ''}`,
+    Object.entries(STREAMST).map(([v,l])=>[l+(v===cur?'  ✓':''), ()=>{ S.stream=v; store.set('mt_settings',S); closeModal(); applyStream().then(()=>{ if(v==='cam' && CAMSTREAM) streamModal(); }); toast('Streamer mode: '+STREAMST[v].replace(/ \(.*/,'').toLowerCase()+'.'); }, v===cur?'go':'ghost']));
+  const sel=$('#camPick', el); if(sel) sel.onchange=()=>{ S.camId=sel.value; store.set('mt_settings',S); applyStream(); };
+  const mir=$('#camMir', el); if(mir) mir.onchange=()=>{ S.camMir=mir.checked; store.set('mt_settings',S); applyStream(); }; }
 function animModal(){ const cur=S.anim||'on';
   modal('Animations', `<span class="hint">Cards turning as they tap, the hand opening a gap for a dragged card, piles spreading. ${RMOT.matches ? '<b>This computer asks apps for less motion</b>, so "Follow my computer\'s setting" turns them off.' : 'This computer does not ask for less motion.'}</span>`,
     Object.entries(ANIMST).map(([v,l])=>[l+(v===cur?'  ✓':''), ()=>{ S.anim=v; store.set('mt_settings',S); closeModal(); applyMotion(); toast('Animations: '+(noMotion()?'off':'on')+'.'); }, v===cur?'go':'ghost'])); }
@@ -6548,7 +6579,7 @@ function tableMenu(x,y){
     [S.autoDraw?'Turn off auto-draw each turn':'Turn on auto-draw each turn',()=>{ S.autoDraw=!S.autoDraw; store.set('mt_settings',S); toast('Auto-draw is '+(S.autoDraw?'on':'off')); }],
     [`Auto-pay from mana pool: ${S.autoPay!==false?'On':'Off'}`,()=>{ S.autoPay=S.autoPay===false; store.set('mt_settings',S); toast(S.autoPay ? 'Auto-pay is on: spells and abilities take their cost from your mana pool.' : 'Auto-pay is off: spells go straight to the stack; spend mana by clicking its symbols.'); }],
     fsCan() && [fsEl() ? 'Exit full screen' : 'Full screen', ()=>fsEl() ? fsExit() : fsEnter()],
-    [`Tapped cards: ${({'18':'18°','90':'90°','90r':'90° with room'})[S.tap||TAP_DEF]}`,()=>tapStyleModal()], [`Animations: ${({on:'On',off:'Off',auto:'Follow my computer'})[S.anim||'on']}${noMotion()?' (off now)':''}`,()=>animModal()],
+    [`Tapped cards: ${({'18':'18°','90':'90°','90r':'90° with room'})[S.tap||TAP_DEF]}`,()=>tapStyleModal()], [`Animations: ${({on:'On',off:'Off',auto:'Follow my computer'})[S.anim||'on']}${noMotion()?' (off now)':''}`,()=>animModal()], [`Streamer mode: ${({off:'Off',space:'Camera space',cam:'My camera'})[S.stream||'off']}`,()=>streamModal()],
     ['Clear my arrows',()=>{ G.me.arrows=[]; changed(); }], ['Shortcuts and help',()=>helpModal()], ['Take the tour',()=>tourStart('table')], ["What's new",()=>newsModal()], ['Send feedback',()=>openFeedback()], '-',
     ['Leave the table',()=>confirmBox('Leave this table?','Your seat is kept on this computer, so you can come back from the front page.',()=>{ save(); location.href=location.pathname+location.search; })] ]);
 }
@@ -6939,6 +6970,7 @@ $('#tokBtn').onclick=()=>tokenModal();
 $('#undoBtn').onclick=()=>undo();
 $('#diceBtn').onclick=e=>{ const r=e.currentTarget.getBoundingClientRect(), roll=n=>()=>log(`${G.me.name} rolls a d${n}: ${1+Math.floor(Math.random()*n)}.`);
   menu(r.left, r.bottom+4, [['Roll a d20',roll(20)],['Roll a d6',roll(6)],['Flip a coin',()=>log(`${G.me.name} flips a coin: ${Math.random()<.5?'heads':'tails'}.`)]]); };
+$('#camSet').onclick=()=>streamModal(); applyStream();
 $('#chat').onkeydown=e=>{ e.stopPropagation(); if(e.key==='Enter' && e.target.value.trim()){ const text=`${G.me.name}: ${e.target.value.trim()}`; addLog(text,'cm'); send({t:'log', text, chat:1}); e.target.value=''; } };
 document.addEventListener('keydown', e=>{
   if(e.key==='Escape'){ if(PAY && !G.mode && $('#modal').hidden){ payAction('cancel'); closeMenu(); return; } if(G.mode && G.mode.type==='atktgt'){ const md=G.mode; G.mode=null; atkTarget(md, oppId()); closeMenu(); return; } if(G.mode && G.mode.auto){ autoNone(G.mode.from); closeMenu(); return; } if(G.mode && G.mode.tq){ if(!tgtNextSlot(G.mode, true)){ const f=find(G.mode.from); if(f && f.c.ab && !G.me.arrows.some(a=>a.a===f.c.id)){ f.c.ab.nt=1; const sn=String(srcName(f.c)), k=sn.indexOf(': '); log(k>0 ? `${sn.slice(0,k)}'s ${sn.slice(k+2)} has no target.` : `${sn}'s trigger has no target.`); } G.mode=null; } render(); closeMenu(); return; } if(G.mode && (G.mode.type==='pblock' || G.mode.type==='pblock2')){ G.mode=null; render(); closeMenu(); return; } if(G.atkSel && !G.mode){ G.atkSel=null; render(); closeMenu(); return; } if(G.mode){ if(!tgtNextSlot(G.mode, true)) G.mode=null; render(); } closeMenu(); if(!$('#modal')._noClose) closeModal(); return; }
@@ -6976,7 +7008,7 @@ const deckSpan = () => { const ds=DECKS.map(d=>d.date).filter(Boolean).sort(); i
 let tab='tour', picked=null;
 usePack(store.get('mt_pack_v1', null));
 function showDecks(){ $('#lobby').hidden=true; $('#table').hidden=true; $('#decks').hidden=false; $('#backToTable').hidden=!G.me.deck; renderNet(); renderTab(); }
-function showTable(){ $('#lobby').hidden=true; $('#decks').hidden=true; $('#table').hidden=false; render(); }
+function showTable(){ $('#lobby').hidden=true; $('#decks').hidden=true; $('#table').hidden=false; render(); applyStream(); }
 $('#backToTable').onclick=showTable;
 $$('.tabs button').forEach(b=>b.onclick=()=>{ tab=b.dataset.tab; $$('.tabs button').forEach(x=>x.classList.toggle('on',x===b)); picked=null; renderTab(); });
 function renderTab(){
