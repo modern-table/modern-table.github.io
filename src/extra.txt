@@ -82,3 +82,21 @@ Sideboard
 2 Repurposed Enforcer
 2 Sanctifier en-Vec
 2 Static Prison
+
+# Merfolk (Lord of Atlantis, Master of the Pearl Trident, Namor), 2026-10-27
+4 Harbinger of the Seas
+4 Hydroelectric Specimen
+4 Master of the Pearl Trident
+4 Namor the Sub-Mariner
+4 Tide Shaper
+4 Vodalian Hexcatcher
+3 Lord of Atlantis
+3 Mindspring Merfolk
+1 Glasspool Mimic
+4 Aether Vial
+4 Disrupting Shoal
+3 Flare of Denial
+2 Mutavault
+3 Chalice of the Void
+3 Unable to Scream
+2 Hurkyl's Recall
