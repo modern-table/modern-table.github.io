@@ -155,13 +155,13 @@ body.t90r .row .card.tap:is(.under,.tokunder) + .card.tap{margin-left:0}body.t90
 .edrow{display:grid;grid-template-columns:26px 2.2ch 26px minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:2px 6px;border-radius:4px}.edrow:hover{background:#1b2e33}
 .edrow button,.ectl button{padding:0;height:24px;min-width:24px;font-size:15px;line-height:1}.edrow .mv,.ectl .mv{padding:2px 7px;font-size:12px;color:var(--dim)}.edrow .n{text-align:center;font-weight:800;font-variant-numeric:tabular-nums}.edrow .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .edcards{display:flex;gap:10px;align-items:flex-start;--ew:118px}.edcol{display:flex;flex-direction:column;width:var(--ew);flex:none}.edcol.side{margin-left:auto;padding-left:12px;border-left:1px solid var(--line);width:calc(var(--ew) + 13px)}
-.etile{position:relative;width:var(--ew)}.etile + .etile{margin-top:calc(var(--ew) * -1.13)}.etile .card{width:var(--ew);--cw:var(--ew);cursor:default}.etile:hover{z-index:5}
-.etn{position:absolute;top:4%;right:5%;z-index:3;font:800 12px var(--ui);background:#0b1417;color:var(--brass);border:1px solid var(--brass);border-radius:3px;padding:0 4px;font-variant-numeric:tabular-nums}
-.ectl{position:absolute;left:4px;right:4px;bottom:4px;z-index:3;display:flex;justify-content:space-between;gap:3px;opacity:0}.etile:hover .ectl,.etile:last-of-type .ectl,.etile:focus-within .ectl{opacity:1}
+.etile{position:relative;width:var(--ew)}.etile + .etile{margin-top:calc(var(--ew) * -1.13)}.etile .card{width:var(--ew);--cw:var(--ew);cursor:default}
+.ectl{position:relative;display:flex;align-items:center;gap:3px;height:26px;padding:0 2px 2px;background:var(--felt2)}.etile:hover .ectl{background:#1b2e33}
+.ectl .mv{margin-left:auto}.etn{min-width:2ch;text-align:center;font:800 12.5px var(--ui);color:var(--brass);font-variant-numeric:tabular-nums}
 .edempty{display:flex;flex-direction:column;gap:10px;padding:24px 18px;border:1px dashed var(--line);border-radius:8px;color:var(--dim)}.edempty b{color:var(--ink)}
 .edflash{animation:edfl .9s ease-out}@keyframes edfl{from{background:#3a3520}to{background:transparent}}
 :root{--new:#b892ff}
-.unlr{position:absolute;inset:-3px;border:2px solid var(--new);border-radius:6%/4.5%;box-shadow:0 0 12px 2px #b892ff66;pointer-events:none;z-index:1}
+.unlr{position:absolute;inset:0;border:2px solid var(--new);border-radius:inherit;box-shadow:inset 0 0 12px 3px #b892ff77;pointer-events:none}
 .unlr.inl{position:static;display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:-1px;box-shadow:0 0 6px #b892ff88}
 #unlBox{margin:6px 0 2px;padding:8px 10px;background:#241d38;border:1px solid var(--new);border-radius:6px;font-size:12px;line-height:1.4;display:flex;flex-direction:column;gap:4px}
 #unlBox[hidden]{display:none}#unlBox b{color:var(--new);display:flex;gap:6px;align-items:center}#unlBox a{color:var(--brass)}
@@ -542,10 +542,11 @@ body.nomo *{transition:none!important}
 </script>
 <script>
 "use strict";
-const VERSION = 'v4.46';
+const VERSION = 'v4.47';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.47','Oct 27',"Deck editor: in Cards view each card now has its own − / + / side bar above its name, always in reach, and nothing pops forward when you point at a card (the enlargement shows it whole). The violet ring no longer shows through cards stacked on top. The tour now shows the deck editor."],
   ['v4.46','Oct 27',"Decks can be changed before you play them: Modify this deck opens an editor with a card search across the top, List or Cards view, and − / + on every card (four copies at most, basic lands excepted). From scratch builds a new deck. Edited tournament lists are saved as new decks. A deck that isn't tournament legal can still be played for testing, with a note in your box that your opponent sees. Cards the table hasn't learned yet carry a violet ring, explained under the game log, with a link to ask for them in feedback."],
   ['v4.45','Oct 27',"When a library is laid out (Surgical Extraction, or looking through the whole library while searching), pointing at any card shows it enlarged, above or below its row so the row stays visible. This works for a friend's library and hand too."],
   ['v4.44','Oct 27',"Landfall triggers that target (Hedron Crab's \"target player mills three cards\") now ask for their target as soon as they go on the stack. With several such triggers at once, the arrow moves on to the next one; Esc means no target. Fractured Sanity no longer mills four extra cards when cast (that's only when you cycle it)."],
@@ -6453,7 +6454,7 @@ function confirmBox(title, text, yes){ modal(title, `<span class="hint">${esc(te
 let TOUR=null;
 const TOUR_STEPS = {
   lobby: [
-    {t:'Welcome to Modern Table', p:['A Magic table for you and a friend, in the browser. This tour shows you around in about two minutes.','<b>Automatic first, by hand always:</b> the table plays your cards for you wherever it can, and anything it doesn\'t do, you can still do yourself.']},
+    {t:'Welcome to Modern Table', p:['A Magic table for you and a friend, in the browser. This tour shows you around in about three minutes.','<b>Automatic first, by hand always:</b> the table plays your cards for you wherever it can, and anything it doesn\'t do, you can still do yourself.']},
     {sel:'#nameIn', t:'Your name', p:['This is what your opponent sees, in the log and on the table.']},
     {sel:'#hostBtn', t:'Open a table', p:['You get a <b>six-letter code</b>. Send it to your friend (text, Discord, anything) and they join with it. The code stays on your screen until they arrive.']},
     {sel:'#codeIn', up:2, t:'Join a table', p:['Got a code from a friend? Type it here and press Join.']},
@@ -6462,7 +6463,12 @@ const TOUR_STEPS = {
     {sel:'#news', t:"What's new", p:['Every change to the table is listed here, newest first.']} ],
   decks: [
     {sel:'.decklist', t:'Choose your deck', p:['<b>Tournament decks</b> are this week\'s top finishers, refreshed every Monday. <b>Paste or upload</b> takes any decklist (Arena, MTGO or plain text). <b>Saved</b> keeps your own decks, including the ones you draft.']},
-    {sel:'#deckView', t:'Look before you play', p:['Pick a deck to see its cards, then press <b>Play this deck</b>. <b>Modify this deck</b> lets you change it first, and <b>From scratch</b> builds a new one. We\'ll take this one to the table.']} ],
+    {sel:'#deckView', pre:'view', t:'Look before you play', p:['Pick a deck to see its cards, then press <b>Play this deck</b>.']},
+    {sel:'#modDeck', pre:'view', t:'Make it yours', p:['<b>Modify this deck</b> opens the deck editor, so you can change a list before you play it. Let\'s open it.']},
+    {sel:'.edbar', pre:'edit', t:'Add a card', p:['Type a card name in this bar; matching Modern cards drop down as you type. Click one (or press Enter) and a copy goes into the deck.','<b>To main deck / To sideboard</b> chooses where it goes. <b>Cards / List</b> switches how the deck is shown.']},
+    {sel:'#edBody', pre:'edit', t:'Change the counts', p:['Every card has <b>−</b> and <b>+</b> (four copies at most, basic lands excepted) and <b>side</b> to move one copy between the main deck and the sideboard. Point at a card to see it enlarged.','A card with a <b>violet ring</b> is one the table hasn\'t learned yet: it plays, but by hand through the right-click menu. A note under the game log lets you ask for it.']},
+    {sel:'.edacts', pre:'edit', t:'Save and play', p:['A tournament list is never changed: <b>Save</b> keeps your version as a new deck under <b>Saved</b>.','If a deck isn\'t tournament legal (fewer than 60 cards, more than 15 in the sideboard), <b>Play</b> asks first. You can fix it, or play it anyway for testing, with a note in your box that your opponent sees.']},
+    {sel:'.tabs [data-tab="new"]', pre:'view', t:'From scratch', p:['Builds a new deck from nothing in the same editor: name it, add cards, save it. We\'ll take the tournament deck to the table now.']} ],
   table: [
     {sel:'#banner', t:'Before the game', p:['This box walks both players through the start: the roll, play or draw, and mulligans. In a practice game you just start.']},
     {sel:'#myFront', t:'Your battlefield', p:['Creatures go in the front row. Lands and your other permanents go in the back row, where identical lands stack.','Click a card to tap it. Right-click any card for everything else it can do.']},
@@ -6493,6 +6499,9 @@ async function tourScreen(scr){ // the tour moves between screens itself: front 
   if(scr==='decks' && !$('#deckView .card, #deckView #useDeck')){ const rows=$$('#tabBody [data-d]'); if(rows.length){ rows[Math.floor(Math.random()*Math.min(rows.length, 12))].click(); await new Promise(r=>setTimeout(r, 400)); } }
   if(scr==='table' && $('#table').hidden){ const b=$('#useDeck'); if(b){ b.click(); for(let k=0;k<40 && $('#table').hidden;k++) await new Promise(r=>setTimeout(r, 150)); } else if(G.me.deck) showTable(); await new Promise(r=>setTimeout(r, 250)); } }
 async function tourShow(){ if(!TOUR) return; const st=TOUR.list[TOUR.i]; if(!st){ tourEnd(); return; } await tourScreen(st.scr); if(!TOUR) return;
+  if(st.pre==='edit' && !$('#edQ')){ const b=$('#modDeck'); if(b){ b.click(); await new Promise(r=>setTimeout(r, 350)); } }   // v4.47: the deck-building steps open the editor on the tour's deck and close it again
+  else if(st.pre==='view' && $('#edDone')){ $('#edDone').click(); await new Promise(r=>setTimeout(r, 300)); }
+  if(!TOUR) return;
   let el=st.sel ? $(st.sel) : null; if(el && st.up) for(let k=0;k<st.up && el.parentElement;k++) el=el.parentElement;
   if(st.sel && (!el || el.hidden || !el.offsetParent || !el.getBoundingClientRect().width)){ TOUR.i += TOUR.dir<0 ? -1 : 1; if(TOUR.i<0){ TOUR.i=0; } tourShow(); return; }
   TOUR.el=el; const n=TOUR.list.length, last=TOUR.i===n-1;
@@ -7016,14 +7025,14 @@ function edPick(i){ if(!ED) return; const n=ED.hits[i]; if(!n) return; const e=D
   if(edBad(e)){ toast(`${e.n} is ${e.lg==='banned'?'banned':'not legal'} in Modern.`); return; } edAdd(e && !e.tmp ? e.n : n, ED.into); }
 const edGroup = e => { const t=String((e&&e.t)||'').split(' // ')[0]; return /\bLand\b/.test(t) ? 'Lands' : /\bCreature\b/.test(t) ? 'Creatures' : /\b(Instant|Sorcery)\b/.test(t) ? 'Instants and sorceries' : 'Other spells'; };
 function edBtns(n, z){ const full=edCopies(n)>=copyCap(n);
-  return [`<button data-ed="-" data-n="${esc(n)}" data-z="${z}" aria-label="One less ${esc(n)}">−</button>`, `<button data-ed="+" data-n="${esc(n)}" data-z="${z}" aria-label="One more ${esc(n)}" ${full?`disabled title="${copyCap(n)} copies is the most a deck may have"`:''}>+</button>`, `<button class="mv" data-ed="mv" data-n="${esc(n)}" data-z="${z}" title="Move one copy to the ${z==='main'?'sideboard':'main deck'}">${z==='main'?'to side':'to main'}</button>`]; }
+  return [`<button data-ed="-" data-n="${esc(n)}" data-z="${z}" aria-label="One less ${esc(n)}">−</button>`, `<button data-ed="+" data-n="${esc(n)}" data-z="${z}" aria-label="One more ${esc(n)}" ${full?`disabled title="${copyCap(n)} copies is the most a deck may have"`:''}>+</button>`, `<button class="mv" data-ed="mv" data-n="${esc(n)}" data-z="${z}" title="Move one copy to the ${z==='main'?'sideboard':'main deck'}">${z==='main'?'side':'main'}</button>`]; }
 function edListHTML(){ const zone=z=>{ const gs={}; for(const [n,k] of ED[z]){ if(k<=0) continue; const e=DB[edKey(n)], g=z==='side'?'Sideboard':edGroup(e); (gs[g]=gs[g]||[]).push([n,k,e]); }
     return (z==='side'?['Sideboard']:['Lands','Creatures','Instants and sorceries','Other spells']).filter(g=>gs[g]).map(g=>{ const rows=gs[g].sort((a,b)=>a[0].localeCompare(b[0]));
       return `<div class="edgrp">${z==='main'?`<h5>${g}<b>${rows.reduce((a,r)=>a+r[1],0)}</b></h5>`:''}${rows.map(([n,k,e])=>{ const [mi,pl,mv]=edBtns(n,z), unl=e && !e.tmp && !learnedK(edKey(n));
         return `<div class="edrow${ED.flash===z+'|'+n?' edflash':''}">${mi}<span class="n">${k}</span>${pl}<span class="nm" data-kk="${esc(edKey(n))}">${unl?'<span class="unlr inl"></span> ':''}${esc(n)}</span><span class="edcost">${esc((e&&e.mc)||'')}</span>${mv}</div>`; }).join('')}</div>`; }).join('') || '<span class="hint">None</span>'; };
   return `<div class="edlist"><div><h4>Main deck<b>${deckCount(edDeck().main)}</b></h4>${zone('main')}</div><div><h4>Sideboard<b>${deckCount(edDeck().side)}</b></h4>${zone('side')}</div></div>`; }
 function edCardsHTML(){ const cols=new Map(), tile=(n,k,z)=>{ const kk=edKey(n), [mi,pl,mv]=edBtns(n,z);
-    return `<div class="etile${ED.flash===z+'|'+n?' edflash':''}">${cardHTML({id:'s:'+kk, k:kk},'lib',false)}<span class="etn">${k}</span><div class="ectl">${mi}${mv}${pl}</div></div>`; };
+    return `<div class="etile${ED.flash===z+'|'+n?' edflash':''}"><div class="ectl">${mi}<span class="etn">${k}</span>${pl}${mv}</div>${cardHTML({id:'s:'+kk, k:kk},'lib',false)}</div>`; };   // v4.47: each card's controls sit above its name strip, always in reach
   for(const [n,k] of ED.main){ if(k<=0) continue; const e=DB[edKey(n)], land=/\bLand\b/.test(String((e&&e.t)||'').split(' // ')[0]), key=land ? -1 : Math.min(7, manaValue({k:edKey(n)})); if(!cols.has(key)) cols.set(key, []); cols.get(key).push([n,k]); }
   const col=(title, list, z, cls='')=>`<div class="edcol ${cls}"><h5>${title}<b>${list.reduce((a,r)=>a+r[1],0)}</b></h5>${list.sort((a,b)=>a[0].localeCompare(b[0])).map(([n,k])=>tile(n,k,z)).join('') || '<span class="hint">None</span>'}</div>`;
   return `<div class="edcards">${[...cols].sort((a,b)=>a[0]-b[0]).map(([v,l])=>col(v<0?'Lands':v>=7?'7+':String(v), l, 'main')).join('')}${col('Sideboard', [...ED.side].filter(x=>x[1]>0), 'side', 'side')}</div>`; }
@@ -7032,7 +7041,7 @@ function edFit(){ const b=$('#edBody'), w=b && b.querySelector('.edcards'); if(!
 function paintEdBody(){ if(!ED) return; const b=$('#edBody'); if(!b) return; const d=edDeck(), m=deckCount(d.main), s=deckCount(d.side), w=deckIssues(d), ch=edText(d)!==ED.base, mode=evMode();
   document.querySelectorAll('#deckView [data-into]').forEach(x=>x.classList.toggle('on', x.dataset.into===ED.into)); document.querySelectorAll('#deckView [data-ev]').forEach(x=>x.classList.toggle('on', x.dataset.ev===mode));
   $('#edTally').innerHTML=`<span class="${w.some(x=>/main/.test(x))?'edbad':''}">${m} main</span> · <span class="${w.some(x=>/sideboard/.test(x))?'edbad':''}">${s} sideboard</span>${edLimited()?' · draft deck, at least 40':''}`;
-  $('#edTip').textContent = mode==='cards' && (m||s) ? 'Point at a card to bring it forward with its − and + buttons.' : '';
+  $('#edTip').textContent = mode==='cards' && (m||s) ? 'Point at a card to see it enlarged.' : '';
   const sb=$('#edSave'); sb.textContent = ED.kind==='saved' ? (ch ? 'Save changes' : 'Saved') : `Save as “${edSaveName()}”`; sb.disabled = ED.kind==='saved' ? !ch : !(m+s);
   $('#edUndo').disabled=!ch;
   $('#edMsg').innerHTML = w.length ? `<span class="edbad">Not tournament legal: ${esc(w.join(', '))}.</span> You can still save it, and play it for testing.` : (ch && ED.kind==='tour' ? 'The tournament list itself is kept; your version is saved as a new deck.' : '');
