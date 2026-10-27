@@ -49,6 +49,12 @@ if os.path.exists('src/aliases.txt'):
             a,b_=(x.strip() for x in line.split('=',1)); aliases[_plain(a)]=b_
 assert '/*__ALIASES__*/{}' in src
 src=src.replace('/*__ALIASES__*/{}', json.dumps(aliases, ensure_ascii=False).replace('</','<\\/'))
+ready=re.search(r"const READY = (\[[^\]]*\])", open('src/draft.src.html', encoding='utf-8').read())
+assert ready and '/*__READY__*/[]' in src
+src=src.replace('/*__READY__*/[]', json.dumps(json.loads(ready.group(1).replace("'",'"'))))
+readyn=sorted({l.strip().lower() for c in json.loads(ready.group(1).replace("'",'"')) if os.path.exists(f'draft/cubes/{c}.txt') for l in open(f'draft/cubes/{c}.txt', encoding='utf-8') if l.strip() and not l.startswith('#')})
+assert '/*__READYN__*/[]' in src
+src=src.replace('/*__READYN__*/[]', json.dumps(readyn, ensure_ascii=False).replace('</','<\\/'))
 html=src.replace('/*__DECKS__*/[]',json.dumps(out,separators=(',',':'),ensure_ascii=False)).replace('/*__CARDS__*/{}',json.dumps(cards,separators=(',',':'),ensure_ascii=False).replace('</','<\\/')).replace('/*__PEERJS__*/',peer)
 open('index.html','w', encoding='utf-8').write(html)
 ver=re.search(r"const VERSION = '([^']+)'", src).group(1)
