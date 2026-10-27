@@ -413,7 +413,7 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
   .deckwrap{grid-template-columns:1fr;grid-template-rows:40% 60%}.decklist{border-right:0;border-bottom:1px solid var(--line)}
   .life b{font-size:26px}.tools button span{display:none}
 }
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+body.nomo *{transition:none!important}
 /* the tour (v4.27) */
 #tourHole{position:fixed;z-index:200;border-radius:10px;box-shadow:0 0 0 9999px #000a,0 0 0 2px var(--brass),0 0 18px 4px #d9b25f88;pointer-events:none;transition:all .25s ease}
 #tourBlock{position:fixed;inset:0;z-index:199;background:transparent}
@@ -509,10 +509,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.42';
+const VERSION = 'v4.43';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.43','Oct 27',"Tapped cards now turn sideways (90°) unless you choose otherwise. Animations stay on even when your computer is set to reduce motion; the menu has a new Animations choice (on, off, or follow my computer)."],
   ['v4.42','Oct 27',"A library search always ends with a shuffle, even if you close its window (Practice's searches too). Field of Ruin's search window has no Close button: you take a basic land or fail to find, and the library is shuffled either way."],
   ['v4.41','Oct 27',"Surgical Extraction and Extirpate now resolve step by step: you look through the owner's graveyard, then hand, then library, and click the copies to exile (they glow gold), with a notepad offer for the rest of the hand. Searches can show your whole library. Field of Ruin's search can't be skipped (Fail to find instead), and Archive Trap's free cast lights up only after an opponent has searched this turn."],
   ['v4.40','Oct 26',"With the 90° tap, a pile of tapped identical lands or tokens now overlaps the other way: the top card is on the left, and each card underneath shows its name and art on the right."],
@@ -6006,7 +6007,7 @@ const BFCARDS = '#myFront .card[data-id],#myBack .card[data-id],#oppFront .card[
 const RMOT = window.matchMedia ? matchMedia('(prefers-reduced-motion: reduce)') : {matches:false};
 function cardPose(el){ const r=el.getBoundingClientRect(), cs=getComputedStyle(el), t=cs.transform||'none'; let e=0, f=0; if(t!=='none'){ try{ const m=new DOMMatrixReadOnly(t); e=m.e; f=m.f; }catch(x){} }
   return {x:r.left+r.width/2-e, y:r.top+r.height/2-f, t, f:cs.filter||'none'}; }
-function tapSnap(){ if(RMOT.matches || !document.body.animate) return null; const s=new Map(); for(const el of document.querySelectorAll(BFCARDS)) if(el.offsetParent) s.set(el.dataset.id, cardPose(el)); return s; }
+function tapSnap(){ if(noMotion() || !document.body.animate) return null; const s=new Map(); for(const el of document.querySelectorAll(BFCARDS)) if(el.offsetParent) s.set(el.dataset.id, cardPose(el)); return s; }
 function tapAnim(s){ if(!s || !s.size) return; let any=0;
   for(const el of document.querySelectorAll(BFCARDS)){ const a=s.get(el.dataset.id); if(!a || !el.offsetParent) continue; const b=cardPose(el), dx=a.x-b.x, dy=a.y-b.y;
     if(Math.abs(dx)<1 && Math.abs(dy)<1 && a.t===b.t && a.f===b.f) continue;
@@ -6014,10 +6015,20 @@ function tapAnim(s){ if(!s || !s.size) return; let any=0;
     try{ el.animate([k0,k1], {duration:230, easing:'cubic-bezier(.2,.7,.3,1)'}); any=1; }catch(x){} }
   if(any){ clearTimeout(tapAnim.tm); tapAnim.tm=setTimeout(drawArrows, 250); } }
 /* tapped cards (v4.23, Ben): turned slightly (18°, as before), sideways (90°) over their neighbours, or sideways with room made for them. Per player, saved in mt_settings */
+/* v4.43 (Ben): animations are on unless a player turns them off (☰ Animations). "Follow my computer" honours the reduced-motion setting,
+   which used to switch every animation off by itself, so a computer set that way showed the table frozen. */
+const noMotion = () => S.anim==='off' || (S.anim==='auto' && RMOT.matches);
+function applyMotion(){ if(document.body) document.body.classList.toggle('nomo', noMotion()); }
+if(document.body) applyMotion(); else document.addEventListener('DOMContentLoaded', applyMotion);
+const ANIMST = {on:'On', off:'Off', auto:"Follow my computer's setting"};
+function animModal(){ const cur=S.anim||'on';
+  modal('Animations', `<span class="hint">Cards turning as they tap, the hand opening a gap for a dragged card, piles spreading. ${RMOT.matches ? '<b>This computer asks apps for less motion</b>, so "Follow my computer\'s setting" turns them off.' : 'This computer does not ask for less motion.'}</span>`,
+    Object.entries(ANIMST).map(([v,l])=>[l+(v===cur?'  ✓':''), ()=>{ S.anim=v; store.set('mt_settings',S); closeModal(); applyMotion(); toast('Animations: '+(noMotion()?'off':'on')+'.'); }, v===cur?'go':'ghost'])); }
+const TAP_DEF='90';   // v4.43: sideways is the default (Ben)
 const TAPST = {'18':'Turned slightly (18°)', '90':'Sideways (90°), overlapping neighbours', '90r':'Sideways (90°), with room made'};
-function applyTapStyle(){ const v=S.tap||'18', b=document.body; if(!b) return; b.classList.toggle('t90', v!=='18'); b.classList.toggle('t90r', v==='90r'); }
+function applyTapStyle(){ const v=S.tap||TAP_DEF, b=document.body; if(!b) return; b.classList.toggle('t90', v!=='18'); b.classList.toggle('t90r', v==='90r'); }
 if(document.body) applyTapStyle(); else document.addEventListener('DOMContentLoaded', applyTapStyle);
-function tapStyleModal(){ const cur=S.tap||'18';
+function tapStyleModal(){ const cur=S.tap||TAP_DEF;
   const pick = v => { S.tap=v; store.set('mt_settings',S); closeModal(); applyTapStyle(); setTimeout(()=>{ render(); drawArrows(); }, 200); toast('Tapped cards: '+TAPST[v].replace(/,.*/,'')+(v==='90r'?', with room':'')+'.'); };
   modal('Tapped cards', `<span class="hint">How your tapped cards are turned on your screen. It changes only what you see; your opponent picks their own.<br><br><b>Sideways with room</b> spreads each row out a little, so a crowded row may need scrolling sooner. Identical lands stay stacked either way.</span>`,
     Object.entries(TAPST).map(([v,l])=>[l+(v===cur?'  ✓':''), ()=>pick(v), v===cur?'go':'ghost'])); }
@@ -6372,7 +6383,7 @@ function tableMenu(x,y){
     [S.autoDraw?'Turn off auto-draw each turn':'Turn on auto-draw each turn',()=>{ S.autoDraw=!S.autoDraw; store.set('mt_settings',S); toast('Auto-draw is '+(S.autoDraw?'on':'off')); }],
     [`Auto-pay from mana pool: ${S.autoPay!==false?'On':'Off'}`,()=>{ S.autoPay=S.autoPay===false; store.set('mt_settings',S); toast(S.autoPay ? 'Auto-pay is on: spells and abilities take their cost from your mana pool.' : 'Auto-pay is off: spells go straight to the stack; spend mana by clicking its symbols.'); }],
     fsCan() && [fsEl() ? 'Exit full screen' : 'Full screen', ()=>fsEl() ? fsExit() : fsEnter()],
-    [`Tapped cards: ${(S.tap||'18')==='18'?'18°':S.tap==='90'?'90°':'90° with room'}`,()=>tapStyleModal()],
+    [`Tapped cards: ${({'18':'18°','90':'90°','90r':'90° with room'})[S.tap||TAP_DEF]}`,()=>tapStyleModal()], [`Animations: ${({on:'On',off:'Off',auto:'Follow my computer'})[S.anim||'on']}${noMotion()?' (off now)':''}`,()=>animModal()],
     ['Clear my arrows',()=>{ G.me.arrows=[]; changed(); }], ['Shortcuts and help',()=>helpModal()], ['Take the tour',()=>tourStart('table')], ["What's new",()=>newsModal()], ['Send feedback',()=>openFeedback()], '-',
     ['Leave the table',()=>confirmBox('Leave this table?','Your seat is kept on this computer, so you can come back from the front page.',()=>{ save(); location.href=location.pathname+location.search; })] ]);
 }
