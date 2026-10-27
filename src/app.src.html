@@ -205,6 +205,11 @@ body.t90r .pilT{margin:0 calc(var(--cw)*.16)}
 .badge.tok{left:4%;top:4%;border-color:var(--dim);color:var(--dim)}
 .kcs{position:absolute;left:3%;top:19%;max-height:74%;display:flex;flex-direction:column;flex-wrap:wrap;gap:calc(var(--cw)*.02);pointer-events:none}
 .kc.gr{border:1.5px solid var(--brass);background:#1d1606}
+.kc.won{--wg:#5fb8ff;box-shadow:0 0 0 1.5px var(--wg),0 0 calc(var(--cw)*.07) calc(var(--cw)*.035) var(--wg),0 0 calc(var(--cw)*.16) calc(var(--cw)*.05) var(--wg);animation:wglow 2.4s ease-in-out infinite}
+.kc.won.walk-Plains{--wg:#fff2b8}.kc.won.walk-Island{--wg:#4fb3ff}.kc.won.walk-Swamp{--wg:#b9a9c9}.kc.won.walk-Mountain{--wg:#ff6a4a}.kc.won.walk-Forest{--wg:#4fd47a}
+.kc.won.walk-Swamp{background:#1a1420}
+@keyframes wglow{50%{box-shadow:0 0 0 1.5px var(--wg),0 0 calc(var(--cw)*.1) calc(var(--cw)*.05) var(--wg),0 0 calc(var(--cw)*.24) calc(var(--cw)*.08) var(--wg)}}
+body.nomo .kc.won{animation:none}
 .kc{width:calc(var(--cw)*.2);height:calc(var(--cw)*.2);border-radius:50%;background:#000;border:1px solid #fff;display:grid;place-items:center;box-shadow:0 1px 3px #000c;flex:none}
 .kc svg{width:74%;height:74%;fill:#fff;display:block}
 .badge.ctr.nm{display:flex;align-items:center;gap:calc(var(--cw)*.03);padding:1px 7px 1px 1px;border-color:#fff;color:#fff;background:#000}
@@ -536,10 +541,11 @@ body.nomo *{transition:none!important}
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.50';
+const VERSION = 'v4.51';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.51','Oct 27',"Landwalk shows on the card: islandwalk, swampwalk, forestwalk, mountainwalk and plainswalk each have their own chip, and it glows in the land's colour while the defending player controls that land type, so you can see at a glance that the creature can't be blocked."],
   ['v4.50','Oct 27',"Tapped cards of different kinds now overlap from left to right, so each card's name stays visible on top of its neighbour, as piles of identical cards already did. Double-faced cards listed by their full name (Glasspool Mimic // Glasspool Shore) no longer get the violet \"not learned yet\" ring."],
   ['v4.49','Oct 27',"An Aura now asks for its target when you cast it and resolves attached to it. An Aura or Equipment on the other player's permanent puts a teal banner on both cards (ENCHANTED BY … / ENCHANTING …), and pointing at either one lights up both. In the deck editor, each card and its − / + / side bar sit in one frame, and mana costs show as mana symbols."],
   ['v4.48','Oct 27',"Merfolk work. Lords pump their Merfolk and give islandwalk (Lord of Atlantis pumps everyone's), and islandwalk counts lands that Harbinger of the Seas or Tide Shaper made into Islands. Namor's power counts your Merfolk and he makes tokens for blue symbols. Chalice of the Void now counters matching spells by itself. Also new: Aether Vial, Disrupting Shoal, Mindspring Merfolk's draw, Hydroelectric Specimen taking a spell's target, Glasspool Mimic, Unable to Scream, and Mutavault with every creature type."],
@@ -1410,8 +1416,20 @@ const ICON={
   charge:'<rect x="3" y="7.500" width="15.500" height="9" rx="1.800" fill="none" stroke="#fff" stroke-width="2"/><rect x="19.500" y="10" width="2" height="4" rx=".6"/><path d="M11.800 8.800l-3.300 3.700h2.300l-1 2.700 3.500-3.900h-2.300z"/>',
   time:'<circle cx="12" cy="12" r="8" fill="none" stroke="#fff" stroke-width="2"/><path d="M12 7.300V12l3.200 2" stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none"/>',
   oil:'<path d="M12 3s6.500 7 6.500 11.700a6.500 6.500 0 0 1-13 0C5.500 10 12 3 12 3z"/>',
-  islandwalk:'<path d="M3 9.500c2-2 4-2 6 0s4 2 6 0 4-2 6 0M3 15c2-2 4-2 6 0s4 2 6 0 4-2 6 0" stroke="#fff" stroke-width="2.400" stroke-linecap="round" fill="none"/>'
+  islandwalk:'<path d="M3 9.500c2-2 4-2 6 0s4 2 6 0 4-2 6 0M3 15c2-2 4-2 6 0s4 2 6 0 4-2 6 0" stroke="#fff" stroke-width="2.400" stroke-linecap="round" fill="none"/>',
+  plainswalk:'<circle cx="12" cy="12" r="4.200"/><path d="M12 2.500v3M12 18.500v3M2.500 12h3M18.500 12h3M5.300 5.300l2.100 2.100M16.600 16.600l2.100 2.100M5.300 18.700l2.100-2.100M16.600 7.400l2.100-2.100" stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none"/>',
+  swampwalk:'<path d="M3 19c2-1.500 4-1.500 6 0s4 1.500 6 0 4-1.500 6 0M8 16.500V8.500M16 16.500V10" stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none"/><rect x="6.500" y="3.500" width="3" height="7" rx="1.500"/><rect x="14.500" y="5.500" width="3" height="6.500" rx="1.500"/>',
+  mountainwalk:'<path d="M2.500 19.500L9.200 6.500l3.600 6.200 2.400-3.400 6.300 10.200z"/>',
+  forestwalk:'<path d="M12 2.500l6 8h-3.200l4.200 5.700h-6v3.800h-2v-3.800H5l4.200-5.700H6z"/>'
 };
+/* keyword chips on a battlefield card: keyword counters, keywords granted by other cards (gold ring), and printed landwalk (v4.51).
+   A landwalk chip glows in its land's colour while the defending player controls a land of that type (walkOn): the creature can't be blocked. */
+const WALKT={plainswalk:'Plains', islandwalk:'Island', swampwalk:'Swamp', mountainwalk:'Mountain', forestwalk:'Forest'};
+const walkOn = (k, mine) => !!WALKT[k] && !!G.opp && controlsType(mine ? oppId() : G.myId, WALKT[k]);
+function kcsHTML(c, mine){ const gk=grantedKw(c, mine?G.myId:oppId()), kw=c.kw||[], pw=kwLines(c).filter(k=>WALKT[k] && !kw.includes(k) && !gk.some(o=>o.k===k));
+  if(!kw.length && !gk.length && !pw.length) return '';
+  const chip=(k, cls, tip)=>{ const w=WALKT[k], on=w && walkOn(k, mine); return `<span class="kc${cls}${w?' walk-'+w:''}${on?' won':''}" title="${esc(tip+(on ? ` — ${mine?'your opponent controls':'you control'} a${/^[AEIOU]/.test(w)?'n':''} ${w}, so it can't be blocked` : ''))}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[k]||''}</svg></span>`; };
+  return `<span class="kcs">${kw.map(k=>chip(k, '', k+' counter')).join('')}${gk.filter(o=>!kw.includes(o.k)).map(o=>chip(o.k, ' gr', `${o.k} (${o.src})`)).join('')}${pw.map(k=>chip(k, '', k)).join('')}</span>`; }
 const kcHTML = name => `<span class="kc" title="${esc(name)} counter"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[name]||''}</svg></span>`;
 const classCut = (c, t) => { if(!/\bClass\b/.test(cdata(c).t||'')) return t; const lv=c.lvl||1, out=[]; let cur=1;
   for(const l of t.split('\n')){ const m=l.match(/^(?:\{[^}]+\})+: Level (\d+)\s*$/i); if(m){ cur=+m[1]; if(cur===lv+1) out.push(l); continue; } if(cur<=lv) out.push(l); } return out.join('\n'); };
@@ -6022,7 +6040,7 @@ function cardHTML(c, z, mine, cls=''){
   let extra = (heldN ? `<span class="badge held">holds ${heldN}</span>` : '') + (c.wp && z==='bf' && !backUp ? WARP_BAN(c) : '');
   const cast = mine ? G.me.cast : (G.opp && G.opp.cast); let dpt=null;
   let b = (pw ? `<span class="loy"><b>${c.c||0}</b></span>` : c.c ? (backUp ? `<span class="badge ctr">${c.c}</span>` : counterBadge(c, cr)) : '')
-    + (z==='bf' && !backUp ? (gk=>((c.kw&&c.kw.length)||gk.length) ? `<span class="kcs">${(c.kw||[]).map(kcHTML).join('')}${gk.filter(o=>!(c.kw||[]).includes(o.k)).map(o=>`<span class="kc gr" title="${esc(o.k)} (${esc(o.src)})"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[o.k]||''}</svg></span>`).join('')}</span>` : '')(grantedKw(c, mine?G.myId:oppId())) : '')
+    + (z==='bf' && !backUp ? kcsHTML(c, mine) : '')
     + (z==='bf' && !backUp && (cls+=(dpt=dynPT(c, mine?G.myId:oppId())) ? ' hasdpt' : '', dpt) ? `<span class="badge dpt${dpt.t<=0 && !dpt.printed?' dead':''}" title="Current power/toughness">${dpt.p}/${dpt.t}</span>` : '')
     + (z==='bf' && !backUp && spellTracker(c) ? `<span class="badge spl" title="Instants and sorceries cast this turn">Spells ${(cast&&cast.is)||0}</span>` : '') + (z==='st' && c.xr ? '<span class="badge xa">Exiled after</span>' : '') + (z==='bf' && c.gainLtb ? `<span class="badge gl" title="When this creature leaves the battlefield, ${esc(c.gainLtb)}">Leaves: ${esc(c.gainLtb.replace(/^target opponent draws a card\.?$/i,'opponent draws').replace(/\.$/,''))}</span>` : '') + (z==='st' && !backUp && (c.x!=null || (c.ab && c.ab.x!=null)) ? `<span class="badge xv">X=${c.x!=null?c.x:c.ab.x}</span>` : '') + (z==='st' && !backUp && c.ovl ? '<span class="badge mdb">Overload</span>' : '') + (z==='st' && !backUp && c.md && c.md.length ? `<span class="badge mdb">${c.md.length>1?'Modes':'Mode'} ${c.md.join('+')}</span>` : '') + (z==='bf' && (c.tp||c.tt) ? `<span class="badge tmp" title="Until end of turn">${boostText(c)}</span>` : '') + (z==='bf' && (c.exert || c.stun>0) ? `<span class="badge zz">${c.exert?'Zzz':''}${c.exert&&c.stun>0?' · ':''}${c.stun>0?'Stun '+c.stun:''}</span>` : '') + (c.ch ? `<span class="badge chap">Chapter ${roman(c.ch.n)}</span>` : c.pact ? '<span class="badge chap pact">Pact</span>' : c.ab ? `<span class="badge chap">${c.ab.gyall||c.ab.trig||c.ab.flret||c.ab.dealt||c.ab.bdraw||c.ab.etb||c.ab.ph||c.ab.tr||c.ab.rbc?'Trigger':'Ability'}</span>` : c.imp && (z==='bf'||z==='st') ? '<span class="badge tok" style="border-color:var(--brass);color:var(--brass)">impending</span>' : c.anim ? '<span class="badge tok" style="border-color:var(--brass);color:var(--brass)">creature</span>' : c.tok ? '<span class="badge tok">token</span>' : c.made ? '<span class="badge tok">created</span>' : '') + (c.fd && c.fdk && z==='bf' ? `<span class="badge note" style="border-color:var(--brass);color:var(--brass);right:4%">${esc(c.fdk)} · 2/2</span>` : c.note ? `<span class="badge note">${esc(c.note)}</span>` : '')
     + (z==='bf' && c.o && c.o !== (mine?G.myId:oppId()) ? '<span class="badge ctl">borrowed</span>' : '');
