@@ -509,10 +509,11 @@ body.nomo *{transition:none!important}
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.43';
+const VERSION = 'v4.44';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.44','Oct 27',"Landfall triggers that target (Hedron Crab's \"target player mills three cards\") now ask for their target as soon as they go on the stack. With several such triggers at once, the arrow moves on to the next one; Esc means no target. Fractured Sanity no longer mills four extra cards when cast (that's only when you cycle it)."],
   ['v4.43','Oct 27',"Tapped cards now turn sideways (90°) unless you choose otherwise. Animations stay on even when your computer is set to reduce motion; the menu has a new Animations choice (on, off, or follow my computer)."],
   ['v4.42','Oct 27',"A library search always ends with a shuffle, even if you close its window (Practice's searches too). Field of Ruin's search window has no Close button: you take a basic land or fail to find, and the library is shuffled either way."],
   ['v4.41','Oct 27',"Surgical Extraction and Extirpate now resolve step by step: you look through the owner's graveyard, then hand, then library, and click the copies to exile (they glow gold), with a notepad offer for the rest of the hand. Searches can show your whole library. Field of Ruin's search can't be skipped (Fail to find instead), and Archive Trap's free cast lights up only after an opponent has searched this turn."],
@@ -1251,7 +1252,7 @@ function boost(c, p, t){ c.tp=(c.tp||0)+p; c.tt=(c.tt||0)+t; if(!c.tp && !c.tt){
    exiledQ: Ketramose. oppPhase: "At the beginning of each opponent's upkeep / draw step" (Abhorrent Oculus, The Theorist). */
 const embSrc = e => ({id:'emb', cu:{n:`${e.src} emblem`, t:'Emblem', o:e.o, img:''}});
 function trigPush(x, txt, label){ const d=cdata(x), sn=d.n.split(',')[0]; const t=mk(null,{tok:true, ts:Date.now(), ab:{id:x.id, tr:true}, cu:{n:`${sn}: ${label||'trigger'}`, t:'Triggered ability', o:txt.replace(/^([a-z])/, z=>z.toUpperCase()), img:d.img||''}}); G.me.st.push(t);
-  if((needsTarget(txt) || /\btarget opponent\b/i.test(txt)) && !G.mode){ G.mode={type:'arrow', from:t.id}; toast(`${sn}: click its target (Esc for none).`); } return sn; }
+  if(needsTarget(txt) || /\btarget opponent\b/i.test(txt)){ t.ab.tq=1; if(!G.mode){ G.mode={type:'arrow', from:t.id, tq:1}; toast(`${sn}: click its target (Esc for none).`); } } return sn; }
 const trigSrcs = () => [...G.me.bf.filter(x=>!x.fd && !x.imp && (x.k||x.cu)), ...(G.me.emb||[]).map(embSrc)];
 const trigLines = x => { const own=(x.id==='emb' ? x.cu.o : noRemind(x)).split('\n').map(l=>l.trim()).filter(Boolean); if(x.id==='emb' || !isCreature(x)) return own;
   const extra=[]; for(const e of G.me.bf){ if(e.att!==x.id || e.fd || (!e.k && !e.cu)) continue; for(const g of (frontText(e)||'').matchAll(/(?:^|\n)Equipped creature[^"\n]*? has "([^"]+)"/gi)){   // "Equipped creature … has \"Whenever …\""
@@ -1750,7 +1751,8 @@ const priestOut = () => { for(const bf of [G.me.bf, (G.opp&&G.opp.bf)||[]]) for(
 /* Landfall: "Whenever a land you control enters, …" on my permanents → a trigger on my stack for each */
 function landfall(land){ const out=[];
   for(const x of G.me.bf){ if(x.fd || (!x.k && !x.cu)) continue; const m=(frontText(x)||'').match(/(?:^|\n)(?:Landfall\s*[—–-]\s*)?Whenever a land (?:you control )?enters(?: the battlefield)?(?: under your control)?, ([^\n]+)/i); if(!m) continue; const d=cdata(x), sn=d.n.split(',')[0];
-    G.me.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:x.id, tr:true}, cu:{n:`${sn}: landfall`, t:'Triggered ability', o:m[0].trim(), img:d.img||''}})); out.push(sn); }
+    const tq=needsTarget(m[1]) || /\btarget opponent\b/i.test(m[1]), t=mk(null,{tok:true, ts:Date.now(), ab:{id:x.id, tr:true, tq:tq?1:0}, cu:{n:`${sn}: landfall`, t:'Triggered ability', o:m[0].trim(), img:d.img||''}}); G.me.st.push(t); out.push(sn);
+    if(tq && !G.mode){ G.mode={type:'arrow', from:t.id, tq:1}; toast(`${sn}: click its target (Esc for none).`); } }   // v4.44: Hedron Crab's "target player mills three" asks for its target
   if(out.length) log(`${cname(land)} enters: landfall trigger${out.length>1?'s':''} for ${out.join(', ')} go${out.length>1?'':'es'} on the stack.`); }
 /* abilities given to planeswalkers: Planeswalkers you control have "[−10]: …" (Avatar of Burgeoning Echoes) */
 function grantedPwAbils(c){ if(!isPW(c) || !G.me.bf.includes(c)) return []; const out=[];
@@ -2593,6 +2595,7 @@ async function simpleEffects(c, text, srcId){
     t=t.replace(/\s*Then if this is the (first|second|third|fourth) time this ability has resolved this turn, ([^\n]+)/i, (z,o,b)=>ORD[o.toLowerCase()]===k ? ' '+b[0].toUpperCase()+b.slice(1) : '');
     text=t; }
   { const br=String(text||'').match(/look at the top (\w+) cards of your library\. Then you may sacrifice a creature\. If you do, you may put a creature card with mana value X or less from among those cards onto the battlefield, where X is (\d+) plus the sacrificed creature(?:'|’)s mana value\. Put the rest on the bottom of your library in a random order\.?/i); if(br){ waited=true; await ritualWin(NUMW2[br[1].toLowerCase()]||+br[1]||7, +br[2], by); text=text.replace(br[0],' '); } }
+  if(!c.ab && /When(?:ever)? you cycle/i.test(text||'')) text=String(text).replace(/(^|\n)\s*When(?:ever)? you cycle(?: or discard)? (?:this card|[^,\n]+), [^\n]*/gi, '$1');   // v4.44: a spell's own cycling trigger (Fractured Sanity's "mills four") is not part of casting it
   if(/If this spell wasn(?:'|’)t cast from your hand, draw two cards instead/i.test(text||'')){ text = c.fh ? String(text).replace(/If this spell wasn(?:'|’)t cast from your hand, draw two cards instead\.?/i,' ') : String(text).replace(/Draw a card\.\s*If this spell wasn(?:'|’)t cast from your hand, draw two cards instead\.?/i,'Draw two cards. (It wasn\'t cast from the hand.)'); }
   if(/If the gift was promised, instead /i.test(text||'')){ text=String(text).replace(/([^.\n]+)\.\s*If the gift was promised, instead ([^.]+)\./i, (z,a,b)=>c.gift ? b[0].toUpperCase()+b.slice(1)+'.' : a+'.'); }
   if(c.gift && c.gkind && G.opp){ const gk=String(c.gkind).trim().toLowerCase(), gt = gk==='tapped fish' ? 'Create a tapped 1/1 blue Fish creature token.' : gk==='food' ? 'Create a Food token.' : gk==='treasure' ? 'Create a Treasure token.' : null;
@@ -4393,7 +4396,8 @@ function blinkAuto(src, b){ const d=cdata(src), sn=srcName(src);
 /* v4.17: an automatic trigger waiting for its target keeps asking (the prompt comes back after other clicks, attack arrows or other triggers)
    until a target is clicked, or NO TARGET / Esc is chosen. */
 const autoWait = () => G.me.st.find(x=>x.ab && x.ab.auto && !x.ab.nt && !(x.bt && x.bt.length));
-function autoArm(){ if(G.mode || G.atkSel || PAY || !$('#modal').hidden || (G.turn && G.turn.cs==='blk' && pblockStep())) return; const w=autoWait(); if(w) G.mode={type:'arrow', from:w.id, auto:1}; }
+function autoArm(){ if(G.mode || G.atkSel || PAY || !$('#modal').hidden || (G.turn && G.turn.cs==='blk' && pblockStep())) return; { const q=G.me.st.find(x=>x.ab && x.ab.tq && !x.ab.nt && !G.me.arrows.some(a=>a.a===x.id)); if(q){ G.mode={type:'arrow', from:q.id, tq:1}; return; } }   // v4.44: the next trigger still waiting for its target (two Hedron Crabs)
+  const w=autoWait(); if(w) G.mode={type:'arrow', from:w.id, auto:1}; }
 function autoNone(id){ const f=find(id); if(f && f.c.ab){ f.c.ab.nt=1; log(`${srcName(f.c)}'s trigger has no target.`); } if(G.mode && G.mode.from===id) G.mode=null; changed(); }
 const blinkTrig = c => { const b=blinkOf(frontText(c)); return b && (b.when==='enters' || b.when==='attacks') ? b : null; };
 const flBox = (ex, mine) => { const cs=(ex||[]).filter(c=>c.fl); return cs.length ? `<div class="playbox flx"><h6>EXILED UNTIL THE NEXT END STEP</h6><div>${cs.map(c=>cardHTML(c,'ex',mine)).join('')}</div></div>` : ''; };
@@ -6768,7 +6772,7 @@ $('#diceBtn').onclick=e=>{ const r=e.currentTarget.getBoundingClientRect(), roll
   menu(r.left, r.bottom+4, [['Roll a d20',roll(20)],['Roll a d6',roll(6)],['Flip a coin',()=>log(`${G.me.name} flips a coin: ${Math.random()<.5?'heads':'tails'}.`)]]); };
 $('#chat').onkeydown=e=>{ e.stopPropagation(); if(e.key==='Enter' && e.target.value.trim()){ const text=`${G.me.name}: ${e.target.value.trim()}`; addLog(text,'cm'); send({t:'log', text, chat:1}); e.target.value=''; } };
 document.addEventListener('keydown', e=>{
-  if(e.key==='Escape'){ if(PAY && !G.mode && $('#modal').hidden){ payAction('cancel'); closeMenu(); return; } if(G.mode && G.mode.type==='atktgt'){ const md=G.mode; G.mode=null; atkTarget(md, oppId()); closeMenu(); return; } if(G.mode && G.mode.auto){ autoNone(G.mode.from); closeMenu(); return; } if(G.mode && (G.mode.type==='pblock' || G.mode.type==='pblock2')){ G.mode=null; render(); closeMenu(); return; } if(G.atkSel && !G.mode){ G.atkSel=null; render(); closeMenu(); return; } if(G.mode){ if(!tgtNextSlot(G.mode, true)) G.mode=null; render(); } closeMenu(); if(!$('#modal')._noClose) closeModal(); return; }
+  if(e.key==='Escape'){ if(PAY && !G.mode && $('#modal').hidden){ payAction('cancel'); closeMenu(); return; } if(G.mode && G.mode.type==='atktgt'){ const md=G.mode; G.mode=null; atkTarget(md, oppId()); closeMenu(); return; } if(G.mode && G.mode.auto){ autoNone(G.mode.from); closeMenu(); return; } if(G.mode && G.mode.tq){ if(!tgtNextSlot(G.mode, true)){ const f=find(G.mode.from); if(f && f.c.ab && !G.me.arrows.some(a=>a.a===f.c.id)){ f.c.ab.nt=1; const sn=String(srcName(f.c)), k=sn.indexOf(': '); log(k>0 ? `${sn.slice(0,k)}'s ${sn.slice(k+2)} has no target.` : `${sn}'s trigger has no target.`); } G.mode=null; } render(); closeMenu(); return; } if(G.mode && (G.mode.type==='pblock' || G.mode.type==='pblock2')){ G.mode=null; render(); closeMenu(); return; } if(G.atkSel && !G.mode){ G.atkSel=null; render(); closeMenu(); return; } if(G.mode){ if(!tgtNextSlot(G.mode, true)) G.mode=null; render(); } closeMenu(); if(!$('#modal')._noClose) closeModal(); return; }
   if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='z' && !/INPUT|TEXTAREA/.test(document.activeElement.tagName) && !$('#table').hidden && $('#modal').hidden){ e.preventDefault(); undo(); return; }
   if(/INPUT|TEXTAREA/.test(document.activeElement.tagName) || $('#table').hidden || !$('#modal').hidden || e.ctrlKey || e.metaKey || e.altKey) return;
   const k=e.key.toLowerCase();
