@@ -517,10 +517,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 </script>
 <script>
 "use strict";
-const VERSION = 'v4.41';
+const VERSION = 'v4.42';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.42','Oct 27',"A library search always ends with a shuffle, even if you close its window (Practice's searches too). Field of Ruin's search window has no Close button: you take a basic land or fail to find, and the library is shuffled either way."],
   ['v4.41','Oct 27',"Surgical Extraction and Extirpate now resolve step by step: you look through the owner's graveyard, then hand, then library, and click the copies to exile (they glow gold), with a notepad offer for the rest of the hand. Searches can show your whole library. Field of Ruin's search can't be skipped (Fail to find instead), and Archive Trap's free cast lights up only after an opponent has searched this turn."],
   ['v4.40','Oct 26',"With the 90° tap, a pile of tapped identical lands or tokens now overlaps the other way: the top card is on the left, and each card underneath shows its name and art on the right."],
   ['v4.39','Oct 26',"In practice games, when Practice has to choose (discard a card for Ozai's Cruelty, Archon of Cruelty or Geier Reach Sanitarium, put a spell on top or bottom), you choose for it once your own choices are done, and the choice now actually happens."],
@@ -1924,7 +1925,7 @@ async function topTutor(by){ const m=G.me; const p=m.lib.length ? await pickP(`$
   if(p){ const i=m.lib.findIndex(x=>x.id===p.id); if(i>=0){ const [x]=m.lib.splice(i,1); m.lib.unshift(x); } } G.noUndo=true; log(`${by}: ${m.name} searches their library, shuffles and puts a card on top.`); changed(); }
 function oppSearchAsk(msg){ const by=String(msg.by||'An effect').slice(0,80), who=String(msg.who||'Opponent').slice(0,40), sp=searchSpec(String(msg.text||'').slice(0,300)); if(!sp) return;
   const must=!!msg.must; if(DSW){ const d=G.me; setTimeout(()=>dummySearchAsk(d, sp, by, who, must), 0); return; }
-  if(must){ setTimeout(()=>searchGate(()=>libSearch(sp, `${who}'s ${by}`, null), by), 0); return; }   // v4.41: "each player searches" (Field of Ruin) is not optional: the library opens, and Fail to find is the way out   // v4.38: Practice was told it may search; the window opens after the swap, so it must search Practice's library, not mine
+  if(must){ setTimeout(()=>searchGate(()=>libSearch(sp, `${who}'s ${by}`, null, {must:1}), by), 0); return; }   // v4.41: "each player searches" (Field of Ruin) is not optional: the library opens, and Fail to find is the way out   // v4.38: Practice was told it may search; the window opens after the swap, so it must search Practice's library, not mine
   const what=`a${/^[aeiou]/i.test(sp.desc)?'n':''} ${sp.desc} card${sp.basicType?' with a basic land type':''}`;
   setTimeout(()=>modal(`${who}'s ${by}`, `<span class="hint">You may search your library for ${esc(what)}, put it onto the battlefield${sp.tapped?' tapped':''}, then shuffle.</span>`,
     [["Don't search",()=>{ closeModal(); log(`${by}: ${G.me.name} doesn't search their library.`); },'ghost'], ['Search my library',()=>{ closeModal(); searchGate(()=>libSearch(sp, by, null), by); },'go']]), 0); }
@@ -1933,14 +1934,14 @@ function oppSearchAsk(msg){ const by=String(msg.by||'An effect').slice(0,80), wh
 function dummySearchAsk(d, sp, by, who, must){ if(!d || !d.dummy || G.opp!==d) return; const n = typeof sp.n==='number' ? sp.n : 1;
   const cs=(d.lib||[]).filter(c=>matchesDesc(c, sp.desc) && (!sp.basicType || BASICS.some(t=>new RegExp('\\b'+t+'\\b').test(faceTypeOf(c,0))))), seen=new Set(), shown=cs.filter(c=>!seen.has(cdata(c).n) && seen.add(cdata(c).n));
   const what=`${n>1?'up to '+n+' ':'a'+(/^[aeiou]/i.test(sp.desc)?'n ':' ')}${sp.desc} card${n>1?'s':''}`, sel=[]; let full=false;
-  const fin=(ids, skip)=>{ closeModal(); const names=[]; for(const id of ids){ const c=d.lib.find(x=>x.id===id); if(!c) continue; d.lib.splice(d.lib.indexOf(c),1); Object.assign(c, {tap:!!sp.tapped, atk:false, c:0, ent:newEnt(), sick:false}); d.bf.push(c); names.push(cname(c)); }
+  let done=false; const fin=(ids, skip)=>{ if(done) return; done=true; closeModal(); const names=[]; for(const id of ids){ const c=d.lib.find(x=>x.id===id); if(!c) continue; d.lib.splice(d.lib.indexOf(c),1); Object.assign(c, {tap:!!sp.tapped, atk:false, c:0, ent:newEnt(), sick:false}); d.bf.push(c); names.push(cname(c)); }
     if(!skip){ shuffle(d.lib); G.oppSrch=G.turn.n||0; }   // v4.41: a search, found or not, counts (Archive Trap)
     dummySync(); log(names.length ? `${by}: Practice searches its library, puts ${names.join(', ')} onto the battlefield${sp.tapped?' tapped':''}, then shuffles.` : skip ? `${by}: Practice doesn't search its library.` : `${by}: Practice searches its library, finds no ${sp.desc} card, then shuffles.`); changed(); };
   if(!d.lib || !d.lib.length){ log(`${by}: Practice has no library to search.`); return; }
   const go=()=>{ if(!$('#modal').hidden){ setTimeout(go, 350); return; }
     const shownHTML=()=>shown.map(c=>cardHTML(c,'lib',true)).join('');
     const el=modal(`${who}'s ${by}: Practice ${must?'searches':'may search'}`, `<span class="hint">Practice ${must?'searches':'may search'} its library for ${esc(what)}, put${must?'s':''} ${n>1?'them':'it'} onto the battlefield${sp.tapped?' tapped':''}, then shuffle${must?'s':''}. You choose for it.${shown.length ? '' : ` There is no ${esc(sp.desc)} card in Practice's library.`}</span><div class="grid" id="dsGrid">${shownHTML()}</div>`,
-      [must ? ['Fail to find (shuffle)',()=>fin([]),'ghost'] : ["Practice doesn't search",()=>fin([], true),'ghost'], ...(must ? [] : [['Fail to find (shuffle)',()=>fin([]),'ghost']]), ['Look through its whole library',()=>toggle(),'ghost dsall'], ...(shown.length ? [['Put it onto its battlefield',()=>{ if(sel.length) fin(sel); },'go']] : [])], {wide:true, noClose:must, onClose:()=>{}});
+      [must ? ['Fail to find (shuffle)',()=>fin([]),'ghost'] : ["Practice doesn't search",()=>fin([], true),'ghost'], ...(must ? [] : [['Fail to find (shuffle)',()=>fin([]),'ghost']]), ['Look through its whole library',()=>toggle(),'ghost dsall'], ...(shown.length ? [['Put it onto its battlefield',()=>{ if(sel.length) fin(sel); },'go']] : [])], {wide:true, noClose:must, onClose:()=>fin([])});   // v4.42: closing it after seeing the library is a search that found nothing: shuffle
     const btn=$('footer button.go', el), upd=()=>{ if(btn){ btn.disabled=!sel.length; btn.textContent = sel.length ? `Put ${sel.map(id=>cname(cs.find(x=>x.id===id))).join(', ')} onto its battlefield` : (n>1?`Choose up to ${n}`:'Choose one'); } };
     const paint=()=>{ const g=$('#dsGrid', el); if(!g) return; g.querySelectorAll('.card').forEach(x=>{ const c=cs.find(y=>y.id===x.dataset.id); const on = full ? sel.includes(x.dataset.id) : !!c && sel.some(i=>cdata(cs.find(y=>y.id===i)).n===cdata(c).n); x.classList.toggle('sel', on); }); upd(); };
     function toggle(){ full=!full; const g=$('#dsGrid', el), b=$('footer button.dsall', el); g.classList.toggle('lfan', full); g.innerHTML = full ? fanHTML(d.lib, x=>cs.includes(x)) : shownHTML(); if(full) fanWire(g); if(b) b.textContent = full ? 'Show only the cards it can find' : 'Look through its whole library'; paint(); }
@@ -2424,20 +2425,20 @@ async function landEnters(id){ const f=find(id); if(!f || f.z!=='bf') return; co
     if(ok){ log(`${G.me.name} beholds ${cname(src)}${G.me.hand.includes(src)?' (revealed from their hand)':''}; ${nm} enters untapped.`); } else { g.c.tap=true; log(`${nm} enters tapped${src?'':' (no '+w+' to behold)'}.`); enteredTapped(g.c); } changed(); return; }
   if(le.kind==='unless'){ let ok=judgeUnless(c, le.cond); if(ok==null) ok=await yesNo(faceName(c,c.flip?1:0), `It enters tapped unless ${le.cond}. Is that true?`, 'Yes: untapped', 'No: tapped'); const g=find(id); if(!g || g.z!=='bf') return;
     if(!ok){ g.c.tap=true; setTimeout(()=>enteredTapped(g.c),0); log(`${nm} enters tapped (${le.cond.replace(/^you /,G.me.name+' doesn\'t ').replace(/^a player /,'no player ')}).`); } else log(`${nm} enters untapped (${le.cond}).`); changed(); } }
-function libSearch(sp, by, x){
+function libSearch(sp, by, x, o={}){ let done=false;   // v4.42: once a search starts the library is shuffled, however the window closes
   const m=G.me, mv = sp.mv==='X' ? x : sp.mv!=null ? +sp.mv : null, n = sp.n==='X' ? (x||0) : sp.n;
   const ptN=(c,k)=>{ const v=parseInt(((cdata(c).pt||'').split('/')[k==='power'?0:1]||''),10); return isNaN(v) ? 0 : v; };
   const cs=m.lib.filter(c=>matchesDesc(c, sp.desc) && (!sp.pt || ptN(c, sp.pt.k)<=sp.pt.n) && (mv==null || (sp.eq ? manaValue(c)===mv : manaValue(c)<=mv)) && (!sp.basicType || BASICS.some(t=>new RegExp('\\b'+t+'\\b').test(faceTypeOf(c,0))))).sort((a,b)=>cname(a).localeCompare(cname(b)));
   const what=`${sp.desc||''} card${mv!=null?` with mana value ${mv}${sp.eq?'':' or less'}`:''}${sp.pt?` with ${sp.pt.k} ${sp.pt.n} or less`:''}`.trim(), sel=new Set(), cnt={};
   for(const c of cs) cnt[cdata(c).n]=(cnt[cdata(c).n]||0)+1;
   const shown = n===1 ? cs.filter((c,i)=>cs.findIndex(x=>cdata(x).n===cdata(c).n)===i) : cs;   // picking one: a tile per name, with how many copies
-  const fin=(ids, how)=>{ closeModal(); const names=[]; let paid=0;
+  const fin=(ids, how)=>{ if(done) return; done=true; closeModal(); const names=[]; let paid=0;
     for(const id of ids){ const f=find(id); if(f && f.z==='lib'){ const le=sp.dest==='bf' ? landEntry(f.c) : null, tap = sp.tapped || how==='tapped' || (le && le.kind==='tapped') || (le && le.kind==='shock' && how!=='pay');
         if(how==='pay' && le && le.kind==='shock' && !sp.tapped){ m.life-=le.life; paid+=le.life; }
         names.push(cname(f.c)+(sp.dest==='bf' && tap && !sp.tapped ? ' (tapped)' : '')); foundMove(id, sp.dest, {silent:true, tap}); if(sp.ctr){ const g=find(id); if(g && g.z==='bf'){ g.c.c=(g.c.c||0)+1; names[names.length-1]+=' with an additional +1/+1 counter'; } } } }
     shuffleLib(true); log(names.length ? `${by}: ${m.name} searches their library, puts ${names.join(', ')} ${sp.dest==='bf' ? 'onto the battlefield'+(sp.tapped?' tapped':'') : 'into their hand'}${paid?`, paying ${paid} life (now ${m.life})`:''}, then shuffles.` : `${by}: ${m.name} searches their library, finds no ${what}, then shuffles.`); changed(); };
   const el=modal(`${by}: ${n>1?'up to '+n:'a'}${/^[aeiou]/i.test(what)&&n===1?'n':''} ${what}${n>1?'s':''}`, `<span class="hint">Click ${n>1?'up to '+n+' cards':'the card'} to put ${sp.dest==='bf' ? 'onto the battlefield'+(sp.tapped?' tapped':'') : 'into your hand'}. Your library is shuffled afterwards.</span>${cs.length ? '' : `<span class="hint"> There is no ${esc(what)} in your library.</span>`}<div class="grid" id="lsGrid">${shownHTML()}</div>`,
-    [['Fail to find (shuffle)',()=>fin([]),'ghost'], ['Look through the whole library',()=>lsToggle(),'ghost lsall'], ['Put onto the battlefield tapped',()=>fin([...sel],'tapped'),'alt'], ['Choose',()=>fin([...sel], el._how),'go']], {wide:true});
+    [['Fail to find (shuffle)',()=>fin([]),'ghost'], ['Look through the whole library',()=>lsToggle(),'ghost lsall'], ['Put onto the battlefield tapped',()=>fin([...sel],'tapped'),'alt'], ['Choose',()=>fin([...sel], el._how),'go']], {wide:true, noClose:!!o.must, onClose:()=>fin([])});
   // v4.41 (Ben): while searching you may look at the whole library; it is laid out in its order, the cards that can't be chosen greyed
   function shownHTML(){ return shown.map(c=>n===1 && cnt[cdata(c).n]>1 ? `<span class="cewrap" style="position:relative">${cardHTML(c,'gy',true)}<span class="cemv">×${cnt[cdata(c).n]} in library</span></span>` : cardHTML(c,'gy',true)).join(''); }
   let full=false; function lsToggle(){ full=!full; const g=$('#lsGrid'), b=$('footer button.lsall', el); if(!g) return; g.classList.toggle('lfan', full); g.innerHTML = full ? fanHTML(m.lib, x=>cs.includes(x)) : shownHTML(); if(full) fanWire(g);
@@ -5064,10 +5065,10 @@ function searchGate(go0, by){ const go=()=>{ if(G.opp) send({t:'srched'}); go0()
 }
 function landSearch(n, by){   // "search your library for up to N land cards, put them onto the battlefield tapped, then shuffle"
   const m=G.me, lands=m.lib.filter(c=>isLand(c)).sort((a,b)=>cname(a).localeCompare(cname(b))), sel=new Set();
-  const fin=ids=>{ closeModal(); const names=[]; for(const id of ids){ const f=find(id); if(f && f.z==='lib'){ names.push(cname(f.c)); foundMove(id,'bf',{silent:true, tap:true}); } }
+  let done=false; const fin=ids=>{ if(done) return; done=true; closeModal(); const names=[]; for(const id of ids){ const f=find(id); if(f && f.z==='lib'){ names.push(cname(f.c)); foundMove(id,'bf',{silent:true, tap:true}); } }
     shuffleLib(true); log(names.length ? `${by}: ${m.name} searches their library, puts ${names.length>1 ? names.slice(0,-1).join(', ')+' and '+names[names.length-1] : names[0]} onto the battlefield tapped, then shuffles.` : `${by}: ${m.name} searches their library, puts no lands onto the battlefield, then shuffles.`); changed(); };
   const el=modal(`${by}: up to ${n} land${n>1?'s':''}`, `<span class="hint">Click up to ${n} land card${n>1?'s':''} to put onto the battlefield tapped. Your library is shuffled afterwards.</span>${lands.length ? `<div class="grid" id="lsGrid">${lands.map(c=>cardHTML(c,'gy',true)).join('')}</div>` : '<span class="hint">There are no land cards in your library.</span>'}`,
-    [['Find none (shuffle)',()=>fin([]),'ghost'], ['Put onto the battlefield',()=>fin([...sel]),'go']], {wide:true});
+    [['Find none (shuffle)',()=>fin([]),'ghost'], ['Put onto the battlefield',()=>fin([...sel]),'go']], {wide:true, onClose:()=>fin([])});
   const goB=$('footer button.go', el), upd=()=>{ goB.disabled=!sel.size; goB.textContent = sel.size ? `Put ${sel.size} onto the battlefield tapped` : 'Put onto the battlefield'; }; upd();
   const g=$('#lsGrid'); if(g) g.onclick=e=>{ const cd=e.target.closest('.card[data-id]'); if(!cd) return; const id=cd.dataset.id; if(sel.has(id)) sel.delete(id); else { if(sel.size>=n) return; sel.add(id); } cd.classList.toggle('sel', sel.has(id)); upd(); };
 }
