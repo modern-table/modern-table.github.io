@@ -174,7 +174,7 @@ body.t90r .pilT{margin:0 calc(var(--cw)*.16)}
 .tnote b{position:absolute;right:-8px;bottom:-6px;background:var(--brass);color:#1b1205;font:800 11px/1 var(--ui);border-radius:99px;padding:2px 5px}
 #tpop{position:fixed;z-index:60}
 .srt{display:flex;flex-direction:column;align-items:center;gap:6px}.srtb{display:flex;gap:4px}.srtb button{font:600 12px var(--ui);padding:3px 8px}.srtb button.on{background:var(--brass);color:#111;border-color:var(--brass)}
-.rv .card.dim,#ltGrid .card.dim,#gytGrid .card.dim,#brGrid .card.dim{opacity:.35;filter:grayscale(.6);cursor:not-allowed}
+.rv .card.dim,#exGrid .card.dim,#ltGrid .card.dim,#gytGrid .card.dim,#brGrid .card.dim{opacity:.35;filter:grayscale(.6);cursor:not-allowed}
 .costbox.up{border-color:#ff8a7a;box-shadow:0 0 6px 1px #ff4a3a88}.chban{position:absolute;left:0;right:0;top:30%;text-align:center;font:800 calc(var(--cw)*.095)/1.15 var(--ui);letter-spacing:.08em;color:#fff;background:#000e;border-top:1px solid #fffa;border-bottom:1px solid #fffa;padding:calc(var(--cw)*.02) 2px;box-shadow:0 2px 6px #0009;pointer-events:none;text-transform:uppercase}
 .costbox{position:absolute;left:3%;top:14%;display:flex;gap:1px;align-items:center;padding:2px 3px;border-radius:3px;background:#000e;border:1px solid var(--brass);box-shadow:0 2px 6px #0009;pointer-events:none}.costbox .ms{width:calc(var(--cw)*.13);height:calc(var(--cw)*.13);font-size:calc(var(--cw)*.075)}
 .badge.tok{left:4%;top:4%;border-color:var(--dim);color:var(--dim)}
@@ -396,6 +396,8 @@ body.t90r .pilT{margin:0 calc(var(--cw)*.16)}
 #zfilter{position:sticky;top:-14px;z-index:3;box-shadow:0 6px 10px var(--felt2)}
 .sheet footer{padding:10px 16px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
 .grid{display:flex;flex-wrap:wrap;gap:8px;--cw:132px;align-items:flex-start}
+.grid.lfan{gap:0;row-gap:14px;--cw:104px;padding:10px 130px 6px 8px;overflow:hidden}.grid.lfan .card{width:104px;margin-right:-62px;transition:transform .14s ease}.grid.lfan .card:last-child{margin-right:0}.grid.lfan .card.dim{opacity:.38;filter:grayscale(.7);cursor:default}
+.grid .card.aura{box-shadow:0 0 0 3px var(--brass),0 0 18px 7px #d9b25fcc}
 .grid .card{width:132px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 .two h4{margin:0 0 6px;font:400 17px var(--display)}
@@ -507,10 +509,11 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.40';
+const VERSION = 'v4.41';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.41','Oct 27',"Surgical Extraction and Extirpate now resolve step by step: you look through the owner's graveyard, then hand, then library, and click the copies to exile (they glow gold), with a notepad offer for the rest of the hand. Searches can show your whole library. Field of Ruin's search can't be skipped (Fail to find instead), and Archive Trap's free cast lights up only after an opponent has searched this turn."],
   ['v4.40','Oct 26',"With the 90° tap, a pile of tapped identical lands or tokens now overlaps the other way: the top card is on the left, and each card underneath shows its name and art on the right."],
   ['v4.39','Oct 26',"In practice games, when Practice has to choose (discard a card for Ozai's Cruelty, Archon of Cruelty or Geier Reach Sanitarium, put a spell on top or bottom), you choose for it once your own choices are done, and the choice now actually happens."],
   ['v4.38','Oct 26',"Demolition Field's menu now shows its destroy ability (it was labelled as a fetch). When Practice may search its library (Price of Freedom, Demolition Field, Field of Ruin), you choose a land from Practice's library for it, instead of searching your own."],
@@ -1034,9 +1037,10 @@ function onMsg(m){
   else if(m.t==='guide'){ const c=G.me.lib[0]; if(!c){ log(`${G.me.name}'s library is empty.`); } else if(isLand(c)){ move(c.id,'hand',{silent:true}); log(`${String(m.by||'Goblin Guide').slice(0,40)}: ${G.me.name} reveals ${cname(c)} from the top of their library. It's a land, so it goes into their hand.`); } else log(`${String(m.by||'Goblin Guide').slice(0,40)}: ${G.me.name} reveals ${cname(c)} from the top of their library. It's not a land, so it stays.`); changed(); }
   else if(m.t==='unless'){ unlessAsk(m); }
   else if(m.t==='stealsp'){ const f=find(m.id); if(f && f.z==='st' && !f.c.tok){ G.noUndo=true; const c=f.c; G.me.st.splice(f.i,1); G.me.arrows=G.me.arrows.filter(a=>a.a!==c.id); send({t:'give', card:c, zone:'st', stolen:1}); log(`${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'').slice(0,60)} gains control of ${cname(c)}.`); changed(); } }
-  else if(m.t==='srched'){ const out=[]; for(const x of trigSrcs()) for(const l of trigLines(x)){ const r=l.match(/^Whenever an opponent searches their library, (.+)$/i); if(r) out.push(trigPush(x, r[1])); } if(out.length){ log(`${G.opp?G.opp.name:'The opponent'} searches their library: ${out.join(', ')} trigger${out.length>1?'s go':' goes'} on ${G.me.name}'s stack.`); changed(); } }
+  else if(m.t==='srched'){ G.oppSrch=G.turn.n||0; const out=[]; for(const x of trigSrcs()) for(const l of trigLines(x)){ const r=l.match(/^Whenever an opponent searches their library, (.+)$/i); if(r) out.push(trigPush(x, r[1])); } if(out.length){ log(`${G.opp?G.opp.name:'The opponent'} searches their library: ${out.join(', ')} trigger${out.length>1?'s go':' goes'} on ${G.me.name}'s stack.`); changed(); } }
   else if(m.t==='drew'){ oppDrew(Math.max(0,Math.min(30,+m.n||0)), +m.first?1:0); }
   else if(m.t==='lock'){ G.me.lock={n:G.turn.n, nc:!!m.nc, by:String(m.by||'An effect').slice(0,60)}; changed(); }
+  else if(m.t==='extractdo'){ extractDo((Array.isArray(m.ids)?m.ids:[]).slice(0,80).map(String), String(m.name||'').slice(0,80), String(m.by||'An effect').slice(0,60), String(m.who||'Opponent').slice(0,40)); }
   else if(m.t==='extract'){ extractName(String(m.name||'').slice(0,80), String(m.by||'A spell').slice(0,60), String(m.who||'Opponent').slice(0,40)); }
   else if(m.t==='wipe'){ wipe(String(m.desc||'').slice(0,60), m.mv==null?null:+m.mv, String(m.by||'A spell').slice(0,60), String(m.who||'Opponent').slice(0,40), !!m.eq); }
   else if(m.t==='loy'){ const f=find(m.id); if(f && f.z==='bf'){ f.c.c=Math.max(0,(f.c.c||0)+(Math.max(-30,Math.min(0,+m.d||0)))); f.c.lhit=G.turn.n; log(`${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'A spell').slice(0,60)} deals ${-(+m.d||0)} damage to ${cname(f.c)} (loyalty ${f.c.c}).`); changed(); } }
@@ -1607,6 +1611,42 @@ async function counterAsk(msg){ const id=msg.id, by=String(msg.by||'A spell').sl
 /* Surgical Extraction: every card with that name leaves the owner's graveyard, hand and library */
 function extractName(name, by, who){ const m=G.me, got={gy:0,hand:0,lib:0}; for(const z of ['gy','hand','lib']) for(const c of [...m[z]]) if(cdata(c).n===name){ move(c.id,'ex',{silent:true}); got[z]++; }
   shuffleLib(true); log(`${who?who+"'s ":''}${by}: ${m.name} exiles every ${name} (graveyard ${got.gy}, hand ${got.hand}, library ${got.lib}), reveals their hand (${m.hand.map(cname).join(', ')||'empty'}) and shuffles.`); changed(); }
+/* v4.41 (Ben): Surgical Extraction and Extirpate step by step. The caster looks through the owner's graveyard, then hand, then library (in its
+   order; the card under the pointer shows whole), clicks the copies of the named card to exile (gold aura) and moves on with the button; before
+   the library the caster may start a notepad of the rest of the hand. Extirpate ("all cards") marks every copy and can't leave one. The owner
+   then exiles the chosen cards and shuffles (extractdo). A friend's zones come from their table (askOpp 'zones'); Practice's and my own are here. */
+async function extractSteps(e, by, all){ const nm=e.n, own=e.o===G.myId; let Z=null, who;
+  const clean=a=>(Array.isArray(a)?a:[]).slice(0,300).map(x=>({id:String(x.id||''), k:x.k, cu:x.cu||null}));
+  if(own){ Z={gy:clean(G.me.gy), hand:clean(G.me.hand), lib:clean(G.me.lib)}; who=G.me.name; }
+  else if(dummy()){ const d=G.opp; Z={gy:clean(d.gy), hand:clean(d.hand), lib:clean(d.lib)}; who=d.name||'Practice'; }
+  else if(G.opp){ who=G.opp.name; const v=await askOpp({kind:'zones', by, who:G.me.name, name:nm}, null);
+    if(!v || !Array.isArray(v.gy)){ send({t:'extract', name:nm, by, who:G.me.name}); log(`${by}: no answer from ${who}, so every ${nm} is exiled from their graveyard, hand and library.`); return; }
+    Z={gy:clean(v.gy), hand:clean(v.hand), lib:clean(v.lib)}; await ensureCards([...Z.gy, ...Z.hand, ...Z.lib].map(x=>x.k).filter(Boolean)); }
+  else return;
+  if(!Z.gy.some(x=>x.id===e.c)){ log(`${by}: its target is no longer in ${own?G.me.name:who}'s graveyard, so it does nothing.`); changed(); return; }
+  const pick=[];
+  pick.push(...await extractPick(by, nm, who, own, 'gy', Z.gy, all, 'Exile, go on to the hand'));
+  pick.push(...await extractPick(by, nm, who, own, 'hand', Z.hand, all, 'Exile, go on to the library'));
+  if(!own){ const rest=Z.hand.filter(x=>!pick.includes(x.id)); if(rest.length) await trackOffer(rest, who, by); }
+  pick.push(...await extractPick(by, nm, who, own, 'lib', Z.lib, all, `Exile, finish resolving ${by}`));
+  if(own) extractDo(pick, nm, by, ''); else send({t:'extractdo', ids:pick, name:nm, by, who:G.me.name});
+  changed(); }
+function extractPick(by, nm, who, own, z, cards, all, next){ return new Promise(res=>{
+  const label={gy:'graveyard', hand:'hand', lib:'library'}[z], whose=own ? 'your' : `${who}'s`, same=x=>cdata(x).n===nm, n=cards.filter(same).length, sel=new Set(all ? cards.filter(same).map(x=>x.id) : []);
+  const hint = n ? (all ? `${by} exiles every ${nm}: ${n===1?'the one here has':'the '+n+' here have'} a gold aura.` : `Click each ${nm} to exile it (${n} here). Cards with a gold aura are exiled when you click the button; click one again to leave it.`) : `There is no ${nm} in ${whose} ${label}.`;
+  const el=modal(`${by}: ${whose} ${label}`, `<span class="hint">${hint}${z==='lib' && cards.length ? ' The library is shown in its order, top card first; point at a card to see it whole.' : ''}</span><div class="grid${z==='lib'?' lfan':''}" id="exGrid">${cards.map(x=>cardHTML(x,'gy',true, (same(x)?'':'dim')+(sel.has(x.id)?' sel aura':''))).join('') || `<span class="hint">The ${label} is empty.</span>`}</div>`,
+    [[next, ()=>{ closeModal(); res([...sel]); }, 'go']], {wide:true, noClose:true});
+  const b=$('footer button.go', el), upd=()=>{ b.textContent = next.replace(/^Exile/, sel.size ? `Exile ${sel.size}` : 'Exile none'); }; upd();
+  const g=$('#exGrid', el); if(z==='lib') fanWire(g);
+  g.onclick=ev=>{ if(all) return; const cd=ev.target.closest('.card[data-id]'); if(!cd) return; const x=cards.find(y=>y.id===cd.dataset.id); if(!x || !same(x)) return;
+    if(sel.has(x.id)) sel.delete(x.id); else sel.add(x.id); cd.classList.toggle('sel', sel.has(x.id)); cd.classList.toggle('aura', sel.has(x.id)); upd(); }; }); }
+function trackOffer(rest, who, src){ return new Promise(res=>{ const pid=oppId();
+  modal(`Track ${who}'s hand?`, `<span class="hint">A notepad next to your hand can list the ${rest.length} card${rest.length>1?'s':''} still there: ${rest.map(x=>esc(cdata(x).n)).join(', ')}. Both players can see it; you cross names off as they are played.</span>`,
+    [['No need to track these cards',()=>{ closeModal(); res(); },'ghost'], ['I would like to track these cards',()=>{ closeModal(); G.me.trk={who, pid, src, n:G.turn.n||0, list:rest.map(x=>({k:x.k, n:cdata(x).n}))}; log(`${G.me.name} starts a notepad of ${who}'s hand (${rest.length} card${rest.length>1?'s':''}).`); changed(); res(); },'go']], {noClose:true}); }); }
+function extractDo(ids, name, by, who){ const m=G.me, got={gy:0, hand:0, lib:0};
+  for(const id of ids){ const f=find(id); if(!f || !(f.z in got) || cdata(f.c).n!==name) continue; got[f.z]++; move(id,'ex',{silent:true}); }
+  shuffleLib(true); const parts=[['graveyard',got.gy],['hand',got.hand],['library',got.lib]].filter(p=>p[1]).map(p=>`${p[1]} from their ${p[0]}`);
+  log(`${who?who+"'s ":''}${by}: ${m.name} exiles ${parts.length ? name+' ('+parts.join(', ')+')' : 'no '+name}, then shuffles their library.`); changed(); }
 /* "Destroy all artifacts with mana value 3 or less" and the like: each side its own */
 function wipe(desc, mv, by, who, eq){ const m=G.me, gone=[]; for(const c of [...m.bf]){ if(c.fd || !matchesDesc(c, desc) || (mv!=null && (eq ? manaValue(c)!==mv : manaValue(c)>mv))) continue; if(indestr(c)) continue; gone.push(cname(c)); move(c.id,'gy',{silent:true}); }
   log(`${who?who+"'s ":''}${by}: ${gone.length ? m.name+"'s "+gone.join(', ')+' '+(gone.length>1?'are':'is')+' destroyed' : 'nothing of '+m.name+"'s is destroyed"}.`); changed(); return gone.length; }
@@ -1875,27 +1915,40 @@ async function sodOffer(k, by){ if(!k) return; await ensureCards([k]); const nm=
 async function topTutor(by){ const m=G.me; const p=m.lib.length ? await pickP(`${by}: choose a card to put on top of your library`, m.lib.slice(), null) : null; shuffleLib(true);
   if(p){ const i=m.lib.findIndex(x=>x.id===p.id); if(i>=0){ const [x]=m.lib.splice(i,1); m.lib.unshift(x); } } G.noUndo=true; log(`${by}: ${m.name} searches their library, shuffles and puts a card on top.`); changed(); }
 function oppSearchAsk(msg){ const by=String(msg.by||'An effect').slice(0,80), who=String(msg.who||'Opponent').slice(0,40), sp=searchSpec(String(msg.text||'').slice(0,300)); if(!sp) return;
-  if(DSW){ const d=G.me; setTimeout(()=>dummySearchAsk(d, sp, by, who), 0); return; }   // v4.38: Practice was told it may search; the window opens after the swap, so it must search Practice's library, not mine
+  const must=!!msg.must; if(DSW){ const d=G.me; setTimeout(()=>dummySearchAsk(d, sp, by, who, must), 0); return; }
+  if(must){ setTimeout(()=>searchGate(()=>libSearch(sp, `${who}'s ${by}`, null), by), 0); return; }   // v4.41: "each player searches" (Field of Ruin) is not optional: the library opens, and Fail to find is the way out   // v4.38: Practice was told it may search; the window opens after the swap, so it must search Practice's library, not mine
   const what=`a${/^[aeiou]/i.test(sp.desc)?'n':''} ${sp.desc} card${sp.basicType?' with a basic land type':''}`;
   setTimeout(()=>modal(`${who}'s ${by}`, `<span class="hint">You may search your library for ${esc(what)}, put it onto the battlefield${sp.tapped?' tapped':''}, then shuffle.</span>`,
     [["Don't search",()=>{ closeModal(); log(`${by}: ${G.me.name} doesn't search their library.`); },'ghost'], ['Search my library',()=>{ closeModal(); searchGate(()=>libSearch(sp, by, null), by); },'go']]), 0); }
 /* v4.38 (Ben): Practice "may search its library" (Price of Freedom, Demolition Field, Field of Ruin). I choose for it: a tile per matching name in
    its library (up to N for "up to N basic land cards"), or Practice doesn't search. The cards go straight onto its battlefield. */
-function dummySearchAsk(d, sp, by, who){ if(!d || !d.dummy || G.opp!==d) return; const n = typeof sp.n==='number' ? sp.n : 1;
+function dummySearchAsk(d, sp, by, who, must){ if(!d || !d.dummy || G.opp!==d) return; const n = typeof sp.n==='number' ? sp.n : 1;
   const cs=(d.lib||[]).filter(c=>matchesDesc(c, sp.desc) && (!sp.basicType || BASICS.some(t=>new RegExp('\\b'+t+'\\b').test(faceTypeOf(c,0))))), seen=new Set(), shown=cs.filter(c=>!seen.has(cdata(c).n) && seen.add(cdata(c).n));
-  const what=`${n>1?'up to '+n+' ':'a'+(/^[aeiou]/i.test(sp.desc)?'n ':' ')}${sp.desc} card${n>1?'s':''}`, sel=[];
-  const fin=ids=>{ closeModal(); const names=[]; for(const id of ids){ const c=d.lib.find(x=>x.id===id); if(!c) continue; d.lib.splice(d.lib.indexOf(c),1); Object.assign(c, {tap:!!sp.tapped, atk:false, c:0, ent:newEnt(), sick:false}); d.bf.push(c); names.push(cname(c)); }
-    shuffle(d.lib); dummySync(); log(names.length ? `${by}: Practice searches its library, puts ${names.join(', ')} onto the battlefield${sp.tapped?' tapped':''}, then shuffles.` : `${by}: Practice doesn't search its library.`); changed(); };
+  const what=`${n>1?'up to '+n+' ':'a'+(/^[aeiou]/i.test(sp.desc)?'n ':' ')}${sp.desc} card${n>1?'s':''}`, sel=[]; let full=false;
+  const fin=(ids, skip)=>{ closeModal(); const names=[]; for(const id of ids){ const c=d.lib.find(x=>x.id===id); if(!c) continue; d.lib.splice(d.lib.indexOf(c),1); Object.assign(c, {tap:!!sp.tapped, atk:false, c:0, ent:newEnt(), sick:false}); d.bf.push(c); names.push(cname(c)); }
+    if(!skip){ shuffle(d.lib); G.oppSrch=G.turn.n||0; }   // v4.41: a search, found or not, counts (Archive Trap)
+    dummySync(); log(names.length ? `${by}: Practice searches its library, puts ${names.join(', ')} onto the battlefield${sp.tapped?' tapped':''}, then shuffles.` : skip ? `${by}: Practice doesn't search its library.` : `${by}: Practice searches its library, finds no ${sp.desc} card, then shuffles.`); changed(); };
   if(!d.lib || !d.lib.length){ log(`${by}: Practice has no library to search.`); return; }
   const go=()=>{ if(!$('#modal').hidden){ setTimeout(go, 350); return; }
-    const el=modal(`${who}'s ${by}: Practice may search`, `<span class="hint">Practice may search its library for ${esc(what)}, put ${n>1?'them':'it'} onto the battlefield${sp.tapped?' tapped':''}, then shuffle. You choose for it.</span><div class="grid" id="dsGrid">${shown.map(c=>cardHTML(c,'lib',true)).join('') || `<span class="hint">There is no ${esc(sp.desc)} card in Practice's library.</span>`}</div>`,
-      [["Practice doesn't search",()=>fin([]),'ghost'], ...(shown.length ? [['Put it onto its battlefield',()=>{ if(sel.length) fin(sel); },'go']] : [])], {wide:shown.length>5, onClose:()=>{}});
-    const btn=$('footer button.go', el), upd=()=>{ if(btn){ btn.disabled=!sel.length; btn.textContent = sel.length ? `Put ${sel.map(id=>cname(cs.find(x=>x.id===id))).join(', ')} onto its battlefield` : (n>1?`Choose up to ${n}`:'Choose one'); } }; upd();
-    const g=$('#dsGrid', el); if(g) g.onclick=e=>{ const t=e.target.closest('.card[data-id]'); if(!t) return; const id=t.dataset.id, nm=cdata(cs.find(x=>x.id===id)).n;
-      if(n>1){ const more=cs.filter(x=>cdata(x).n===nm && !sel.includes(x.id)); if(sel.length<n && more.length) sel.push(more[0].id); else for(let i=sel.length-1;i>=0;i--) if(cdata(cs.find(y=>y.id===sel[i])).n===nm) sel.splice(i,1); }   // each click adds another copy; once full, it clears that name
+    const shownHTML=()=>shown.map(c=>cardHTML(c,'lib',true)).join('');
+    const el=modal(`${who}'s ${by}: Practice ${must?'searches':'may search'}`, `<span class="hint">Practice ${must?'searches':'may search'} its library for ${esc(what)}, put${must?'s':''} ${n>1?'them':'it'} onto the battlefield${sp.tapped?' tapped':''}, then shuffle${must?'s':''}. You choose for it.${shown.length ? '' : ` There is no ${esc(sp.desc)} card in Practice's library.`}</span><div class="grid" id="dsGrid">${shownHTML()}</div>`,
+      [must ? ['Fail to find (shuffle)',()=>fin([]),'ghost'] : ["Practice doesn't search",()=>fin([], true),'ghost'], ...(must ? [] : [['Fail to find (shuffle)',()=>fin([]),'ghost']]), ['Look through its whole library',()=>toggle(),'ghost dsall'], ...(shown.length ? [['Put it onto its battlefield',()=>{ if(sel.length) fin(sel); },'go']] : [])], {wide:true, noClose:must, onClose:()=>{}});
+    const btn=$('footer button.go', el), upd=()=>{ if(btn){ btn.disabled=!sel.length; btn.textContent = sel.length ? `Put ${sel.map(id=>cname(cs.find(x=>x.id===id))).join(', ')} onto its battlefield` : (n>1?`Choose up to ${n}`:'Choose one'); } };
+    const paint=()=>{ const g=$('#dsGrid', el); if(!g) return; g.querySelectorAll('.card').forEach(x=>{ const c=cs.find(y=>y.id===x.dataset.id); const on = full ? sel.includes(x.dataset.id) : !!c && sel.some(i=>cdata(cs.find(y=>y.id===i)).n===cdata(c).n); x.classList.toggle('sel', on); }); upd(); };
+    function toggle(){ full=!full; const g=$('#dsGrid', el), b=$('footer button.dsall', el); g.classList.toggle('lfan', full); g.innerHTML = full ? fanHTML(d.lib, x=>cs.includes(x)) : shownHTML(); if(full) fanWire(g); if(b) b.textContent = full ? 'Show only the cards it can find' : 'Look through its whole library'; paint(); }
+    upd();
+    const g=$('#dsGrid', el); if(g) g.onclick=e=>{ const t=e.target.closest('.card[data-id]'); if(!t) return; const id=t.dataset.id, c0=cs.find(x=>x.id===id); if(!c0) return; const nm=cdata(c0).n;
+      if(n>1){ const more=full ? (sel.includes(id) ? [] : [c0]) : cs.filter(x=>cdata(x).n===nm && !sel.includes(x.id)); if(sel.length<n && more.length) sel.push(more[0].id); else if(full){ const k=sel.indexOf(id); if(k>=0) sel.splice(k,1); } else for(let i=sel.length-1;i>=0;i--) if(cdata(cs.find(y=>y.id===sel[i])).n===nm) sel.splice(i,1); }   // each click adds another copy; once full, it clears that name
       else if(sel[0]===id) sel.length=0; else { sel.length=0; sel.push(id); }
-      g.querySelectorAll('.card').forEach(x=>{ const nm=cdata(cs.find(y=>y.id===x.dataset.id)).n, k2=sel.filter(i=>cdata(cs.find(y=>y.id===i)).n===nm).length; x.classList.toggle('sel', k2>0); }); upd(); }; };
+      paint(); }; };
   setTimeout(go, 400); }   // after the rest of the effect, so my own "You may search" window (Demolition Field) does not replace this one
+/* v4.41: a library laid out in its order (top first), the cards overlapping in rows. The card under the pointer lifts and the rest of its row
+   slides aside so it shows whole (transforms only, so the rows never re-wrap under the pointer). */
+function fanHTML(cards, ok, sel){ return cards.map(x=>cardHTML(x,'gy',true, (ok(x)?'':'dim')+(sel && sel.has(x.id)?' sel':''))).join(''); }
+function fanWire(g){ if(!g || g._fan) return; g._fan=1; const reset=()=>{ for(const k of g.children){ k.style.transform=''; k.style.zIndex=''; } };
+  g.addEventListener('mouseover', e=>{ const cd=e.target.closest('.card'); if(!cd || cd.parentElement!==g) return; const kids=[...g.children], i=kids.indexOf(cd), top=cd.offsetTop, w=cd.offsetWidth;
+    kids.forEach((k,j)=>{ const row=k.offsetTop===top; k.style.transform = k===cd ? 'translateY(-7%)' : row && j>i ? `translateX(${Math.round(w*.55)}px)` : row ? `translateX(${-Math.round(w*.08)}px)` : ''; k.style.zIndex = k===cd ? 3 : ''; }); });
+  g.addEventListener('mouseleave', reset); }
 /* Scry N / surveil N: the top N cards in a window; each is marked Top or Bottom (Graveyard for surveil) and the ones on top can be reordered.
    Resolution waits for it, so "Scry 1. Draw a card." draws after the scry. */
 function scryWin(n, kind, by){ return new Promise(res=>{ const m=G.me, cards=m.lib.slice(0,n), sv=kind==='surveil', ord=kind==='order';   // order: "look at the top N, then put them back in any order" (v4.04)
@@ -2375,8 +2428,12 @@ function libSearch(sp, by, x){
         if(how==='pay' && le && le.kind==='shock' && !sp.tapped){ m.life-=le.life; paid+=le.life; }
         names.push(cname(f.c)+(sp.dest==='bf' && tap && !sp.tapped ? ' (tapped)' : '')); foundMove(id, sp.dest, {silent:true, tap}); if(sp.ctr){ const g=find(id); if(g && g.z==='bf'){ g.c.c=(g.c.c||0)+1; names[names.length-1]+=' with an additional +1/+1 counter'; } } } }
     shuffleLib(true); log(names.length ? `${by}: ${m.name} searches their library, puts ${names.join(', ')} ${sp.dest==='bf' ? 'onto the battlefield'+(sp.tapped?' tapped':'') : 'into their hand'}${paid?`, paying ${paid} life (now ${m.life})`:''}, then shuffles.` : `${by}: ${m.name} searches their library, finds no ${what}, then shuffles.`); changed(); };
-  const el=modal(`${by}: ${n>1?'up to '+n:'a'}${/^[aeiou]/i.test(what)&&n===1?'n':''} ${what}${n>1?'s':''}`, `<span class="hint">Click ${n>1?'up to '+n+' cards':'the card'} to put ${sp.dest==='bf' ? 'onto the battlefield'+(sp.tapped?' tapped':'') : 'into your hand'}. Your library is shuffled afterwards.</span>${cs.length ? `<div class="grid" id="lsGrid">${shown.map(c=>n===1 && cnt[cdata(c).n]>1 ? `<span class="cewrap" style="position:relative">${cardHTML(c,'gy',true)}<span class="cemv">×${cnt[cdata(c).n]} in library</span></span>` : cardHTML(c,'gy',true)).join('')}</div>` : `<span class="hint">There is no ${esc(what)} in your library.</span>`}`,
-    [['Find nothing (shuffle)',()=>fin([]),'ghost'], ['Put onto the battlefield tapped',()=>fin([...sel],'tapped'),'alt'], ['Choose',()=>fin([...sel], el._how),'go']], {wide:true});
+  const el=modal(`${by}: ${n>1?'up to '+n:'a'}${/^[aeiou]/i.test(what)&&n===1?'n':''} ${what}${n>1?'s':''}`, `<span class="hint">Click ${n>1?'up to '+n+' cards':'the card'} to put ${sp.dest==='bf' ? 'onto the battlefield'+(sp.tapped?' tapped':'') : 'into your hand'}. Your library is shuffled afterwards.</span>${cs.length ? '' : `<span class="hint"> There is no ${esc(what)} in your library.</span>`}<div class="grid" id="lsGrid">${shownHTML()}</div>`,
+    [['Fail to find (shuffle)',()=>fin([]),'ghost'], ['Look through the whole library',()=>lsToggle(),'ghost lsall'], ['Put onto the battlefield tapped',()=>fin([...sel],'tapped'),'alt'], ['Choose',()=>fin([...sel], el._how),'go']], {wide:true});
+  // v4.41 (Ben): while searching you may look at the whole library; it is laid out in its order, the cards that can't be chosen greyed
+  function shownHTML(){ return shown.map(c=>n===1 && cnt[cdata(c).n]>1 ? `<span class="cewrap" style="position:relative">${cardHTML(c,'gy',true)}<span class="cemv">×${cnt[cdata(c).n]} in library</span></span>` : cardHTML(c,'gy',true)).join(''); }
+  let full=false; function lsToggle(){ full=!full; const g=$('#lsGrid'), b=$('footer button.lsall', el); if(!g) return; g.classList.toggle('lfan', full); g.innerHTML = full ? fanHTML(m.lib, x=>cs.includes(x)) : shownHTML(); if(full) fanWire(g);
+    if(b) b.textContent = full ? 'Show only the cards you can find' : 'Look through the whole library'; [...g.querySelectorAll('.card')].forEach(e=>e.classList.toggle('sel', sel.has(e.dataset.id))); }
   const goB=$('footer button.go', el), altB=$('footer button.alt', el);
   const upd=()=>{ goB.disabled=!sel.size; el._how=null; altB.hidden=true;
     goB.textContent = sel.size ? `Put ${sel.size>1?sel.size+' ':''}${sp.dest==='bf'?'onto the battlefield':'into your hand'}` : 'Choose';
@@ -2384,7 +2441,7 @@ function libSearch(sp, by, x){
       if(le && le.kind==='shock'){ altB.hidden=false; goB.textContent=`Put onto the battlefield untapped, pay ${le.life} life`; el._how='pay'; }
       else if(le && le.kind==='unless'){ altB.hidden=false; goB.textContent=`Put onto the battlefield untapped (${le.cond})`; el._how='untapped'; }
       else if(le && le.kind==='tapped'){ goB.textContent='Put onto the battlefield (it enters tapped)'; } } }; upd();
-  const g=$('#lsGrid'); if(g) g.onclick=e=>{ const cd=e.target.closest('.card[data-id]'); if(!cd) return; const id=cd.dataset.id; if(sel.has(id)) sel.delete(id); else { if(n===1) sel.clear(); if(sel.size>=n) return; sel.add(id); } [...g.querySelectorAll('.card')].forEach(e=>e.classList.toggle('sel', sel.has(e.dataset.id))); upd(); };
+  const g=$('#lsGrid'); if(g) g.onclick=e=>{ const cd=e.target.closest('.card[data-id]'); if(!cd) return; const id=cd.dataset.id; if(!cs.some(x=>x.id===id)) return; if(sel.has(id)) sel.delete(id); else { if(n===1) sel.clear(); if(sel.size>=n) return; sel.add(id); } [...g.querySelectorAll('.card')].forEach(e=>e.classList.toggle('sel', sel.has(e.dataset.id))); upd(); };
 }
 /* Changing a creature by an effect ("target creature gets +1/+0 and gains first strike until end of turn", "It gains …" after a
    targeted sentence, "+1/+1 counter on up to one target creature", "Tap target creature. Put two stun counters on it."): one change,
@@ -2448,6 +2505,8 @@ function askOpp(q, fb){ if(!G.opp || !G.conn || !G.conn.open) return Promise.res
 async function answerQ(rid, q){ q=q||{}; const by=`${String(q.who||'Opponent').slice(0,40)}'s ${String(q.by||'effect').slice(0,60)}`, cs=(Array.isArray(q.cards)?q.cards:[]).slice(0,40).map(x=>({id:String(x.id||''), k:x.k, cu:x.cu||null})); let v=null;
   await ensureCards(cs.map(x=>x.k).filter(Boolean));
   if(q.kind==='libtop'){ const n=Math.max(0, Math.min(999, +q.n||0)), xs=G.me.lib.slice(0,n); if(q.exile){ for(const x of xs) move(x.id,'ex',{silent:true}); log(`${by}: ${G.me.name} exiles the top ${xs.length} card${xs.length===1?'':'s'} of their library.`); changed(); } send({t:'qa', rid:String(rid||''), v:xs.map(qCard)}); return; }
+  if(q.kind==='zones'){ const nm=String(q.name||'').slice(0,80); toast(`${by}: ${String(q.who||'Your opponent').slice(0,40)} is looking through your graveyard, hand and library for ${nm}.`);   // v4.41 Surgical Extraction
+    log(`${by}: ${String(q.who||'Opponent').slice(0,40)} looks through ${G.me.name}'s graveyard, hand and library for ${nm}.`); send({t:'qa', rid:String(rid||''), v:{gy:G.me.gy.map(qCard), hand:G.me.hand.map(qCard), lib:G.me.lib.map(qCard)}}); return; }
   if(q.kind==='yn'){ v=await yesNo(by, String(q.title||'').slice(0,200), String(q.yes||'Yes').slice(0,40), String(q.no||'No').slice(0,40)); send({t:'qa', rid:String(rid||''), v}); return; }
   if(q.kind==='ctype'){ v=await chooseType5(`${by}: ${String(q.title||'choose a creature type').slice(0,100)}`); send({t:'qa', rid:String(rid||''), v}); return; }
   if(q.kind==='piles'){ const ids=(await pickManyP(`${by}: separate these cards into two piles. Choose the cards for pile 1; the rest are pile 2`, cs, 'Pile 1 done'))||[]; v=ids.filter(i=>cs.some(x=>x.id===i)); }
@@ -2605,7 +2664,7 @@ async function simpleEffects(c, text, srcId){
         if(G.opp && has(G.opp.bf||[])) send({t:'mktxt', txt:'Create a 2/2 green Bear creature token.', by, who:m.name});
         if(has(m.bf)) sen='Create a 2/2 green Bear creature token.'; else { log(`${by}: ${m.name} controls no artifact or enchantment, so gets no Bear.`); continue; } }
       if(/^then (?:destroy|exile) all /i.test(sen)) sen=sen.replace(/^then /i,'').replace(/^[a-z]/, x=>x.toUpperCase());
-      if(/^each player searches their library for a basic land card, puts it onto the battlefield( tapped)?, then shuffles\.?$/i.test(sen)){ const t=`Search your library for a basic land card, put it onto the battlefield${/tapped/i.test(sen)?' tapped':''}, then shuffle.`; if(G.opp) send({t:'oppsearch', text:t, by, who:m.name}); oppSearchAsk({text:t, by, who:m.name}); continue; }   // Field of Ruin
+      if(/^each player searches their library for a basic land card, puts it onto the battlefield( tapped)?, then shuffles\.?$/i.test(sen)){ const t=`Search your library for a basic land card, put it onto the battlefield${/tapped/i.test(sen)?' tapped':''}, then shuffle.`; if(G.opp) send({t:'oppsearch', text:t, by, who:m.name, must:1}); oppSearchAsk({text:t, by, who:m.name, must:1}); continue; }   // Field of Ruin: "searches", not "may search" (v4.41)
       if(/^exile all attacking creatures target player controls\.?$/i.test(sen)){ const p=tg.find(x=>x==='p1'||x==='p2') || (G.turn.active===G.myId ? G.myId : oppId()); let n=0;   // Settle the Wreckage
         if(p===G.myId){ const xs=m.bf.filter(x=>x.atk && isCreature(x)); n=xs.length; for(const x of xs) move(x.id,'ex',{silent:true}); log(`${by}: ${n ? xs.map(cname).join(', ')+' '+(n===1?'is':'are')+' exiled' : `${m.name} has no attacking creatures`}.`); }
         else { const xs=((G.opp&&G.opp.bf)||[]).filter(x=>x.atk && isCreature(x)); n=xs.length; if(n) hitTargets(xs.map(x=>x.id), by, 'exile'); else log(`${by}: ${G.opp?G.opp.name:'the opponent'} has no attacking creatures.`); }
@@ -3442,7 +3501,7 @@ async function simpleEffects(c, text, srcId){
     if(/^target opponent exiles a creature they control and their graveyard\.?$/i.test(sen)){ if(!G.opp){ log(`${by}: there is no opponent.`); continue; } send({t:'edict', desc:'creature', n:1, by, who:m.name, exile:1}); send({t:'gyall'}); log(`${by}: ${G.opp.name} exiles a creature they control and their graveyard.`); continue; }
     // Winds of Abandon: the exiled creature's controller searches for a basic land, tapped
     if(/^for each creature exiled this way, its controller searches their library for a basic land card\.?$/i.test(sen)){ skipS.push(/^those players put those cards onto the battlefield tapped, then shuffle\.?$/i); const t='Search your library for a basic land card, put it onto the battlefield tapped, then shuffle.';
-      if((hit||[]).includes('opp')) send({t:'oppsearch', text:t, by, who:m.name}); else if((hit||[]).includes('me')) oppSearchAsk({text:t, by, who:m.name}); continue; }
+      if((hit||[]).includes('opp')) send({t:'oppsearch', text:t, by, who:m.name, must:1}); else if((hit||[]).includes('me')) oppSearchAsk({text:t, by, who:m.name, must:1}); continue; }
     // Thundermaw Hellkite: "it deals 1 damage to each creature with flying your opponents control. Tap those creatures."
     if((r=sen.match(/^(?:it|this creature|[A-Z][^,]*?) deals (\d+) damage to each creature with flying your opponents control\.?$/i))){ const k=+r[1], xs=((G.opp&&G.opp.bf)||[]).filter(x=>!x.fd && isCreature(x) && kwOn(x,'flying')); flyHit=xs.map(x=>x.id);
       for(const x of xs) damage(x.id, k, by); log(`${by}: ${k} damage to each creature with flying ${G.opp?G.opp.name:'the opponent'} controls (${xs.length ? xs.map(cname).join(', ') : 'none'}).`); changed(); continue; }
@@ -4359,7 +4418,7 @@ function exileAllGy(src){
   log(`${src}'s trigger resolves: all graveyards are exiled (${m.name} ${mine}${G.opp?`, ${G.opp.name} ${theirs}`:''}).`); }
 function gyResolve(c){
   const m=G.me, es=(m.gtg||[]).filter(e=>e.s===c.id); if(!es.length) return; m.gtg=m.gtg.filter(e=>e.s!==c.id);
-  if(/Search its owner's graveyard, hand, and library for (?:any number of|all) cards with the same name as that card and exile them/i.test(cdata(c).o||stackText(c)||'')){ for(const e of es){ if(e.o===G.myId) extractName(e.n, e.sn); else send({t:'extract', name:e.n, by:e.sn, who:m.name}); } return; }
+  { const tx=cdata(c).o||stackText(c)||''; if(/Search its owner's graveyard, hand, and library for (?:any number of|all) cards with the same name as that card and exile them/i.test(tx)){ const all=/ for all cards with the same name/i.test(tx); (async()=>{ for(const e of es) await extractSteps(e, e.sn, all); })(); return; } }   // v4.41: step by step
   { const txt=cdata(c).o||'', rt=txt.match(/return target ([^.]*?) card(?: with mana value (?:\d+ or less|X))? from your graveyard to the battlefield( tapped)?/i); if(rt){ const got=[], xq=/card with mana value X from your graveyard/i.test(txt) ? (c.ab && c.ab.x!=null ? c.ab.x : c.x) : null;
       for(const e of es){ const f=find(e.c); if(e.o!==G.myId || !f || f.z!=='gy'){ log(`${e.n} is no longer in ${m.name}'s graveyard.`); continue; } if(!matchesDesc(f.c, rt[1])){ log(`${e.sn}: ${e.n} is not a ${rt[1]} card, so it stays.`); continue; }
         if(xq!=null && manaValue(f.c)!==xq){ log(`${e.sn}: ${e.n} has mana value ${manaValue(f.c)}, not ${xq}, so it stays.`); continue; }
@@ -4662,7 +4721,8 @@ function castWays(c, id){ const W=[]; if(isLand(c) || c.fd || G.me.ctl) return W
   const wc=warpCost(c); if(wc) W.push({k:'warp', cost:wc, life:warpLife(c), btn:'cast with warp', note:'It goes to exile at the next end step; you can cast it from there on a later turn.', run:()=>castWarp(id)});
   const dc=dashCost(c); if(dc) W.push({k:'dash', cost:dc, btn:'cast with dash', note:'It has haste and returns to your hand at the end step.', run:()=>castSpell(id, {silent:true, payCost:dc}, ()=>{ c.dash=1; log(`${me} casts ${nm} for its dash cost ${dc}. It has haste and returns to their hand at the end step.`); })});
   const ev=evokeOf(c); if(ev) W.push({k:'evoke', cost:ev.mana||'', life:ev.life||0, extra:ev.mana ? '' : ev.text, btn:'cast with evoke', note:'It is sacrificed when it enters; its enter trigger still happens.', run:()=>castAlt(id, ev, 'evoke')});
-  for(const a of altCostsOf(c)) W.push({k:'alt', cost:a.mana||'', life:a.mana?0:0, extra:a.text, btn:'cast it', note:a.cond ? a.cond.replace(/^If /,'Only if ')+'.' : 'Instead of its mana cost.', run:()=>castAlt(id, a, 'alt')});
+  for(const a of altCostsOf(c)) W.push(Object.assign({k:'alt', cost:a.mana||'', life:a.mana?0:0, extra:a.text, btn:'cast it', note:a.cond ? a.cond.replace(/^If /,'Only if ')+'.' : 'Instead of its mana cost.', run:()=>castAlt(id, a, 'alt')},
+    /an opponent searched their library this turn/i.test(a.cond||'') ? {ok:()=>!!G.turn.n && G.oppSrch===G.turn.n, why:'Only after an opponent has searched their library this turn.', note:'An opponent searched their library this turn.'} : {}));   // v4.41: Archive Trap
   const td=targetDiscount(c); if(td) W.push({k:'discount', cost:td.cost, btn:`cast it (it targets ${td.what})`, note:`Only if it targets ${td.what}.`, run:()=>castSpell(id, {silent:true, payCost:td.cost}, ()=>log(`${me} casts ${nm} for ${td.cost}: it targets ${td.what}.`))});
   const bi=bestowInfo(c); if(bi) W.push({k:'bestow', cost:bi.mana, extra:bi.ev ? `collect evidence ${bi.ev}` : '', btn:'cast with bestow', note:'As an Aura: you click its creature next.', run:()=>castBestow(id)});
   const iN=impendingN(c); if(iN>0){ const ic=((cdata(c).o||'').match(/\bImpending \d+\s*[—–-]\s*((?:\{[^}]+\})+)/i)||[])[1]||''; W.push({k:'impending', cost:ic, btn:'cast it impending', note:`Enters with ${iN} time counters and isn't a creature until the last one is removed.`, run:()=>castSpell(id, Object.assign({silent:true}, ic ? {payCost:ic} : {nm:true}), ()=>{ const g=find(id); if(g) g.c.imp=iN; log(`${me} casts ${nm} for its impending cost${ic?' '+ic:''}.`); })}); }
@@ -5614,7 +5674,7 @@ const vsReal = () => !G.solo && !!G.opp && !G.opp.dummy;           // a real two
 const vsAny = () => !!G.opp && (!G.solo || !!G.opp.dummy);          // someone to fight: a friend or Practice
 /* messages Practice can't answer because it has no library or hand (v4.25, Ben: Ragavan seemed not to exile): the log says so instead of nothing happening */
 const DUMMY_NO={tasha:"there is no library to exile from", ragavan:"nothing is exiled from the top of its library", peek:"there is no top card to look at", peekhand:"there is no hand to look at", reveal:"there is no hand to reveal", youdraw:"it draws nothing", exlib:"there is no library to exile", oppsearch:"there is nothing to search", guide:"there is no top card to reveal", libtop:"there are no cards to look at", each:"it has no hand or library to do that with"};
-const DUMMY_OK=new Set(['rmctr','adj','dmg','loy','hit','mod','pump','cdmg','tapstun','wipe','gyall','gyexile','exhold','left','edict','mill','monarch']);
+const DUMMY_OK=new Set(['extractdo','rmctr','adj','dmg','loy','hit','mod','pump','cdmg','tapstun','wipe','gyall','gyexile','exhold','left','edict','mill','monarch']);
 const newDummy = () => Object.assign(newPlayer(), {name:'Practice', dummy:true, deck:'Practice opponent', libN:0, handN:0, sideN:0, dealt:true, kept:true, compDone:true, deckReady:true, comp:[], lost:0});
 function makeDummy(){ if(G.opp && !G.opp.dummy) return; if(!G.opp) G.opp=newDummy(); }
 /* v4.39 (Ben): when Practice has to choose (discard a card, keep a creature, top or bottom), I choose for it in a window. The window's answer
