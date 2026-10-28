@@ -549,10 +549,11 @@ body.nomo *{transition:none!important}
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.54';
+const VERSION = 'v4.55';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.55','Oct 27',"The city's blessing works again: with a card that has ascend (Ocelot Pride) and ten or more permanents, you get it for the rest of the game, and Ocelot Pride's end step copies every token that entered this turn, Treasures and other noncreature tokens included."],
   ['v4.54','Oct 27',"Five more cards work: Archdruid's Charm (all three modes, including the search that puts a land onto the battlefield and anything else into your hand), Explore, Flare of Cultivation (sacrifice a green creature, then one basic land onto the battlefield and one into your hand), Golgari Rot Farm, and Dosan the Falling Leaf (casting on the other player's turn asks first)."],
   ['v4.53','Oct 27',"The Modern Table has its own icon now: a gold card in front of a blue one, on the table's green felt, so it's easy to spot among your browser tabs and bookmarks. The Draft Table has the same icon on its red-brown felt."],
   ['v4.52','Oct 27',"Streamer mode (☰ menu), for streaming or recording your games: a box at the bottom of the game log, where a camera covers nothing you need. Choose Camera space to leave it empty for your streaming app's camera, or My camera to show your webcam right there. Your camera only shows on your own screen; nothing is sent to your opponent."],
@@ -960,7 +961,7 @@ function lifeGuard(){ const m=G.me; if(!m || !G.turn) return; const n=G.turn.n;
   if(m.lifeLock && m.lifeLock.n===n && m.life!==m.lifeLock.v){ const d=m.life-m.lifeLock.v; m.life=m.lifeLock.v; fix(d); addLog(`${m.name}'s life total can't change this turn (${d>0?'+':''}${d} undone).`,'s'); send({t:'log', text:`${m.name}'s life total can't change this turn.`}); }
   else if(m.noGain===n && m.lastL!=null && m.life>m.lastL){ const d=m.life-m.lastL; m.life=m.lastL; fix(d); addLog(`${m.name} can't gain life this turn (+${d} undone).`,'s'); send({t:'log', text:`${m.name} can't gain life this turn.`}); }
   m.lastL=m.life; }
-function changed(){ if(DSW) return; dedupeIds(); lossCheck(); clearTimeout(G.sbaT); G.sbaT=setTimeout(sbaDeaths, 150); legendCheck(); lifeGuard(); try{ ctrWatch(); }catch(e){} try{ kaitoWatch(); }catch(e){} if(G.me.ctr.energy>0) G.me.energySeen=true; if((G.me.ctr.poison||0)>0) G.me.poisonSeen=true; checkHeld(); pruneGtg(); pruneArrows(); checkpoint(); render(); clearTimeout(syncT); syncT=setTimeout(()=>{ send({t:'state', s:pub()}); save(); }, 40); }
+function changed(){ if(DSW) return; dedupeIds(); lossCheck(); clearTimeout(G.sbaT); G.sbaT=setTimeout(sbaDeaths, 150); legendCheck(); lifeGuard(); try{ ctrWatch(); }catch(e){} try{ kaitoWatch(); }catch(e){} if(G.me.ctr.energy>0) G.me.energySeen=true; if((G.me.ctr.poison||0)>0) G.me.poisonSeen=true; checkHeld(); pruneGtg(); pruneArrows(); for(const x of G.me.bf) if(x.tok && x.tokT==null) x.tokT=G.turn.n||0;   /* every token knows the turn it entered (Ocelot Pride's copies) */ checkpoint(); render(); clearTimeout(syncT); syncT=setTimeout(()=>{ send({t:'state', s:pub()}); save(); }, 40); }
 function save(){ if(DSW) return; if(G.code || G.solo) store.set('mt_session', {code:G.code, solo:G.solo, myId:G.myId, me:G.me, dum:(G.opp&&G.opp.dummy)?G.opp:null, turn:G.turn, idc:G.idc, mt:mtWire(), mtEnd:(G.mt&&G.mt.end)||null, at:Date.now()}); }
 function log(text, cls){ addLog(text, cls||'m'); send({t:'log', text}); if(G.me && G.turn && G.turn.n && /\bsacrific(?:es|ed)\b/i.test(text) && String(text).includes(G.me.name) && !/sacrifices nothing|nothing is sacrificed/i.test(text)) G.me.sacT=G.turn.n; }
 /* Vehicles: crewed this turn (c.crew = turn), or "As long as you control eight or more permanents named X, this Vehicle is an artifact creature" (Phoenix Fleet Airship) */
@@ -6237,7 +6238,7 @@ const offerLive = c => !!c.offer && (c.offer===true || (c.offer===G.turn.n && !G
 let NMW=null, CHAL=[];   /* name of a card that cares whether mana was spent, set each render */
 function render(){
   if(DSW) return; if($('#table').hidden) return; const TS0=tapSnap(); autoArm(); paintUnl(); TGS=tgtSrcSpec();
-  auraBC(); NMW=noManaWatch(); CHAL=chaliceWatch(); trackGain(); if(G.opp && typeof G.opp.life==='number'){ if(G.oppLastLife!=null && G.opp.life<G.oppLastLife && G.turn.n) G.oppLost=G.turn.n; G.oppLastLife=G.opp.life; }   // v4.37: spectacle sees any loss of life (Practice too) if(checkCity()) setTimeout(changed, 0);
+  auraBC(); NMW=noManaWatch(); CHAL=chaliceWatch(); trackGain(); if(checkCity()) setTimeout(changed, 0);   /* v4.55: ascend is checked again at every render (the call had been lost) */ if(G.opp && typeof G.opp.life==='number'){ if(G.oppLastLife!=null && G.opp.life<G.oppLastLife && G.turn.n) G.oppLost=G.turn.n; G.oppLastLife=G.opp.life; }   // v4.37: spectacle sees any loss of life (Practice too) if(checkCity()) setTimeout(changed, 0);
   const m=G.me, o=G.opp;
   FX=landEffects();
   HELD={}; for(const c of [...m.ex, ...((o&&o.ex)||[])]) if(c.by) HELD[c.by.id]=(HELD[c.by.id]||0)+1;
