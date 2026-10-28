@@ -6247,7 +6247,7 @@ const offerLive = c => !!c.offer && (c.offer===true || (c.offer===G.turn.n && !G
 let NMW=null, CHAL=[];   /* name of a card that cares whether mana was spent, set each render */
 function render(){
   if(DSW) return; if($('#table').hidden) return; const TS0=tapSnap(); autoArm(); paintUnl(); TGS=tgtSrcSpec();
-  auraBC(); NMW=noManaWatch(); CHAL=chaliceWatch(); trackGain(); if(checkCity()) setTimeout(changed, 0);   /* v4.55: ascend is checked again at every render (the call had been lost) */ if(G.opp && typeof G.opp.life==='number'){ if(G.oppLastLife!=null && G.opp.life<G.oppLastLife && G.turn.n) G.oppLost=G.turn.n; G.oppLastLife=G.opp.life; }   // v4.37: spectacle sees any loss of life (Practice too) if(checkCity()) setTimeout(changed, 0);
+  auraBC(); NMW=noManaWatch(); CHAL=chaliceWatch(); trackGain(); if(checkCity()) setTimeout(changed, 0);   /* v4.55: ascend is checked again at every render (the call had been lost) */ if(G.opp && typeof G.opp.life==='number'){ if(G.oppLastLife!=null && G.opp.life<G.oppLastLife && G.turn.n) G.oppLost=G.turn.n; G.oppLastLife=G.opp.life; }   // v4.37: spectacle sees any loss of life (Practice too)
   const m=G.me, o=G.opp;
   FX=landEffects();
   HELD={}; for(const c of [...m.ex, ...((o&&o.ex)||[])]) if(c.by) HELD[c.by.id]=(HELD[c.by.id]||0)+1;

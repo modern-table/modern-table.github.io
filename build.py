@@ -26,6 +26,13 @@ for d in decks:
     out.append(d)
 if len(out)<10: sys.exit(f'Only {len(out)} valid decks; refusing to build.')
 src=open('src/app.src.html', encoding='utf-8').read()
+# A // comment runs to the end of the line, so code written after one on the same line never runs. v4.37 hid the city's blessing check
+# that way (found in v4.55). Warn about any line comment that ends like a statement.
+for _f in ('src/app.src.html', 'src/draft.src.html'):
+    for _i, _l in enumerate(open(_f, encoding='utf-8'), 1):
+        _m = re.search(r'(?:^|[;})\]]|\s{2})\s*//\s(.*)$', _l)
+        if _m and re.search(r'(?:\bif\s*\(|\bsetTimeout\(|\bconst |\blet |\breturn\b|\w\(\))[^"“]*;\s*$', _m.group(1)):
+            print(f'WARNING: {_f} line {_i}: code after a // comment never runs: {_m.group(1).strip()[:100]}')
 peer=re.sub(r'//# sourceMappingURL=.*','',open('src/peerjs.min.js', encoding='utf-8').read()).replace('</script','<\\/script')
 assert '/*__DECKS__*/[]' in src and '/*__PEERJS__*/' in src
 # card data for the built-in decks (tools/make_cards.py writes it from Scryfall's bulk file; .github/workflows/cards.yml keeps it current)
