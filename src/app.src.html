@@ -171,23 +171,23 @@ body.t90r .row .card.tap:is(.under,.tokunder) + .card.tap{margin-left:0}body.t90
 .cw{position:relative;display:flex;flex-direction:column}.cw .cfr{position:relative}
 .cvid{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;background:#05090b}
 .cw .cname{display:flex;align-items:center;gap:.6em;min-width:0}.cw .cn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cw .cpips,.cw .ctype{display:none}
-.fr-none .cvid{border-radius:.8em;border:1px solid #ffffff1f}.fr-none .cname{display:none}
+.cw .cdeck,.cw .csc{display:none}
+.fr-none .cvid{border-radius:.8em;border:1px solid #ffffff1f}.fr-none .cname{position:absolute;right:.8em;bottom:.55em;max-width:80%;z-index:2;color:#fff;font:800 1.35em/1.15 var(--ui);text-shadow:0 1px 2px #000,0 0 .7em #000c;pointer-events:none}.fr-none .cn{text-align:right}
 .fr-brass .cfr{padding:.55em;border-radius:.55em;background:linear-gradient(135deg,#f6dc95,#a67c2e 30%,#f1d07a 55%,#7a5a1c 80%,#e3bf6a);box-shadow:0 .2em .6em #000a,inset 0 0 0 1px #fff6}
 .fr-brass .cvid{border-radius:.25em;box-shadow:0 0 0 1px #3d2c0a}
-.fr-brass .cname{align-self:center;min-width:46%;max-width:82%;justify-content:center;margin-top:-1px;padding:.35em 1.1em .4em;background:linear-gradient(#f0d58c,#b8913e);color:#2b1d04;font:400 1.35em/1.15 var(--display);letter-spacing:.07em;border:1px solid #6b4f17;border-top:0;border-radius:0 0 .4em .4em;box-shadow:0 .15em .4em #0009,inset 0 1px 0 #fff8;text-shadow:0 1px 0 #fff7}
+.fr-brass .cname{align-self:flex-end;min-width:46%;max-width:82%;justify-content:center;margin-top:-1px;padding:.35em 1.1em .4em;background:linear-gradient(#f0d58c,#b8913e);color:#2b1d04;font:400 1.35em/1.15 var(--display);letter-spacing:.07em;border:1px solid #6b4f17;border-top:0;border-radius:0 0 .4em .4em;box-shadow:0 .15em .4em #0009,inset 0 1px 0 #fff8;text-shadow:0 1px 0 #fff7}
 .fr-brass .cn{flex:none;max-width:100%;text-align:center}
-.fr-card{padding:.55em;border-radius:.9em;background:linear-gradient(160deg,#3d4d52,#1a2427);border:1px solid #000;box-shadow:0 .2em .7em #000a,inset 0 0 0 .2em #c9b27a44}
-.fr-card .cname{order:-1;margin-bottom:.45em;padding:.3em .6em;border-radius:.4em/.7em;background:linear-gradient(#ece5ce,#c6ba96);color:#1b1408;border:1px solid #000;font:400 1.3em/1.15 var(--display);box-shadow:inset 0 1px 0 #fffa}
-.fr-card .cpips{display:flex;gap:.22em;flex:none}.fr-card .cpips i{width:.75em;height:.75em;border-radius:50%;border:1px solid #0007;box-shadow:inset 0 -.1em .15em #0003}
-.cpips .w{background:#f3ecc6}.cpips .u{background:#5fa8d9}.cpips .b{background:#8b7f7b}.cpips .r{background:#e2735a}.cpips .g{background:#5aa772}
-.fr-card .cvid{border:.18em solid #0d0d0d;box-shadow:0 0 0 1px #c9b27a77}
-.fr-card .ctype{display:block;margin-top:.45em;padding:.25em .6em;border-radius:.4em/.7em;background:linear-gradient(#ece5ce,#c6ba96);color:#1b1408;border:1px solid #000;font:700 1em/1.15 var(--ui)}
+.fr-match .cfr{padding:.3em;background:#0b1417;border:1px solid var(--brass);border-top:0;border-radius:0 0 .5em .5em;box-shadow:0 .2em .7em #000a}
+.fr-match .cvid{border-radius:.2em}
+.fr-match .cname{order:-1;display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:.8em;align-items:center;padding:.45em .8em .45em .7em;background:linear-gradient(90deg,#1d3237,#0f1c20);border:1px solid var(--brass);border-left:.4em solid var(--brass);border-radius:.5em .5em 0 0}
+.fr-match .cn{grid-column:1;color:var(--ink);font:400 1.4em/1.15 var(--display);letter-spacing:.04em}
+.fr-match .cdeck{display:block;grid-column:1;color:var(--dim);font:700 .95em/1.2 var(--ui);letter-spacing:.06em;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fr-match .csc{display:block;grid-column:2;grid-row:1/3;color:var(--brass);font:400 2.2em/1 var(--display);font-variant-numeric:tabular-nums}.fr-match .csc:empty{display:none}
 .fr-felt .cfr{padding:.75em;border-radius:.6em;background:radial-gradient(circle at 30% 20%,#2f6b4f,#1b4231 70%);box-shadow:0 .2em .7em #000a,inset 0 0 1.2em #0008}
 .fr-felt .cfr::after{content:'';position:absolute;inset:.33em;border:1px dashed #e9dfc070;border-radius:.42em;pointer-events:none}
 .fr-felt .cvid{border-radius:.25em;box-shadow:0 0 0 1px #000a}
 .fr-felt .cname{order:-1;align-self:flex-start;max-width:82%;margin-left:.9em;padding:.32em 1em .25em;background:#26583f;color:#efe6c8;font:400 1.3em/1.15 var(--display);letter-spacing:.05em;border-radius:.5em .5em 0 0;box-shadow:0 -.1em .3em #0006;border:1px solid #0005;border-bottom:0}
-.fr-cast .cvid{border-radius:.3em;border:1px solid #ffffff26}
+.fr-cast .cvid{border-radius:.3em;border:1px solid var(--line)}
 .fr-cast .cname{position:absolute;left:0;max-width:82%;bottom:.9em;z-index:2;padding:.38em 1.6em .38em .7em;background:linear-gradient(90deg,#0b1417f5,#0b1417c0 70%,#0b141700);border-left:.38em solid var(--brass);color:#fff;font:800 1.3em/1.15 var(--ui);pointer-events:none}
 .frpicks{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:12px}.frpick{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 6px;border-radius:8px;background:#0b1417;border:1px solid var(--line);font-size:12px;color:var(--dim);cursor:pointer}
 .frpick.on{border-color:var(--brass);box-shadow:0 0 0 1px var(--brass);color:var(--ink)}.frpick .cw{font-size:7.5px;width:100%}.frpick .cvid svg{position:absolute;inset:0;margin:auto;height:80%;fill:#ffffff1c}
@@ -556,7 +556,7 @@ body.nomo *{transition:none!important}
     <div class="avatar" id="oppAv"></div>
     <div id="stackwrap"><h4>Stack<b id="stackN"></b></h4><div id="stack" data-drop="st"></div></div>
     <div id="offerwrap" hidden><h4>Exiled by cards</h4><div id="offers"></div></div>
-    <div id="logwrap"><h4>Game log</h4><div id="log"></div><div id="unlBox" hidden></div><div id="camWrap" class="cw fr-brass" hidden><div class="cfr"><div id="camBox" class="cvid"><video id="camVid" autoplay muted playsinline></video><div id="camMsg"></div><button id="camSet" title="Streamer mode settings" aria-label="Streamer mode settings">⚙</button></div></div><div class="cname"><span class="cn"></span><span class="cpips"><i class="w"></i><i class="u"></i><i class="b"></i><i class="r"></i><i class="g"></i></span></div><div class="ctype">Legendary Streamer</div></div><input id="chat" placeholder="Say something…" maxlength="200" aria-label="Chat"></div>
+    <div id="logwrap"><h4>Game log</h4><div id="log"></div><div id="unlBox" hidden></div><div id="camWrap" class="cw fr-brass" hidden><div class="cfr"><div id="camBox" class="cvid"><video id="camVid" autoplay muted playsinline></video><div id="camMsg"></div><button id="camSet" title="Streamer mode settings" aria-label="Streamer mode settings">⚙</button></div></div><div class="cname"><span class="cn"></span><span class="cdeck"></span><span class="csc" title="Games won this match"></span></div></div><input id="chat" placeholder="Say something…" maxlength="200" aria-label="Chat"></div>
     <div class="avatar me" id="myAv"></div>
     <button id="drawBtn" hidden>Draw a card</button>
     <button id="next" class="go"></button>
@@ -574,10 +574,11 @@ body.nomo *{transition:none!important}
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.58';
+const VERSION = 'v4.59';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.59','Oct 28',"Streamer frames, round two: Feature match replaces Card frame (your name, your deck and the match score in a bar above the camera, like a tournament stream); the Brass plate's nameplate sits flush right; Broadcast gets a thin outline like the table's other panels; and No frame still shows your name, in white at the bottom right."],
   ['v4.58','Oct 28',"Streamer mode has frames for the camera box, each with a plate showing your name: Brass plate, Card frame, Table felt, Broadcast, or No frame. Pick one in ☰ Streamer mode; they frame Camera space too."],
   ['v4.57','Oct 27',"A creature with 0 or less toughness now dies on its own, as the rules say. So when Ocelot Pride copies an Orc Army token, the copy enters (Guide of Souls still gives its life and energy), then dies as a 0/0."],
   ['v4.56','Oct 27',"The game waits for both players' mulligans: the player going first can't play a land, cast, activate or move to the next step until the other player has kept and put their cards on the bottom. The banner says who is still deciding, with Start anyway in case they've left."],
@@ -6236,12 +6237,15 @@ const ANIMST = {on:'On', off:'Off', auto:"Follow my computer's setting"};
    S.stream: 'off' | 'space' (an empty framed box to lay an OBS camera over) | 'cam' (this computer's webcam, shown only here: nothing is sent to the opponent).
    S.camId picks the camera, S.camMir mirrors it (default on). The ⚙ on the box (shown on hover, so recordings stay clean) opens the settings. */
 const STREAMST={off:'Off', space:'Camera space (for your own overlay)', cam:'My camera'};
-const FRAMES={brass:'Brass plate', card:'Card frame', felt:'Table felt', cast:'Broadcast', none:'No frame'};
-const frameHTML = (k, name) => `<div class="cw fr-${k}"><div class="cfr"><div class="cvid"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="4.2"/><path d="M3.5 22c.6-5 4.2-8 8.5-8s7.9 3 8.5 8z"/></svg></div></div><div class="cname"><span class="cn">${esc(name)}</span><span class="cpips"><i class="w"></i><i class="u"></i><i class="b"></i><i class="r"></i><i class="g"></i></span></div><div class="ctype">Legendary Streamer</div></div>`;
+const FRAMES={brass:'Brass plate', match:'Feature match', felt:'Table felt', cast:'Broadcast', none:'No frame'};
+const camScore = () => G.opp && G.me ? `${G.me.wins||0}–${G.opp.wins||0}` : '';
+function camText(){ const w=$('#camWrap'); if(!w || w.hidden) return; const nm=(G.me && G.me.name) || S.name || 'Streamer', dk=(G.me && G.me.deck) || '', sc=camScore();
+  const set=(q,v)=>{ const e=$(q, w); if(e && e.textContent!==v) e.textContent=v; }; set('.cn', nm); set('.cdeck', dk); set('.csc', sc); }
+const frameHTML = (k, name) => `<div class="cw fr-${k}"><div class="cfr"><div class="cvid"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="4.2"/><path d="M3.5 22c.6-5 4.2-8 8.5-8s7.9 3 8.5 8z"/></svg></div></div><div class="cname"><span class="cn">${esc(name)}</span><span class="cdeck">${esc((G.me&&G.me.deck)||'Your deck')}</span><span class="csc">${camScore()||'0–0'}</span></div></div>`;
 let CAMSTREAM=null;
 function camStop(){ if(CAMSTREAM){ for(const t of CAMSTREAM.getTracks()) t.stop(); CAMSTREAM=null; } const v=$('#camVid'); if(v) v.srcObject=null; }
 async function applyStream(){ const box=$('#camBox'), wrap=$('#camWrap'); if(!box || !wrap) return; const mode=S.stream||'off', msg=$('#camMsg');
-  wrap.hidden=mode==='off'; wrap.className='cw fr-'+(FRAMES[S.camFrame] ? S.camFrame : 'brass'); $('.cn', wrap).textContent=(G.me && G.me.name) || S.name || 'Streamer'; box.classList.toggle('space', mode==='space'); box.classList.toggle('mir', S.camMir!==false); msg.className='';
+  wrap.hidden=mode==='off'; wrap.className='cw fr-'+(FRAMES[S.camFrame] ? S.camFrame : 'brass'); camText(); box.classList.toggle('space', mode==='space'); box.classList.toggle('mir', S.camMir!==false); msg.className='';
   if(mode!=='cam'){ camStop(); box.classList.remove('live'); msg.textContent = mode==='space' ? 'CAMERA SPACE' : ''; return; }
   if($('#table').hidden){ camStop(); box.classList.remove('live'); msg.textContent=''; return; }   // the camera runs only while the table is on screen
   if(CAMSTREAM && CAMSTREAM.active && (!S.camId || CAMSTREAM.getVideoTracks().some(t=>t.getSettings().deviceId===S.camId))){ box.classList.add('live'); return; }
@@ -6277,7 +6281,7 @@ const offerLive = c => !!c.offer && (c.offer===true || (c.offer===G.turn.n && !G
 let NMW=null, CHAL=[];   /* name of a card that cares whether mana was spent, set each render */
 function render(){
   if(DSW) return; if($('#table').hidden) return; const TS0=tapSnap(); autoArm(); paintUnl(); TGS=tgtSrcSpec();
-  auraBC(); NMW=noManaWatch(); CHAL=chaliceWatch(); trackGain(); if(checkCity()) setTimeout(changed, 0);   /* v4.55: ascend is checked again at every render (the call had been lost) */ if(G.opp && typeof G.opp.life==='number'){ if(G.oppLastLife!=null && G.opp.life<G.oppLastLife && G.turn.n) G.oppLost=G.turn.n; G.oppLastLife=G.opp.life; }   // v4.37: spectacle sees any loss of life (Practice too)
+  auraBC(); camText(); NMW=noManaWatch(); CHAL=chaliceWatch(); trackGain(); if(checkCity()) setTimeout(changed, 0);   /* v4.55: ascend is checked again at every render (the call had been lost) */ if(G.opp && typeof G.opp.life==='number'){ if(G.oppLastLife!=null && G.opp.life<G.oppLastLife && G.turn.n) G.oppLost=G.turn.n; G.oppLastLife=G.opp.life; }   // v4.37: spectacle sees any loss of life (Practice too)
   const m=G.me, o=G.opp;
   FX=landEffects();
   HELD={}; for(const c of [...m.ex, ...((o&&o.ex)||[])]) if(c.by) HELD[c.by.id]=(HELD[c.by.id]||0)+1;
