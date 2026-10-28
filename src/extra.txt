@@ -100,3 +100,10 @@ Sideboard
 3 Chalice of the Void
 3 Unable to Scream
 2 Hurkyl's Recall
+
+# Requested 2026-10-27: Archdruid's Charm, Explore, Flare of Cultivation, Golgari Rot Farm, Dosan the Falling Leaf
+1 Archdruid's Charm
+1 Explore
+1 Flare of Cultivation
+1 Golgari Rot Farm
+1 Dosan the Falling Leaf
