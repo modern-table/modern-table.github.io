@@ -557,10 +557,11 @@ body.nomo *{transition:none!important}
 </script>
 <script>
 "use strict";
-const VERSION = 'v4.55';
+const VERSION = 'v4.56';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.56','Oct 27',"The game waits for both players' mulligans: the player going first can't play a land, cast, activate or move to the next step until the other player has kept and put their cards on the bottom. The banner says who is still deciding, with Start anyway in case they've left."],
   ['v4.55','Oct 27',"The city's blessing works again: with a card that has ascend (Ocelot Pride) and ten or more permanents, you get it for the rest of the game, and Ocelot Pride's end step copies every token that entered this turn, Treasures and other noncreature tokens included."],
   ['v4.54','Oct 27',"Five more cards work: Archdruid's Charm (all three modes, including the search that puts a land onto the battlefield and anything else into your hand), Explore, Flare of Cultivation (sacrifice a green creature, then one basic land onto the battlefield and one into your hand), Golgari Rot Farm, and Dosan the Falling Leaf (casting on the other player's turn asks first)."],
   ['v4.53','Oct 27',"The Modern Table has its own icon now: a gold card in front of a blue one, on the table's green felt, so it's easy to spot among your browser tabs and bookmarks. The Draft Table has the same icon on its red-brown felt."],
@@ -943,7 +944,7 @@ const cname = c => c.fd ? 'a face-down card' : '[['+(cdata(c).n||'a card')+'|'+(
 function pub(){
   const m=G.me, p = c => c.fd ? Object.assign({}, c, {k:null, cu:null, note:''}) : c;
   return { name:m.name, deck:m.deck, life:m.life, ctr:m.ctr, libN:m.lib.length, handN:m.hand.length, sideN:m.side.length,
-    hand:(m.reveal || m.ctl) ? m.hand : null, noMax:!!m.noMax, ptest:m.ptest||'', comp:m.side.filter(c=>c.comp), compDone:!!m.compDone, deckReady:m.deckReady!==false, skipRoll:!!m.skipRoll, wonGame:m.wonGame||0, ctl:!!m.ctl, ctlNext:!!m.ctlNext, city:!!m.city, sbing:!!m.sbing, bf:m.bf.map(p), ph:(m.ph||[]).map(p), gy:m.gy, ex:m.ex.map(p), st:m.st.map(p), arrows:m.arrows, mull:m.mull, drn:m.drn||null, wins:m.wins||0, roll:m.roll||null, dealt:!!m.dealt, kept:!!m.kept, mana:m.mana||noMana(), smana:m.smana||[], energySeen:!!m.energySeen, monarch:!!m.monarch, mill:m.mill||null, nt:m.nt||null, hasteNext:m.hasteNext||0, poisonSeen:!!m.poisonSeen, poisonSrc:!!m.poisonSrc, cast:m.cast||{n:0,is:0}, cares:m.cares||null, emb:m.emb||[], gtg:m.gtg||[], baub:m.baub||[], trk:m.trk||null };
+    hand:(m.reveal || m.ctl) ? m.hand : null, noMax:!!m.noMax, ptest:m.ptest||'', comp:m.side.filter(c=>c.comp), compDone:!!m.compDone, deckReady:m.deckReady!==false, skipRoll:!!m.skipRoll, wonGame:m.wonGame||0, btm:m.btm||0, ctl:!!m.ctl, ctlNext:!!m.ctlNext, city:!!m.city, sbing:!!m.sbing, bf:m.bf.map(p), ph:(m.ph||[]).map(p), gy:m.gy, ex:m.ex.map(p), st:m.st.map(p), arrows:m.arrows, mull:m.mull, drn:m.drn||null, wins:m.wins||0, roll:m.roll||null, dealt:!!m.dealt, kept:!!m.kept, mana:m.mana||noMana(), smana:m.smana||[], energySeen:!!m.energySeen, monarch:!!m.monarch, mill:m.mill||null, nt:m.nt||null, hasteNext:m.hasteNext||0, poisonSeen:!!m.poisonSeen, poisonSrc:!!m.poisonSrc, cast:m.cast||{n:0,is:0}, cares:m.cares||null, emb:m.emb||[], gtg:m.gtg||[], baub:m.baub||[], trk:m.trk||null };
 }
 /* undo: a snapshot of my own side is kept before each change. Shuffles and anything that crosses to the other player close the history. */
 const UNDO=[]; let lastSnap=null, lastLogi=0;
@@ -1220,7 +1221,7 @@ function move(id, zone, o={}){
 function draw(n=1, quiet, step){ const m=G.me; let k=0; { const ns=((G.opp&&G.opp.bf)||[]).find(x=>!x.fd && (x.k||x.cu) && /Each opponent can(?:'|’)t draw more than one card each turn/i.test(frontText(x)||'')); if(ns){ if(!m.dn || m.dn.t!==G.turn.n) m.dn={t:G.turn.n, k:0}; const room=Math.max(0, 1-m.dn.k); if(n>room){ if(!quiet) log(`${cdata(ns).n.split(',')[0]}: ${m.name} can't draw more than one card this turn${room?'':', so they draw nothing'}.`); n=room; } m.dn.k+=n; if(!n) return 0; } } if(step && n===1 && !draw.noDredge && m.gy.some(x=>dredgeN(x) && m.lib.length>=dredgeN(x))){ setTimeout(dredgeAsk, 0); return 1; } if(n>0 && m.hand.length<=1){ const rq=m.bf.filter(x=>!x.fd && (x.k||x.cu) && /As long as you have one or fewer cards in hand, if you would draw one or more cards, you draw that many cards plus one instead/i.test(frontText(x)||'')); if(rq.length){ n+=rq.length; if(!quiet) log(`${rq.map(x=>cdata(x).n).join(', ')}: ${m.name} has one or fewer cards in hand, so they draw ${n} instead.`); } } const want=n; while(n-- > 0 && m.lib.length){ m.hand.push(m.lib.shift()); k++; } if(k<want && G.turn.n && m.kept){ if(m.dummy) m.emptyDraw=1; else { G.emptyDraw=true; lossCheck(); } } if(!quiet) log(`${m.name} draws ${k===1?'a card':k+' cards'}.`); if(k && G.turn.n) drawTrigs(k); if(!k && !quiet) toast('Your library is empty.'); if(k && !quiet && G.opp && G.turn.n) send({t:'drew', n:k, first:step?1:0}); return k; }
 function shuffleLib(quiet){ G.noUndo=true; shuffle(G.me.lib); if(!quiet) log(`${G.me.name} shuffles their library.`); }
 const ORDW=['','first','second','third','fourth','fifth','sixth','seventh','eighth','ninth','tenth'];
-function playFromHand(id){ const f=find(id); if(!f) return; if(isLand(f.c)){ const m=G.me, n=G.turn.n||0, fz=f.z; if(!m.lp || m.lp.n!==n) m.lp={n, k:0}; m.lp.k++; const k=m.lp.k;
+function playFromHand(id){ const f=find(id); if(!f) return; if(f.z==='hand' && waitMull()) return; if(isLand(f.c)){ const m=G.me, n=G.turn.n||0, fz=f.z; if(!m.lp || m.lp.n!==n) m.lp={n, k:0}; m.lp.k++; const k=m.lp.k;
     move(id,'bf',{silent:true, later:true}); log(`${m.name} plays ${cname(f.c)}${fz==='gy' ? ' from their graveyard' : ''}${k>1 ? ', '+(ORDW[k]||k+'th')+' land this turn' : ''}.`); entered(f.c); changed(); landEnters(id); } else castSpell(id); }
 function resolve(id){ const f=find(id); if(!f) return; const c=f.c; if(!c.ab && !c.ch && c.x!=null) c.xc=c.x;
   if(c.pact){ pactPanel(id); return; }
@@ -4665,7 +4666,7 @@ function abilitiesOf(c){
 const abText = a => a.kw ? a.eff+' '+a.cost : a.cost+': '+a.eff;
 const fetchOf = a => { if(!/\bsacrifice\b/i.test(a.cost) || !/\{T\}/.test(a.cost) || !/^\s*search your library\b/i.test(a.eff||'')) return null; const sp=searchSpec(a.eff); return sp && sp.dest==='bf' && /\b(land|plains|island|swamp|mountain|forest)\b/i.test(sp.desc) ? sp : null; };
 const abLabel = a => { const fs=fetchOf(a); if(fs){ const l=a.cost.match(/pay (\d+) life/i); return `Fetch (${fs.desc}${fs.tapped?', enters tapped':''}${l?', pay '+l[1]+' life':''})`; } const t='Activate  '+abText(a); return t.length>84 ? t.slice(0,82)+'…' : t; };
-function activate(id, a, evDone, extra){
+function activate(id, a, evDone, extra){ if(waitMull()) return;
   { const f0=find(id); if(f0 && f0.z==='bf' && a && a.kw && /^Equip$/i.test(a.eff) && !(extra && extra.eqT) && /costs \{\d+\} less to activate for each \+1\/\+1 counter on the creature it targets/i.test(frontText(f0.c)||'')){ G.mode={type:'eqtgt', from:id, a, evDone}; toast(`${cdata(f0.c).n}: where would you like to equip it? Click a creature you control.`); render(); return; } }
   if(a && a.kw && /^Crew$/i.test(a.eff)){ crewIt(id, parseInt(a.cost,10)||1); return; }
   { const f0=find(id); if(f0 && f0.z==='bf' && !(extra&&extra.totem) && !totemGate(f0.c, ()=>activate(id, a, evDone, Object.assign({}, extra||{}, {totem:1})))) return; }
@@ -5683,7 +5684,7 @@ function combatDamage(){ const t=G.turn, m=G.me, oa=(G.opp&&G.opp.arrows)||[], p
 function doneBlocking(force){ if(!force){ const iss=blockSetIssues(); if(iss.length){ modal('These blocks may break the rules', `<ul style="margin:0;padding-left:18px;line-height:1.5">${iss.map(x=>`<li>${esc(unlink(x))}</li>`).join('')}</ul><span class="hint">The table can misread a card, so you decide.</span>`, [['Go back',()=>closeModal(),'ghost'],['Finish anyway',()=>{ closeModal(); log(`${G.me.name} keeps blocks the table flagged: ${iss.join('; ')}.`); doneBlocking(true); },'go']]); return; } }
   const bl=G.me.arrows.filter(a=>a.blk).map(a=>{ const f=find(a.a), g=findAny(a.b); return `${f?cname(f.c):'a creature'} blocks ${g?cname(g.c):'an attacker'}`; });
   log(`${G.me.name} is done blocking${bl.length ? ': '+bl.join('; ') : ' (no blocks)'}.`); setTurn(Object.assign({}, G.turn, {cs:'blkd'})); changed(); }
-function nextPhase(){
+function nextPhase(){ if(waitMull()) return;
   const t=G.turn; if(!t.n){ return; }
   if(t.hold && !t.passed && t.active!==G.myId){ if(t.hold.pid===G.myId){ send({t:'resume'}); log(`${G.me.name} passes priority back to ${G.opp?G.opp.name:'their opponent'}.`); } return; }
   if(blockStep()){ doneBlocking(); return; }
@@ -5819,7 +5820,7 @@ function gather(){
   const m=G.me; G.noUndo=true; for(const c of (m.ph||[]).splice(0)){ delete c.phz; m.bf.push(c); }
   for(const z of ['hand','bf','gy','ex','st']){ for(const c of m[z].splice(0)){ if(c.tok || c.made) continue; if(c.sideOrig && c.o===G.myId){ delete c.sideOrig; Object.assign(c,{tap:false,c:0,att:null,atk:false,fd:false,flip:false,note:'',row:null}); m.side.push(c); continue; } if(c.o!==G.myId){ send({t:'give', card:Object.assign(c,{tap:false,c:0,att:null,atk:false,fd:false,flip:false}), zone:'lib'}); continue; } Object.assign(c,{tap:false,c:0,att:null,atk:false,fd:false,flip:false,note:'',row:null}); m.lib.push(c); } }
   for(const c of m.lib.filter(x=>x.sideOrig)){ m.lib.splice(m.lib.indexOf(c),1); delete c.sideOrig; m.side.push(c); }
-  m.life=20; m.lastLife=20; delete m.para; delete m.paraT; delete m.noMax; delete m.coinCall; delete m.tmpRed; delete m.pauseAsk; delete m.pauseReq; delete m.emb; delete m.monarch; delete m.xturns; delete m.oppT; delete m.dsc; delete m.mayAlways; delete m.gain; delete m.city; delete m.wya; delete m.atkC; delete m.lock; m.ctr={poison:0,energy:0}; m.arrows=[]; m.reveal=false; m.mull=0; m.roll=null; m.compDone=false; m.skipRoll=false; m.dealt=false; m.kept=false; m.mana=noMana(); m.smana=[]; m.energySeen=false; m.poisonSeen=false; m.drew=0; m.ctl=false; m.ctlNext=false; m.cast={n:0,is:0}; m.pacts=[]; m.baub=[]; m.trk=null; for(const c of m.side) delete c.comp; for(const c of m.lib){ delete c.by; delete c.warp; delete c.wp; delete c.fl; delete c.bt; delete c.ent; delete c.offer; delete c.pl; delete c.kw; delete c.lt; delete c.sick; delete c.lft; delete c.cp; }
+  G.mullGo=false; delete m.btm; m.life=20; m.lastLife=20; delete m.para; delete m.paraT; delete m.noMax; delete m.coinCall; delete m.tmpRed; delete m.pauseAsk; delete m.pauseReq; delete m.emb; delete m.monarch; delete m.xturns; delete m.oppT; delete m.dsc; delete m.mayAlways; delete m.gain; delete m.city; delete m.wya; delete m.atkC; delete m.lock; m.ctr={poison:0,energy:0}; m.arrows=[]; m.reveal=false; m.mull=0; m.roll=null; m.compDone=false; m.skipRoll=false; m.dealt=false; m.kept=false; delete m.btm; G.mullGo=false; m.mana=noMana(); m.smana=[]; m.energySeen=false; m.poisonSeen=false; m.drew=0; m.ctl=false; m.ctlNext=false; m.cast={n:0,is:0}; m.pacts=[]; m.baub=[]; m.trk=null; for(const c of m.side) delete c.comp; for(const c of m.lib){ delete c.by; delete c.warp; delete c.wp; delete c.fl; delete c.bt; delete c.ent; delete c.offer; delete c.pl; delete c.kw; delete c.lt; delete c.sick; delete c.lft; delete c.cp; }
 }
 function newGame(remote){
   gather(); dummyReset(true); G.turn={active:null, phase:2, n:0};
@@ -6014,11 +6015,15 @@ function highRoll(){ const m=G.me; m.roll=1+Math.floor(Math.random()*20); const 
 /* London mulligan in turn order: the player on the play decides (keep or mulligan) first, then the player on the draw, round by round */
 function canDecide(){ const m=G.me, o=G.opp, t=G.turn; if(alone() || !o || !t.n || m.kept) return true; const ro=(o.mull||0)+(o.kept?1:0), mine=(m.mull||0); return t.active===G.myId ? (o.kept || ro>=mine) : (o.kept || ro>mine); }
 function notYourDecision(){ toast(`${G.turn.active===G.myId ? 'Wait' : 'The player on the play decides first. Wait'} for ${G.opp?G.opp.name:'your opponent'} to keep or mulligan.`); }
-function keepHand(){ const m=G.me; if(G.turn.n && !m.kept && !canDecide()){ notYourDecision(); return; } m.kept=true; log(`${m.name} keeps${m.mull ? ` after ${m.mull} mulligan${m.mull>1?'s':''}` : ''}.`); changed(); const n=Math.min(m.mull||0, m.hand.length); if(n>0) bottomPick(n, pregameModal); else pregameModal(); }
+/* v4.56: nobody starts playing until both players have finished their mulligans (kept, and put their cards on the bottom) */
+const mullDone = p => !!(p && p.kept && !p.btm);
+const oppMulling = () => vsReal() && !!G.turn.n && !!G.opp.deck && !mullDone(G.opp) && !G.mullGo;
+function waitMull(){ if(!oppMulling()) return false; toast(`Waiting for ${G.opp.name} to finish their mulligan decisions.`); return true; }
+function keepHand(){ const m=G.me; if(G.turn.n && !m.kept && !canDecide()){ notYourDecision(); return; } m.kept=true; log(`${m.name} keeps${m.mull ? ` after ${m.mull} mulligan${m.mull>1?'s':''}` : ''}.`); changed(); const n=Math.min(m.mull||0, m.hand.length); if(n>0){ m.btm=n; changed(); bottomPick(n, pregameModal); } else pregameModal(); }
 /* London mulligan: after keeping, choose as many cards as mulligans taken; they go to the bottom of the library in the order clicked */
 function bottomPick(n, then){ const m=G.me, sel=[]; let done=false;
   const fin=ids=>{ if(done) return; done=true; closeModal(); for(const id of ids){ const f=find(id); if(f && f.z==='hand') move(id,'lib',{silent:true, pos:'bottom'}); } G.noUndo=true;
-    if(ids.length) log(`${m.name} puts ${ids.length===1?'a card':ids.length+' cards'} from their hand on the bottom of their library (${m.mull} mulligan${m.mull>1?'s':''}).`); changed(); if(then) then(); };
+    if(ids.length) log(`${m.name} puts ${ids.length===1?'a card':ids.length+' cards'} from their hand on the bottom of their library (${m.mull} mulligan${m.mull>1?'s':''}).`); delete m.btm; changed(); if(then) then(); };
   const el=modal(`Mulligan: put ${n} card${n>1?'s':''} on the bottom`, `<span class="hint">You took ${m.mull} mulligan${m.mull>1?'s':''}. Click ${n===1?'the card':n+' cards'} to put on the bottom of your library. The first one you click goes to the bottom first; click again to take a card back.</span><div class="grid" id="mbGrid">${m.hand.map(c=>cardHTML(c,'hand',true)).join('')}</div>`,
     [["I'll do it by hand",()=>fin([]),'ghost'], ['Put them on the bottom',()=>{ if(sel.length===n) fin(sel.slice()); },'go']], {wide:true, noClose:true});
   const g=$('#mbGrid', el), gb=$('footer button.go', el); const upd=()=>{ g.querySelectorAll('.card').forEach(k=>{ const i=sel.indexOf(k.dataset.id); k.classList.toggle('sel', i>=0); k.dataset.ord = i>=0 ? i+1 : ''; }); gb.disabled=sel.length!==n; gb.textContent = sel.length===n ? `Put ${n===1?'it':'them'} on the bottom` : `Choose ${n-sel.length} more`; };
@@ -6048,7 +6053,7 @@ async function loadDeck(d, name, onProgress){
   const m=G.me; for(const z of ['lib','hand','bf','gy','ex','st','side']){ for(const c of m[z]) if(c.o!==G.myId && !c.tok) send({t:'give', card:c, zone:'lib'}); m[z]=[]; }
   for(const [n,c] of d.main) for(let i=0;i<c;i++) m.lib.push(mk(kk(n)));
   for(const [n,c] of d.side) for(let i=0;i<c;i++) m.side.push(mk(kk(n)));
-  m.deck=name; m.life=20; m.ctr={poison:0,energy:0}; m.mull=0; m.arrows=[]; m.roll=null; m.compDone=false; m.skipRoll=false; m.dealt=false; m.kept=false; m.mana=noMana(); m.smana=[]; m.energySeen=false; m.poisonSeen=false; m.drew=0; m.cast={n:0,is:0}; m.pacts=[]; m.baub=[]; m.trk=null; setCares();
+  m.deck=name; m.life=20; m.ctr={poison:0,energy:0}; m.mull=0; m.arrows=[]; m.roll=null; m.compDone=false; m.skipRoll=false; m.dealt=false; m.kept=false; delete m.btm; G.mullGo=false; m.mana=noMana(); m.smana=[]; m.energySeen=false; m.poisonSeen=false; m.drew=0; m.cast={n:0,is:0}; m.pacts=[]; m.baub=[]; m.trk=null; setCares();
   m.poisonSrc=[...m.lib, ...m.side].some(x=>{ try{ return POISONRE.test(cdata(x).o||''); }catch(e){ return false; } });   // v4.05: show the poison marker from the start
   m.deckSpec={d:{main:d.main, side:d.side, art:d.art||{}}, name}; m.deckReady=true;   // for a new match with the same deck (kept with my side, not shared)
   log(`${m.name} brought ${name}.`); shuffleUp();
@@ -6324,8 +6329,8 @@ function render(){
     kk.innerHTML = order.length ? `<h6>KEYWORDS</h6>${order.map(k=>`<div class="kr"><span class="kc${seen.get(k)?' gr':''}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[k]||''}</svg></span>${esc(k[0].toUpperCase()+k.slice(1))}</div>`).join('')}${[...seen.values()].some(v=>v) ? '<div class="kn">Gold ring: from another card</div>' : ''}` : ''; }
   if(G.mt && G.mt.over){ bn.hidden=false; bn.innerHTML = `<h3>${esc(G.mt.over)}</h3><span class="hint">Time was called on the round clock.</span><div><button data-newmatch class="go">Start a new match</button></div>`; }
   else if(mw>=2 || ow>=2){ bn.hidden=false; bn.innerHTML = `<h3>${esc(mw>=2 ? m.name : o.name)} wins the match ${Math.max(mw,ow)}–${Math.min(mw,ow)}</h3><span class="hint">Marked by mistake? Right-click the win circle to take it back.</span><div><button data-newmatch class="go">Start a new match</button></div>`; }
-  else if(m.deck && !(t.n && m.kept)){
-    const on=o?o.name:'Opponent', hs=p=>!p.dealt?'not drawn yet':(p.kept?'kept':'deciding')+(p.mull?`, ${p.mull} mulligan${p.mull>1?'s':''}`:''), solo=alone();
+  else if(m.deck && !(t.n && mullDone(m) && !oppMulling())){
+    const on=o?o.name:'Opponent', hs=p=>!p.dealt?'not drawn yet':(p.kept?(p.btm?'putting cards on the bottom':'kept'):'deciding')+(p.mull?`, ${p.mull} mulligan${p.mull>1?'s':''}`:''), solo=alone();
     const ch=chooserId(), chName = ch===G.myId ? m.name : on, cand=compCandidates(), oDone = solo || (o && (o.compDone || !o.deck ? o.compDone : false));
     let h='', st='', btn='';
     if(!t.n && (m.sbing || (o && o.sbing))){
@@ -6351,7 +6356,8 @@ function render(){
       h = esc(t.active===G.myId ? m.name : on)+' goes first';
       const cd=canDecide();
       st = `<span class="st">Hands: <b>${esc(m.name)}</b> ${hs(m)}${o&&!solo?` · <b>${esc(on)}</b> ${hs(o)}`:''}</span>` + (m.dealt && !cd ? `<span class="st">Waiting for ${esc(on)} to keep or mulligan${t.active===G.myId?'':' (the player on the play decides first)'}.</span>` : '');
-      btn = `<button data-first="deal" ${m.dealt?'disabled':''} class="${!m.dealt?'go':''}">Draw opening hand</button><button data-first="mull" ${m.dealt&&cd?'':'disabled'}>Mulligan</button>${m.dealt?`<button data-first="keep" class="go" ${cd?'':'disabled'}>Keep hand</button>`:''}`;
+      if(m.kept && !m.btm && oppMulling()){ st+=`<span class="st">Waiting for ${esc(on)} to finish their mulligan decisions. Play starts when they have.</span>`; btn='<button data-first="mullgo" class="ghost" title="Only if your opponent has left or you have both agreed">Start anyway</button>'; }
+      else btn = `<button data-first="deal" ${m.dealt?'disabled':''} class="${!m.dealt?'go':''}">Draw opening hand</button><button data-first="mull" ${m.dealt&&cd?'':'disabled'}>Mulligan</button>${m.dealt?`<button data-first="keep" class="go" ${cd?'':'disabled'}>Keep hand</button>`:''}`;
     }
     bn.hidden=false; bn.innerHTML = `<h3>${h}</h3>${st}<div>${btn}</div>`;
   }
@@ -6973,7 +6979,7 @@ document.addEventListener('click', e=>{
   const av=t.closest('.avatar'); if(av && G.mode && G.mode.type!=='attach'){ finishMode(av.dataset.pl); return; }
   const ph=t.closest('[data-ph]'); if(ph && G.turn.n && G.turn.hold && !G.turn.passed){ toast(G.turn.hold.pid===G.myId ? 'You have priority: press Pass priority back when you are done.' : `Paused: ${G.opp?G.opp.name:'your opponent'} has priority.`); return; }
   if(ph && G.turn.n){ if(G.turn.active===G.myId && G.turn.phase===0 && +ph.dataset.ph>0 && G.me.st.some(c=>c.pact)){ leaveUpkeep(); return; } setTurn({...G.turn, phase:+ph.dataset.ph, passed:false}); return; }
-  const fb=t.closest('[data-first]'); if(fb){ if(fb.disabled) return; const v=fb.dataset.first; if(v==='sideboard') sideboardModal(); else if(v==='mull') mulligan(); else if(v==='roll') highRoll(); else if(v==='deal') drawOpening(); else if(v==='keep') keepHand(); else if(v==='me' && !G.turn.n) takeFirst(G.myId); else if(v==='rollboth') rollBoth(); else if(v==='skip') skipRoll(); else if(v==='comp') compDecide(fb.dataset.id); else if(v==='nocomp') compDecide(null); else if((v==='play'||v==='draw') && !G.turn.n) chooseFirst(v==='play'); return; }
+  const fb=t.closest('[data-first]'); if(fb){ if(fb.disabled) return; const v=fb.dataset.first; if(v==='mullgo'){ G.mullGo=true; log(`${G.me.name} starts without waiting for ${G.opp?G.opp.name:'the opponent'} to finish their mulligans.`); changed(); } else if(v==='sideboard') sideboardModal(); else if(v==='mull') mulligan(); else if(v==='roll') highRoll(); else if(v==='deal') drawOpening(); else if(v==='keep') keepHand(); else if(v==='me' && !G.turn.n) takeFirst(G.myId); else if(v==='rollboth') rollBoth(); else if(v==='skip') skipRoll(); else if(v==='comp') compDecide(fb.dataset.id); else if(v==='nocomp') compDecide(null); else if((v==='play'||v==='draw') && !G.turn.n) chooseFirst(v==='play'); return; }
   const pile=t.closest('.pile'); if(pile){ const z=pile.dataset.pile, mine=pile.dataset.o==='me';
     if(z==='gy' && G.mode && G.mode.type==='arrow' && find(G.mode.from) && find(G.mode.from).z==='st'){ const src=G.mode.from; G.mode=null; render(); openTargetGy(src, mine ? G.myId : oppId()); return; }
     if(mine && z==='lib'){ draw(1); changed(); }
