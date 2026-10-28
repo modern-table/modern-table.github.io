@@ -557,10 +557,11 @@ body.nomo *{transition:none!important}
 </script>
 <script>
 "use strict";
-const VERSION = 'v4.56';
+const VERSION = 'v4.57';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.57','Oct 27',"A creature with 0 or less toughness now dies on its own, as the rules say. So when Ocelot Pride copies an Orc Army token, the copy enters (Guide of Souls still gives its life and energy), then dies as a 0/0."],
   ['v4.56','Oct 27',"The game waits for both players' mulligans: the player going first can't play a land, cast, activate or move to the next step until the other player has kept and put their cards on the bottom. The banner says who is still deciding, with Start anyway in case they've left."],
   ['v4.55','Oct 27',"The city's blessing works again: with a card that has ascend (Ocelot Pride) and ten or more permanents, you get it for the rest of the game, and Ocelot Pride's end step copies every token that entered this turn, Treasures and other noncreature tokens included."],
   ['v4.54','Oct 27',"Five more cards work: Archdruid's Charm (all three modes, including the search that puts a land onto the battlefield and anything else into your hand), Explore, Flare of Cultivation (sacrifice a green creature, then one basic land onto the battlefield and one into your hand), Golgari Rot Farm, and Dosan the Falling Leaf (casting on the other player's turn asks first)."],
@@ -5668,14 +5669,17 @@ function takeCombat(msg){ const m=G.me, by=String(msg.by||'Opponent').slice(0,40
    a planeswalker with no loyalty goes to the graveyard */
 /* lethal damage outside combat: checked a moment after each change, so every effect of a spell (Chandra's exile-instead, Searing Blood's watch) is in place first */
 function sbaDeaths(){ if(G.sbaBusy || !G.me || !G.me.bf || !G.turn || !G.turn.n) return; G.sbaBusy=true; let n=0; try{ n=combatDeaths(); } finally { G.sbaBusy=false; } if(n) changed(); }
-function combatDeaths(){ const m=G.me, gone=[];
+function combatDeaths(){ const m=G.me, gone=[], gone0=[], busy0=!$('#modal').hidden || !!G.mode || ($('#payPanel') && !$('#payPanel').hidden) || (typeof DRUN!=='undefined' && DRUN); let late0=false;   // a choice still open (a clone choosing what to copy, X counters being asked) holds the 0-toughness check
   for(const c of [...m.bf]){ if(c.fd) continue;
     if(isPW(c) && !isCreature(c)){ if((c.c||0)<=0 && c.lhit===G.turn.n){ gone.push(cname(c)); move(c.id,'gy',{silent:true}); } continue; }
+    if(isCreature(c)){ const T0=toughNow(c, G.myId); if(T0!=null && T0<=0){ if(busy0){ late0=true; continue; } gone0.push(cname(c)); move(c.id,'gy',{silent:true}); continue; } }   // v4.56: a creature with 0 or less toughness dies (a copy of a 0/0 Army token)
     if(!isCreature(c) || !(c.dmg>0)) continue; const T=toughNow(c, G.myId), lethal=(T!=null && c.dmg>=T) || c.dtd===G.turn.n; if(!lethal) continue;
     if(kwOn(c,'indestructible')){ log(`${cname(c)} has lethal damage but is indestructible.`); continue; }
     if(c.regen===G.turn.n){ delete c.regen; c.tap=true; c.atk=false; delete c.dmg; delete c.dtd; m.arrows=m.arrows.filter(a=>a.a!==c.id); log(`${cname(c)} regenerates instead of dying (tapped, removed from combat).`); continue; }
     gone.push(cname(c)); move(c.id,'gy',{silent:true}); }
-  if(gone.length) log(`${m.name}'s ${gone.join(', ')} ${gone.length>1?'die':'dies'} (lethal damage).`); return gone.length; }
+  if(late0){ clearTimeout(G.sba0T); G.sba0T=setTimeout(sbaDeaths, 700); }
+  if(gone0.length) log(`${m.name}'s ${gone0.join(', ')} ${gone0.length>1?'die':'dies'} (0 toughness).`);
+  if(gone.length) log(`${m.name}'s ${gone.join(', ')} ${gone.length>1?'die':'dies'} (lethal damage).`); return gone.length+gone0.length; }
 function combatDamage(){ const t=G.turn, m=G.me, oa=(G.opp&&G.opp.arrows)||[], parts=[], trig=[];
   for(const c of m.bf.filter(x=>x.atk)){ const bl=oa.filter(a=>a.blk && a.b===c.id).map(a=>{ const g=findAny(a.a); return g ? cname(g.c) : 'a creature'; }), pa=m.arrows.find(a=>a.atk && a.a===c.id), pw=pa && findAny(pa.b), p=powerOf(c);
     if(bl.length) parts.push(`${cname(c)} (power ${p}) is blocked by ${bl.join(' and ')}`);
