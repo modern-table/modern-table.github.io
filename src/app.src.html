@@ -549,10 +549,11 @@ body.nomo *{transition:none!important}
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.53';
+const VERSION = 'v4.54';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.54','Oct 27',"Five more cards work: Archdruid's Charm (all three modes, including the search that puts a land onto the battlefield and anything else into your hand), Explore, Flare of Cultivation (sacrifice a green creature, then one basic land onto the battlefield and one into your hand), Golgari Rot Farm, and Dosan the Falling Leaf (casting on the other player's turn asks first)."],
   ['v4.53','Oct 27',"The Modern Table has its own icon now: a gold card in front of a blue one, on the table's green felt, so it's easy to spot among your browser tabs and bookmarks. The Draft Table has the same icon on its red-brown felt."],
   ['v4.52','Oct 27',"Streamer mode (☰ menu), for streaming or recording your games: a box at the bottom of the game log, where a camera covers nothing you need. Choose Camera space to leave it empty for your streaming app's camera, or My camera to show your webcam right there. Your camera only shows on your own screen; nothing is sent to your opponent."],
   ['v4.51','Oct 27',"Landwalk shows on the card: islandwalk, swampwalk, forestwalk, mountainwalk and plainswalk each have their own chip, and it glows in the land's colour while the defending player controls that land type, so you can see at a glance that the creature can't be blocked."],
@@ -1878,6 +1879,7 @@ function youAttack(){ const m=G.me; if(m.atkC===G.turn.n) return; m.atkC=G.turn.
 /* locks on casting and activating: Voice of Victory, Ranger-Captain of Eos (sent by its controller), Clarion Conqueror, Grafdigger's Cage */
 function castLock(c, from){ const o=(G.opp&&G.opp.bf)||[];
   for(const x of o){ if(x.fd || (!x.k && !x.cu)) continue; if(/Your opponents can't cast spells during your turn/i.test(frontText(x)||'') && G.turn.active===oppId()) return `${cdata(x).n}: you can't cast spells during ${G.opp.name}'s turn`; }
+  if(G.turn.n && G.turn.active!==G.myId) for(const x of [...G.me.bf, ...o]){ if(x.fd || (!x.k && !x.cu)) continue; if(/Players can cast spells only during their own turns/i.test(frontText(x)||'')) return `${cdata(x).n.split(',')[0]}: players can cast spells only during their own turns`; }   // v4.54: Dosan the Falling Leaf
   const L=G.me.lock; if(L && L.n===G.turn.n && (!L.nc || (!isCreature(c) && !c.fd))) return `${L.by}: you can't cast ${L.nc?'noncreature ':''}spells this turn`;
   { const o1=G.me.oneMore; if(o1 && o1.n===G.turn.n && ((G.me.cast&&G.me.cast.n)||0)>=o1.upto) return `${o1.by}: you could cast only one more spell this turn`; }
   if((from==='gy' || from==='lib') && [...G.me.bf, ...o].some(x=>!x.fd && (x.k||x.cu) && /Players can't cast spells from graveyards or libraries/i.test(frontText(x)||''))) return "Grafdigger's Cage: players can't cast spells from graveyards or libraries";
@@ -2319,6 +2321,10 @@ function searchSpec(text){ let o=(text||'').replace(/\([^)]*\)/g,'');
      .replace(/mana value X or less, where X is (\d+) plus the sacrificed creature(?:'|’)s mana value/i, (z,k)=>`mana value ${+k+(G.sacMV||0)} or less`)
      .replace(/mana value equal to (\d+) plus the sacrificed creature(?:'|’)s mana value/i, (z,k)=>`mana value ${+k+(G.sacMV||0)}`);
   const ctr=/put that card onto the battlefield with an additional \+1\/\+1 counter on it/i.test(o);
+  // v4.54: Cultivate / Flare of Cultivation ("… up to two basic land cards, reveal those cards, put one onto the battlefield tapped and the other into your hand") and
+  // Archdruid's Charm ("… a creature or land card and reveal it. Put it onto the battlefield tapped if it's a land card. Otherwise, put it into your hand.")
+  { const q=o.match(/\bsearch your library for up to (\w+) (basic land|land|[a-z ]+?) cards?, reveal (?:those cards|them), put one onto the battlefield( tapped)? and the other into your hand/i); if(q) return {n:NUMW2[q[1].toLowerCase()]||+q[1]||2, ctr:false, desc:q[2].trim(), pt:null, mv:null, eq:false, basicType:false, dest:'split', tapped:!!q[3]}; }
+  { const q=o.match(/\bsearch your library for an? ([a-z ]+?) card,? (?:and )?reveal it\. Put it onto the battlefield( tapped)? if it(?:'|’)s a land card\. Otherwise, put it into your hand/i); if(q) return {n:1, ctr:false, desc:q[1].trim(), pt:null, mv:null, eq:false, basicType:false, dest:'landbf', tapped:!!q[2]}; }
   const m=o.match(/\bsearch your library for (up to (\w+) |an? |X |(?:that many) )?(.*?)\bcards?\b([^,.]*?)(?:,| and) (?:reveal (?:it|them|that card|those cards)(?: to [^,]+)?, )?(?:and )?put (?:it|them|that card|those cards) (onto the battlefield( tapped)?|into your hand)/i);
   if(!m || /that many/i.test(m[1]||'') || /^that$/i.test(m[2]||'')) return null;
   const n = m[2] ? (NUMW2[m[2].toLowerCase()] || +m[2] || 1) : /^X /.test(m[1]||'') ? 'X' : 1, w=m[4]||'';
@@ -2507,6 +2513,15 @@ async function landEnters(id){ const f=find(id); if(!f || f.z!=='bf') return; co
     if(ok){ log(`${G.me.name} beholds ${cname(src)}${G.me.hand.includes(src)?' (revealed from their hand)':''}; ${nm} enters untapped.`); } else { g.c.tap=true; log(`${nm} enters tapped${src?'':' (no '+w+' to behold)'}.`); enteredTapped(g.c); } changed(); return; }
   if(le.kind==='unless'){ let ok=judgeUnless(c, le.cond); if(ok==null) ok=await yesNo(faceName(c,c.flip?1:0), `It enters tapped unless ${le.cond}. Is that true?`, 'Yes: untapped', 'No: tapped'); const g=find(id); if(!g || g.z!=='bf') return;
     if(!ok){ g.c.tap=true; setTimeout(()=>enteredTapped(g.c),0); log(`${nm} enters tapped (${le.cond.replace(/^you /,G.me.name+' doesn\'t ').replace(/^a player /,'no player ')}).`); } else log(`${nm} enters untapped (${le.cond}).`); changed(); } }
+/* v4.54: the found cards go to different places: 'split' (one onto the battlefield, the other into the hand; with two, the player picks the land for the battlefield)
+   and 'landbf' (a land card onto the battlefield, anything else into the hand) */
+async function splitFound(ids, sp, by){ const m=G.me, cs=ids.map(i=>find(i)).filter(f=>f && f.z==='lib').map(f=>f.c), out=[];
+  const put=(c, dest)=>{ foundMove(c.id, dest, {silent:true, tap: dest==='bf' && sp.tapped}); out.push(`${cname(c)} ${dest==='bf' ? 'onto the battlefield'+(sp.tapped?' tapped':'') : 'into their hand'}`); };
+  if(sp.dest==='landbf') for(const c of cs) put(c, isLand(c) ? 'bf' : 'hand');
+  else if(cs.length===1){ const bf=await yesNo(by, `You found one card, ${cdata(cs[0]).n}. Where does it go?`, `Onto the battlefield${sp.tapped?' tapped':''}`, 'Into my hand'); put(cs[0], bf ? 'bf' : 'hand'); }
+  else if(cs.length>=2){ const same=cdata(cs[0]).n===cdata(cs[1]).n, p=same ? cs[0] : await pickP(`${by}: which one goes onto the battlefield${sp.tapped?' tapped':''}? The other goes into your hand.`, cs.slice(0,2), `Put ${cdata(cs[0]).n} onto the battlefield`);
+    const b=(p && cs.find(c=>c.id===p.id)) || cs[0]; put(b, 'bf'); for(const c of cs.slice(0,2)) if(c.id!==b.id) put(c, 'hand'); }
+  shuffleLib(true); log(out.length ? `${by}: ${m.name} searches their library, reveals and puts ${out.join(' and ')}, then shuffles.` : `${by}: ${m.name} searches their library, finds nothing, then shuffles.`); changed(); }
 function libSearch(sp, by, x, o={}){ let done=false;   // v4.42: once a search starts the library is shuffled, however the window closes
   const m=G.me, mv = sp.mv==='X' ? x : sp.mv!=null ? +sp.mv : null, n = sp.n==='X' ? (x||0) : sp.n;
   const ptN=(c,k)=>{ const v=parseInt(((cdata(c).pt||'').split('/')[k==='power'?0:1]||''),10); return isNaN(v) ? 0 : v; };
@@ -2514,12 +2529,14 @@ function libSearch(sp, by, x, o={}){ let done=false;   // v4.42: once a search s
   const what=`${sp.desc||''} card${mv!=null?` with mana value ${mv}${sp.eq?'':' or less'}`:''}${sp.pt?` with ${sp.pt.k} ${sp.pt.n} or less`:''}`.trim(), sel=new Set(), cnt={};
   for(const c of cs) cnt[cdata(c).n]=(cnt[cdata(c).n]||0)+1;
   const shown = n===1 ? cs.filter((c,i)=>cs.findIndex(x=>cdata(x).n===cdata(c).n)===i) : cs;   // picking one: a tile per name, with how many copies
-  const fin=(ids, how)=>{ if(done) return; done=true; closeModal(); const names=[]; let paid=0;
+  const fin=(ids, how)=>{ if(done) return;
+    if(sp.dest==='split' || sp.dest==='landbf'){ done=true; closeModal(); splitFound(ids, sp, by); return; }
+    done=true; closeModal(); const names=[]; let paid=0;
     for(const id of ids){ const f=find(id); if(f && f.z==='lib'){ const le=sp.dest==='bf' ? landEntry(f.c) : null, tap = sp.tapped || how==='tapped' || (le && le.kind==='tapped') || (le && le.kind==='shock' && how!=='pay');
         if(how==='pay' && le && le.kind==='shock' && !sp.tapped){ m.life-=le.life; paid+=le.life; }
         names.push(cname(f.c)+(sp.dest==='bf' && tap && !sp.tapped ? ' (tapped)' : '')); foundMove(id, sp.dest, {silent:true, tap}); if(sp.ctr){ const g=find(id); if(g && g.z==='bf'){ g.c.c=(g.c.c||0)+1; names[names.length-1]+=' with an additional +1/+1 counter'; } } } }
     shuffleLib(true); log(names.length ? `${by}: ${m.name} searches their library, puts ${names.join(', ')} ${sp.dest==='bf' ? 'onto the battlefield'+(sp.tapped?' tapped':'') : 'into their hand'}${paid?`, paying ${paid} life (now ${m.life})`:''}, then shuffles.` : `${by}: ${m.name} searches their library, finds no ${what}, then shuffles.`); changed(); };
-  const el=modal(`${by}: ${n>1?'up to '+n:'a'}${/^[aeiou]/i.test(what)&&n===1?'n':''} ${what}${n>1?'s':''}`, `<span class="hint">Click ${n>1?'up to '+n+' cards':'the card'} to put ${sp.dest==='bf' ? 'onto the battlefield'+(sp.tapped?' tapped':'') : 'into your hand'}. Your library is shuffled afterwards.</span>${cs.length ? '' : `<span class="hint"> There is no ${esc(what)} in your library.</span>`}<div class="grid" id="lsGrid">${shownHTML()}</div>`,
+  const el=modal(`${by}: ${n>1?'up to '+n:'a'}${/^[aeiou]/i.test(what)&&n===1?'n':''} ${what}${n>1?'s':''}`, `<span class="hint">Click ${n>1?'up to '+n+' cards':'the card'}${sp.dest==='split' ? ': one goes onto the battlefield'+(sp.tapped?' tapped':'')+', the other into your hand' : ' to put '+(sp.dest==='landbf' ? 'onto the battlefield'+(sp.tapped?' tapped':'')+' if it is a land, otherwise into your hand' : sp.dest==='bf' ? 'onto the battlefield'+(sp.tapped?' tapped':'') : 'into your hand')}. Your library is shuffled afterwards.</span>${cs.length ? '' : `<span class="hint"> There is no ${esc(what)} in your library.</span>`}<div class="grid" id="lsGrid">${shownHTML()}</div>`,
     [['Fail to find (shuffle)',()=>fin([]),'ghost'], ['Look through the whole library',()=>lsToggle(),'ghost lsall'], ['Put onto the battlefield tapped',()=>fin([...sel],'tapped'),'alt'], ['Choose',()=>fin([...sel], el._how),'go']], {wide:true, noClose:!!o.must, onClose:()=>fin([])});
   // v4.41 (Ben): while searching you may look at the whole library; it is laid out in its order, the cards that can't be chosen greyed
   function shownHTML(){ return shown.map(c=>n===1 && cnt[cdata(c).n]>1 ? `<span class="cewrap" style="position:relative">${cardHTML(c,'gy',true)}<span class="cemv">×${cnt[cdata(c).n]} in library</span></span>` : cardHTML(c,'gy',true)).join(''); }
@@ -2527,7 +2544,7 @@ function libSearch(sp, by, x, o={}){ let done=false;   // v4.42: once a search s
     if(b) b.textContent = full ? 'Show only the cards you can find' : 'Look through the whole library'; [...g.querySelectorAll('.card')].forEach(e=>e.classList.toggle('sel', sel.has(e.dataset.id))); }
   const goB=$('footer button.go', el), altB=$('footer button.alt', el);
   const upd=()=>{ goB.disabled=!sel.size; el._how=null; altB.hidden=true;
-    goB.textContent = sel.size ? `Put ${sel.size>1?sel.size+' ':''}${sp.dest==='bf'?'onto the battlefield':'into your hand'}` : 'Choose';
+    goB.textContent = sel.size ? (sp.dest==='split' || sp.dest==='landbf' ? `Take ${sel.size>1?'these '+sel.size:'it'}` : `Put ${sel.size>1?sel.size+' ':''}${sp.dest==='bf'?'onto the battlefield':'into your hand'}`) : 'Choose';
     if(sel.size===1 && sp.dest==='bf' && !sp.tapped){ const f=find([...sel][0]), le=f && landEntry(f.c);
       if(le && le.kind==='shock'){ altB.hidden=false; goB.textContent=`Put onto the battlefield untapped, pay ${le.life} life`; el._how='pay'; }
       else if(le && le.kind==='unless'){ altB.hidden=false; goB.textContent=`Put onto the battlefield untapped (${le.cond})`; el._how='untapped'; }
@@ -3364,6 +3381,7 @@ async function simpleEffects(c, text, srcId){
     if((r=sen.match(/^when you do, (.+)$/i))){ if(didIt===false){ log(`${by}: that wasn't done, so nothing happens.`); didIt=undefined; continue; } didIt=undefined; pushTrig(srcC || c, (G.sacLast && G.sacLast.s===c.id && /where X is that creature(?:'|’)s power/i.test(r[1])) ? r[1].replace(/,? where X is that creature(?:'|’)s power/i,'').replace(/\bX\b/g, String(G.sacLast.pow)) : r[1], 'reflexive trigger'); log(`${by}: its reflexive trigger goes on the stack.`); changed(); continue; }
     // ---- Batch 4 part 2 (v4.13): the sets' leftovers
     if(/^choose (?:up to one )?target [^.]+\.?$|^choose a creature an opponent controls\.?$|^(?:it|they) can(?:'|’)t be regenerated\.?$/i.test(sen)) continue;   // the targets are the arrows
+    if(/^then shuffle\.?$/i.test(sen) && /\bsearch your library\b/i.test(text||'')) continue;   // v4.54: the search that follows shuffles (Archdruid's Charm)
     if(/^then shuffle\.?$/i.test(sen)){ shuffleLib(true); log(`${by}: ${m.name} shuffles.`); changed(); continue; }
     if(/^end the turn\.?$/i.test(sen)){ endTheTurn(by); continue; }
     // "create … token(s) …, then <something else>": both halves, in order
