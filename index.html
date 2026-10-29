@@ -446,9 +446,9 @@ body.nomo .kc.won{animation:none}
 #zoom img{width:100%;border-radius:14px;box-shadow:0 10px 30px #000c;display:block}
 #zoom .ztxt{background:#0b1417f2;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12.5px;white-space:pre-wrap}
 #zoom .ztxt b{font-size:14px}#zoom .ztxt i{color:var(--dim);font-style:normal;display:block;margin-bottom:4px}
-#ctx{position:fixed;z-index:90;background:#0b1417;border:1px solid var(--line);border-radius:8px;padding:4px;min-width:190px;box-shadow:0 10px 30px #000c;max-height:92vh;overflow:auto}
-#ctx button{display:flex;justify-content:space-between;gap:16px;width:100%;text-align:left;border:0;background:transparent;padding:5px 10px;border-radius:5px;font-size:13px}
-#ctx button:hover{background:#1c3238}#ctx kbd{color:var(--dim);font:11px var(--ui)}#ctx hr{border:0;border-top:1px solid var(--line);margin:4px 0}
+#ctx,#ctx2{position:fixed;z-index:90;background:#0b1417;border:1px solid var(--line);border-radius:8px;padding:4px;min-width:190px;box-shadow:0 10px 30px #000c;max-height:92vh;overflow:auto}
+#ctx button,#ctx2 button{display:flex;justify-content:space-between;gap:16px;width:100%;text-align:left;border:0;background:transparent;padding:5px 10px;border-radius:5px;font-size:13px}
+#ctx button:hover,#ctx2 button:hover,#ctx button.sub.open{background:#1c3238}#ctx kbd,#ctx2 kbd{color:var(--dim);font:11px var(--ui)}#ctx2{z-index:91}#ctx button.sub span{color:var(--dim)}#ctx button.back{color:var(--dim)}#ctx hr,#ctx2 hr{border:0;border-top:1px solid var(--line);margin:4px 0}
 #modal{position:fixed;inset:0;z-index:70;background:#000a;display:grid;place-items:center;padding:16px}
 .sheet{background:var(--felt2);border:1px solid var(--line);border-radius:12px;max-width:min(1100px,100%);max-height:100%;display:flex;flex-direction:column;min-width:min(360px,100%)}
 .sheet header{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line)}
@@ -582,10 +582,11 @@ body.nomo *{transition:none!important}
 </script>
 <script>
 "use strict";
-const VERSION = 'v4.61';
+const VERSION = 'v4.62';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.62','Oct 29','Right-click menus are shorter for cards the table knows: what the card does comes first (its abilities, and Attack or Block during combat), and every by-hand option is one step away under Manual handling. Try the two styles, or go back to the full menu, in ☰ Card menus.'],
   ['v4.61','Oct 29',"Changed your mind after tapping a land for mana? Untap it by clicking and the mana comes back out of your pool. If that mana was already spent, the table asks first (Keep it tapped / Untap anyway, which is logged) and reminds you that Undo takes back the spell you paid with it. Lands untapped by a card, like Amulet of Vigor, keep their mana as before."],
   ['v4.60','Oct 29',"Fear of Missing Out gives an extra combat only with delirium (its whole trigger now waits for four card types in your graveyard). Block arrows no longer linger after combat or when a creature leaves, in practice games too. An attacker that can't be blocked (islandwalk with an Island on your side, flying, and so on) is greyed out and can't be chosen as you block; Shift-click if you need to block anyway. In the deck editor, every deck's name can be changed: a tournament list starts as \"Name (edited)\"."],
   ['v4.59','Oct 28',"Streamer frames, round two: Feature match replaces Card frame (your name, your deck and the match score in a bar above the camera, like a tournament stream); the Brass plate's nameplate sits flush right; Broadcast gets a thin outline like the table's other panels; and No frame still shows your name, in white at the bottom right."],
@@ -6450,15 +6451,30 @@ function drawArrows(){
 window.addEventListener('resize', ()=>{ drawArrows(); for(const el of [$('#pactPanel'), $('#payPanel')]) if(el && !el.hidden) placePay(el); });
 
 /* ================= menus, modals, zoom ================= */
-function menu(x, y, items){
-  const el=$('#ctx'); el.innerHTML='';
+function menuFill(el, items){ el.innerHTML='';
   for(const it of items){ if(!it) continue; if(it==='-'){ el.appendChild(document.createElement('hr')); continue; }
-    const b=document.createElement('button'); b.innerHTML=`<span>${esc(it[0])}</span>${it[2]?`<kbd>${it[2]}</kbd>`:''}`; b.onclick=()=>{ closeMenu(); it[1](); }; el.appendChild(b); }
-  el.hidden=false; const r=el.getBoundingClientRect();
-  el.style.left=Math.max(4,Math.min(x, innerWidth-r.width-6))+'px'; el.style.top=Math.max(4,Math.min(y, innerHeight-r.height-6))+'px';
+    const b=document.createElement('button');
+    if(Array.isArray(it[1])){ b.className='sub'; b.innerHTML=`<span>${esc(it[0])}</span><kbd>${cmStyle()==='swap'?'›':'▸'}</kbd>`; b.onclick=()=>subMenu(b, it[1], items); b.onmouseenter=()=>{ if(cmStyle()!=='swap') subMenu(b, it[1], items); }; }
+    else { b.innerHTML=`<span>${esc(it[0])}</span>${it[2]?`<kbd>${it[2]}</kbd>`:''}`; b.onclick=()=>{ closeMenu(); it[1](); }; if(el.id==='ctx') b.onmouseenter=()=>{ const s=$('#ctx2'); if(s){ s.hidden=true; el.querySelectorAll('.sub.open').forEach(x=>x.classList.remove('open')); } }; }
+    el.appendChild(b); } }
+const menuClamp = (el, x, y) => { const r=el.getBoundingClientRect(); el.style.left=Math.max(4,Math.min(x, innerWidth-r.width-6))+'px'; el.style.top=Math.max(4,Math.min(y, innerHeight-r.height-6))+'px'; };
+function menu(x, y, items){
+  const el=$('#ctx'); { const s=$('#ctx2'); if(s) s.hidden=true; } el.classList.remove('swapped'); menuFill(el, items);
+  el.hidden=false; el.scrollTop=0; menuClamp(el, x, y);
   hideZoom();
 }
-const closeMenu = () => { $('#ctx').hidden=true; };
+function subMenu(b, sub, parent){   // v4.62: "Manual handling": a second menu beside the first (fly) or the same menu's contents swapped (swap)
+  const el=$('#ctx');
+  if(cmStyle()==='swap'){ const r=el.getBoundingClientRect(); menuFill(el, [['‹ Back', ()=>{}], '-', ...sub]); el.classList.add('swapped');
+    const bk=el.querySelector('button'); bk.classList.add('back'); bk.onclick=e=>{ e.stopPropagation(); const r2=el.getBoundingClientRect(); el.classList.remove('swapped'); menuFill(el, parent); el.scrollTop=0; menuClamp(el, r2.left, r2.top); };
+    el.scrollTop=0; menuClamp(el, r.left, r.top); return; }
+  let s=$('#ctx2'); if(!s){ s=document.createElement('div'); s.id='ctx2'; document.body.appendChild(s); }
+  menuFill(s, sub); s.hidden=false; s.scrollTop=0; el.querySelectorAll('.sub').forEach(x=>x.classList.toggle('open', x===b));
+  const pr=el.getBoundingClientRect(), br=b.getBoundingClientRect(), r=s.getBoundingClientRect();
+  const left = pr.right+2+r.width <= innerWidth-6 ? pr.right+2 : Math.max(4, pr.left-2-r.width);
+  s.style.left=left+'px'; s.style.top=Math.max(4, Math.min(br.top-5, innerHeight-r.height-6))+'px';
+}
+const closeMenu = () => { $('#ctx').hidden=true; const s=$('#ctx2'); if(s) s.hidden=true; };
 let modalRefresh=null;
 function modal(title, bodyHTML, buttons=[], opts={}){
   const el=$('#modal'); el.hidden=false;
@@ -6529,9 +6545,15 @@ document.addEventListener('pointerover', e=>{
   const c=f.c; if((!c.k && !c.cu) || (c.fd && !f.mine)) { hideZoom(); return; }
   const d=cdata(c); showZoom((c.flip&&d.back)?{...d,img:d.back}:d, el.getBoundingClientRect(), ctrLine(c)+(c.note?`\nNote: ${c.note}`:'')+(f.z==='bf' && dynPT(c, f.mine?G.myId:oppId()) ? (x=>`\nNow ${x.p}/${x.t}${x.why?' ('+x.why+')':''}`)(dynPT(c, f.mine?G.myId:oppId())) : '')+(f.z==='bf' && c.cp ? `\n${c.cp.orig}, copying ${cdata(c).n}${c.cp.until?' until end of turn':''}` : '')+(f.z==='hand' && f.mine ? (x=>x ? `\nCost now: ${x.cost}${x.delta ? ` (printed ${x.printed}; ${x.why})` : ` (unchanged: ${x.why})`}` : '')(costNow(c)) : '')+(f.z==='bf' && c.eb ? '\nEarthbent: a creature with haste that is still a land; when it dies or is exiled, it returns tapped' : '')+(f.z==='bf' && c.bw && c.att ? '\nBestowed: an Aura while attached; it becomes a creature again if that creature leaves the battlefield' : '')+(f.z==='bf' ? (x=>x?'\n'+x:'')(giftsLine(c, f.mine?G.myId:oppId())) : '')+(f.z==='bf' && c.chosen ? `\nChosen: ${c.chosen}` : '')+(f.z==='bf' && c.dmg ? `\nDamage marked this turn: ${c.dmg}` : '')+(f.z==='bf' && c.lft ? '\nLand played this turn' : '')+(f.z==='bf' && c.wp ? '\nCast for its warp cost: goes to the warp zone at the beginning of the next end step' : '')+(f.z==='ex' && c.warp ? (c.warp===G.turn.n ? '\nIn the warp zone: may be cast again from the next turn on' : '\nIn the warp zone: may be cast from here') : '')+(f.z==='bf' && showSick(c) ? '\nSummoning sick: came under its controller\'s control this turn' : '')+(f.z==='st' && c.md && c.md.length && modesOf(c) ? '\nChosen:\n'+c.md.map(i=>'• '+(modesOf(c).modes[i-1]||'')).join('\n') : ''));
 });
-document.addEventListener('pointerdown', e=>{ if(!e.target.closest('#ctx')) closeMenu(); }, true);
+document.addEventListener('pointerdown', e=>{ if(!e.target.closest('#ctx, #ctx2')) closeMenu(); }, true);
 
 /* ---------- card menus ---------- */
+const OWN = it => { if(it) it.own=1; return it; };   // v4.62: an item that is the card's own action (shown on the short menu)
+const CMST = {fly:'Short, manual tools open beside it', swap:'Short, manual tools replace it', full:'Full (every option, as before v4.62)'};
+const cmStyle = () => CMST[S.cmenu] ? S.cmenu : 'fly';
+function cmModal(){ const cur=cmStyle();
+  modal('Card menus', '<span class="hint">For cards the table knows (no violet ring), right-click shows what the card does: its abilities, and Attack or Block during combat. Everything else (counters, moving it, face down, notes) is under <b>Manual handling</b>. Cards with the violet ring always get the full menu, and the keyboard shortcuts (G, E, H, C, X, …) work either way.</span>',
+    Object.entries(CMST).map(([v,l])=>[l+(v===cur?'  ✓':''), ()=>{ S.cmenu=v; store.set('mt_settings',S); closeModal(); toast('Card menus: '+l.replace(/,.*/,'')+'.'); }, v===cur?'go':'ghost'])); }
 function cardMenu(id, x, y){
   const f=find(id); if(!f) return; if(f.z==='ph'){ menu(x, y, [['Phase in (it comes back as it left)',()=>{ phaseIn([id], 'by hand'); }]]); return; } const c=f.c, z=f.z, d=cdata(c), ch=()=>changed();
   const go=(zone,o)=>()=>{ move(id,zone,o); ch(); modalRefresh&&modalRefresh(); };
@@ -6541,16 +6563,16 @@ function cardMenu(id, x, y){
   let items=[];
   if(z==='bf') items=[
     [c.tap?'Untap':(isCreature(c)?'Tap (no mana)':'Tap'),()=>{ if(c.tap){ untapCard(c); ch(); } else if(isCreature(c)){ c.tap=true; ch(); } else toggleTap(id); },'T'],
-    ...((!c.tap && !c.fd && /\{T\}[^:\n]*: add/i.test(cdata(c).o||'')) ? manaAbilities(c).map(a=>[abilityLabel(a), ()=>{ if(useAbility(c,a)) ch(); }]) : []), ...abilitiesOf(c).map(a=>[abLabel(a), ()=>activate(id,a)]), cdmgLine(c)&&['Dealt combat damage to a player (put its trigger on the stack)',()=>cdmgTrig(id)], [c.atk?'Remove from combat':'Attack (taps)',()=>attack(id,false),'A'], !c.atk&&['Attack with vigilance (stays untapped)',()=>attack(id,true),'V'],
-    stationN(c)&&['Station (tap another creature: charge counters equal to its power)',()=>stationIt(id)], c.prep&&prepSpell(c)&&[`Cast a copy of ${prepSpell(c).n} ${prepSpell(c).mc} (no longer prepared)`,()=>castPrepared(id)],
-    (canAnimate(c)||c.anim)&&[c.anim?'Return to land row now':'Become a creature (until end of turn)',()=>animateLand(id)], ...(c.fd?[]:empowerItems(c)),
-    druidLoop(c)&&[`Repeat the loop N times… (tap for mana, untap; ${minusOneBy()} stops the counter)`,()=>runDruidLoop(id)],
-    chooseKind(c)&&[c.chosen?`Change the chosen ${chooseKind(c).k} (${c.chosen})…`:`Choose a ${chooseKind(c).k}…`,()=>choosePrompt(id)],
+    ...((!c.tap && !c.fd && /\{T\}[^:\n]*: add/i.test(cdata(c).o||'')) ? manaAbilities(c).map(a=>OWN([abilityLabel(a), ()=>{ if(useAbility(c,a)) ch(); }])) : []), ...abilitiesOf(c).map(a=>OWN([abLabel(a), ()=>activate(id,a)])), cdmgLine(c)&&['Dealt combat damage to a player (put its trigger on the stack)',()=>cdmgTrig(id)], [c.atk?'Remove from combat':'Attack (taps)',()=>attack(id,false),'A'], !c.atk&&['Attack with vigilance (stays untapped)',()=>attack(id,true),'V'],
+    stationN(c)&&OWN(['Station (tap another creature: charge counters equal to its power)',()=>stationIt(id)]), c.prep&&prepSpell(c)&&OWN([`Cast a copy of ${prepSpell(c).n} ${prepSpell(c).mc} (no longer prepared)`,()=>castPrepared(id)]),
+    (canAnimate(c)||c.anim)&&[c.anim?'Return to land row now':'Become a creature (until end of turn)',()=>animateLand(id)], ...(c.fd?[]:empowerItems(c).map(OWN)),
+    druidLoop(c)&&OWN([`Repeat the loop N times… (tap for mana, untap; ${minusOneBy()} stops the counter)`,()=>runDruidLoop(id)]),
+    chooseKind(c)&&OWN([c.chosen?`Change the chosen ${chooseKind(c).k} (${c.chosen})…`:`Choose a ${chooseKind(c).k}…`,()=>choosePrompt(id)]),
     isCreature(c)&&['Mark damage…',async()=>{ const n=await askN('Mark damage', 1); if(n>0) damage(id, n); },'−'], c.dmg&&['Remove damage',()=>damage(id, -c.dmg)],
     ['Block…',()=>startMode('block',id),'B'], ['Target…',()=>startMode('arrow',id),'R'],
-    (b=>b && (b.when==='enters' || c.atk) && [`${b.now?'Blink':'Flicker'} target…  (${srcName(c).split(',')[0]}'s trigger)`, ()=>{ G.mode={type:'arrow', from:id, sure:true}; render(); }])(blinkTrig(c)),
+    (b=>b && (b.when==='enters' || c.atk) && OWN([`${b.now?'Blink':'Flicker'} target…  (${srcName(c).split(',')[0]}'s trigger)`, ()=>{ G.mode={type:'arrow', from:id, sure:true}; render(); }]))(blinkTrig(c)),
     showSick(c)&&['Remove the summoning-sick mark',()=>{ delete c.sick; ch(); }], c.lft&&['Remove the NEW! banner',()=>{ delete c.lft; ch(); }],
-    !c.fd&&modesOf(c)&&['Choose a mode… (tells your opponent)',()=>{ const md=modesOf(c); pickModes(c, md, p=>{ if(p.length){ log(modeLog(c, md, p)); ch(); } }, {title:`${faceName(c,c.flip?1:0)}: choose`, go:'Confirm'}); }], '-',
+    !c.fd&&modesOf(c)&&OWN(['Choose a mode… (tells your opponent)',()=>{ const md=modesOf(c); pickModes(c, md, p=>{ if(p.length){ log(modeLog(c, md, p)); ch(); } }, {title:`${faceName(c,c.flip?1:0)}: choose`, go:'Confirm'}); }]), '-',
     [c.exert?'Remove exert':'Exert (skips its next untap)',()=>{ c.exert=!c.exert; if(c.exert) log(`${G.me.name} exerts ${cname(c)}. It will not untap next turn.`); ch(); }],
     ['Add a stun counter',()=>{ c.stun=(c.stun||0)+1; log(`${cname(c)} gets a stun counter (${c.stun}).`); ch(); }], c.stun>0&&['Remove a stun counter',()=>{ c.stun--; ch(); }],
     [ctrLabel(c) ? `Add a ${ctrLabel(c)} counter` : 'Add a counter (+1)',()=>addCounter(id,1),'C'], [ctrLabel(c) ? `Remove a ${ctrLabel(c)} counter` : 'Remove a counter (−1)',()=>addCounter(id,-1),'X'],
@@ -6558,13 +6580,13 @@ function cardMenu(id, x, y){
     ['Boost until end of turn…',async()=>{ const v=await ask('Boost until end of turn', '+1/+1', 'Power/toughness change, e.g. +2/+0 or -1/-1'); const g=v&&v.replace(/−/g,'-').match(/([+-]?\d+)\s*\/\s*([+-]?\d+)/); if(g){ boost(c,parseInt(g[1],10),parseInt(g[2],10)); log(`${cname(c)} gets ${sgn(parseInt(g[1],10))}/${sgn(parseInt(g[2],10))} until end of turn.`); ch(); } }], (c.tp||c.tt)&&['Clear boost',()=>{ delete c.tp; delete c.tt; ch(); }],
     ['Set counters…',async()=>{ const n=await askN('Set counters', c.c||0); if(n!=null){ c.c=Math.max(minCounters(c),n); ch(); } }],
     ['Note…',async()=>{ const v=await ask('Note on this card', c.note||'', 'Short note, e.g. +2/+2 until end of turn'); if(v!=null){ c.note=v.slice(0,40); ch(); } }], '-',
-    d.back&&[c.flip?'Turn to front face':'Transform',()=>{ transform(c); ch(); },'F'],
+    d.back&&OWN([c.flip?'Turn to front face':'Transform',()=>{ transform(c); ch(); },'F']),
     c.fd&&morphOf(c)&&[`Turn face up for ${morphOf(c).cost} (${morphOf(c).kind.toLowerCase()})`,()=>morphUp(id)],
     [c.fd?(c.fdk?`Turn face up (reveal the ${c.fdk.toLowerCase()})`:'Turn face up'):'Turn face down',()=>faceToggle(id), c.fd&&c.fdk?'F':''],
     ['Attach to…',()=>startMode('attach',id)], c.att&&['Detach',()=>{ c.att=null; ch(); }],
     ['Move to the other row',()=>{ const cur=c.row||((c.fd||isCreature(c))?'f':'b'); c.row=cur==='f'?'b':'f'; ch(); }],
     /\bwarp\b/i.test(d.o||'')&&[c.wp?'Send to warp zone now (instead of at the end step)':'Send to warp zone (exiled, can be cast later)',()=>{ warpOut(c); ch(); }],
-    c.wp&&['Keep it (remove the warp banner)',()=>{ delete c.wp; log(`${G.me.name}'s ${cname(c)} will not go to the warp zone.`); ch(); }],
+    c.wp&&OWN(['Keep it (remove the warp banner)',()=>{ delete c.wp; log(`${G.me.name}'s ${cname(c)} will not go to the warp zone.`); ch(); }]),
     ['Make a token copy',()=>{ const tk=mk(c.k,{tok:true,cu:c.cu,c:0,sick:!!G.turn.n}); tk.tokT=G.turn.n; G.me.bf.push(tk); log(`${G.me.name} makes a token copy of ${cname(c)}.`); entered(tk); ch(); }],
     G.opp&&['Give control to opponent',()=>{ G.noUndo=true; G.me.bf.splice(find(id).i,1); c.att=null; c.atk=false; send({t:'give',card:c,zone:'bf'}); log(`${G.me.name} gives control of ${cname(c)} to ${G.opp.name}.`); ch(); }], '-', ...dest ];
   else if(z==='hand') items=[
@@ -6605,6 +6627,11 @@ function cardMenu(id, x, y){
   else if(z==='side' && c.comp) items=compItems(c, id);
   else items=[ z==='side'&&isCompanion(c)&&!G.me.side.some(x=>x.comp)&&['Reveal as your companion',()=>{ revealCompanion(id); modalRefresh&&modalRefresh(); }], z==='lib'&&['Reveal this card to opponent',()=>log(`${G.me.name} reveals ${cname(c)} from their library.`)], [c.warp?(c.warp===G.turn.n?'Cast it anyway (warped this turn; normally a later turn)':'Cast this card (from the warp zone)'):(z==='gy' && c.gyc===G.turn.n ? 'Cast it (allowed from the graveyard this turn)' : 'Cast from here (to the stack)'),()=>castSpell(id)], z==='gy'&&[c.fbk?'Remove flashback mark':'Mark for flashback (until end of turn)',()=>{ if(c.fbk){ delete c.fbk; log(`${cname(c)} no longer has flashback.`); } else { c.fbk=G.turn.n||1; log(`${G.me.name} gives ${cname(c)} in their graveyard flashback until end of turn.`); } ch(); modalRefresh&&modalRefresh(); }], ...(z==='gy' ? gyAbils(c).map((a,i)=>[`Activate from the graveyard — ${a.cost}: ${a.eff.length>60?a.eff.slice(0,58)+'…':a.eff}`,()=>useGyAbil(id,i)]) : []), z==='gy'&&escapeOf(c)&&[`Cast with escape ${escapeOf(c).mana} (exile other cards from your graveyard)`,()=>castEscape(id)], z==='gy'&&dredgeN(c)&&[`Dredge ${dredgeN(c)} instead of a draw (mill ${dredgeN(c)}, return it to hand)`,()=>doDredge(id)], z==='gy'&&warpCost(c)&&warpFromGy(c)&&[`Cast for its warp cost ${warpCost(c)}${warpLife(c)?', pay '+warpLife(c)+' life':''} from the graveyard`,()=>castWarp(id)], z==='ex'&&c.plot&&[`Cast it without paying its mana cost (plotted${(G.turn.n||0)<=c.plot?'; not until a later turn':''})`,()=>plotCast(id)], z==='gy'&&fbExtra(c)&&[`Cast with flashback ${[fbExtra(c).mana, fbExtra(c).extra.toLowerCase()].filter(Boolean).join(', ')} (exiled after)`,()=>castFbExtra(id)], z==='gy'&&!fbExtra(c)&&flashbackCost(c)&&[`Cast with flashback ${flashbackCost(c)} (exiled after)`,()=>castSpell(id,{xr:1,silent:true, payCost:flashbackCost(c)},()=>log(`${G.me.name} casts ${cname(c)} from their graveyard with flashback ${flashbackCost(c)}. It will be exiled.`))], z==='gy'&&retraceBy(c)&&[`Cast with retrace (discard a land card)${retraceBy(c)!=='retrace'?' — '+retraceBy(c):''}`,()=>castRetrace(id)], z==='gy'&&harmonizeOf(c)&&[`Cast for its harmonize cost ${harmonizeOf(c)} (tap a creature to pay less; exiled after)`,()=>castHarmonize(id)], z==='gy'&&(x=>x&&x.gy)(bestowInfo(c))&&[`Cast for its bestow cost from your graveyard (${bestowCost(c)}; then click its creature)`,()=>castBestow(id)], z==='gy'&&['Cast from here, then exile',()=>castSpell(id,{xr:1,silent:true},()=>log(`${G.me.name} casts ${cname(c)} from their graveyard. It will be exiled when it leaves the stack.`))], c.by&&['Return to battlefield now',go('bf')], z==='ex'&&!c.by&&!c.warp&&!c.fd&&['May be played until end of next turn',()=>{ c.pl='next'; delete c.offer; log(`${G.me.name} may play ${cname(c)} from exile until the end of their next turn.`); ch(); modalRefresh&&modalRefresh(); }], z==='ex'&&!c.by&&!c.warp&&!c.fd&&['May be played until end of this turn',()=>{ c.pl='this'; delete c.offer; log(`${G.me.name} may play ${cname(c)} from exile until the end of this turn.`); ch(); modalRefresh&&modalRefresh(); }], ...dest ];
   { const ev=evidenceN(c); if(ev && !(bestowInfo(c)&&bestowInfo(c).ev) && !abilitiesOf(c).some(a=>/collect evidence/i.test(a.cost) && z==='bf')) items=[[`Collect evidence ${ev}… (exile from your graveyard)`,()=>collectEvidence(ev, c)], '-', ...items]; }
+  if(z==='bf' && cmStyle()!=='full' && !unlearned(c) && !c.fd && !c.cu){   // v4.62: a card the table knows opens on what it does; the by-hand tools are one step away
+    const own=items.filter(i=>i && i!=='-' && (i.own || (c.wp && /^Send to warp zone now/.test(i[0])))), cre=isCreature(c)||c.anim, sh=[...own];
+    if(cre && atkStep() && (c.atk || !c.tap)) sh.push([c.atk?'Remove from combat':'Attack',()=>attack(id,false),'A']);
+    if(cre && blockStep() && !c.tap) sh.push(['Block…',()=>startMode('block',id),'B']);
+    menu(x, y, [...sh, sh.length&&'-', ['Manual handling', items.filter(i=>!(i && i!=='-' && sh.includes(i)))]]); return; }
   if(z==='gy' && isLand(c) && G.me.bf.some(x=>!x.fd && (x.k||x.cu) && /You may play lands from your graveyard/i.test(frontText(x)||''))) items=[[`Play this land (${cdata(G.me.bf.find(x=>!x.fd && (x.k||x.cu) && /You may play lands from your graveyard/i.test(frontText(x)||''))).n.split(',')[0]})`, ()=>{ closeModal(); playFromHand(id); }], '-', ...items];
   if(z==='gy'){ const srcs=myStackSources(); if(srcs.length) items=[...srcs.map(sc=>[`Target this card with ${cdata(sc).n.replace(/: (ability|chapter [IVX]+)$/,'')}`, ()=>{ addGyTarget(sc.id, id, G.myId); modalRefresh&&modalRefresh(); }]), '-', ...items]; }
   if(arrowsOn(id)) items=[['Clear targets',()=>clearTargets(id)], '-', ...items];
@@ -6667,7 +6694,7 @@ function tableMenu(x,y){
     [S.autoDraw?'Turn off auto-draw each turn':'Turn on auto-draw each turn',()=>{ S.autoDraw=!S.autoDraw; store.set('mt_settings',S); toast('Auto-draw is '+(S.autoDraw?'on':'off')); }],
     [`Auto-pay from mana pool: ${S.autoPay!==false?'On':'Off'}`,()=>{ S.autoPay=S.autoPay===false; store.set('mt_settings',S); toast(S.autoPay ? 'Auto-pay is on: spells and abilities take their cost from your mana pool.' : 'Auto-pay is off: spells go straight to the stack; spend mana by clicking its symbols.'); }],
     fsCan() && [fsEl() ? 'Exit full screen' : 'Full screen', ()=>fsEl() ? fsExit() : fsEnter()],
-    [`Tapped cards: ${({'18':'18°','90':'90°','90r':'90° with room'})[S.tap||TAP_DEF]}`,()=>tapStyleModal()], [`Animations: ${({on:'On',off:'Off',auto:'Follow my computer'})[S.anim||'on']}${noMotion()?' (off now)':''}`,()=>animModal()], [`Streamer mode: ${({off:'Off',space:'Camera space',cam:'My camera'})[S.stream||'off']}`,()=>streamModal()],
+    [`Tapped cards: ${({'18':'18°','90':'90°','90r':'90° with room'})[S.tap||TAP_DEF]}`,()=>tapStyleModal()], [`Animations: ${({on:'On',off:'Off',auto:'Follow my computer'})[S.anim||'on']}${noMotion()?' (off now)':''}`,()=>animModal()], [`Card menus: ${({fly:'Short, side menu',swap:'Short, same menu',full:'Full'})[cmStyle()]}`,()=>cmModal()], [`Streamer mode: ${({off:'Off',space:'Camera space',cam:'My camera'})[S.stream||'off']}`,()=>streamModal()],
     ['Clear my arrows',()=>{ G.me.arrows=[]; changed(); }], ['Shortcuts and help',()=>helpModal()], ['Take the tour',()=>tourStart('table')], ["What's new",()=>newsModal()], ['Send feedback',()=>openFeedback()], '-',
     ['Leave the table',()=>confirmBox('Leave this table?','Your seat is kept on this computer, so you can come back from the front page.',()=>{ save(); location.href=location.pathname+location.search; })] ]);
 }
@@ -6990,8 +7017,8 @@ document.addEventListener('pointerup', e=>{
   closeMenu(); G.mode={type:'arrow', from:d.id}; finishMode(target);
 });
 document.addEventListener('contextmenu', e=>{
-  if(e.target.closest('#table, #ctx, #modal, #shown, #zoom') && !e.target.closest('input, textarea')) e.preventDefault();
-  if(e.target.closest('#ctx')) return;
+  if(e.target.closest('#table, #ctx, #ctx2, #modal, #shown, #zoom') && !e.target.closest('input, textarea')) e.preventDefault();
+  if(e.target.closest('#ctx, #ctx2')) return;
   const card=e.target.closest('.card[data-id]');
   if(card && !card.closest('.pile')){ e.preventDefault(); if(rdown || Date.now()-rdoneAt<400) return; cardContext(card, e.clientX, e.clientY); return; }
   if(Date.now()-rdoneAt<400 && e.target.closest('.avatar, #board')){ e.preventDefault(); return; }
