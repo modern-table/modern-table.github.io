@@ -574,10 +574,11 @@ body.nomo *{transition:none!important}
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.60';
+const VERSION = 'v4.61';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.61','Oct 29',"Changed your mind after tapping a land for mana? Untap it by clicking and the mana comes back out of your pool. If that mana was already spent, the table asks first (Keep it tapped / Untap anyway, which is logged) and reminds you that Undo takes back the spell you paid with it. Lands untapped by a card, like Amulet of Vigor, keep their mana as before."],
   ['v4.60','Oct 29',"Fear of Missing Out gives an extra combat only with delirium (its whole trigger now waits for four card types in your graveyard). Block arrows no longer linger after combat or when a creature leaves, in practice games too. An attacker that can't be blocked (islandwalk with an Island on your side, flying, and so on) is greyed out and can't be chosen as you block; Shift-click if you need to block anyway. In the deck editor, every deck's name can be changed: a tournament list starts as \"Name (edited)\"."],
   ['v4.59','Oct 28',"Streamer frames, round two: Feature match replaces Card frame (your name, your deck and the match score in a bar above the camera, like a tournament stream); the Brass plate's nameplate sits flush right; Broadcast gets a thin outline like the table's other panels; and No frame still shows your name, in white at the bottom right."],
   ['v4.58','Oct 28',"Streamer mode has frames for the camera box, each with a plate showing your name: Brass plate, Card frame, Table felt, Broadcast, or No frame. Pick one in ☰ Streamer mode; they frame Camera space too."],
@@ -1309,12 +1310,13 @@ function useAbility(c, a, noExtra){
   if(!totemGate(c, ()=>{ if(useAbility(c, a, noExtra)) changed(); })) return false;
   if(a.rem && !(c.c>0)){ toast('It has no counters left to remove.'); return false; }
   if(!payCost(a.cost)){ toast(`That costs ${costLabel(a.cost)}. Put it in your mana pool first, then try again.`); return false; }
-  c.tap=true; if(a.only || a.rider){ const m=G.me, src=cdata(c).n.split(',')[0]; m.smana=m.smana||[]; for(const k of a.out) if(MANA.includes(k)) m.smana.push({k, src, only:a.only||'', rider:a.rider||'', chosen:c.chosen||''}); if(!noExtra) log(`${G.me.name} taps ${cname(c)} for ${[...a.out].map(k=>'{'+k+'}').join('')}${a.only ? `: spend ${a.out.length>1?'this mana':'it'} only ${a.only}` : ''}${a.rider==='haste' ? ' (a creature spell paid with it gains haste)' : ''}.`); } else addMana(a.out); if(!noExtra && (isCreature(c) || c.anim)) extraMana(c); if(a.rem) c.c--; if(a.dmg){ G.me.life-=a.dmg; log(`${cname(c)} deals ${a.dmg} damage to ${G.me.name} (now ${G.me.life}).`); } if(a.life){ G.me.life-=a.life; log(`${G.me.name} pays ${a.life} life for ${cname(c)}'s mana (now ${G.me.life}).`); } if(a.sacs){ const g=find(c.id); if(g && g.z==='bf'){ log(`${G.me.name} taps and sacrifices ${cname(c)} for ${[...a.out].map(k=>'{'+k+'}').join('')}.`); move(c.id,'gy',{silent:true}); } } if(a.exert){ c.exert=true; log(`${G.me.name} exerts ${cname(c)}. It will not untap next turn.`); } return true;
+  c.tap=true; c.mt={o:a.out, t:G.turn.n, ph:G.turn.phase, sm:(a.only || a.rider) ? 1 : 0}; if(a.only || a.rider){ const m=G.me, src=cdata(c).n.split(',')[0]; m.smana=m.smana||[]; for(const k of a.out) if(MANA.includes(k)) m.smana.push({k, src, only:a.only||'', rider:a.rider||'', chosen:c.chosen||''}); if(!noExtra) log(`${G.me.name} taps ${cname(c)} for ${[...a.out].map(k=>'{'+k+'}').join('')}${a.only ? `: spend ${a.out.length>1?'this mana':'it'} only ${a.only}` : ''}${a.rider==='haste' ? ' (a creature spell paid with it gains haste)' : ''}.`); } else addMana(a.out); if(!noExtra && (isCreature(c) || c.anim)) extraMana(c); if(a.rem) c.c--; if(a.dmg){ G.me.life-=a.dmg; log(`${cname(c)} deals ${a.dmg} damage to ${G.me.name} (now ${G.me.life}).`); } if(a.life){ G.me.life-=a.life; log(`${G.me.name} pays ${a.life} life for ${cname(c)}'s mana (now ${G.me.life}).`); } if(a.sacs){ const g=find(c.id); if(g && g.z==='bf'){ log(`${G.me.name} taps and sacrifices ${cname(c)} for ${[...a.out].map(k=>'{'+k+'}').join('')}.`); move(c.id,'gy',{silent:true}); } } if(a.exert){ c.exert=true; log(`${G.me.name} exerts ${cname(c)}. It will not untap next turn.`); } return true;
 }
 const manaLabel = o => MANA.filter(k=>o.includes(k)).map(k=>{ const n=o.split(k).length-1; return (n>1?n+' ':'')+MNAME[k]; }).join(' + ');
 function addMana(o){ const m=G.me; if(!m.mana) m.mana=noMana(); for(const ch of o) if(ch in m.mana) m.mana[ch]++; }
 function turnCleanup(prev, next){
   let ch=false; const m=G.me;
+  if(next.n!==prev.n) for(const c of m.bf) if(c.mt && !c.tap) delete c.mt;   // v4.61: mana taps from an earlier turn are forgotten once the permanent untaps
   if(next.phase!==prev.phase || next.n!==prev.n){ ch=emptyPool(); if(next.phase!==3) for(const c of m.bf) if(c.atk){ c.atk=false; ch=true; } }
   if((next.phase!==3 || next.n!==prev.n) && m.arrows.some(a=>a.blk || a.atk)){ m.arrows=m.arrows.filter(a=>!a.blk && !a.atk); ch=true; }
   if((next.phase!==3 || next.n!==prev.n) && G.opp && G.opp.dummy && (G.opp.arrows||[]).some(a=>a.blk || a.atk)){ G.opp.arrows=G.opp.arrows.filter(a=>!a.blk && !a.atk); ch=true; }   // v4.60: Practice's blocks end with combat too
@@ -5415,7 +5417,18 @@ function attack(id, vig, ao){
   { const b=blinkTrig(c); if(b && b.when==='attacks'){ blinkAuto(c, b); changed(); } }
 }
 function emptyPool(){ const m=G.me; let ch=false; if(m.mana && MANA.some(k=>m.mana[k])){ m.mana=noMana(); ch=true; } if(m.smana && m.smana.length){ m.smana=[]; ch=true; } return ch; }
-function untapCard(c){ if(c.stun>0){ c.stun--; log(`A stun counter comes off ${cname(c)} instead of it untapping (${c.stun} left).`); return false; } c.tap=false; return true; }
+function untapCard(c){ if(c.stun>0){ c.stun--; log(`A stun counter comes off ${cname(c)} instead of it untapping (${c.stun} left).`); return false; } c.tap=false; delete c.mt; return true; }
+/* v4.61: untapping by hand a permanent I tapped for mana (c.mt = {o: the mana it made, t: turn, ph: step, sm: restricted mana}).
+   If that mana is still in my pool, it comes back out as the permanent untaps. If it was spent (or the pool emptied), untapping would make free mana,
+   so I'm asked first: Keep it tapped, or Untap anyway (logged). Untapping by a card's effect (Amulet of Vigor) never comes here. */
+function manaUntap(c){ const mt=c.mt, m=G.me; if(!mt) return false; const syms=[...String(mt.o||'')].filter(k=>MANA.includes(k)), nm=cname(c), ms=syms.map(k=>'{'+k+'}').join('');
+  const here=mt.t===G.turn.n && mt.ph===G.turn.phase;
+  if(here && syms.length){ if(mt.sm){ const src=cdata(c).n.split(',')[0], pool=m.smana||[], idx=[]; for(const k of syms){ const i=pool.findIndex((e,j)=>e.k===k && e.src===src && !idx.includes(j)); if(i<0) break; idx.push(i); }
+      if(idx.length===syms.length){ m.smana=pool.filter((e,j)=>!idx.includes(j)); untapCard(c); log(`${m.name} untaps ${nm} and takes ${ms} back out of the mana pool.`); changed(); return true; } }
+    else { const need={}; for(const k of syms) need[k]=(need[k]||0)+1; if(m.mana && Object.keys(need).every(k=>(m.mana[k]||0)>=need[k])){ for(const k in need) m.mana[k]-=need[k]; untapCard(c); log(`${m.name} untaps ${nm} and takes ${ms} back out of the mana pool.`); changed(); return true; } } }
+  modal(`Untap ${cdata(c).n.split(',')[0]}?`, `<span class="hint">The ${ms||'mana'} it made is no longer in your mana pool: it was spent${here?'':', or the pool emptied when the step ended'}. Untapping it now would let you tap it for mana again.<br><br>If you meant to use that mana for something else, take back what you paid with it instead: <b>Undo</b> (top bar) undoes the spell or ability, and the mana comes back with it.</span>`,
+    [['Keep it tapped',()=>closeModal(),'go'], ['Untap anyway',()=>{ closeModal(); untapCard(c); log(`${m.name} untaps ${nm} by hand, although the ${ms||'mana'} it made was already used.`); changed(); },'ghost']]);
+  return true; }
 /* Empower Jace N (Reality Fracture): if you control no Jace token, create a 0-loyalty blue Jace planeswalker token; then put N loyalty counters on your Jace token. */
 function empowers(c){
   const o=(cdata(c).o||'').replace(/\([^)]*\)/g,''), out=[];
@@ -5438,7 +5451,7 @@ function toggleTap(id, x, y){
   const f=find(id); if(!f||f.z!=='bf') return; const c=f.c;
   if(convokeTap(c)) return;
   if(!c.fd && sacManaOf(c)){ const a=sacManaOf(c); if(x==null){ const el=$(`#table .card[data-id="${id}"]`), r=el?el.getBoundingClientRect():{left:200,top:200,width:0}; x=r.left+r.width/2; y=r.top+20; } menu(x, y, [[`Sacrifice it: add ${[...a.out].map(k=>'{'+k+'}').join('')}`, ()=>sacForMana(id)], '-', [c.tap?'Untap':'Tap', ()=>{ if(c.tap) untapCard(c); else c.tap=true; changed(); }]]); return; }
-  if(c.tap){ untapCard(c); changed(); return; }
+  if(c.tap){ if(c.mt && manaUntap(c)) return; untapCard(c); changed(); return; }
   const emp = c.fd ? [] : empowerItems(c);
   if(emp.length){ if(x==null){ const el=$(`#table .card[data-id="${id}"]`), r=el?el.getBoundingClientRect():{left:200,top:200,width:0}; x=r.left+r.width/2; y=r.top+20; }
     const mana = (isLand(c) || /\{T\}[^:\n]*: add/i.test(cdata(c).o||'')) ? manaAbilities(c).map(a=>[abilityLabel(a), ()=>{ if(useAbility(c,a)) changed(); }]) : [];
@@ -5447,7 +5460,7 @@ function toggleTap(id, x, y){
     const abs=manaAbilities(c);
     if(abs.length>1 || (abs.length===1 && (abs[0].cost || abs[0].rem))){ if(x==null){ const el=$(`#table .card[data-id="${id}"]`), r=el?el.getBoundingClientRect():{left:200,top:200,width:0}; x=r.left+r.width/2; y=r.top+20; }
       menu(x, y, [...abs.map(a=>[abilityLabel(a), ()=>{ if(useAbility(c,a)) changed(); }]), '-', ['Tap without adding mana', ()=>{ c.tap=true; changed(); }]]); return; }
-    if(abs.length===1){ if(abs[0].only || abs[0].rider || abs[0].sacs){ useAbility(c, abs[0]); changed(); return; } addMana(abs[0].out); if(isCreature(c)) extraMana(c); }
+    if(abs.length===1){ if(abs[0].only || abs[0].rider || abs[0].sacs){ useAbility(c, abs[0]); changed(); return; } addMana(abs[0].out); c.mt={o:abs[0].out, t:G.turn.n, ph:G.turn.phase}; if(isCreature(c)) extraMana(c); }
   }
   c.tap=true; changed();
 }
