@@ -582,10 +582,11 @@ body.nomo *{transition:none!important}
 </script>
 <script>
 "use strict";
-const VERSION = 'v4.62';
+const VERSION = 'v4.63';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.63','Oct 29','Clicking a fetch land now asks what you want: Fetch, or tap it without adding mana. If Urborg, Yavimaya or Leyline of the Guildpact lets it tap for mana, those colours are offered too. Click anywhere else to close it.'],
   ['v4.62','Oct 29','Right-click menus are shorter for cards the table knows: what the card does comes first (its abilities, and Attack or Block during combat), and every by-hand option is one step away under Manual handling. Try the two styles, or go back to the full menu, in ☰ Card menus.'],
   ['v4.61','Oct 29',"Changed your mind after tapping a land for mana? Untap it by clicking and the mana comes back out of your pool. If that mana was already spent, the table asks first (Keep it tapped / Untap anyway, which is logged) and reminds you that Undo takes back the spell you paid with it. Lands untapped by a card, like Amulet of Vigor, keep their mana as before."],
   ['v4.60','Oct 29',"Fear of Missing Out gives an extra combat only with delirium (its whole trigger now waits for four card types in your graveyard). Block arrows no longer linger after combat or when a creature leaves, in practice games too. An attacker that can't be blocked (islandwalk with an Island on your side, flying, and so on) is greyed out and can't be chosen as you block; Shift-click if you need to block anyway. In the deck editor, every deck's name can be changed: a tournament list starts as \"Name (edited)\"."],
@@ -5461,6 +5462,9 @@ function toggleTap(id, x, y){
   if(convokeTap(c)) return;
   if(!c.fd && sacManaOf(c)){ const a=sacManaOf(c); if(x==null){ const el=$(`#table .card[data-id="${id}"]`), r=el?el.getBoundingClientRect():{left:200,top:200,width:0}; x=r.left+r.width/2; y=r.top+20; } menu(x, y, [[`Sacrifice it: add ${[...a.out].map(k=>'{'+k+'}').join('')}`, ()=>sacForMana(id)], '-', [c.tap?'Untap':'Tap', ()=>{ if(c.tap) untapCard(c); else c.tap=true; changed(); }]]); return; }
   if(c.tap){ if(c.mt && manaUntap(c)) return; untapCard(c); changed(); return; }
+  if(x!=null && !c.fd && isLand(c)){ const fe=abilitiesOf(c).filter(a=>fetchOf(a));   // v4.63: clicking a fetch land asks: Fetch, its mana if something gives it some (Urborg, Yavimaya, Leyline of the Guildpact), or tap it for nothing; clicking elsewhere closes
+    if(fe.length){ const mana=manaAbilities(c).map(a=>[abilityLabel(a), ()=>{ if(useAbility(c,a)) changed(); }]);
+      menu(x, y, [...fe.map(a=>[abLabel(a), ()=>activate(id,a)]), ...mana, '-', [mana.length ? 'Tap without adding mana' : 'Tap (no mana)', ()=>{ c.tap=true; changed(); }]]); return; } }
   const emp = c.fd ? [] : empowerItems(c);
   if(emp.length){ if(x==null){ const el=$(`#table .card[data-id="${id}"]`), r=el?el.getBoundingClientRect():{left:200,top:200,width:0}; x=r.left+r.width/2; y=r.top+20; }
     const mana = (isLand(c) || /\{T\}[^:\n]*: add/i.test(cdata(c).o||'')) ? manaAbilities(c).map(a=>[abilityLabel(a), ()=>{ if(useAbility(c,a)) changed(); }]) : [];
