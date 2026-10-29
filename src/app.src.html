@@ -574,10 +574,11 @@ body.nomo *{transition:none!important}
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.59';
+const VERSION = 'v4.60';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.60','Oct 29',"Fear of Missing Out gives an extra combat only with delirium (its whole trigger now waits for four card types in your graveyard). Block arrows no longer linger after combat or when a creature leaves, in practice games too. An attacker that can't be blocked (islandwalk with an Island on your side, flying, and so on) is greyed out and can't be chosen as you block; Shift-click if you need to block anyway. In the deck editor, every deck's name can be changed: a tournament list starts as \"Name (edited)\"."],
   ['v4.59','Oct 28',"Streamer frames, round two: Feature match replaces Card frame (your name, your deck and the match score in a bar above the camera, like a tournament stream); the Brass plate's nameplate sits flush right; Broadcast gets a thin outline like the table's other panels; and No frame still shows your name, in white at the bottom right."],
   ['v4.58','Oct 28',"Streamer mode has frames for the camera box, each with a plate showing your name: Brass plate, Card frame, Table felt, Broadcast, or No frame. Pick one in ☰ Streamer mode; they frame Camera space too."],
   ['v4.57','Oct 27',"A creature with 0 or less toughness now dies on its own, as the rules say. So when Ocelot Pride copies an Orc Army token, the copy enters (Guide of Souls still gives its life and energy), then dies as a 0/0."],
@@ -1316,6 +1317,7 @@ function turnCleanup(prev, next){
   let ch=false; const m=G.me;
   if(next.phase!==prev.phase || next.n!==prev.n){ ch=emptyPool(); if(next.phase!==3) for(const c of m.bf) if(c.atk){ c.atk=false; ch=true; } }
   if((next.phase!==3 || next.n!==prev.n) && m.arrows.some(a=>a.blk || a.atk)){ m.arrows=m.arrows.filter(a=>!a.blk && !a.atk); ch=true; }
+  if((next.phase!==3 || next.n!==prev.n) && G.opp && G.opp.dummy && (G.opp.arrows||[]).some(a=>a.blk || a.atk)){ G.opp.arrows=G.opp.arrows.filter(a=>!a.blk && !a.atk); ch=true; }   // v4.60: Practice's blocks end with combat too
   if(next.phase===3 && next.n===prev.n && next.cs!==prev.cs){ const on=G.opp?G.opp.name:'Your opponent'; if(next.cs==='blk' && next.active!==G.myId) setTimeout(()=>toast(`${on} attacks. Click one of your untapped creatures, then the attacker it blocks. Press Done blocking when you are finished.`), 0); if(next.cs==='blkd' && next.active===G.myId) setTimeout(()=>toast(`${on} is done blocking. Go to combat damage when you are ready.`), 0); }
   if(next.phase===5 && prev.phase!==5 && sacEndTrig()) ch=true;   // first, so it sits under the other end-step triggers
   if(next.n===prev.n && next.phase!==prev.phase && !next.passed){ if(next.phase===3 && prev.phase<3 && next.active===G.myId && phaseTrigs('combat', true)) ch=true; if(next.phase===5 && prev.phase!==5 && phaseTrigs('end', next.active===G.myId)) ch=true; }
@@ -1773,6 +1775,7 @@ function wipe(desc, mv, by, who, eq){ const m=G.me, gone=[]; for(const c of [...
 function atkTrigs(c){ const d=cdata(c), nm=faceName(c,0), L=(frontText(c)||'').split('\n').map(x=>x.trim()), re=new RegExp('^(?:[A-Z][A-Za-z\' ]{2,30} — )?(?:When you cast this spell and )?[Ww]henever (?:this (?:creature|permanent|token)|'+escRe(nm)+'|'+escRe(nm.split(',')[0])+')(?: enters or)? attacks(?: [^,]*)?, (.+)$','i');
   L.forEach((l,i)=>{ const m=l.match(re); if(!m || blinkOf(l)) return; const short=nm.split(',')[0]; if(/attacks for the first time each turn/i.test(l)){ if(c.atk1===G.turn.n) return; c.atk1=G.turn.n; }
     const push=txt=>{ const mkr=mk(null,{tok:true, ts:Date.now(), ab:{id:c.id, tr:true}, cu:{n:`${short}: attack trigger`, t:'Triggered ability', o:txt, img:d.img||''}}); G.me.st.push(mkr); log(`${short} attacks: its trigger goes on the stack${txt!==l?' ('+txt+')':''}.`); if(/\btarget\b/i.test(txt)){ G.mode={type:'arrow', from:mkr.id}; toast(`${short}: click its target (a graveyard pile for a card in a graveyard; Esc for none).`); } changed(); };
+    { const ci=m[1].match(/^if ([^,]+), /i); if(ci && condTrue(ci[1], c)===false){ log(`${short} attacks, but it isn't true that ${ci[1]}, so its trigger doesn't happen.`); return; } }   // v4.60: intervening if, checked as it triggers too
     if(/choose one\s*[—–-]?\s*$/i.test(m[1])){ const modes=[]; for(let j=i+1;j<L.length && /^[•+]/.test(L[j]);j++) modes.push(L[j].replace(/^[•+]\s*/,'')); if(modes.length>1){ setTimeout(()=>pickModes(c, {head:l, modes, min:1, max:1}, p=>push(modes[p[0]-1]), {title:`${short} attacks: choose one`, skip:null}), 0); return; } }
     push(l); }); }
 /* "Sacrifice them at the beginning of the next end step" (mobilize, Voice of Victory): a delayed trigger per source goes on my stack at the end step,
@@ -2311,6 +2314,7 @@ function phaseTrigs(kind, mineTurn){ const re = kind==='end' && !mineTurn ? PHAS
 const powerOf = c => { const dp=dynPT(c, G.myId); if(dp && !dp.printed) return dp.p; const p=parseInt((cdata(c).pt||'0/0').split('/')[0],10)||0; return p+(isSaga(c)?0:(c.c||0))+(c.tp||0); };
 /* v4.11: a condition the table can judge (true / false), or null when it can't (then the player is asked) */
 function condTrue(x, c){ x=String(x||'').toLowerCase().trim().replace(/\.$/,''); const m=G.me; let q;
+  if((q=x.match(/^there are (\w+) or more card types among cards in your graveyard$/))) return gyTypes(m.gy).length >= (NUMW2[q[1]]||+q[1]||4);   // v4.60: delirium (Fear of Missing Out)
   if(/^you attacked (?:with a creature )?this turn$/.test(x)) return m.atkC===G.turn.n;
   if((q=x.match(/^an? graveyard has (\w+) or more cards in it$/))){ const k=NUMW2[q[1]]||+q[1]||20; return m.gy.length>=k || ((G.opp&&G.opp.gy)||[]).length>=k; }   // v4.36: Visions of Beyond
   if(/^you control a creature with power 4 or greater$/.test(x)) return m.bf.some(y=>!y.fd && isCreature(y) && powerOf(y)>=4);
@@ -2755,7 +2759,8 @@ async function simpleEffects(c, text, srcId){
     tgSnap[t]={z:a.z, ctr:Math.abs(a.c.c||0), oth:(a.c.stun||0)+(a.c.silver||0), atk:!!a.c.atk, tp:faceType(a.c), mv:manaValue(a.c), mine:a.mine, left}; }
   const tgt0=()=>tgAll.find(x=>tgSnap[x] && tgSnap[x].z==='bf') || tgAll.find(x=>tgSnap[x]) || tgAll[0], tgt0B=()=>tgAll.find(x=>{ const a=findAny(x); return a && a.z==='bf'; }) || tgAll[0];
   const hx0=G.lastHitEx; let slK=0, slPrev=null, slIt=null, mjNow=false, skipS=[], flyHit=null, oustCtl=null, grpIds=null, lastPump=null, insteadNow=false;
-  for(let sen of (text||'').replace(/\([^)]*\)/g,'').split(/(?<=\.)\s+|\n/)){ sen=sen.trim().replace(nm && /,/.test(nm) ? new RegExp('^((?:When|Whenever) )'+escRe(nm)+'\\b','i') : /^\b$/, '$1it').replace(/^[A-Z][A-Za-z' ]{2,30} — (?=(?:When|Whenever|At) )/,'').replace(/^(?:When|Whenever|At) (?!you attack this turn)(?!you do\b)(?!that creature dies this turn)(?!a creature dies this turn)[^,]+, /i,'').trim(); let r; if(skipS.length && skipS.some(x=>x.test(sen))) continue;
+  const trigIf0=/^(?:[A-Z][A-Za-z' ]{2,30} — )?(?:When|Whenever|At) [^,]+, if /i.test(String(text||'').trim()); let sNo=0;   // v4.60: an intervening "if" ("Whenever …, if …,") decides the whole ability
+  for(let sen of (text||'').replace(/\([^)]*\)/g,'').split(/(?<=\.)\s+|\n/)){ sNo++; sen=sen.trim().replace(nm && /,/.test(nm) ? new RegExp('^((?:When|Whenever) )'+escRe(nm)+'\\b','i') : /^\b$/, '$1it').replace(/^[A-Z][A-Za-z' ]{2,30} — (?=(?:When|Whenever|At) )/,'').replace(/^(?:When|Whenever|At) (?!you attack this turn)(?!you do\b)(?!that creature dies this turn)(?!a creature dies this turn)[^,]+, /i,'').trim(); let r; if(skipS.length && skipS.some(x=>x.test(sen))) continue;
     { let s2=sen, w; if(/^until end of turn, /i.test(s2) && !/\bbecomes?\b|can(?:'|’)t|^until end of turn, (?:double|triple|switch|you|your)\b/i.test(s2) && /\b(?:gets?|gains?|get|gain)\b/i.test(s2)) s2=s2.replace(/^until end of turn, (.+?)\.?$/i, '$1 until end of turn.');   // v4.11
       if((w=s2.match(/^(.*?\b(?:get|gets) )([+\-−])X\/(?:([+\-−])X|([+\-−]\d+))(.*?), where X is ([^.,]+?)\.?$/i))){ const v=xNum(w[6], srcC); if(v!=null) s2=`${w[1]}${w[2]}${v}/${w[3] ? w[3]+v : w[4]}${w[5]}.`; }
       if((w=s2.match(/^(.*?\bgets? )([+\-−])(\d+)\/([+\-−])(\d+)( until end of turn)? for each ([^.]+?)( until end of turn)?\.?$/i))){ const v=xNum(w[7], srcC); if(v!=null) s2=`${w[1]}${w[2]}${(+w[3])*v}/${w[4]}${(+w[5])*v}${w[6]||w[8]||''}.`; }
@@ -2773,7 +2778,7 @@ async function simpleEffects(c, text, srcId){
       else if((w=sen.match(/^if (.+?), (.+?) instead\.?$/i)) && (v=cnd(w[1]))!=null){ if(!v){ log(`${by}: it isn't true that ${w[1]}, so that doesn't happen.`); continue; } sen=w[2][0].toUpperCase()+w[2].slice(1)+'.'; insteadNow=true; }
       else if((w=sen.match(/^(.+?) instead if (.+?)\.?$/i)) && (v=cnd(w[2]))!=null){ if(!v){ log(`${by}: it isn't true that ${w[2]}, so that doesn't happen.`); continue; } sen=w[1]+'.'; insteadNow=true; }
       else if((w=sen.match(/^if there are (\w+) or more cards in your graveyard, (.+)$/i)) && !/\binstead\b/i.test(sen)){ const k=NUMW2[w[1].toLowerCase()]||+w[1]||99, n=m.gy.filter(y=>y.id!==c.id).length; if(n<k){ log(`${by}: only ${n} card${n===1?'':'s'} in the graveyard, so that doesn't happen.`); continue; } sen=w[2][0].toUpperCase()+w[2].slice(1); }
-      else if((w=sen.match(/^if (.+?), (.+)$/i)) && !/\binstead\b/i.test(sen) && (v=cnd(w[1]))!=null){ if(!v){ log(`${by}: it isn't true that ${w[1]}, so that doesn't happen.`); continue; } sen=w[2][0].toUpperCase()+w[2].slice(1); }
+      else if((w=sen.match(/^if (.+?), (.+)$/i)) && !/\binstead\b/i.test(sen) && (v=cnd(w[1]))!=null){ if(!v && sNo===1 && trigIf0){ log(`${by}: it isn't true that ${w[1]}, so the ability does nothing.`); skipS.push(/[\s\S]*/); continue; } if(!v){ log(`${by}: it isn't true that ${w[1]}, so that doesn't happen.`); continue; } sen=w[2][0].toUpperCase()+w[2].slice(1); }
       else if((w=sen.match(/^(.+?) if (you attacked this turn|you control a creature with power 4 or greater|you have no cards in hand|you control \w+ or more creatures|this spell was kicked)\.?$/i)) && (v=cnd(w[2]))!=null){ if(!v){ log(`${by}: it isn't true that ${w[2]}, so that doesn't happen.`); continue; } sen=w[1]+'.'; } }
     if(insteadNow){ let w;   // "… instead": only the difference from what the sentence before did
       if((w=sen.match(/^(that creature|it|target creature) gets ([+\-−]\d+)\/([+\-−]\d+)(.*)$/i)) && LASTPUMP && LASTPUMP.by===by){ const dp=+w[2].replace('−','-')-LASTPUMP.p, dq=+w[3].replace('−','-')-LASTPUMP.q, f=v=>(v>=0?'+':'')+v; sen=`That creature gets ${f(dp)}/${f(dq)}${w[4]}`; }
@@ -5353,10 +5358,11 @@ function remoteMenu(id, x, y){
 /* cards exiled by another card: they stay in their owner's exile (and its count) but remember what exiled them */
 /* arrows: drop any whose source or target card is no longer on a battlefield or the stack */
 function pruneArrows(){
-  const m=G.me; if(!m.arrows.length) return false;
+  const m=G.me; if(!m.arrows.length && !(G.opp && G.opp.dummy && (G.opp.arrows||[]).length)) return false;
   const live=new Set(['p1','p2','gy:p1','gy:p2']); for(const c of m.bf) live.add(c.id); for(const c of m.st) live.add(c.id);
   if(G.opp){ for(const c of (G.opp.bf||[])) live.add(c.id); for(const c of (G.opp.st||[])) live.add(c.id); }
-  const keep=m.arrows.filter(a=>live.has(a.a) && live.has(a.b) || (!G.opp && !G.solo)); if(keep.length===m.arrows.length) return false; m.arrows=keep; return true;
+  let pr=false; if(G.opp && G.opp.dummy && (G.opp.arrows||[]).length){ const dk=G.opp.arrows.filter(a=>live.has(a.a) && live.has(a.b)); if(dk.length!==G.opp.arrows.length){ G.opp.arrows=dk; pr=true; } }   // v4.60: Practice's arrows (its blocks) go when a creature leaves
+  const keep=m.arrows.filter(a=>live.has(a.a) && live.has(a.b) || (!G.opp && !G.solo)); if(keep.length===m.arrows.length) return pr; m.arrows=keep; return true;
 }
 const arrowsOn = id => G.me.arrows.some(a=>a.a===id||a.b===id) || !!(G.opp && (G.opp.arrows||[]).some(a=>a.a===id||a.b===id));
 function clearTargets(id){ G.me.arrows=G.me.arrows.filter(a=>a.a!==id && a.b!==id); send({t:'clrarrow', id}); changed(); }
@@ -6014,8 +6020,9 @@ const dummyBlockers = () => G.opp.bf.filter(c=>!c.fd && isCreature(c) && !c.tap)
 function pblockClick(md, target){ const d=G.opp; if(!dummy()) return;
   if(md.type==='pblock'){ const b=d.bf.find(x=>x.id===target); if(!b || !isCreature(b) || b.tap){ toast("Click one of Practice's untapped creatures."); G.mode=md; render(); return; } G.mode={type:'pblock2', from:target}; toast(`${cdata(b).n}: now click the attacker it blocks.`); render(); return; }
   const a=find(target), b=d.bf.find(x=>x.id===md.from); if(!b){ render(); return; } if(!a || a.z!=='bf' || !a.c.atk){ toast('Click one of your attacking creatures.'); G.mode=md; render(); return; }
-  d.arrows=d.arrows.filter(x=>!(x.blk && x.a===md.from && (!multiBlock(b) || x.b===target))); d.arrows.push({a:md.from, b:target, blk:1}); log(`Practice's ${cname(b)} blocks ${cname(a.c)}.`);
-  let iss=[]; try{ iss=blockIssues(b, a.c); }catch(e){} if(iss.length){ log(`Check this block: ${iss.join('; ')}.`); toast(unlink(`Check this block: ${iss.join('; ')}.`)); } changed(); }
+  let iss=[]; asDummy(()=>{ iss=blockIssues(b, a.c).map(x=>x.replace(/\byou control\b/g,'Practice controls')); });   // seen from Practice's side: its lands for landwalk (v4.60)
+  if(iss.length && !G.clkShift){ toast(unlink(`Practice's ${cname(b)} can't block ${cname(a.c)}: ${iss.join('; ')}. (Shift-click to block anyway.)`)); G.mode=md; render(); return; }
+  d.arrows=d.arrows.filter(x=>!(x.blk && x.a===md.from && (!multiBlock(b) || x.b===target))); d.arrows.push({a:md.from, b:target, blk:1}); log(`Practice's ${cname(b)} blocks ${cname(a.c)}${iss.length ? ' (blocked by hand: '+iss.join('; ')+')' : ''}.`); changed(); }
 function pblockBtn(k){ if(!pblockStep()) return; const d=G.opp;
   if(k==='declare'){ G.mode={type:'pblock'}; toast("Click one of Practice's untapped creatures to block with."); render(); }
   else if(k==='reset'){ d.arrows=d.arrows.filter(a=>!a.blk); G.mode=null; log("Practice's blocks are reset."); changed(); }
@@ -6413,7 +6420,8 @@ function anchor(id){
 function drawArrows(){
   const g=$('#arrowG'); if(!g) return; let h=''; try{ const L=$('#dragLine'); if(L && (!G.mode || !G.mode.from) && !rdown) L.setAttribute('visibility','hidden'); }catch(e){}
   const all=[...G.me.arrows.map(a=>[a,'A']), ...((G.opp&&G.opp.arrows)||[]).map(a=>[a,'B'])];
-  for(const [a,k] of all){ const p=anchor(a.a), q=anchor(a.b); if(!p||!q) continue;
+  const onT=id=>id==='p1'||id==='p2'||String(id).startsWith('gy:') || [G.me.bf, G.me.st, (G.opp&&G.opp.bf)||[], (G.opp&&G.opp.st)||[]].some(z=>z.some(c=>c.id===id)) || (a=>!!a && ['gy','ex','lib','hand'].indexOf(a.z)<0)(findAny(id));
+  for(const [a,k] of all){ if((a.blk || a.atk) && (!onT(a.a) || !onT(a.b))) continue; const p=anchor(a.a), q=anchor(a.b); if(!p||!q) continue;   // v4.60: a block or attack arrow is never drawn to a card that has left the battlefield
     const mx=(p[0]+q[0])/2, my=(p[1]+q[1])/2 - Math.min(60, Math.hypot(q[0]-p[0],q[1]-p[1])*.18);
     h += `<path d="M${p[0]} ${p[1]} Q${mx} ${my} ${q[0]} ${q[1]}" fill="none" stroke="${k==='A'?'#d9b25f':'#7fb3ff'}" stroke-width="4" stroke-linecap="round" opacity=".9" marker-end="url(#ah${k})"/>`; }
   g.innerHTML=h;
@@ -6881,6 +6889,7 @@ function finishMode(target){
   if(md.type==='attach'){ const f=find(md.from); if(f && target!==md.from && target!=='p1' && target!=='p2'){ f.c.att=target; f.c.atk=false; G.me.arrows=G.me.arrows.filter(a=>a.a!==md.from); log(`${G.me.name} attaches ${cname(f.c)}.`); } }
   else if(md.type==='block'){ const f=findAny(md.from), t=findAny(target);
     if(!t || t.mine || t.z!=='bf' || (blockStep() && !t.c.atk)){ toast('Click the attacking creature it blocks (Esc to cancel).'); G.mode=md; render(); return; }
+    { const iss0=f && blockStep() ? blockIssues(f.c, t.c) : []; if(iss0.length && !G.clkShift){ toast(unlink(`${cname(f.c)} can't block ${cname(t.c)}: ${iss0.join('; ')}. (Shift-click to block anyway.)`)); G.mode=md; render(); return; } }   // v4.60: greyed attackers can't be chosen (landwalk, flying, …); Shift-click overrides
     { const bf=find(md.from); G.me.arrows=G.me.arrows.filter(a=>!(a.blk && a.a===md.from && (!(bf && multiBlock(bf.c)) || a.b===target))); } G.me.arrows.push({a:md.from, b:target, blk:1}); log(`${G.me.name}'s ${f?cname(f.c):'creature'} blocks ${G.opp?G.opp.name+"'s ":''}${cname(t.c)}.`); { const iss=f ? blockIssues(f.c, t.c) : []; if(iss.length){ log(`Check this block: ${iss.join('; ')}.`); toast(unlink(`Check this block: ${iss.join('; ')}. Reset blockers to change it.`)); } } }
   else if(md.type==='arrow' && twoTgtArrow(md, target)){ return; }
   else if(md.type==='arrow' && earthArrow(md, target)){ return; }
@@ -6925,7 +6934,7 @@ document.addEventListener('pointerup', e=>{
     return;
   }
   if(e.button!==0) return;
-  if(G.mode){ finishMode(d.id); return; }
+  if(G.mode){ G.clkShift=!!e.shiftKey; finishMode(d.id); G.clkShift=false; return; }
   if(G.atkSel && d.mine && d.z==='bf' && atkStep()){ atkToggle(d.id); return; }
   if(!d.mine){ if(iControl()) remoteClick(d.id, d.z, e.clientX, e.clientY); return; }
   if(d.z==='hand'){ const f=find(d.id); if(e.shiftKey && f && isLand(f.c)){ move(d.id,'bf',{tap:true}); changed(); } else playFromHand(d.id); } else if(d.z==='bf'){ const f=find(d.id); if(blockStep() && f && isCreature(f.c) && !f.c.tap){ startMode('block', d.id); return; } toggleTap(d.id, e.clientX, e.clientY); } else if(d.z==='st') resolve(d.id);
@@ -7167,14 +7176,14 @@ const edKey = n => (ED && ED.art[keyOf(n)]) || keyOf(n);
 const edCopies = n => (ED.main.get(n)||0)+(ED.side.get(n)||0);
 const edLine = (d,[n,c]) => `${c} ${n}${d.art[keyOf(n)] ? ' ['+d.art[keyOf(n)]+']' : ''}`;
 const edText = d => d.main.map(x=>edLine(d,x)).join('\n') + (d.side.length ? '\n\nSideboard\n'+d.side.map(x=>edLine(d,x)).join('\n') : '');
-const edSaveName = () => ED.kind==='tour' || ED.kind==='paste' ? ED.name+(ED.kind==='tour'?' (edited)':'') : ED.name;
+const edSaveName = () => ED.name;   // v4.60: the name field is always editable; a tournament list starts as "Name (edited)"
 const evMode = () => store.get('mt_eview','cards')==='list' ? 'list' : 'cards';
 function editDeck(o){ const d=o.d||{main:[],side:[],art:{}};
-  ED={main:new Map(d.main), side:new Map(d.side), art:Object.assign({}, d.art||{}), name:o.name||'My new deck', sub:o.sub||'', link:o.link||null, kind:o.kind||'tour', savedIdx:o.savedIdx??null, into:'main', hits:[], act:0, sq:0, flash:null};
+  ED={main:new Map(d.main), side:new Map(d.side), art:Object.assign({}, d.art||{}), name0:o.name||'', name:o.kind==='tour' && o.name ? o.name+' (edited)' : (o.name||'My new deck'), sub:o.sub||'', link:o.link||null, kind:o.kind||'tour', savedIdx:o.savedIdx??null, into:'main', hits:[], act:0, sq:0, flash:null};
   ED.base=edText(edDeck()); paintEd();
   ensureCards([...d.main, ...d.side].map(x=>edKey(x[0]))).then(()=>{ if(ED) paintEdBody(); }); }
 function paintEd(){ const v=$('#deckView'); if(!ED || !v) return; v.dataset.tok='ed'; const nw=ED.kind==='new';
-  v.innerHTML=`<div class="edhead">${nw ? `<input id="edName" class="edname" value="${esc(ED.name)}" aria-label="Deck name" maxlength="60">` : `<h3>${esc(ED.name)}</h3>`}<span class="hint">${nw ? 'New deck, built from scratch' : esc(ED.sub)+' · editing'}</span></div>
+  v.innerHTML=`<div class="edhead"><input id="edName" class="edname" value="${esc(ED.name)}" aria-label="Deck name" title="Click to rename the deck" maxlength="60"><span class="hint">${nw ? 'New deck, built from scratch' : esc(ED.sub)+' · editing'}</span></div>
     <div class="edacts"><button class="go" id="edPlay">Play this deck</button><button id="edSave"></button><button id="edUndo">Undo all changes</button>${nw?'':'<button id="edDone">Done editing</button>'}<span class="hint" id="edMsg"></span></div>
     <div class="edbar"><div class="edsbox"><input id="edQ" autocomplete="off" placeholder="Add a card: start typing its name…" aria-label="Add a card" aria-controls="edSugg" aria-autocomplete="list"><ul id="edSugg" role="listbox" hidden></ul></div>
       <div class="edseg" role="group" aria-label="Where a click adds the card"><button data-into="main">To main deck</button><button data-into="side">To sideboard</button></div>
@@ -7188,19 +7197,19 @@ function paintEd(){ const v=$('#deckView'); if(!ED || !v) return; v.dataset.tok=
     else if(e.key==='Enter'){ edPick(Math.max(0, ED.act)); e.preventDefault(); } else if(e.key==='Escape'){ q.value=''; ED.sq++; ED.hits=[]; paintSugg(); } };
   $('#edSugg').onmousedown=e=>{ const li=e.target.closest('[data-i]'); e.preventDefault(); if(li) edPick(+li.dataset.i); };   // mousedown keeps the search box focused for the next card
   v.querySelector('.edbar').onclick=e=>{ const t=e.target.closest('[data-into],[data-ev]'); if(!t) return; if(t.dataset.into) ED.into=t.dataset.into; else store.set('mt_eview', t.dataset.ev); paintEdBody(); };
-  const nm=$('#edName'); if(nm){ nm.oninput=()=>{ ED.name=nm.value.trim()||'My new deck'; paintEdBody(); }; nm.onkeydown=e=>e.stopPropagation(); }
+  const nm=$('#edName'); if(nm){ nm.oninput=()=>{ ED.name=nm.value.trim()||(ED.kind==='tour' && ED.name0 ? ED.name0+' (edited)' : ED.name0)||'My new deck'; paintEdBody(); }; nm.onkeydown=e=>e.stopPropagation(); }
   $('#edBody').onclick=e=>{ const b=e.target.closest('[data-ed]'); if(!b || b.disabled) return; const n=b.dataset.n, z=b.dataset.z;
     if(b.dataset.ed==='+') edAdd(n, z); else if(b.dataset.ed==='-') edSub(n, z); else if(b.dataset.ed==='mv') edMove(n, z); else if(b.dataset.ed==='basic') edAdd(n, ED.into); };
-  $('#edPlay').onclick=()=>playDeck(edDeck(), ED.kind==='saved' ? ED.name : edSaveName(), $('#edPlay'), $('#edMsg'), ()=>{ const q2=$('#edQ'); if(q2) q2.focus(); });
+  $('#edPlay').onclick=()=>playDeck(edDeck(), ED.name, $('#edPlay'), $('#edMsg'), ()=>{ const q2=$('#edQ'); if(q2) q2.focus(); });
   $('#edSave').onclick=edSave;
   $('#edUndo').onclick=()=>{ const d=parseDeck(ED.base); ED.main=new Map(d.main); ED.side=new Map(d.side); paintEdBody(); };
   const dn=$('#edDone'); if(dn) dn.onclick=()=>{ const o=ED, d=edDeck(o), ch=edText(d)!==o.base; ED=null;
-    viewDeck(d, ch && o.kind==='tour' ? o.name+' (edited)' : o.name, o.sub, o.link, o.kind==='paste' || (ch && o.kind==='tour'), o.kind==='saved' ? o.savedIdx : null); };
+    viewDeck(d, ch || o.kind!=='tour' ? o.name : (o.name0||o.name), o.sub, o.link, o.kind==='paste' || (ch && o.kind==='tour'), o.kind==='saved' ? o.savedIdx : null); };
   paintEdBody(); }
 function edSave(){ if(!ED) return; const d=edDeck(), text=edText(d), sv=store.get('mt_decks',[]);
   if(ED.kind==='saved' && sv[ED.savedIdx]) sv[ED.savedIdx]=Object.assign({}, sv[ED.savedIdx], {name:ED.name, text});
   else { const nm=edSaveName(); sv.unshift({name:nm, text}); ED.kind='saved'; ED.savedIdx=0; ED.name=nm; ED.sub='Saved deck'; }
-  store.set('mt_decks', sv); ED.base=text; toast(`Saved to your decks as “${ED.name}”.`); paintEd(); }
+  store.set('mt_decks', sv); ED.base=text; ED.name0=ED.name; toast(`Saved to your decks as “${ED.name}”.`); paintEd(); }
 function edAdd(n, z){ if(!ED) return; if(edCopies(n)>=copyCap(n)){ toast(`${n}: ${copyCap(n)} copies is the most a deck may have.`); return; }
   ED[z].set(n, (ED[z].get(n)||0)+1); ED.flash=z+'|'+n; paintEdBody(); paintSugg();
   const k=edKey(n); if(!DB[k] || DB[k].tmp) ensureCards([k]).then(()=>{ if(ED) paintEdBody(); }); }
@@ -7239,7 +7248,7 @@ function paintEdBody(){ if(!ED) return; const b=$('#edBody'); if(!b) return; con
   document.querySelectorAll('#deckView [data-into]').forEach(x=>x.classList.toggle('on', x.dataset.into===ED.into)); document.querySelectorAll('#deckView [data-ev]').forEach(x=>x.classList.toggle('on', x.dataset.ev===mode));
   $('#edTally').innerHTML=`<span class="${w.some(x=>/main/.test(x))?'edbad':''}">${m} main</span> · <span class="${w.some(x=>/sideboard/.test(x))?'edbad':''}">${s} sideboard</span>${edLimited()?' · draft deck, at least 40':''}`;
   $('#edTip').textContent = mode==='cards' && (m||s) ? 'Point at a card to see it enlarged.' : '';
-  const sb=$('#edSave'); sb.textContent = ED.kind==='saved' ? (ch ? 'Save changes' : 'Saved') : `Save as “${edSaveName()}”`; sb.disabled = ED.kind==='saved' ? !ch : !(m+s);
+  const sb=$('#edSave'); const chN = ED.kind==='saved' && ED.name!==ED.name0; sb.textContent = ED.kind==='saved' ? (ch||chN ? 'Save changes' : 'Saved') : `Save as “${edSaveName()}”`; sb.disabled = ED.kind==='saved' ? !(ch||chN) : !(m+s);
   $('#edUndo').disabled=!ch;
   $('#edMsg').innerHTML = w.length ? `<span class="edbad">Not tournament legal: ${esc(w.join(', '))}.</span> You can still save it, and play it for testing.` : (ch && ED.kind==='tour' ? 'The tournament list itself is kept; your version is saved as a new deck.' : '');
   if(!m && !s){ b.innerHTML=`<div class="edempty"><b>This deck is empty.</b><span>Type a card name in the bar above to add it. To start with lands, add basics here; each click adds one, and the + beside them adds more.</span><div class="edacts">${['Plains','Island','Swamp','Mountain','Forest'].map(n=>`<button data-ed="basic" data-n="${n}">+ ${n}</button>`).join('')}</div></div>`; return; }
