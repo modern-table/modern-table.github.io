@@ -591,10 +591,11 @@ body.nomo *{transition:none!important}
 </script>
 <script>
 "use strict";
-const VERSION = 'v4.72';
+const VERSION = 'v4.73';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.73','Oct 30',"Surveil lands can use their alternate art from Murders at Karlov Manor (Land art box, Surveil tab)."],
   ['v4.72','Oct 30',"Fancy fetch lands use the right MH3 printings (the ones around #353)."],
   ['v4.71','Oct 30',"The land art box on the deck screen now has tabs: Basic, Shock, Fetch and Surveil. Fetch lands can use the originals (Onslaught and Zendikar), the Modern Horizons printings (MH2 and MH3) or the fancy ones (Special Guests and MH3). Shock and surveil lands show what your deck uses; more styles for them are coming."],
   ['v4.70','Oct 30',"Unsanctioned basic lands really switch to the gold-framed set now, in the Basic lands box too."],
@@ -6194,7 +6195,7 @@ const LAND_FAMS=[
     {k:'orig', n:'Originals (Onslaught + Zendikar)', sets:['ons','zen'], pick:'low'},
     {k:'mod', n:'Modern (MH2 + MH3)', sets:['mh2','mh3'], pick:'low'},
     {k:'fancy', n:'Fancy (Special Guests + MH3)', sets:['spg','mh3'], pick:'high', cn:{mh3:[340,370]}, ver:2}]},   // v4.72 (Ben): MH3's are the ones around #353 (Flooded Strand), not #464
-  {k:'surveil', n:'Surveil', names:SURV10, styles:[{k:'std', n:'As your deck lists them'}], soon:1}];
+  {k:'surveil', n:'Surveil', names:SURV10, styles:[{k:'std', n:'As your deck lists them'}, {k:'alt', n:'Alternate art (Karlov Manor)', sets:['mkm'], pick:'low', cn:{mkm:[315,345]}}]}];   // v4.73 (Ben): MKM's other run, Commercial District is #324
 const BASICS_C=store.get('mt_basics', {});
 for(const x of BASIC_SETS) if(x.ids && BASICS_C[x.k] && Object.values(BASICS_C[x.k]).flat().length!==x.ids.length) delete BASICS_C[x.k];   // v4.70: a list saved before a set was pinned to exact numbers (Unsanctioned in v4.68) is forgotten, so the box and the deck both look it up again
 delete BASICS_C['fetch:fancy'];   /* v4.72: picked by the old rule (MH3's highest number); the new list is cached under fetch:fancy@2 */
