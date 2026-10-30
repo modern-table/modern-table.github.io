@@ -583,10 +583,11 @@ body.nomo *{transition:none!important}
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.73';
+const VERSION = 'v4.74';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.74','Oct 30',"Shock lands get art choices too: the originals (Ravnica, Guildpact, Dissension), Return to Ravnica and Gatecrash, Guilds of Ravnica and Ravnica Allegiance, or Ravnica Remastered."],
   ['v4.73','Oct 30',"Surveil lands can use their alternate art from Murders at Karlov Manor (Land art box, Surveil tab)."],
   ['v4.72','Oct 30',"Fancy fetch lands use the right MH3 printings (the ones around #353)."],
   ['v4.71','Oct 30',"The land art box on the deck screen now has tabs: Basic, Shock, Fetch and Surveil. Fetch lands can use the originals (Onslaught and Zendikar), the Modern Horizons printings (MH2 and MH3) or the fancy ones (Special Guests and MH3). Shock and surveil lands show what your deck uses; more styles for them are coming."],
@@ -6182,7 +6183,11 @@ const FETCH10=['Flooded Strand','Polluted Delta','Bloodstained Mire','Wooded Foo
 const SURV10=['Meticulous Archive','Undercity Sewers','Raucous Theater','Commercial District','Lush Portico','Shadowy Backstreet','Thundering Falls','Underground Mortuary','Elegant Parlor','Hedge Maze'];
 const LAND_FAMS=[
   {k:'basic', n:'Basic', names:BASIC5, styles:BASIC_SETS},
-  {k:'shock', n:'Shock', names:SHOCK10, styles:[{k:'std', n:'As your deck lists them'}], soon:1},
+  {k:'shock', n:'Shock', names:SHOCK10, styles:[{k:'std', n:'As your deck lists them'},   // v4.74 (Ben's four)
+    {k:'orig', n:'Originals (Ravnica, Guildpact, Dissension)', sets:['rav','gpt','dis'], pick:'low'},
+    {k:'rtr', n:'Return to Ravnica + Gatecrash', sets:['rtr','gtc'], pick:'low'},
+    {k:'grn', n:'Guilds of Ravnica + Ravnica Allegiance', sets:['grn','rna'], pick:'low'},
+    {k:'rvr', n:'Ravnica Remastered (#29x)', sets:['rvr'], pick:'low', cn:{rvr:[288,310]}}]},
   {k:'fetch', n:'Fetch', names:FETCH10, styles:[{k:'std', n:'As your deck lists them'},
     {k:'orig', n:'Originals (Onslaught + Zendikar)', sets:['ons','zen'], pick:'low'},
     {k:'mod', n:'Modern (MH2 + MH3)', sets:['mh2','mh3'], pick:'low'},
