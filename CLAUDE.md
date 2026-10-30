@@ -172,3 +172,4 @@ Right-clicking a battlefield card the table knows (`!unlearned(c)`, not face dow
 - `tallyTok(c)` (non-creature token, no counters, text without "counter"): the C key over it and Manual handling's "Make another X" call `moreTok(c)` instead of adding a counter.
 - `abilityLabel` writes sacrifice-for-mana abilities as "Sacrifice, add Red" (the tap is still part of the cost).
 - `TOKPIN` (`treasure:'khm'`): `tokenArt` ignores the source card's linked token and searches the Kaldheim Tokens set (`e:tkhm`) for every Treasure, cached under a `pin|` key, and applies that picture to all Treasures on my side.
+- **v4.67:** the `badge tok` TOKEN label shows only on a token whose card data has no "Token" in its type line, i.e. a token copy of a real card (Kiki-Jiki, Mirrorpool, Make a token copy, a token that copies something via `c.cp`); ordinary tokens carry no label.
