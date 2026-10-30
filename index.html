@@ -591,10 +591,11 @@ body.nomo *{transition:none!important}
 </script>
 <script>
 "use strict";
-const VERSION = 'v4.69';
+const VERSION = 'v4.70';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.70','Oct 30',"Unsanctioned basic lands really switch to the gold-framed set now, in the Basic lands box too."],
   ['v4.69','Oct 30',"Unsanctioned basic lands now use the right art (the set the Island 090 belongs to)."],
   ['v4.68','Oct 30',"Choose your basic lands' art: a Basic lands box under the deck list on the deck screen. Pick Unglued, Unhinged, Unstable, Unsanctioned, Kamigawa: Neon Dynasty, Dominaria United stained glass, the Secret Lair full-text lands, a random set each match, or the usual ones. Your opponent sees the art you picked."],
   ['v4.67','Oct 30',"Tokens no longer carry a TOKEN label. Only a token that is a copy of a card (Kiki-Jiki, Mirrorpool, Make a token copy) is still marked, so you can tell it from the real card."],
@@ -6179,6 +6180,7 @@ const BASIC_SETS=[
   {k:'sld', n:'Secret Lair (full-text lands)', ids:[['sld','254'],['sld','255'],['sld','256'],['sld','257'],['sld','258']]},
   {k:'rnd', n:'Random (a different set each match)'}];
 const BASICS_C=store.get('mt_basics', {});
+for(const x of BASIC_SETS) if(x.ids && BASICS_C[x.k] && Object.values(BASICS_C[x.k]).flat().length!==x.ids.length) delete BASICS_C[x.k];   // v4.70: a list saved before a set was pinned to exact numbers (Unsanctioned in v4.68) is forgotten, so the box and the deck both look it up again
 async function basicPrints(k){ const s=BASIC_SETS.find(x=>x.k===k); if(!s || !(s.q || s.ids)) return null;
   const have=BASICS_C[k]; if(have && BASIC5.every(n=>(have[n]||[]).length) && (!s.ids || Object.values(have).flat().length===s.ids.length)){ /* a list cached before the set was pinned to exact numbers is looked up again */ await ensureCards(Object.values(have).flat().map(i=>'id:'+i)); return have; }
   let cards=[];
