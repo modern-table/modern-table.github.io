@@ -583,10 +583,11 @@ body.nomo *{transition:none!important}
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.71';
+const VERSION = 'v4.72';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.72','Oct 30',"Fancy fetch lands use the right MH3 printings (the ones around #353)."],
   ['v4.71','Oct 30',"The land art box on the deck screen now has tabs: Basic, Shock, Fetch and Surveil. Fetch lands can use the originals (Onslaught and Zendikar), the Modern Horizons printings (MH2 and MH3) or the fancy ones (Special Guests and MH3). Shock and surveil lands show what your deck uses; more styles for them are coming."],
   ['v4.70','Oct 30',"Unsanctioned basic lands really switch to the gold-framed set now, in the Basic lands box too."],
   ['v4.69','Oct 30',"Unsanctioned basic lands now use the right art (the set the Island 090 belongs to)."],
@@ -6184,12 +6185,13 @@ const LAND_FAMS=[
   {k:'fetch', n:'Fetch', names:FETCH10, styles:[{k:'std', n:'As your deck lists them'},
     {k:'orig', n:'Originals (Onslaught + Zendikar)', sets:['ons','zen'], pick:'low'},
     {k:'mod', n:'Modern (MH2 + MH3)', sets:['mh2','mh3'], pick:'low'},
-    {k:'fancy', n:'Fancy (Special Guests + MH3)', sets:['spg','mh3'], pick:'high'}]},
+    {k:'fancy', n:'Fancy (Special Guests + MH3)', sets:['spg','mh3'], pick:'high', cn:{mh3:[340,370]}, ver:2}]},   // v4.72 (Ben): MH3's are the ones around #353 (Flooded Strand), not #464
   {k:'surveil', n:'Surveil', names:SURV10, styles:[{k:'std', n:'As your deck lists them'}], soon:1}];
 const BASICS_C=store.get('mt_basics', {});
 for(const x of BASIC_SETS) if(x.ids && BASICS_C[x.k] && Object.values(BASICS_C[x.k]).flat().length!==x.ids.length) delete BASICS_C[x.k];   // v4.70: a list saved before a set was pinned to exact numbers (Unsanctioned in v4.68) is forgotten, so the box and the deck both look it up again
+delete BASICS_C['fetch:fancy'];   /* v4.72: picked by the old rule (MH3's highest number); the new list is cached under fetch:fancy@2 */
 const famOf = k => LAND_FAMS.find(f=>f.k===k) || LAND_FAMS[0];
-const ckey = (f, k) => f.k==='basic' ? k : f.k+':'+k;
+const ckey = (f, k) => { const st=f.styles.find(x=>x.k===k); return f.k==='basic' ? k : f.k+':'+k+(st && st.ver ? '@'+st.ver : ''); };
 const famPref = f => { const v = f.k==='basic' ? S.basics : (S.lands||{})[f.k]; return f.styles.some(x=>x.k===v) ? v : 'std'; };
 async function landPrints(fk, k){ const f=famOf(fk), s=f.styles.find(x=>x.k===k); if(!s || !(s.q || s.ids || s.sets)) return null; const ck=ckey(f, k), need=f.names;
   const have=BASICS_C[ck]; if(have && need.every(n=>(have[n]||[]).length) && (!s.ids || Object.values(have).flat().length===s.ids.length)){ await ensureCards(Object.values(have).flat().map(i=>'id:'+i)); return have; }
@@ -6201,7 +6203,7 @@ async function landPrints(fk, k){ const f=famOf(fk), s=f.styles.find(x=>x.k===k)
          if(j.has_more && j.next_page){ const r2=await sfetch(j.next_page); if(r2.ok) cards=cards.concat((await r2.json()).data||[]); } } }catch(e){ console.warn('land art', e); }
   const out={}; let pool=cards.filter(c=>f.names.includes(c.name));
   if(s.sets){ const num=c=>parseInt(String(c.collector_number).replace(/\D/g,''),10)||0;
-    for(const n of f.names){ for(const st of s.sets){ const cs=pool.filter(c=>c.name===n && c.set===st).sort((a,b)=>num(a)-num(b)); if(cs.length){ const c = s.pick==='high' ? cs[cs.length-1] : cs[0]; DB['id:'+c.id]=toDB(c); out[n]=[c.id]; break; } } } }
+    for(const n of f.names){ for(const st of s.sets){ const rg=s.cn && s.cn[st], cs=pool.filter(c=>c.name===n && c.set===st && (!rg || (num(c)>=rg[0] && num(c)<=rg[1]))).sort((a,b)=>num(a)-num(b)); if(cs.length){ const c = s.pick==='high' ? cs[cs.length-1] : cs[0]; DB['id:'+c.id]=toDB(c); out[n]=[c.id]; break; } } } }
   else for(const c of pool){ DB['id:'+c.id]=toDB(c); (out[c.name]=out[c.name]||[]).push(c.id); }
   if(!need.every(n=>out[n])) return null; BASICS_C[ck]=out; store.set('mt_basics', BASICS_C); saveDB(); return out; }
 const basicPrints = k => landPrints('basic', k);
