@@ -446,6 +446,12 @@ body.nomo .kc.won{animation:none}
 #zoom img{width:100%;border-radius:14px;box-shadow:0 10px 30px #000c;display:block}
 #zoom .ztxt{background:#0b1417f2;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12.5px;white-space:pre-wrap}
 #zoom .ztxt b{font-size:14px}#zoom .ztxt i{color:var(--dim);font-style:normal;display:block;margin-bottom:4px}
+#about{position:fixed;z-index:92;background:#0b1417;border:1px solid var(--line);border-radius:8px;padding:10px 12px 8px;width:290px;box-shadow:0 10px 30px #000c;font-size:13px}
+#about header{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px}#about header b{font:600 15px var(--display)}#about header small{color:var(--dim);white-space:nowrap}
+#about .abpt{display:flex;align-items:baseline;gap:10px;margin:2px 0 6px}#about .abpt b{font:700 30px var(--display);color:var(--brass);line-height:1}#about .abpt span{color:var(--dim)}
+#about .abkw{margin:0 0 6px;line-height:1.5}#about .abkw i{font-style:normal;color:var(--dim)}#about .abkw .g{color:var(--brass)}
+#about ul{margin:0 0 6px;padding:0 0 0 16px;color:var(--dim);line-height:1.45}#about .abst{border-top:1px solid var(--line);padding-top:6px;line-height:1.5}
+#about footer{display:flex;gap:6px;margin-top:8px;border-top:1px solid var(--line);padding-top:6px}#about footer button{font-size:12px;padding:3px 8px;white-space:nowrap}
 #ctx,#ctx2{position:fixed;z-index:90;background:#0b1417;border:1px solid var(--line);border-radius:8px;padding:4px;min-width:190px;box-shadow:0 10px 30px #000c;max-height:92vh;overflow:auto}
 #ctx button,#ctx2 button{display:flex;justify-content:space-between;gap:16px;width:100%;text-align:left;border:0;background:transparent;padding:5px 10px;border-radius:5px;font-size:13px}
 #ctx button:hover,#ctx2 button:hover,#ctx button.sub.open{background:#1c3238}#ctx kbd,#ctx2 kbd{color:var(--dim);font:11px var(--ui)}#ctx2{z-index:91}#ctx button.sub span{color:var(--dim)}#ctx button.back{color:var(--dim)}#ctx hr,#ctx2 hr{border:0;border-top:1px solid var(--line);margin:4px 0}
@@ -574,10 +580,11 @@ body.nomo *{transition:none!important}
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.63';
+const VERSION = 'v4.64';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.64','Oct 30','How big is that creature? Right-click an opponent\'s creature to see its power and toughness right now, its keywords and where they come from, damage marked, and whether it is attacking, blocking or blocked. Your own creatures show the same on a "Right now" line in their right-click menu.'],
   ['v4.63','Oct 29','Clicking a fetch land now asks what you want: Fetch, or tap it without adding mana. If Urborg, Yavimaya or Leyline of the Guildpact lets it tap for mana, those colours are offered too. Click anywhere else to close it.'],
   ['v4.62','Oct 29','Right-click menus are shorter for cards the table knows: what the card does comes first (its abilities, and Attack or Block during combat), and every by-hand option is one step away under Manual handling. Try the two styles, or go back to the full menu, in ☰ Card menus.'],
   ['v4.61','Oct 29',"Changed your mind after tapping a land for mana? Untap it by clicking and the mana comes back out of your pool. If that mana was already spent, the table asks first (Keep it tapped / Untap anyway, which is logged) and reminds you that Undo takes back the spell you paid with it. Lands untapped by a card, like Amulet of Vigor, keep their mana as before."],
@@ -6471,6 +6478,36 @@ function subMenu(b, sub, parent){   // v4.62: "Manual handling": a second menu b
   s.style.left=left+'px'; s.style.top=Math.max(4, Math.min(br.top-5, innerHeight-r.height-6))+'px';
 }
 const closeMenu = () => { $('#ctx').hidden=true; const s=$('#ctx2'); if(s) s.hidden=true; };
+/* v4.64: "How big is it?" — a creature's state right now: P/T with what makes it, keywords (printed, counters, granted), combat, damage, attachments */
+function aboutSum(c, mine){ const pid=mine?G.myId:oppId(), p=mine?powerOf(c):powerAny({c, mine:false}), t=toughNow(c, pid), kw=aboutKw(c, pid).map(k=>k.k);
+  return `${p}/${t}${kw.length ? ' · '+kw.slice(0,3).join(', ')+(kw.length>3?'…':'') : ''}`; }
+function aboutKw(c, pid){ const out=[], seen=new Set(), add=(k, src, g)=>{ if(seen.has(k)) return; seen.add(k); out.push({k, src, g}); };
+  for(const k of printedKw(c)) add(k); for(const k of kwLines(c)) if(WALKT[k]) add(k); for(const k of (c.kw||[])) add(k, 'counter'); for(const o of grantedKw(c, pid)) add(o.k, o.src, 1); return out; }
+function aboutCard(id, x, y){ closeMenu(); const a=findAny(id); if(!a || a.z!=='bf') return; const c=a.c, mine=a.mine, pid=mine?G.myId:oppId(), d=cdata(c), nm=d.n.split(' // ')[0];
+  const p=mine?powerOf(c):powerAny({c, mine:false}), t=toughNow(c, pid), dmg=c.dmg||0, dp=dynPT(c, pid), why=[];
+  if(d.pt) why.push(`Printed ${d.pt}`); if(c.c && !isSaga(c)) why.push(`${c.c>0?'+1/+1':'−1/−1'} counters: ${Math.abs(c.c)}`);
+  if(c.tp||c.tt) why.push(`Until end of turn: ${sgn(c.tp||0)}/${sgn(c.tt||0)}`); if(dp && dp.why) why.push(...dp.why.split('; ').filter(Boolean));
+  const kws=aboutKw(c, pid).map(k=>k.g ? `<span class="g" title="from ${esc(String(k.src||''))}">${esc(k.k)}</span> <i>(${esc(String(k.src||'').split(',')[0])})</i>` : k.src==='counter' ? `${esc(k.k)} <i>(counter)</i>` : esc(k.k));
+  const side=s=>(s&&s.arrows)||[], mySide=mine?G.me:G.opp, other=mine?G.opp:G.me, nameOf=i=>{ const f=findAny(i); return f ? unlink(cname(f.c)) : null; };
+  const st=[]; if(c.atk){ const at=side(mySide).find(r=>r.atk && r.a===c.id); st.push('Attacking'+(at && nameOf(at.b) ? ' '+nameOf(at.b) : '')); const by=side(other).filter(r=>r.blk && r.b===c.id).map(r=>nameOf(r.a)).filter(Boolean); if(by.length) st.push('blocked by '+by.join(', ')); else if(G.turn && G.turn.cs && G.turn.cs!=='blk') st.push('unblocked'); }
+  { const bl=side(mySide).filter(r=>r.blk && r.a===c.id).map(r=>nameOf(r.b)).filter(Boolean); if(bl.length) st.push('Blocking '+bl.join(', ')); }
+  if(c.tap) st.push('Tapped'); if(showSick(c)) st.push('Summoning sick'); if(c.stun) st.push(`${c.stun} stun counter${c.stun>1?'s':''}`); if(c.exert) st.push('Exerted');
+  const att=[...(G.me.bf||[]), ...((G.opp&&G.opp.bf)||[])].filter(e=>e.att===c.id).map(e=>unlink(cname(e))); if(att.length) st.push('With '+att.join(', '));
+  if(c.note) st.push('Note: '+c.note);
+  const el=$('#about')||(()=>{ const z=document.createElement('div'); z.id='about'; document.body.appendChild(z); return z; })();
+  const foot = mine ? '' : [arrowsOn(id)&&'<button class="ghost" data-abx="clr">Clear targets</button>', '<button class="ghost" data-abx="dmg">Mark damage…</button>', dmg&&'<button class="ghost" data-abx="undmg">Remove damage</button>'].filter(Boolean).join('');
+  el.innerHTML=`<header><b>${esc(unlink(cname(c)))}</b><small>${mine?'yours':esc((G.opp&&G.opp.name)||'opponent')+"'s"}</small></header>
+    <div class="abpt"><b>${p}/${t}</b>${dmg ? `<span>${dmg} damage marked: ${Math.max(0,t-dmg)} toughness left</span>` : (isCreature(c)?'':'<span>(not a creature right now)</span>')}</div>
+    ${kws.length ? `<div class="abkw">${kws.join(' · ')}</div>` : ''}${why.length>1 || (why.length && !/^Printed/.test(why[0])) ? `<ul>${why.map(w=>`<li>${esc(w)}</li>`).join('')}</ul>` : ''}
+    ${st.length ? `<div class="abst">${esc(st.join(' · '))}</div>` : ''}${foot ? `<footer>${foot}</footer>` : ''}`;
+  el.hidden=false; const cr=($(`#table .card[data-id="${id}"]`)||{getBoundingClientRect:()=>({left:x,right:x,top:y,bottom:y})}).getBoundingClientRect(), r=el.getBoundingClientRect();
+  el.style.left=(cr.right+8+r.width<=innerWidth-6 ? cr.right+8 : Math.max(6, cr.left-8-r.width))+'px'; el.style.top=Math.max(6, Math.min(cr.top, innerHeight-r.height-6))+'px';
+  el.onclick=e=>{ const b=e.target.closest('[data-abx]'); if(!b) return; const k=b.dataset.abx; el.hidden=true;
+    if(k==='clr') clearTargets(id); else if(k==='undmg') damage(id, -c.dmg); else if(k==='dmg') askN('Mark damage', 1).then(n=>{ if(n>0) damage(id, n); }); };
+  hideZoom(); }
+const closeAbout = () => { const el=$('#about'); if(el) el.hidden=true; };
+document.addEventListener('pointerdown', e=>{ if(!e.target.closest('#about')) closeAbout(); }, true);
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && $('#about') && !$('#about').hidden){ closeAbout(); e.stopPropagation(); } }, true);
 let modalRefresh=null;
 function modal(title, bodyHTML, buttons=[], opts={}){
   const el=$('#modal'); el.hidden=false;
@@ -6627,9 +6664,11 @@ function cardMenu(id, x, y){
     const own=items.filter(i=>i && i!=='-' && (i.own || (c.wp && /^Send to warp zone now/.test(i[0])))), cre=isCreature(c)||c.anim, sh=[...own];
     if(cre && atkStep() && (c.atk || !c.tap)) sh.push([c.atk?'Remove from combat':'Attack',()=>attack(id,false),'A']);
     if(cre && blockStep() && !c.tap) sh.push(['Block…',()=>startMode('block',id),'B']);
-    menu(x, y, [...sh, sh.length&&'-', ['Manual handling', items.filter(i=>!(i && i!=='-' && sh.includes(i)))]]); return; }
+    const ab=(cre && !c.fd) ? ['Right now: '+aboutSum(c, true), ()=>aboutCard(id, x, y)] : null;
+    menu(x, y, [...sh, sh.length&&'-', ab, ['Manual handling', items.filter(i=>!(i && i!=='-' && sh.includes(i)))]]); return; }
   if(z==='gy' && isLand(c) && G.me.bf.some(x=>!x.fd && (x.k||x.cu) && /You may play lands from your graveyard/i.test(frontText(x)||''))) items=[[`Play this land (${cdata(G.me.bf.find(x=>!x.fd && (x.k||x.cu) && /You may play lands from your graveyard/i.test(frontText(x)||''))).n.split(',')[0]})`, ()=>{ closeModal(); playFromHand(id); }], '-', ...items];
   if(z==='gy'){ const srcs=myStackSources(); if(srcs.length) items=[...srcs.map(sc=>[`Target this card with ${cdata(sc).n.replace(/: (ability|chapter [IVX]+)$/,'')}`, ()=>{ addGyTarget(sc.id, id, G.myId); modalRefresh&&modalRefresh(); }]), '-', ...items]; }
+  if(z==='bf' && !c.fd && (isCreature(c)||c.anim)){ const k=items.indexOf('-'); if(k>0) items.splice(k, 0, '-', ['Right now: '+aboutSum(c, true), ()=>aboutCard(id, x, y)]); }   // v4.64: the full menu gets the state line too
   if(arrowsOn(id)) items=[['Clear targets',()=>clearTargets(id)], '-', ...items];
   menu(x,y,items);
 }
@@ -6990,6 +7029,7 @@ function cardContext(card, x, y){
   if(card.dataset.o==='me' && card.dataset.z!=='search') cardMenu(id, x, y);
   else if(card.dataset.o==='opp' && iControl()){ remoteMenu(id, x, y); }
   else if(card.dataset.o==='opp'){ const a=findAny(id), cr=a && a.z==='bf' && !a.c.fd && isCreature(a.c);
+    if(cr){ aboutCard(id, x, y); return; }   // v4.64: an opponent's creature: how big it is right now (Mark damage and Clear targets sit at the bottom)
     const items=[ arrowsOn(id)&&['Clear targets',()=>clearTargets(id)], cr&&['Mark damage…',async()=>{ const n=await askN('Mark damage', 1); if(n>0) damage(id, n); },'−'], cr&&a.c.dmg&&['Remove damage',()=>damage(id, -a.c.dmg)] ].filter(Boolean);
     if(items.length) menu(x, y, items); }
 }
