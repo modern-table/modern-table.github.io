@@ -67,7 +67,7 @@ h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
 .pill b{color:var(--ink);letter-spacing:.15em;user-select:text;-webkit-user-select:text}
 .deckwrap{flex:1;min-height:0;display:grid;grid-template-columns:minmax(260px,380px) 1fr}
 .decklist{overflow:hidden;border-right:1px solid var(--line);padding:10px;display:flex;flex-direction:column}#tabBody{flex:1 1 auto;min-height:0;overflow:auto}
-#basicsBox{flex:0 0 auto;margin-top:10px;padding:8px 10px 10px;border:1px solid var(--line);border-radius:8px;background:var(--felt2,#132226)}#basicsBox .bbh{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 7px;font:700 11px var(--ui);letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}#basicsBox select{font:600 12px var(--ui);max-width:62%;background:#0d1a1d;color:var(--ink);border:1px solid var(--line);border-radius:5px;padding:3px 5px}#basicsBox .bbrow{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}#basicsBox .bbc{aspect-ratio:63/88;border-radius:5px;overflow:hidden;background:#0b1416 center/cover no-repeat;position:relative;box-shadow:0 2px 5px #0008}#basicsBox .bbc span{position:absolute;left:0;right:0;bottom:3px;text-align:center;font:700 9px var(--ui);color:#fff;text-shadow:0 1px 2px #000}#basicsBox .bbn{margin:6px 0 0;font:12px var(--ui);color:var(--dim);min-height:15px}
+#basicsBox{flex:0 0 auto;margin-top:10px;padding:8px 10px 10px;border:1px solid var(--line);border-radius:8px;background:var(--felt2,#132226)}#basicsBox .bbtabs{display:flex;gap:4px;margin:0 0 7px}#basicsBox .bbtabs button{flex:1;padding:4px 0;font:700 10px var(--ui);letter-spacing:.08em;text-transform:uppercase;background:transparent;color:var(--dim);border:1px solid var(--line);border-radius:5px}#basicsBox .bbtabs button.on{color:var(--brass);border-color:var(--brass)}#basicsBox .bbrow.ten{gap:4px}#basicsBox .bbrow.ten .bbc span{font-size:7px}#basicsBox .bbh{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 7px;font:700 11px var(--ui);letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}#basicsBox select{font:600 12px var(--ui);width:100%;background:#0d1a1d;color:var(--ink);border:1px solid var(--line);border-radius:5px;padding:3px 5px}#basicsBox .bbrow{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}#basicsBox .bbc{aspect-ratio:63/88;border-radius:5px;overflow:hidden;background:#0b1416 center/cover no-repeat;position:relative;box-shadow:0 2px 5px #0008}#basicsBox .bbc span{position:absolute;left:0;right:0;bottom:3px;text-align:center;font:700 9px var(--ui);color:#fff;text-shadow:0 1px 2px #000}#basicsBox .bbn{margin:6px 0 0;font:12px var(--ui);color:var(--dim);min-height:15px}
 .tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
 .tabs button.on{border-color:var(--brass);color:var(--brass)}
 .evh{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin:14px 4px 6px}
@@ -530,7 +530,7 @@ body.nomo *{transition:none!important}
     <div class="decklist">
       <div class="tabs"><button data-tab="tour" class="on">Tournament decks</button><button data-tab="paste">Paste or upload</button><button data-tab="saved">Saved</button><button data-tab="new" title="Build a deck from scratch">From scratch</button></div>
       <div id="tabBody"></div>
-      <div id="basicsBox" title="The basic lands in your deck use this art. Only you choose yours; your opponent sees what you picked."></div>
+      <div id="basicsBox" title="The lands in your deck use this art. Your opponent sees what you picked."></div>
     </div>
     <div class="deckview" id="deckView"></div>
   </div>
@@ -583,10 +583,11 @@ body.nomo *{transition:none!important}
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.70';
+const VERSION = 'v4.71';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.71','Oct 30',"The land art box on the deck screen now has tabs: Basic, Shock, Fetch and Surveil. Fetch lands can use the originals (Onslaught and Zendikar), the Modern Horizons printings (MH2 and MH3) or the fancy ones (Special Guests and MH3). Shock and surveil lands show what your deck uses; more styles for them are coming."],
   ['v4.70','Oct 30',"Unsanctioned basic lands really switch to the gold-framed set now, in the Basic lands box too."],
   ['v4.69','Oct 30',"Unsanctioned basic lands now use the right art (the set the Island 090 belongs to)."],
   ['v4.68','Oct 30',"Choose your basic lands' art: a Basic lands box under the deck list on the deck screen. Pick Unglued, Unhinged, Unstable, Unsanctioned, Kamigawa: Neon Dynasty, Dominaria United stained glass, the Secret Lair full-text lands, a random set each match, or the usual ones. Your opponent sees the art you picked."],
@@ -6157,9 +6158,12 @@ function mulligan(){ const m=G.me; if(G.turn.n && !m.kept && !canDecide()){ notY
 const missingCards = () => { const ks=new Set(); for(const p of [G.me, G.opp]) if(p) for(const z of ['lib','hand','bf','gy','ex','st','side']) for(const c of (p[z]||[])) if(c && c.k && DB[c.k] && DB[c.k].tmp) ks.add(c.k); return [...ks]; };
 let retryT=null;
 function retryMissing(n=0){ clearTimeout(retryT); if(n>=20) return; retryT=setTimeout(async()=>{ const ks=missingCards(); if(!ks.length) return; await ensureCards(ks); if(missingCards().length<ks.length) render(); if(missingCards().length) retryMissing(n+1); else toast('Card images loaded.'); }, 30000); }
-/* v4.68 (Ben): basic land art. S.basics picks a set; every Plains, Island, Swamp, Mountain and Forest in my deck uses that set's printing
-   (one printing per land type for the whole match, so identical lands still stack). The printings are looked up once on Scryfall
-   (search, or exact set + collector number for the Secret Lair full-text lands) and remembered in mt_basics. 'rnd' picks a set each match. */
+/* v4.68 (Ben): land art. v4.71: four families in tabs (Basic, Shock, Fetch, Surveil), each with its own styles.
+   A style's printings are looked up once on Scryfall and remembered in mt_basics (key = style for basics, 'fam:style' otherwise):
+   ids = exact set + collector number; q = a search; sets = search those sets for the family's names and take, per land, the first set
+   that has it (pick 'low' = its lowest collector number, the plain printing; 'high' = its highest, the showcase/borderless one).
+   loadDeck points every land of a chosen family at one printing per name, so identical lands still stack. Basics: S.basics (kept from v4.68);
+   the others: S.lands = {fam: style}. 'rnd' (basics only) picks a set each match. */
 const BASIC5=['Plains','Island','Swamp','Mountain','Forest'];
 const BASIC_SETS=[
   {k:'std', n:'Basics (as is)'},
@@ -6171,30 +6175,56 @@ const BASIC_SETS=[
   {k:'dmu', n:'Dominaria United (stained glass)', q:'e:dmu t:basic -t:snow is:fullart'},
   {k:'sld', n:'Secret Lair (full-text lands)', ids:[['sld','254'],['sld','255'],['sld','256'],['sld','257'],['sld','258']]},
   {k:'rnd', n:'Random (a different set each match)'}];
+const SHOCK10=['Hallowed Fountain','Watery Grave','Blood Crypt','Stomping Ground','Temple Garden','Godless Shrine','Steam Vents','Overgrown Tomb','Sacred Foundry','Breeding Pool'];
+const FETCH10=['Flooded Strand','Polluted Delta','Bloodstained Mire','Wooded Foothills','Windswept Heath','Marsh Flats','Scalding Tarn','Verdant Catacombs','Arid Mesa','Misty Rainforest'];
+const SURV10=['Meticulous Archive','Undercity Sewers','Raucous Theater','Commercial District','Lush Portico','Shadowy Backstreet','Thundering Falls','Underground Mortuary','Elegant Parlor','Hedge Maze'];
+const LAND_FAMS=[
+  {k:'basic', n:'Basic', names:BASIC5, styles:BASIC_SETS},
+  {k:'shock', n:'Shock', names:SHOCK10, styles:[{k:'std', n:'As your deck lists them'}], soon:1},
+  {k:'fetch', n:'Fetch', names:FETCH10, styles:[{k:'std', n:'As your deck lists them'},
+    {k:'orig', n:'Originals (Onslaught + Zendikar)', sets:['ons','zen'], pick:'low'},
+    {k:'mod', n:'Modern (MH2 + MH3)', sets:['mh2','mh3'], pick:'low'},
+    {k:'fancy', n:'Fancy (Special Guests + MH3)', sets:['spg','mh3'], pick:'high'}]},
+  {k:'surveil', n:'Surveil', names:SURV10, styles:[{k:'std', n:'As your deck lists them'}], soon:1}];
 const BASICS_C=store.get('mt_basics', {});
 for(const x of BASIC_SETS) if(x.ids && BASICS_C[x.k] && Object.values(BASICS_C[x.k]).flat().length!==x.ids.length) delete BASICS_C[x.k];   // v4.70: a list saved before a set was pinned to exact numbers (Unsanctioned in v4.68) is forgotten, so the box and the deck both look it up again
-async function basicPrints(k){ const s=BASIC_SETS.find(x=>x.k===k); if(!s || !(s.q || s.ids)) return null;
-  const have=BASICS_C[k]; if(have && BASIC5.every(n=>(have[n]||[]).length) && (!s.ids || Object.values(have).flat().length===s.ids.length)){ /* a list cached before the set was pinned to exact numbers is looked up again */ await ensureCards(Object.values(have).flat().map(i=>'id:'+i)); return have; }
+const famOf = k => LAND_FAMS.find(f=>f.k===k) || LAND_FAMS[0];
+const ckey = (f, k) => f.k==='basic' ? k : f.k+':'+k;
+const famPref = f => { const v = f.k==='basic' ? S.basics : (S.lands||{})[f.k]; return f.styles.some(x=>x.k===v) ? v : 'std'; };
+async function landPrints(fk, k){ const f=famOf(fk), s=f.styles.find(x=>x.k===k); if(!s || !(s.q || s.ids || s.sets)) return null; const ck=ckey(f, k), need=f.names;
+  const have=BASICS_C[ck]; if(have && need.every(n=>(have[n]||[]).length) && (!s.ids || Object.values(have).flat().length===s.ids.length)){ await ensureCards(Object.values(have).flat().map(i=>'id:'+i)); return have; }
   let cards=[];
-  try{ const r = s.ids ? await sfetch('https://api.scryfall.com/cards/collection', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({identifiers:s.ids.map(([set, cn])=>({set, collector_number:cn}))})})
-                       : await sfetch('https://api.scryfall.com/cards/search?unique=prints&include_extras=true&order=set&q='+encodeURIComponent(s.q));
-       if(r.ok) cards=(await r.json()).data||[]; }catch(e){ console.warn('basic lands', e); }
-  const out={}; for(const c of cards){ if(!BASIC5.includes(c.name)) continue; DB['id:'+c.id]=toDB(c); (out[c.name]=out[c.name]||[]).push(c.id); }
-  if(!BASIC5.every(n=>out[n])) return null; BASICS_C[k]=out; store.set('mt_basics', BASICS_C); saveDB(); return out; }
-const basicsPref = () => BASIC_SETS.some(x=>x.k===S.basics) ? S.basics : 'std';
-async function basicArt(){ let k=basicsPref(); if(k==='std') return null; if(k==='rnd'){ const sets=BASIC_SETS.filter(x=>x.q || x.ids); k=sets[Math.floor(Math.random()*sets.length)].k; }
-  const bp=await basicPrints(k); if(!bp){ toast(`Couldn't load the ${BASIC_SETS.find(x=>x.k===k).n} basic lands from Scryfall, so your deck uses the usual ones.`); return null; }
-  const pick={}; for(const n of BASIC5) pick[n]='id:'+bp[n][Math.floor(Math.random()*bp[n].length)]; return {k, pick}; }
-function paintBasics(){ const box=$('#basicsBox'); if(!box) return; const k=basicsPref(), tok=(paintBasics.n=(paintBasics.n||0)+1);
-  const imgOf = n => { if(k==='std' || k==='rnd'){ const d=DB[n.toLowerCase()]; return d && d.img; } const bp=BASICS_C[k], d=bp && bp[n] && DB['id:'+bp[n][0]]; return d && d.img; };
-  box.innerHTML=`<div class="bbh">Basic lands<select id="basicsSel">${BASIC_SETS.map(x=>`<option value="${x.k}"${x.k===k?' selected':''}>${esc(x.n)}</option>`).join('')}</select></div>
-    <div class="bbrow">${BASIC5.map(n=>{ const im=imgOf(n); return `<div class="bbc" title="${n}" style="${im?`background-image:url('${im}')`:''}">${im?'':`<span>${n}</span>`}</div>`; }).join('')}</div>
-    <div class="bbn">${k==='rnd' ? 'One of these sets is picked when you bring a deck.' : k==='std' ? 'The basic lands as your deck lists them.' : (BASICS_C[k] ? 'Your basic lands use this art.' : 'Loading the lands from Scryfall…')}</div>`;
-  $('#basicsSel').onchange=e=>{ S.basics=e.target.value; store.set('mt_settings', S); paintBasics(); };
-  if(k!=='std' && k!=='rnd' && !BASICS_C[k]) basicPrints(k).then(bp=>{ if(paintBasics.n!==tok) return; if(bp) paintBasics(); else { const nb=$('#basicsBox .bbn'); if(nb) nb.textContent="Scryfall didn't answer; your basic lands stay as they are for now."; } });
-  else if(k!=='std' && k!=='rnd') ensureCards(Object.values(BASICS_C[k]).flat().map(i=>'id:'+i)).then(()=>{ if(paintBasics.n===tok && BASIC5.some(n=>!$('#basicsBox .bbc[title="'+n+'"]').style.backgroundImage)) paintBasics(); }); }
+  try{ const q = s.q || (s.sets ? `(${s.sets.map(x=>'e:'+x).join(' or ')}) (${f.names.map(n=>`!"${n}"`).join(' or ')})` : '');
+       const r = s.ids ? await sfetch('https://api.scryfall.com/cards/collection', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({identifiers:s.ids.map(([set, cn])=>({set, collector_number:cn}))})})
+                       : await sfetch('https://api.scryfall.com/cards/search?unique=prints&include_extras=true&order=set&q='+encodeURIComponent(q));
+       if(r.ok){ const j=await r.json(); cards=j.data||[];
+         if(j.has_more && j.next_page){ const r2=await sfetch(j.next_page); if(r2.ok) cards=cards.concat((await r2.json()).data||[]); } } }catch(e){ console.warn('land art', e); }
+  const out={}; let pool=cards.filter(c=>f.names.includes(c.name));
+  if(s.sets){ const num=c=>parseInt(String(c.collector_number).replace(/\D/g,''),10)||0;
+    for(const n of f.names){ for(const st of s.sets){ const cs=pool.filter(c=>c.name===n && c.set===st).sort((a,b)=>num(a)-num(b)); if(cs.length){ const c = s.pick==='high' ? cs[cs.length-1] : cs[0]; DB['id:'+c.id]=toDB(c); out[n]=[c.id]; break; } } } }
+  else for(const c of pool){ DB['id:'+c.id]=toDB(c); (out[c.name]=out[c.name]||[]).push(c.id); }
+  if(!need.every(n=>out[n])) return null; BASICS_C[ck]=out; store.set('mt_basics', BASICS_C); saveDB(); return out; }
+const basicPrints = k => landPrints('basic', k);
+const basicsPref = () => famPref(LAND_FAMS[0]);
+async function landArt(){ const pick={};
+  for(const f of LAND_FAMS){ let k=famPref(f); if(k==='std') continue; if(k==='rnd'){ const sets=f.styles.filter(x=>x.q || x.ids || x.sets); k=sets[Math.floor(Math.random()*sets.length)].k; }
+    const bp=await landPrints(f.k, k); if(!bp){ toast(`Couldn't load the ${f.styles.find(x=>x.k===k).n} ${f.n.toLowerCase()} lands from Scryfall, so your deck uses the usual ones.`); continue; }
+    for(const n of f.names) pick[n.toLowerCase()]='id:'+bp[n][Math.floor(Math.random()*bp[n].length)]; }
+  return pick; }
+function paintBasics(){ const box=$('#basicsBox'); if(!box) return; const f=famOf(S.landTab||'basic'), k=famPref(f), ck=ckey(f, k), tok=(paintBasics.n=(paintBasics.n||0)+1), st=f.styles.find(x=>x.k===k);
+  const imgOf = n => { if(k==='std' || k==='rnd'){ const d=DB[n.toLowerCase()]; return d && !d.tmp && d.img; } const bp=BASICS_C[ck], d=bp && bp[n] && DB['id:'+bp[n][0]]; return d && d.img; };
+  box.innerHTML=`<div class="bbtabs">${LAND_FAMS.map(x=>`<button data-lt="${x.k}" class="${x.k===f.k?'on':''}">${x.n}</button>`).join('')}</div>
+    <div class="bbh"><select id="basicsSel"${f.styles.length<2?' disabled':''}>${f.styles.map(x=>`<option value="${x.k}"${x.k===k?' selected':''}>${esc(x.n)}</option>`).join('')}</select></div>
+    <div class="bbrow${f.names.length>5?' ten':''}">${f.names.map(n=>{ const im=imgOf(n); return `<div class="bbc" title="${esc(n)}" style="${im?`background-image:url('${im}')`:''}">${im?'':`<span>${esc(n)}</span>`}</div>`; }).join('')}</div>
+    <div class="bbn">${f.soon ? 'More styles for these are coming.' : k==='rnd' ? 'One of these sets is picked when you bring a deck.' : k==='std' ? `The ${f.n.toLowerCase()} lands as your deck lists them.` : (BASICS_C[ck] ? `Your ${f.n.toLowerCase()} lands use this art.` : 'Loading the lands from Scryfall…')}</div>`;
+  box.querySelectorAll('[data-lt]').forEach(b=>b.onclick=()=>{ S.landTab=b.dataset.lt; store.set('mt_settings', S); paintBasics(); });
+  $('#basicsSel').onchange=e=>{ const v=e.target.value; if(f.k==='basic') S.basics=v; else S.lands=Object.assign({}, S.lands||{}, {[f.k]:v}); store.set('mt_settings', S); paintBasics(); };
+  const re = () => { if(paintBasics.n===tok) paintBasics(); };
+  if(k==='std' || k==='rnd'){ const miss=f.names.filter(n=>!imgOf(n)); if(miss.length) ensureCards(miss).then(()=>{ if(miss.some(n=>imgOf(n))) re(); }); }
+  else if(!BASICS_C[ck]) landPrints(f.k, k).then(bp=>{ if(paintBasics.n!==tok) return; if(bp) paintBasics(); else { const nb=$('#basicsBox .bbn'); if(nb) nb.textContent=`Scryfall didn't answer or doesn't have all ten in ${st?st.n:'that style'}; your lands stay as they are for now.`; } });
+  else ensureCards(Object.values(BASICS_C[ck]).flat().map(i=>'id:'+i)).then(()=>{ if(f.names.some(n=>!imgOf(n))) return; if([...box.querySelectorAll('.bbc')].some(e=>!e.style.backgroundImage)) re(); }); }
 async function loadDeck(d, name, onProgress){
-  const ba=await basicArt(), art=Object.assign({}, d.art||{}); if(ba) for(const [n,c] of [...d.main, ...d.side]) if(BASIC5.includes(n.replace(/\s*\[.*$/,'').trim()) || BASIC5.some(b=>keyOf(n)===b.toLowerCase())){ const b=BASIC5.find(b=>b.toLowerCase()===keyOf(n)); if(b) art[keyOf(n)]=ba.pick[b]; }
+  const la=await landArt(), art=Object.assign({}, d.art||{}); for(const [n] of [...d.main, ...d.side]){ const k=keyOf(n); if(la[k]) art[k]=la[k]; }
   const kk=n=>art[keyOf(n)]||keyOf(n);
   await ensureCards([...d.main, ...d.side].map(x=>kk(x[0])), onProgress);
   const m=G.me; for(const z of ['lib','hand','bf','gy','ex','st','side']){ for(const c of m[z]) if(c.o!==G.myId && !c.tok) send({t:'give', card:c, zone:'lib'}); m[z]=[]; }
