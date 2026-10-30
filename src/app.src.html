@@ -203,6 +203,7 @@ body.t90r .row .card.tap:is(.under,.tokunder) + .card.tap{margin-left:0}body.t90
 body.t90 .pilT{display:flex;flex-direction:row-reverse;align-items:center;flex:none}
 body.t90 .row .pilT>.card{margin-left:0!important;margin-right:0!important}body.t90 .row .pilT>.card.under:not(:last-child){margin-left:calc(var(--cw)*-.74)!important}body.t90 .row .pilT>.card.tokunder:not(:last-child){margin-left:calc(var(--cw)*-.86)!important}
 body.t90r .pilT{margin:0 calc(var(--cw)*.16)}
+.tokc{position:absolute;right:5%;bottom:5%;min-width:calc(var(--cw)*.3);height:calc(var(--cw)*.3);padding:0 4px;box-sizing:border-box;border-radius:99px;display:grid;place-items:center;background:#000c;border:2px solid var(--brass);color:#fff;font:400 calc(var(--cw)*.19)/1 var(--display);font-variant-numeric:tabular-nums;pointer-events:none;z-index:3}
 .card.tokunder{margin-right:calc(var(--cw)*-.86)}.card.tokhide{display:none}.card.tokunder>:not(img){visibility:hidden}
 .tokn{position:absolute;right:4%;top:40%;padding:1px 6px;font:800 calc(var(--cw)*.16)/1.2 var(--ui);color:#fff;background:#000d;border:1px solid #fff;border-radius:3px;pointer-events:none;font-variant-numeric:tabular-nums}
 .card.fdmine img,.card.fdmine .txt{opacity:.45}
@@ -580,10 +581,11 @@ body.nomo *{transition:none!important}
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.65';
+const VERSION = 'v4.66';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.66','Oct 30',"Treasures, Clues, Food and other non-creature tokens now sit on the table as one token with a number on it, like a paper token with a die. The table still counts every one (for the city's blessing, artifact counts and the rest). Click a Treasure and choose Sacrifice, add a colour: the number goes down by one. To make another by hand, point at it and press C, or use its menu. Every Treasure now uses the Kaldheim token picture."],
   ['v4.65','Oct 30',"Warp: at the end step a warp trigger goes on the stack instead of the card leaving at once, so it can be countered and you can resolve Ocelot Pride or Haliya first while it's still there. Guiding Hydra asks whether to remove a counter, then puts one on each of your other creatures. Test of Talents is fully learned. The notepad can now note cards you see privately: the top of your opponent's library (Mishra's Bauble, a top card they show you) and a card in their hand (Urza's Bauble), and Test of Talents offers to note the rest of their hand."],
   ['v4.64','Oct 30','How big is that creature? Right-click an opponent\'s creature to see its power and toughness right now, its keywords and where they come from, damage marked, and whether it is attacking, blocking or blocked. Your own creatures show the same on a "Right now" line in their right-click menu.'],
   ['v4.63','Oct 29','Clicking a fetch land now asks what you want: Fetch, or tap it without adding mana. If Urborg, Yavimaya or Leyline of the Guildpact lets it tap for mana, those colours are offered too. Click anywhere else to close it.'],
@@ -1301,7 +1303,7 @@ function manaAbilities0(c){
 }
 const manaOptions = c => [...new Set(manaAbilities(c).map(a=>a.out))];
 const costLabel = cost => cost.split(',').map(k=>MNAME[k]||k).join(' + ');
-const abilityLabel = a => (a.cost ? 'Pay '+costLabel(a.cost)+', tap for ' : 'Tap for ')+manaLabel(a.out)+(a.exert ? ' (exerts)' : '')+(a.rem ? ' (removes a counter)' : '')+(a.sacs ? ', then sacrifice it' : '')+(a.dmg ? ` (${a.dmg} damage to you)` : '')+(a.life ? ` (pay ${a.life} life)` : '')+(a.damp ? ' (Damping Sphere: one colorless instead)' : '')+(a.rider==='haste' ? ' (a creature spell paid with it gains haste)' : '');
+const abilityLabel = a => (a.sacs ? (a.cost ? 'Pay '+costLabel(a.cost)+', sacrifice, add ' : 'Sacrifice, add ') : a.cost ? 'Pay '+costLabel(a.cost)+', tap for ' : 'Tap for ')+manaLabel(a.out)+(a.exert ? ' (exerts)' : '')+(a.rem ? ' (removes a counter)' : '')+(a.dmg ? ` (${a.dmg} damage to you)` : '')+(a.life ? ` (pay ${a.life} life)` : '')+(a.damp ? ' (Damping Sphere: one colorless instead)' : '')+(a.rider==='haste' ? ' (a creature spell paid with it gains haste)' : '');
 function payCost(cost){
   if(!cost) return true; const m=G.me; if(!m.mana) m.mana=noMana(); const pool=Object.assign({}, m.mana);
   for(const k of cost.split(',')){ if(MANA.includes(k)){ if(pool[k]<1) return false; pool[k]--; } }
@@ -1669,8 +1671,10 @@ const TOKTXT={Powerstone:['Token Artifact — Powerstone',"{T}: Add {C}. This ma
 /* token art: the token Scryfall links to the source card (all_parts), else a Scryfall search for a token with that name, colour and P/T,
    the source card's token set first ("t" + its set code). What is found is remembered per set in mt_tokart; nothing found keeps the plain token. */
 const TOKART = store.get('mt_tokart2', {}); try{ localStorage.removeItem('mt_tokart'); }catch(e){}   // v3.65: the old list held the white Warrior picture for mobilize's red tokens
+const TOKPIN={treasure:'khm'};   // token name → the set whose token picture is always used (searched as e:t<set>)
 async function tokenArt(made, src, name, pt, cl){
-  if(!made || !made.length || !name) return; const sd=src ? cdata(src) : null, set=(sd && sd.set)||'', key=[set, name, pt||'', cl ? cl.join('')||'c' : ''].join('|').toLowerCase(), nm=name.toLowerCase();
+  if(!made || !made.length || !name) return; const pin=TOKPIN[name.toLowerCase()]; if(pin) src=null;   // v4.66 (Ben): every Treasure uses the Kaldheim Tokens picture
+  const sd=src ? cdata(src) : null, set=pin||(sd && sd.set)||'', key=(pin ? 'pin|' : '')+[set, name, pt||'', cl ? cl.join('')||'c' : ''].join('|').toLowerCase(), nm=name.toLowerCase();
   let img=TOKART[key];
   if(img===undefined){ img=''; let err=false;
     try{ const part=sd && (sd.parts||[]).find(p=>String(p.n).toLowerCase()===nm);
@@ -1680,8 +1684,13 @@ async function tokenArt(made, src, name, pt, cl){
     }catch(e){ err=true; console.warn('token art', e); }
     if(img || !err){ TOKART[key]=img; store.set('mt_tokart2', TOKART); } }
   if(!img) return; const t0=made[0].cu||{}, same=G.me.bf.filter(x=>x.tok && x.cu && x.cu.n===t0.n && x.cu.pt===t0.pt && x.cu.t===t0.t);   // copies made meanwhile (Ocelot Pride with the city's blessing)
-  let ch=false; for(const tk of [...made, ...same]){ if(find(tk.id) && tk.cu && !tk.cu.img){ tk.cu.img=img; ch=true; } } if(ch) changed(); }
+  let ch=false; for(const tk of [...made, ...same]){ if(find(tk.id) && tk.cu && (pin ? tk.cu.img!==img : !tk.cu.img)){ tk.cu.img=img; ch=true; } } if(ch) changed(); }
 const srcCard = id => { const f=id && findAny(id); return f ? f.c : null; };
+/* v4.66: a non-creature token that is shown with a count (Treasure, Clue, Food …): C over it or Manual handling makes one more. Tokens whose text
+   uses counters (Incubator, Powerstone-like counters) keep C for counters. */
+const tallyTok = c => !!(c && c.tok && !c.fd && !isCreature(c) && !c.c && !/\bcounters?\b/i.test(cdata(c).o||''));
+function moreTok(c){ const tk=mk(c.k,{tok:true, cu:c.cu ? Object.assign({}, c.cu) : c.cu, c:0}); tk.tokT=G.turn.n; G.me.bf.push(tk); const n=G.me.bf.filter(x=>x.tok && cdata(x).n===cdata(c).n && !x.tap).length;
+  log(`${G.me.name} makes another ${cname(c)} token by hand (${n}).`); entered(tk); }
 function makeTokens(kind, n, by, src){ const t=TOKTXT[kind], made=[]; for(let i=0;i<n;i++){ const tk=mk(null,{tok:true, cu:Object.assign({n:kind, t:t[0], o:t[1], img:''}, t[2] ? {cl:t[2]} : {})}); tk.tokT=G.turn.n; G.me.bf.push(tk); made.push(tk); } setTimeout(()=>{ for(const tk of made) entered(tk); changed(); }, 0); log(`${by}: ${G.me.name} creates ${n===1?'a '+kind+' token':n+' '+kind+' tokens'}.`); changed(); tokenArt(made, src, kind, '', []); return made; }
 /* "if {G}{G} was spent to cast it" (Wistfulness and the other incarnations): c.spent lists the pairs the player said they paid */
 const spentConds = c => [...new Set([...(frontText(c)||'').matchAll(/if \{([WUBRG])\}\{\1\} was spent to cast it/gi)].map(m=>m[1].toUpperCase()))];
@@ -6264,6 +6273,9 @@ function rowsHTML(bf, mine){
   const tkey = c => c.tok && !c.fd && !host.has(c.id) && !arrowed.has(c.id) && !c.cp ? [c.k||'', (c.cu&&c.cu.n)||'', (c.cu&&c.cu.pt)||'', (c.cu&&c.cu.t)||'', (c.cu&&c.cu.o)||'', !!c.tap, !!c.atk, !!showSick(c), c.c||0, c.dmg||0, c.tp||0, c.tt||0, (c.kw||[]).join(','), c.hst||0, c.gainLtb||''].join('|') : null;
   const piles = (list, zg) => { const groups=[], byKey=new Map(); for(const c of list){ const k=tkey(c); if(k && byKey.has(k)){ byKey.get(k).push(c); continue; } const g=[c]; if(k) byKey.set(k,g); groups.push(g); }
     return groups.map(g=>{ if(g.length===1) return zg(one(g[0])); const top=g[g.length-1], rest=g.slice(0,-1);
+      // v4.66 (Ben): non-creature tokens (Treasure, Clue, Food, …) show as one token with a count, like one paper token with a die on it; the others stay
+      // on the battlefield hidden underneath, so everything that counts artifacts or permanents still sees each one
+      if(!isCreature(top)) return zg(rest.map(c=>cardHTML(c,'bf',mine,'tokunder tokhide')).join('') + cardHTML(top,'bf',mine,'tokpile tokone').replace(/<\/div>$/, `<span class="tokc" title="${g.length} ${esc(cdata(top).n)} tokens">${g.length}</span></div>`));
       return zg(wrapT(g, rest.map((c,i)=>cardHTML(c,'bf',mine, i>=rest.length-3 ? 'tokunder' : 'tokunder tokhide')).join('') + cardHTML(top,'bf',mine,'tokpile').replace(/<\/div>$/, `<span class="tokn" title="${g.length} identical tokens">×${g.length}</span></div>`))); }).join(''); };
   return { front: piles(front, zF), back: L + '<span class="gap"></span>' + piles(other, zB) };
 }
@@ -6660,6 +6672,7 @@ function cardMenu(id, x, y){
     ['Move to the other row',()=>{ const cur=c.row||((c.fd||isCreature(c))?'f':'b'); c.row=cur==='f'?'b':'f'; ch(); }],
     /\bwarp\b/i.test(d.o||'')&&[c.wp?'Send to warp zone now (instead of at the end step)':'Send to warp zone (exiled, can be cast later)',()=>{ warpOut(c); ch(); }],
     c.wp&&OWN(['Keep it (remove the warp banner)',()=>{ warpUntrig(c); delete c.wp; log(`${G.me.name}'s ${cname(c)} will not go to the warp zone.`); ch(); }]),
+    tallyTok(c)&&['Make another '+cdata(c).n,()=>{ moreTok(c); ch(); }],
     ['Make a token copy',()=>{ const tk=mk(c.k,{tok:true,cu:c.cu,c:0,sick:!!G.turn.n}); tk.tokT=G.turn.n; G.me.bf.push(tk); log(`${G.me.name} makes a token copy of ${cname(c)}.`); entered(tk); ch(); }],
     G.opp&&['Give control to opponent',()=>{ G.noUndo=true; G.me.bf.splice(find(id).i,1); c.att=null; c.atk=false; send({t:'give',card:c,zone:'bf'}); log(`${G.me.name} gives control of ${cname(c)} to ${G.opp.name}.`); ch(); }], '-', ...dest ];
   else if(z==='hand') items=[
@@ -7176,7 +7189,7 @@ document.addEventListener('keydown', e=>{
   const f=G.hover && find(G.hover); if(!f) return; const id=f.c.id, c=f.c;
   if(k==='g'){ if(f.z==='hand') discard([id]); else { move(id,'gy'); changed(); } } else if(k==='e'){ move(id,'ex'); changed(); } else if(k==='h'){ move(id,'hand'); changed(); }
   else if(f.z==='bf'){
-    if(k==='t') toggleTap(id); else if(k==='c') addCounter(id,1); else if(k==='x') addCounter(id,-1);
+    if(k==='t') toggleTap(id); else if(k==='c' && tallyTok(find(id).c)){ moreTok(find(id).c); changed(); } else if(k==='c') addCounter(id,1); else if(k==='x') addCounter(id,-1);
     else if(k==='a') attack(id,false); else if(k==='v') attack(id,true);
     else if(k==='f' && c.fd && c.fdk) faceToggle(id);
     else if(k==='f' && cdata(c).back){ transform(c); changed(); }
