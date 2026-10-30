@@ -184,3 +184,4 @@ The v4.68 box is now `LAND_FAMS`: Basic (`BASIC_SETS`, `S.basics`), Shock (`SHOC
 - **v4.72:** a `sets` style can narrow a set to a collector-number range (`cn:{mh3:[340,370]}`, Ben: Flooded Strand is MH3 #353, not #464); a style with `ver` is cached under `fam:style@ver`, so changing how a style picks only needs a `ver` bump (the old `fetch:fancy` entry is deleted on load).
 - **v4.73:** Surveil gets a style: `alt` = MKM collector numbers 315–345 (Ben: Commercial District is #324).
 - **v4.74:** Shock styles (Ben's): orig = rav + gpt + dis, rtr = rtr + gtc, grn = grn + rna (all lowest number), rvr = Ravnica Remastered collector numbers 288–310 (Ben: "numbers like 293, 294"). No family is `soon` any more.
+- **v4.75:** RVR shocks: regular printings run up to #291 (Watery Grave 291), the borderless run is #292–301 (Watery Grave 301, per Card Kingdom). The style is narrowed to 292–301 with `ver:2`.

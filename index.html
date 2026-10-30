@@ -591,10 +591,11 @@ body.nomo *{transition:none!important}
 </script>
 <script>
 "use strict";
-const VERSION = 'v4.74';
+const VERSION = 'v4.75';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.75','Oct 30',"Ravnica Remastered shock lands now all come from the borderless run."],
   ['v4.74','Oct 30',"Shock lands get art choices too: the originals (Ravnica, Guildpact, Dissension), Return to Ravnica and Gatecrash, Guilds of Ravnica and Ravnica Allegiance, or Ravnica Remastered."],
   ['v4.73','Oct 30',"Surveil lands can use their alternate art from Murders at Karlov Manor (Land art box, Surveil tab)."],
   ['v4.72','Oct 30',"Fancy fetch lands use the right MH3 printings (the ones around #353)."],
@@ -6195,7 +6196,7 @@ const LAND_FAMS=[
     {k:'orig', n:'Originals (Ravnica, Guildpact, Dissension)', sets:['rav','gpt','dis'], pick:'low'},
     {k:'rtr', n:'Return to Ravnica + Gatecrash', sets:['rtr','gtc'], pick:'low'},
     {k:'grn', n:'Guilds of Ravnica + Ravnica Allegiance', sets:['grn','rna'], pick:'low'},
-    {k:'rvr', n:'Ravnica Remastered (#29x)', sets:['rvr'], pick:'low', cn:{rvr:[288,310]}}]},
+    {k:'rvr', n:'Ravnica Remastered (borderless)', sets:['rvr'], pick:'low', cn:{rvr:[292,301]}, ver:2}]},   // v4.75: the borderless run is #292–301 (Watery Grave 301; its regular printing is 291)
   {k:'fetch', n:'Fetch', names:FETCH10, styles:[{k:'std', n:'As your deck lists them'},
     {k:'orig', n:'Originals (Onslaught + Zendikar)', sets:['ons','zen'], pick:'low'},
     {k:'mod', n:'Modern (MH2 + MH3)', sets:['mh2','mh3'], pick:'low'},
