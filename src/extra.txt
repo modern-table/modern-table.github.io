@@ -107,3 +107,5 @@ Sideboard
 1 Flare of Cultivation
 1 Golgari Rot Farm
 1 Dosan the Falling Leaf
+# Requested 2026-10-30
+1 Test of Talents
