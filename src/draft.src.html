@@ -98,6 +98,8 @@ h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
 .pane{background:#391f17;border:1px solid var(--line);border-radius:8px;padding:12px;min-height:120px}
 .lands{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .land{display:flex;gap:4px;align-items:center;border:1px solid var(--line);border-radius:6px;padding:3px 6px}
+.land .lart{width:30px;height:42px;border-radius:3px;background:#2a1712 center/cover no-repeat;flex:none;box-shadow:0 1px 3px #0008}
+.bart{display:flex;flex-direction:column;gap:3px;font:700 10px var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}.bart select{font:600 12px var(--ui);letter-spacing:0;text-transform:none;background:#2a1712;color:var(--ink);border:1px solid var(--line);border-radius:5px;padding:3px 5px}
 .land b{min-width:2ch;text-align:center;font-variant-numeric:tabular-nums}
 .land button{padding:1px 8px}
 table{border-collapse:collapse;width:100%;max-width:640px}
@@ -143,7 +145,7 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 <script src="../src/peerjs.min.js"></script>
 <script>
 "use strict";
-const VERSION = 'v0.14';
+const VERSION = 'v0.15';
 // Only the sets and cube whose cards the Modern Table plays fully (2026-10-23); the other set files stay in draft/sets for later.
 const READY = ['fra','fin','mh2','mh1','ktk','df07'];
 const SETS_ALL = /*__SETS__*/[];
@@ -581,13 +583,35 @@ function regionsHTML(cards, basics){
   });
   return h ? `<div class="regions">${h}</div>` : '';
 }
+/* Basic land art (v0.15, Ben): the same choice as the Modern Table's Basic lands box. It is one setting for both pages (mt_settings.basics,
+   the pages share browser storage), and the Modern Table applies it when the drafted deck is brought to a table, so here it only
+   needs to be chosen and shown. The pictures are looked up once (dt_basicart) the same way the Modern Table does. */
+const BASIC_ART=[
+  {k:'std', n:'Usual basics'},
+  {k:'ugl', n:'Unglued', q:'e:ugl t:basic -t:snow'},
+  {k:'unh', n:'Unhinged', q:'e:unh t:basic -t:snow'},
+  {k:'ust', n:'Unstable', q:'e:ust t:basic -t:snow'},
+  {k:'und', n:'Unsanctioned', ids:[['und','88'],['und','90'],['und','92'],['und','94'],['und','96']]},
+  {k:'neo', n:'Kamigawa: Neon Dynasty', q:'e:neo t:basic -t:snow is:fullart'},
+  {k:'dmu', n:'Dominaria United (stained glass)', q:'e:dmu t:basic -t:snow is:fullart'},
+  {k:'sld', n:'Secret Lair (full-text lands)', ids:[['sld','254'],['sld','255'],['sld','256'],['sld','257'],['sld','258']]},
+  {k:'rnd', n:'Random (a different set each match)'}];
+const BART=store.get('dt_basicart', {});
+const basicPref = () => { const v=(store.get('mt_settings', {})||{}).basics; return BASIC_ART.some(x=>x.k===v) ? v : 'std'; };
+function setBasicPref(v){ const st=store.get('mt_settings', {})||{}; st.basics=v; store.set('mt_settings', st); }
+async function basicArtLoad(k){ const s=BASIC_ART.find(x=>x.k===k); if(!s || !(s.q || s.ids) || BART[k]) return;
+  try{ const r = s.ids ? await sfetch('https://api.scryfall.com/cards/collection', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({identifiers:s.ids.map(([set, collector_number])=>({set, collector_number}))})})
+                       : await sfetch('https://api.scryfall.com/cards/search?unique=prints&include_extras=true&order=set&q='+encodeURIComponent(s.q));
+       if(!r.ok) return; const out={}; for(const c of ((await r.json()).data||[])){ const im=(c.image_uris||{}).normal || ((c.card_faces||[])[0]||{}).image_uris?.normal; if(im && LANDS.some(([,n])=>n===c.name) && !out[c.name]) out[c.name]=im; }
+       if(LANDS.every(([,n])=>out[n])){ BART[k]=out; store.set('dt_basicart', BART); render(); } }catch(e){ console.warn('basic land art', e); } }
+const landArtImg = n => { const k=basicPref(); return (BART[k]||{})[n] || ''; };
 function buildHTML(host, me){
-  loadBuild();
+  loadBuild(); { const k=basicPref(); if(k!=='std' && k!=='rnd' && !BART[k]) setTimeout(()=>basicArtLoad(k), 0); }
   const T=V.tour, deck=V.pool.filter(inMain).sort(byColour), side=V.pool.filter(c=>!inMain(c)).sort(byColour), lt=landTotal(), total=deck.length+lt;
   let h=`<div class="bar"><button class="${tabNow==='deck'?'on':''}" data-tab="deck">Your deck</button><button class="${tabNow==='tour'?'on':''}" data-tab="tour">Tournament</button><span style="margin-left:auto"></span>${V.phase==='build' ? `<button class="${me.ready?'on':'go'}" id="readyBtn">${me.ready?'Ready ✓ (click to keep building)':'My deck is ready'}</button>` : ''}</div>`;
   if(tabNow==='deck'){
     h+=`<div class="bar"><h3>${total} cards</h3><span class="hint">${deck.length} from your picks + ${lt} basic land${lt===1?'':'s'}${total<40?' · a draft deck needs at least 40':''}</span><span style="margin-left:auto"></span><button id="saveBtn">Save to my Modern Table decks</button><button id="copyBtn">Copy list</button></div>
-      <div class="lands">${LANDS.map(([k,n])=>`<span class="land">${n}<button class="sm" data-land="${n}" data-d="-1" aria-label="Remove a ${n}">−</button><b>${B.lands[n]||0}</b><button class="sm" data-land="${n}" data-d="1" aria-label="Add a ${n}">+</button></span>`).join('')}<button id="sugBtn">Suggest lands</button></div>
+      <div class="lands"><label class="bart" title="The art your basic lands use on the Modern Table. It's the same setting as the Basic lands box on the Modern Table's deck screen.">Basic land art<select id="bartSel">${BASIC_ART.map(x=>`<option value="${x.k}"${x.k===basicPref()?' selected':''}>${esc(x.n)}</option>`).join('')}</select></label>${LANDS.map(([k,n])=>`<span class="land">${landArtImg(n)?`<span class="lart" style="background-image:url('${landArtImg(n)}')"></span>`:''}${n}<button class="sm" data-land="${n}" data-d="-1" aria-label="Remove a ${n}">−</button><b>${B.lands[n]||0}</b><button class="sm" data-land="${n}" data-d="1" aria-label="Add a ${n}">+</button></span>`).join('')}<button id="sugBtn">Suggest lands</button></div>
       <div class="pane" data-zone="deck"><div class="bar"><h3>Deck</h3><span class="hint">click a card to take it out</span></div>${regionsHTML(deck, lt) || '<p class="hint">Everything is in the sideboard. Click cards below to put them back in your deck.</p>'}</div>
       <div class="pane" data-zone="side"><div class="bar"><h3>Sideboard</h3><span class="hint">${side.length} card${side.length===1?'':'s'} · click a card to add it to your deck</span></div>${regionsHTML(side, 0) || '<p class="hint">Empty. Click a card in your deck to move it here.</p>'}</div>`;
   } else {
@@ -617,6 +641,7 @@ function buildHTML(host, me){
 
 /* ================= clicks ================= */
 function toggleSide(u){ loadBuild(); const i=B.side.indexOf(u); if(i>=0) B.side.splice(i,1); else B.side.push(u); saveBuild(); hideZoom(); render(); }
+$('#main').addEventListener('change', e=>{ if(e.target && e.target.id==='bartSel'){ setBasicPref(e.target.value); render(); toast(e.target.value==='std' ? 'Your basic lands will use the usual art.' : e.target.value==='rnd' ? 'Your basic lands will use a different set each match.' : 'Your basic lands will use this art on the Modern Table.'); } });
 $('#main').addEventListener('click', e=>{
   if(!V) return;
   const t=e.target, card=t.closest('.c'), id=t.closest('button') && t.closest('button').id;
