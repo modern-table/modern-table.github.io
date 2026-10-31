@@ -505,7 +505,7 @@ body.nomo *{transition:none!important}
   <div class="lobbybox">
     <div class="lhead"><h1>Modern Table <small id="verTag" style="font:600 13px var(--ui);color:var(--dim);letter-spacing:.08em"></small></h1>
     <p>A Magic table for two, in the browser. <b>Automatic first, by hand always:</b> the table plays your cards for you (triggers, targets, searches, combat damage), and anything it doesn't do, you can still do yourself, like paper.</p>
-    <p id="tourLine" hidden><a href="#" id="tourLink" style="color:var(--brass);font-weight:700">Take the two-minute tour</a> <span style="color:var(--dim)">· new here? see how the table works</span><button id="tourX" class="ghost" title="No thanks (the tour stays in the ☰ menu at the table)" aria-label="Close">×</button></p></div>
+    <p id="tourLine" hidden><a href="#" id="tourLink" style="color:var(--brass);font-weight:700">Take the three-minute tour</a> <span style="color:var(--dim)">· new here? see how the table works</span><button id="tourX" class="ghost" title="No thanks (the tour stays in the ☰ menu at the table)" aria-label="Close">×</button></p></div>
     <div class="lmain">
     <div class="field"><label for="nameIn">Your name</label><input id="nameIn" maxlength="20" placeholder="Planeswalker"></div>
     <div class="choices">
@@ -583,10 +583,11 @@ body.nomo *{transition:none!important}
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.75';
+const VERSION = 'v4.76';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.76','Oct 31',"The front page now calls the tour a three-minute tour, matching what the tour itself says (it grew when deck building was added)."],
   ['v4.75','Oct 30',"Ravnica Remastered shock lands now all come from the borderless run."],
   ['v4.74','Oct 30',"Shock lands get art choices too: the originals (Ravnica, Guildpact, Dissension), Return to Ravnica and Gatecrash, Guilds of Ravnica and Ravnica Allegiance, or Ravnica Remastered."],
   ['v4.73','Oct 30',"Surveil lands can use their alternate art from Murders at Karlov Manor (Land art box, Surveil tab)."],
