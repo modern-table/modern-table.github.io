@@ -583,10 +583,11 @@ body.nomo *{transition:none!important}
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.77';
+const VERSION = 'v4.78';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.78','Oct 31',"Echoing Deeps copying a Vesuva (or any land that enters as a copy) now gets Vesuva's choice too: pick a land on the battlefield to copy, or stay a Vesuva."],
   ['v4.77','Oct 31',"Crumbling Vestige taps only for colorless; its one mana of any color comes from its enter trigger. Leyline of Abundance and Badgermole Cub no longer offer to tap for green themselves (they add the extra green when you tap a creature for mana)."],
   ['v4.76','Oct 31',"The front page now calls the tour a three-minute tour, matching what the tour itself says (it grew when deck building was added)."],
   ['v4.75','Oct 30',"Ravnica Remastered shock lands now all come from the borderless run."],
@@ -4480,19 +4481,24 @@ const copyEntry = c => { if(c.cp) return null; const o=frontText(c);
   { const s=o.match(/enter as a copy of any creature card in a graveyard, except (?:his|her|its) name is ([^,]+?) and (?:he|she|it)(?:'s| is) an? (\d+)\/(\d+) ([A-Z][A-Za-z ]+?) in addition to (?:his|her|its) other types/i); if(s) return {gy:true, cr:true, name:s[1].trim(), pt:`${s[2]}/${s[3]}`, add:s[4].trim(), exile:/exile that card/i.test(o)}; }
   const m=o.match(/\bas a copy of (?:any|a) land (card in a graveyard|on the battlefield)/i); if(!m) return null;
   const x=o.match(/except it(?:'|’)s an? ([A-Z][a-z]+) in addition to its other types/); return {gy:/graveyard/i.test(m[1]), add:x ? x[1] : ''}; };
-function vesuvaPrompt(c, ce){
+function vesuvaPrompt(c, ce, ch){   // ch (v4.78): {orig, depth} when this copy is itself the result of copying a land that copies (Echoing Deeps → Vesuva)
   const sides=ce.own ? [...G.me.bf] : [...G.me[ce.gy?'gy':'bf'], ...((G.opp&&G.opp[ce.gy?'gy':'bf'])||[])];
   const lands=sides.filter(x=>x.id!==c.id && !x.fd && (x.k || x.cu) && (ce.bfcr ? isCreature(x) && manaValue(x)<=ce.max : ce.cr ? /\bCreature\b/.test(faceTypeOf(x,0)) : isLand(x)));
-  const orig=faceName(c,0), as=x=>{ const f=find(c.id); if(!f || f.z!=='bf') return;
+  const orig=(ch && ch.orig) || faceName(c,0), as=x=>{ const f=find(c.id); if(!f || f.z!=='bf') return;
     if(ce.bfcr){ f.c.cp={k:x.k, cu:x.cu||null, orig, until:null, add:ce.add||'', kw:ce.kw||[]}; log(`${orig} enters as a copy of ${cdata(x).n}, a ${ce.add}${(ce.kw||[]).length ? ' with '+ce.kw.join(' and ') : ''} as well.`); etbTrigs(f.c); changed(); return; }
     if(ce.cr){ f.c.cp={k:x.k, cu:x.cu||null, orig, until:null, add:ce.add||'', name:ce.name, pt:ce.pt}; const xn=cdata(x).n, mine=!!find(x.id);
       log(`${orig} enters as a copy of ${xn} from ${mine?G.me.name:(G.opp?G.opp.name:'the opponent')}'s graveyard (named ${ce.name}, a ${ce.pt} ${ce.add} as well).`);
       if(ce.exile){ if(mine){ const g=find(x.id); if(g && g.z==='gy') move(x.id,'ex',{silent:true}); } else send({t:'gyexile', id:x.id, by:orig, who:G.me.name}); }
       etbTrigs(f.c); changed(); return; }
+    const ce2 = !ce.cr && !ce.bfcr && (!ch || ch.depth<3) ? copyEntry(x) : null;
+    if(ce2 && !ce2.cr && !ce2.bfcr){ const sp0=untapLandsBy(); f.c.tap=!sp0; f.c.cp={k:x.k, cu:x.cu||null, orig, until:null, add:ce.add||''};   // v4.78: it copies Vesuva, so Vesuva's own "as a copy of any land" applies as it enters
+      log(`${orig} enters as a copy of ${cdata(x).n}${ce.gy?' (from a graveyard)':''}, so it may enter as a copy of a land ${ce2.gy?'card in a graveyard':'on the battlefield'} instead.`); changed();
+      setTimeout(()=>vesuvaPrompt(f.c, ce2, {orig, depth:((ch&&ch.depth)||0)+1}), 0); return; }
     const sp=untapLandsBy(); f.c.tap=!sp; f.c.cp={k:x.k, cu:x.cu||null, orig, until:null, add:ce.add||''}; log(`${orig} enters ${sp?'untapped ('+sp+')':'tapped'} as a copy of ${cdata(x).n}${ce.gy?' (from a graveyard)':''}${ce.add?', and is a '+ce.add+' as well':''}.`); if(etbLines(f.c).length) etbTrigs(f.c); if(!sp) enteredTapped(f.c); changed(); };
   const kind=ce.cr||ce.bfcr?'creature':'land';
-  if(!lands.length){ log(`${orig} enters as itself: there is no ${kind} ${ce.gy?'card in a graveyard':'on the battlefield'}${ce.bfcr && !ce.own?` with mana value ${ce.max} or less`:''} to copy.`); return; }
-  pickCard(`${orig}: choose a ${kind} ${ce.gy?'card in either graveyard':ce.own?'you control':'on the battlefield'}${ce.bfcr && !ce.own?` with mana value ${ce.max} or less (the mana spent)`:''} to copy${ce.cr||ce.bfcr?'':' (it enters tapped)'}`, lands, as, [`Enter as ${orig} (copy nothing)`,()=>{ closeModal(); log(`${orig} enters without copying a ${kind}.`); },'ghost']);
+  if(!lands.length){ if(ch){ const f=find(c.id); log(`${orig} stays a copy of ${f?cdata(f.c).n:'it'}: there is no ${ce.cr||ce.bfcr?'creature':'land'} ${ce.gy?'card in a graveyard':'on the battlefield'} to copy.`); if(f){ if(etbLines(f.c).length) etbTrigs(f.c); if(f.c.tap) enteredTapped(f.c); changed(); } return; }
+    log(`${orig} enters as itself: there is no ${kind} ${ce.gy?'card in a graveyard':'on the battlefield'}${ce.bfcr && !ce.own?` with mana value ${ce.max} or less`:''} to copy.`); return; }
+  pickCard(`${orig}: choose a ${kind} ${ce.gy?'card in either graveyard':ce.own?'you control':'on the battlefield'}${ce.bfcr && !ce.own?` with mana value ${ce.max} or less (the mana spent)`:''} to copy${ce.cr||ce.bfcr?'':' (it enters tapped)'}`, lands, as, [ch ? `Stay a copy of ${cdata(c).n}` : `Enter as ${orig} (copy nothing)`,()=>{ closeModal(); if(ch){ log(`${orig} stays a copy of ${cdata(c).n}.`); const f=find(c.id); if(f){ if(etbLines(f.c).length) etbTrigs(f.c); if(f.c.tap) enteredTapped(f.c); changed(); } return; } log(`${orig} enters without copying a ${kind}.`); },'ghost']);
 }
 /* graveyard targets: G.me.gtg = [{s: my stack card id, c: targeted card id, o: its owner, n: its name, sn: source name}], shared with the opponent.
    Spells that "exile target card from a graveyard" carry it out when they resolve; the owner's client does the moving (message gyexile). */
