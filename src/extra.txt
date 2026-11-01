@@ -109,3 +109,7 @@ Sideboard
 1 Dosan the Falling Leaf
 # Requested 2026-10-30
 1 Test of Talents
+# Requested 2026-11-01
+1 Children of Korlis
+1 Plunge into Darkness
+1 Sorin of House Markov
