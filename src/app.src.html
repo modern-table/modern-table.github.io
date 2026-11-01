@@ -583,10 +583,11 @@ body.nomo *{transition:none!important}
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.79';
+const VERSION = 'v4.80';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.80','Nov 1',"Triggers from a transformed card show the side they come from: Sorin, Ravenous Neonate's extort now shows the planeswalker on the stack, not the creature."],
   ['v4.79','Nov 1',"Three requested cards play themselves. Children of Korlis gives back all the life you lost this turn (paying life counts). Plunge into Darkness: pick the creatures to sacrifice for 3 life each, or pay any amount of life and pick one of that many top cards (the rest are exiled); entwine does both. Sorin of House Markov: extort asks you to pay {W/B} whenever you cast a spell, he flips at the start of your second main phase once you've gained 3 life this turn, and his −6 makes the stolen creature a Vampire, with a lifelink counter if you have another white permanent."],
   ['v4.78','Oct 31',"Echoing Deeps copying a Vesuva (or any land that enters as a copy) now gets Vesuva's choice too: pick a land on the battlefield to copy, or stay a Vesuva."],
   ['v4.77','Oct 31',"Crumbling Vestige taps only for colorless; its one mana of any color comes from its enter trigger. Leyline of Abundance and Badgermole Cub no longer offer to tap for green themselves (they add the extra green when you tap a creature for mana)."],
@@ -982,7 +983,9 @@ const G = { myId:'p1', solo:false, code:'', me:newPlayer(), opp:null, turn:{acti
 const oppId = () => G.myId==='p1' ? 'p2' : 'p1';
 const nid = () => G.myId+'-'+(++G.idc).toString(36);
 const ZN = {lib:'library', hand:'hand', bf:'battlefield', gy:'graveyard', ex:'exile', st:'stack', side:'sideboard', ph:'phased out'};
-const mk = (k, extra) => Object.assign({ id:nid(), k, o:G.myId, tap:false, fd:false, flip:false, c:0, att:null, atk:false }, extra);
+const mk = (k, extra) => { const o=Object.assign({ id:nid(), k, o:G.myId, tap:false, fd:false, flip:false, c:0, att:null, atk:false }, extra); faceMarker(o); return o; };
+/* v4.80: a trigger or ability marker from a transformed permanent shows the face it came from (Sorin, Ravenous Neonate's extort), not the front */
+function faceMarker(o){ const id=(o.ab && o.ab.id) || (o.ch && o.ch.id); if(!id || !o.cu || !o.cu.img || typeof find!=='function') return; const f=find(id); if(!f || !f.c.flip) return; const d=cdata(f.c); if(d.back && o.cu.img===d.img) o.cu.img=d.back; }
 /* two of my cards must never share an id (a card on the stack that shared one with a graveyard card could not be resolved): the later one gets a new id */
 function dedupeIds(){ const seen=new Set(); for(const z of Object.keys(ZN)) for(const c of (G.me[z]||[])){ if(!c || !c.id) continue; if(seen.has(c.id)){ const old=c.id; c.id=nid(); console.warn('Modern Table: duplicate card id', old, 'in', z, '→', c.id); log(`Table note: two of ${G.me.name}'s cards were mixed up (${cdata(c).n||'a card'}, in the ${ZN[z]}); fixed. If you see this, please say what happened just before.`, 's'); } else seen.add(c.id); } }
 const ZLOG=[]; let ZSEQ=0;
