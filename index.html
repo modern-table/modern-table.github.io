@@ -591,10 +591,11 @@ body.nomo *{transition:none!important}
 </script>
 <script>
 "use strict";
-const VERSION = 'v4.81';
+const VERSION = 'v4.82';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.82','Nov 2',"This week's new decks: Aven Mindcensor limits an opponent's searches to the top four cards, Drannith Magistrate stops casting from anywhere but the hand, Delney doubles small creatures' triggers and keeps them from being blocked by big ones, Lithomantic Barrage deals 5 to white or blue targets, Mistcaller exiles uncast creatures for the turn once sacrificed, Satoru draws when creatures enter without being cast, Suncleanser asks for its mode and keeps counters off, Tunnel Ignus punishes a second land in a turn, and Sunken Ruins (also Flooded Grove and Mystic Gate) filters mana. Mistcaller no longer acts like Containment Priest just by sitting there."],
   ['v4.81','Nov 1',"A warped card's right-click menu is short now: Cast from warp at the top, everything else under Manual handling."],
   ['v4.80','Nov 1',"Triggers from a transformed card show the side they come from: Sorin, Ravenous Neonate's extort now shows the planeswalker on the stack, not the creature."],
   ['v4.79','Nov 1',"Three requested cards play themselves. Children of Korlis gives back all the life you lost this turn (paying life counts). Plunge into Darkness: pick the creatures to sacrifice for 3 life each, or pay any amount of life and pick one of that many top cards (the rest are exiled); entwine does both. Sorin of House Markov: extort asks you to pay {W/B} whenever you cast a spell, he flips at the start of your second main phase once you've gained 3 life this turn, and his −6 makes the stolen creature a Vampire, with a lifelink counter if you have another white permanent."],
@@ -1005,7 +1006,7 @@ const cname = c => c.fd ? 'a face-down card' : '[['+(cdata(c).n||'a card')+'|'+(
 function pub(){
   const m=G.me, p = c => c.fd ? Object.assign({}, c, {k:null, cu:null, note:''}) : c;
   return { name:m.name, deck:m.deck, life:m.life, ctr:m.ctr, libN:m.lib.length, handN:m.hand.length, sideN:m.side.length,
-    hand:(m.reveal || m.ctl) ? m.hand : null, noMax:!!m.noMax, ptest:m.ptest||'', comp:m.side.filter(c=>c.comp), compDone:!!m.compDone, deckReady:m.deckReady!==false, skipRoll:!!m.skipRoll, wonGame:m.wonGame||0, btm:m.btm||0, ctl:!!m.ctl, ctlNext:!!m.ctlNext, city:!!m.city, sbing:!!m.sbing, bf:m.bf.map(p), ph:(m.ph||[]).map(p), gy:m.gy, ex:m.ex.map(p), st:m.st.map(p), arrows:m.arrows, mull:m.mull, drn:m.drn||null, wins:m.wins||0, roll:m.roll||null, dealt:!!m.dealt, kept:!!m.kept, mana:m.mana||noMana(), smana:m.smana||[], energySeen:!!m.energySeen, monarch:!!m.monarch, mill:m.mill||null, nt:m.nt||null, hasteNext:m.hasteNext||0, poisonSeen:!!m.poisonSeen, poisonSrc:!!m.poisonSrc, cast:m.cast||{n:0,is:0}, cares:m.cares||null, emb:m.emb||[], gtg:m.gtg||[], baub:m.baub||[], trk:pubTrk(m.trk) };
+    hand:(m.reveal || m.ctl) ? m.hand : null, noMax:!!m.noMax, ptest:m.ptest||'', comp:m.side.filter(c=>c.comp), compDone:!!m.compDone, deckReady:m.deckReady!==false, skipRoll:!!m.skipRoll, wonGame:m.wonGame||0, btm:m.btm||0, ctl:!!m.ctl, ctlNext:!!m.ctlNext, city:!!m.city, sbing:!!m.sbing, bf:m.bf.map(p), ph:(m.ph||[]).map(p), gy:m.gy, ex:m.ex.map(p), st:m.st.map(p), arrows:m.arrows, mull:m.mull, drn:m.drn||null, wins:m.wins||0, roll:m.roll||null, dealt:!!m.dealt, kept:!!m.kept, mana:m.mana||noMana(), smana:m.smana||[], energySeen:!!m.energySeen, monarch:!!m.monarch, mill:m.mill||null, nt:m.nt||null, hasteNext:m.hasteNext||0, poisonSeen:!!m.poisonSeen, poisonSrc:!!m.poisonSrc, cast:m.cast||{n:0,is:0}, cares:m.cares||null, emb:m.emb||[], gtg:m.gtg||[], baub:m.baub||[], trk:pubTrk(m.trk), mistT:m.mistT||0, mistBy:m.mistBy||'' };
 }
 /* undo: a snapshot of my own side is kept before each change. Shuffles and anything that crosses to the other player close the history. */
 const UNDO=[]; let lastSnap=null, lastLogi=0;
@@ -1156,6 +1157,9 @@ function onMsg(m){
   else if(m.t==='sower'){ const n=Math.max(1,Math.min(10,+m.n||4)), got=[]; for(let i=0;i<n && G.me.lib.length;i++){ const c=G.me.lib[0]; move(c.id,'ex',{silent:true}); got.push(c); } log(`${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'An effect').slice(0,60)}: ${G.me.name} exiles the top ${got.length} cards of their library: ${got.map(cname).join(', ')}.`); changed(); send({t:'sowered', ids:got.filter(x=>isLand(x)).map(x=>x.id), by:m.by}); }
   else if(m.t==='sowered'){ setTimeout(async ()=>{ await sleep(400); const cs=(m.ids||[]).map(i=>((G.opp&&G.opp.ex)||[]).find(x=>x.id===i)).filter(Boolean); if(!cs.length){ log(`${String(m.by||'').slice(0,60)}: no land cards were exiled.`); return; }
       const ids=await pickManyP(`${String(m.by||'').slice(0,60)}: put any number of these lands onto the battlefield under your control`, cs, 'Take them') || []; for(const i of ids) send({t:'yield', id:i, by:m.by, who:G.me.name}); if(!ids.length) log(`${String(m.by||'').slice(0,60)}: ${G.me.name} takes no lands.`); }, 0); }
+  else if(m.t==='ctrlock'){ const f=find(m.id); if(f && f.z==='bf'){ f.c.ncl={src:String(m.src||''), by:String(m.by||'An effect').slice(0,60), at:Date.now()}; log(`${String(m.by||'An effect').slice(0,60)}: ${G.me.name}'s ${cname(f.c)} can't have counters put on it while it remains on the battlefield.`); changed(); } }   /* v4.82: Suncleanser */
+  else if(m.t==='losectr'){ const me=G.me, had=Object.keys(me.ctr||{}).filter(k=>me.ctr[k]).map(k=>`${me.ctr[k]} ${k}`); for(const k in (me.ctr||{})) me.ctr[k]=0; if(m.lock) me.ncl={src:String(m.lock), by:String(m.by||'An effect').slice(0,60), at:Date.now()};
+    log(`${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'ability').slice(0,60)}: ${me.name} loses all counters${had.length?` (${had.join(', ')})`:''}${m.lock?` and can't get counters while it remains on the battlefield`:''}.`); changed(); }
   else if(m.t==='rmctr'){ const f=find(m.id); if(f && f.z==='bf'){ rmAllCtrs(f.c); log(`${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'ability').slice(0,60)} removes all counters from ${G.me.name}'s ${cname(f.c)}.`); changed(); } }
   else if(m.t==='tasha'){ const k=Math.max(1, Math.min(99, +m.n||20)); let tot=0; const xs=[]; while(G.me.lib.length && tot<k){ const c=G.me.lib[0]; tot+=manaValue(c); xs.push(cname(c)); move(c.id,'ex',{silent:true}); } G.noUndo=true;
     log(`${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'spell').slice(0,60)}: ${G.me.name} exiles ${xs.length} card${xs.length===1?'':'s'} from the top of their library (total mana value ${tot}): ${xs.join(', ')||'none'}.`); changed(); }
@@ -1234,7 +1238,9 @@ function move(id, zone, o={}){
   if(zone==='st' && (o.xr || (from==='gy' && (c.fbk || c.xrNext)))) c.xr=1; delete c.xrNext;
   if(zone==='st') { if(from==='gy') c.cgy=1; else delete c.cgy; } if(zone==='bf'){ if(from==='st' && c.pc!=null) c.pcE=c.pc; if(from==='gy') c.egy=G.turn.n||1; } if(zone!=='st' && zone!=='bf'){ delete c.cgy; delete c.pcE; delete c.egy; }
   if(from==='gy'){ delete c.fbk; delete c.gyc; }
+  if(from==='bf' && zone!=='bf') delete c.ncl;   /* v4.82: Suncleanser's lock ends with that object */
   if(from==='side' && zone!=='side' && G.turn.n) c.sideOrig=1; if(zone==='side') delete c.sideOrig;
+  if(zone==='bf'){ if(from==='st' && c.nm) c.nmE=1; else delete c.nmE; } else delete c.nmE;   /* v4.82: "no mana was spent to cast it" kept for Satoru */
   if(zone!=='st'){ delete c.ovl; delete c.md; delete c.half; delete c.sacMV; delete c.sacTp; delete c.addPaid; delete c.gift; delete c.nm; delete c.unc; delete c.pc; } if(zone!=='st' && zone!=='bf'){ delete c.ev; delete c.spent; delete c.dash; delete c.hst; } if(zone!=='bf') delete c.exEnd;
   m[from].splice(f.i,1); if(from==='ex'){ delete c.plot; delete c.offer; delete c.by; delete c.warp; delete c.pl; delete c.plFree; delete c.fl; delete c.advOK; } if(zone!=='st') delete c.adv; if(zone!=='st') delete c.bt;
   if(from==='bf' && zone!=='bf' && /phase out until this (?:enchantment|artifact|creature|permanent) leaves the battlefield/i.test(frontText(c)||'')){ const by=cdata(c).n; setTimeout(()=>{ phaseInBy(c.id, by); if(G.opp) send({t:'phasein', src:c.id, by}); }, 0); }
@@ -1306,7 +1312,7 @@ function manaAbilities0(c){
   for(const m of txt.matchAll(/\badd ([^.\n]*)/gi)){ const cl=m[1];
     const pre=txt.slice(txt.lastIndexOf('\n', m.index)+1, m.index), ci=pre.lastIndexOf(':'), costPart=ci>=0 ? pre.slice(0,ci) : '';
     if(ci<0 && /^(?:When|Whenever|At)\b/i.test(pre)) continue;   // v4.77: a trigger that adds mana (Crumbling Vestige's "When this land enters, add …") is not something you tap for
-    const cost=[...costPart.matchAll(/\{([WUBRGC]|\d+)\}/g)].map(x=>x[1]).join(','), exert=/\bexert\b/i.test(costPart), rem=/\bremove an? [\w+\/-]+ counter from\b/i.test(costPart);
+    const cost=[...costPart.matchAll(/\{([WUBRGC]\/[WUBRG]|[WUBRGC]|\d+)\}/g)].map(x=>x[1]).join(','), exert=/\bexert\b/i.test(costPart), rem=/\bremove an? [\w+\/-]+ counter from\b/i.test(costPart);
     // "If it has a luck counter on it, instead add one mana of any color" (Gemstone Caverns): only with a counter, and then it replaces the plain ability
     const iff=/counters? on (?:it|him|her), instead $/i.test(pre), list=iff ? cond : out; if(iff && !(c.c>0)) continue;
     if(/If a card is exiled with [^,]+, $/i.test(pre)){ const e=c.impId && find(c.impId); if(!(e && e.z==='ex')) continue; const syms2=[...cl.matchAll(/\{([WUBRGC])\}/g)].map(x=>x[1]); out.length=0; add(out, syms2.join(''), cost, exert, rem); continue; }
@@ -1322,6 +1328,7 @@ function manaAbilities0(c){
     if(/any (one )?color|any type|any of/i.test(cl)){ 'WUBRG'.split('').forEach(k=>add(list,k.repeat(k2),cost,exert,rem,only,rider)); continue; }
     { const cc=cl.match(/^(one|two|three) mana of the chosen colou?r/i); if(cc){ const k={white:'W',blue:'U',black:'B',red:'R',green:'G'}[String(c.chosen||'').toLowerCase()]; if(k) add(list, k.repeat(NUMW2[cc[1].toLowerCase()]||1), cost, exert, rem, only, rider); continue; } }   // v4.36: Sunken Citadel
     { const nw=cl.match(/^(two|three|four|five|six|seven|eight|nine|ten) \{([WUBRGC])\}/i); if(nw){ add(list, nw[2].repeat(NUMW2[nw[1].toLowerCase()]||1), cost, exert, rem, only, rider); continue; } }   // v4.36: Castle Garenbrig's six {G}
+    { const gp=cl.split(/,?\s+or\s+|,\s*/).map(x=>x.trim()).filter(Boolean); if(gp.length>1 && gp.every(x=>/^(?:\{[WUBRGC]\})+$/.test(x)) && gp.some(x=>(x.match(/\{/g)||[]).length>1)){ gp.forEach(x=>add(list, [...x.matchAll(/\{([WUBRGC])\}/g)].map(y=>y[1]).join(''), cost, exert, rem, only, rider)); continue; } }   /* v4.82: filter lands ("Add {U}{U}, {U}{B}, or {B}{B}"): each group is one choice */
     const syms=[...cl.matchAll(/\{([WUBRGC])\}/g)].map(x=>x[1]); if(!syms.length) continue;
     if(/ or /i.test(cl)) syms.forEach(k=>add(list,k,cost,exert,rem,only,rider)); else add(list,syms.join(''),cost,exert,rem,only,rider); }
   if(cond.length){ if(lt) for(const t of lt.plus) add(cond,BASIC[t],'',false,false); return cond; }
@@ -1330,12 +1337,13 @@ function manaAbilities0(c){
   return out;
 }
 const manaOptions = c => [...new Set(manaAbilities(c).map(a=>a.out))];
-const costLabel = cost => cost.split(',').map(k=>MNAME[k]||k).join(' + ');
+const costLabel = cost => cost.split(',').map(k=>MNAME[k]||(/^[WUBRGC]\/[WUBRG]$/.test(k) ? k.split('/').map(x=>MNAME[x]||x).join(' or ') : k)).join(' + ');
 const abilityLabel = a => (a.sacs ? (a.cost ? 'Pay '+costLabel(a.cost)+', sacrifice, add ' : 'Sacrifice, add ') : a.cost ? 'Pay '+costLabel(a.cost)+', tap for ' : 'Tap for ')+manaLabel(a.out)+(a.exert ? ' (exerts)' : '')+(a.rem ? ' (removes a counter)' : '')+(a.dmg ? ` (${a.dmg} damage to you)` : '')+(a.life ? ` (pay ${a.life} life)` : '')+(a.damp ? ' (Damping Sphere: one colorless instead)' : '')+(a.rider==='haste' ? ' (a creature spell paid with it gains haste)' : '');
 function payCost(cost){
   if(!cost) return true; const m=G.me; if(!m.mana) m.mana=noMana(); const pool=Object.assign({}, m.mana);
   for(const k of cost.split(',')){ if(MANA.includes(k)){ if(pool[k]<1) return false; pool[k]--; } }
-  for(const k of cost.split(',')){ if(!MANA.includes(k)){ let n=+k||0; while(n-- > 0){ const pick=pool.C>0 ? 'C' : MANA.slice().sort((x,y)=>pool[y]-pool[x])[0]; if(pool[pick]<1) return false; pool[pick]--; } } }
+  for(const k of cost.split(',')){ const hy=k.match(/^([WUBRGC])\/([WUBRG])$/); if(hy){ const pk = pool[hy[1]]>0 && (pool[hy[1]]>=pool[hy[2]] || !(pool[hy[2]]>0)) ? hy[1] : pool[hy[2]]>0 ? hy[2] : null; if(!pk) return false; pool[pk]--; } }   /* v4.82: hybrid mana in a cost (Sunken Ruins' {U/B}), either colour */
+  for(const k of cost.split(',')){ if(!MANA.includes(k) && !/\//.test(k)){ let n=+k||0; while(n-- > 0){ const pick=pool.C>0 ? 'C' : MANA.slice().sort((x,y)=>pool[y]-pool[x])[0]; if(pool[pick]<1) return false; pool[pick]--; } } }
   m.mana=pool; return true;
 }
 /* "Whenever you tap a creature for mana, add an additional {G}" (Leyline of Abundance, Badgermole Cub): a triggered mana ability, so it doesn't use the stack */
@@ -1563,6 +1571,7 @@ function entered(c){
   if(/enters with a \+1\/\+1 counter on it for each instant and sorcery card exiled with it/i.test(frontText(c)||'') && c.dlvIS){ c.c=(c.c||0)+c.dlvIS; log(`${cname(c)} enters with ${c.dlvIS} +1/+1 counter${c.dlvIS>1?'s':''} (instants and sorceries exiled with it).`); }
   if(chooseKind(c)) setTimeout(()=>choosePrompt(c.id), 0);
   const trg=[], ev=c.ev; delete c.ev;
+  if(isCreature(c) && !c.tok && G.me.bf.includes(c)) satoruNote(c);   /* v4.82 */
   if(isLand(c) && G.me.bf.includes(c)) trg.push(['landfall', ()=>landfall(c), 1]);
   if(isLand(c) && G.me.bf.includes(c)) trg.push(['Forest trigger', ()=>forestEnters(c), 1]);
   if(isCreature(c) && G.me.bf.includes(c) && !cardColors(c).length) trg.push(['colorless creature enters', ()=>{ for(const x of G.me.bf){ if(x.id===c.id || x.fd || (!x.k && !x.cu)) continue; const m=(frontText(x)||'').match(/(?:^|\n)Whenever another colorless creature you control enters, ([^\n]+)/i); if(m){ pushTrig(x, m[1]); log(`${cdata(x).n.split(',')[0]}: ${cname(c)} entered, so its trigger goes on the stack.`); } } }, 1]);
@@ -1920,7 +1929,9 @@ async function castFbExtra(id){ const f=find(id); if(!f || f.z!=='gy') return; c
   castSpell(id, Object.assign({xr:1, silent:true}, fx.mana ? {payCost:fx.mana} : {nm:true}), ()=>log(`${m.name} casts ${cname(c)} from their graveyard with flashback (${[fx.mana, fx.extra.toLowerCase()].filter(Boolean).join(', ')}). It will be exiled.`)); changed(); }
 const flashbackCost = c => { const m=(frontText(c)||'').match(/(?:^|\n)Flashback\s*[—–-]?\s*((?:\{[^}]+\})+)/); return m ? m[1] : ''; };
 /* Containment Priest: "If a nontoken creature would enter and it wasn't cast, exile it instead." */
-const priestOut = () => { for(const bf of [G.me.bf, (G.opp&&G.opp.bf)||[]]) for(const x of bf){ if(!x.fd && (x.k||x.cu) && /If a nontoken creature would enter(?: the battlefield)? and it wasn't cast, exile it instead/i.test(frontText(x)||'')) return cdata(x).n; } return null; };
+const priestOut = () => { for(const bf of [G.me.bf, (G.opp&&G.opp.bf)||[]]) for(const x of bf){ if(!x.fd && (x.k||x.cu) && /(?:^|\n)If a nontoken creature would enter(?: the battlefield)? and it wasn't cast, exile it instead/i.test(frontText(x)||'')) return cdata(x).n; }
+  for(const sd of [G.me, G.opp]) if(sd && sd.mistT && sd.mistT===G.turn.n) return sd.mistBy||'Mistcaller';   /* v4.82: Mistcaller's ability lasts until end of turn (the static text alone no longer counts: it begins with "Sacrifice") */
+  return null; };
 /* Landfall: "Whenever a land you control enters, …" on my permanents → a trigger on my stack for each */
 function landfall(land){ const out=[];
   for(const x of G.me.bf){ if(x.fd || (!x.k && !x.cu)) continue; const m=(frontText(x)||'').match(/(?:^|\n)(?:Landfall\s*[—–-]\s*)?Whenever a land (?:you control )?enters(?: the battlefield)?(?: under your control)?, ([^\n]+)/i); if(!m) continue; const d=cdata(x), sn=d.n.split(',')[0];
@@ -1950,6 +1961,15 @@ function makeCreatureTokens(n, p, t, words, opts, by){ const ws=words.split(/\s+
   log(`${by}: ${G.me.name} creates ${n===1?'a':n} ${p}/${t} ${words} creature token${n===1?'':'s'}${opts.tapatk?' that '+(n===1?'is':'are')+' tapped and attacking':''}.`);
   for(const tk of made) entered(tk); changed(); tokenArt(made, opts.src, types, `${p}/${t}`, cl); return made; }
 /* "Whenever [this creature or] another creature [or artifact] you control enters, …" (Guide of Souls, Haliya) */
+/* v4.82: Satoru, the Infiltrator ("Whenever Satoru and/or one or more other nontoken creatures you control enter, if none of them were cast or no mana was spent to cast them, draw a card"). Creatures entering together (same moment) are one batch; a creature counts as cast when it came from the stack (ZLOG), and c.nm marks no mana spent. */
+const SATRE=/Whenever (?:this creature|[^,\n]+?) and\/or one or more other nontoken creatures you control enter(?: the battlefield)?, if none of them were cast or no mana was spent to cast them, ([^\n]+)/i;
+function satoruNote(c){ const z=ZLOG.slice().reverse().find(e=>e.c===c || (e.c && e.c.id===c.id)), cast=!!(z && z.from==='st'), free=!cast || !!c.nmE;
+  const b=G.satB||(G.satB={list:[]}); if(!b.list.some(e=>e.id===c.id)) b.list.push({id:c.id, free, cast}); if(b.tm) return;
+  b.tm=setTimeout(()=>{ const L=G.satB ? G.satB.list : []; G.satB=null; let any=false;
+    for(const x of G.me.bf){ if(x.fd || (!x.k && !x.cu)) continue; const mm=(frontText(x)||'').match(SATRE); if(!mm) continue; const nm=cdata(x).n.split(',')[0];
+      if(L.some(e=>!e.free)) continue;
+      trigPush(x, mm[1], 'enter trigger'); any=true; log(`${nm}: ${L.map(e=>{ const f=find(e.id); return f ? cname(f.c) : 'a creature'; }).join(', ')} entered ${L.every(e=>!e.cast)?'without being cast':'with no mana spent'}, so its trigger goes on the stack.`); }
+    if(any) changed(); }, 0); }
 function othersEnter(c){ const out=[], cr=isCreature(c), art=/\bArtifact\b/.test(faceType(c)), pw=isPW(c); if(!cr && !art && !pw) return out;
   for(const x of G.me.bf){ if(x.fd || (!x.k && !x.cu)) continue; const nm=faceName(x,0), sn=nm.split(',')[0];
     const m=(frontText(x)||'').match(new RegExp('Whenever (?:(this creature|'+escRe(nm)+'|'+escRe(sn)+') or )?another (nontoken creature|creature or artifact|creature or planeswalker|creature|artifact) you control enters(?: the battlefield)?, ([^\\n]+)','i'))
@@ -1970,6 +1990,7 @@ function castLock(c, from){ const o=(G.opp&&G.opp.bf)||[];
   if(G.turn.n && G.turn.active!==G.myId) for(const x of [...G.me.bf, ...o]){ if(x.fd || (!x.k && !x.cu)) continue; if(/Players can cast spells only during their own turns/i.test(frontText(x)||'')) return `${cdata(x).n.split(',')[0]}: players can cast spells only during their own turns`; }   // v4.54: Dosan the Falling Leaf
   const L=G.me.lock; if(L && L.n===G.turn.n && (!L.nc || (!isCreature(c) && !c.fd))) return `${L.by}: you can't cast ${L.nc?'noncreature ':''}spells this turn`;
   { const o1=G.me.oneMore; if(o1 && o1.n===G.turn.n && ((G.me.cast&&G.me.cast.n)||0)>=o1.upto) return `${o1.by}: you could cast only one more spell this turn`; }
+  if(from && from!=='hand' && from!=='st' && from!=='bf'){ const dm=o.find(x=>!x.fd && (x.k||x.cu) && /Your opponents can(?:'|’)t cast spells from anywhere other than their hands/i.test(frontText(x)||'')); if(dm) return `${cdata(dm).n}: you can't cast spells from anywhere other than your hand`; }   /* v4.82 */
   if((from==='gy' || from==='lib') && [...G.me.bf, ...o].some(x=>!x.fd && (x.k||x.cu) && /Players can't cast spells from graveyards or libraries/i.test(frontText(x)||''))) return "Grafdigger's Cage: players can't cast spells from graveyards or libraries";
   for(const x of [...G.me.bf, ...o]){ if(x.fd || (!x.k && !x.cu) || isCreature(c) || c.fd) continue; const t=frontText(x)||'', nm=cdata(x).n.split(',')[0];
     if(/Noncreature spells with mana value 4 or greater can(?:'|’)t be cast/i.test(t) && manaValue(c)>=4) return `${nm}: noncreature spells with mana value 4 or greater can't be cast`;
@@ -2009,6 +2030,33 @@ function altCostSpec(s, cond){ s=s.trim().replace(/\.$/,''); const mana=(s.match
 const evokeOf = c => { if(c.fd || (!c.k && !c.cu) || isLand(c)) return null; const m=(frontText(c)||'').replace(/\([^)]*\)/g,'').match(/(?:^|\n)Evoke\s*[—–-]?\s*([^\n]+)/i); return m ? altCostSpec(m[1]) : null; };
 const altCostsOf = c => { if(c.fd || (!c.k && !c.cu) || isLand(c)) return []; const t=(frontText(c)||'').replace(/\([^)]*\)/g,''); return [...[...t.matchAll(/(?:^|\n|\.\s)(?:(If [^,]+), )?you may ([^.]+?) rather than pay this spell's mana cost/gi)].map(m=>altCostSpec(m[2], m[1])), ...[...t.matchAll(/(?:^|\n)(If [^,]+), you may cast this spell without paying its mana cost/gi)].map(m=>altCostSpec('cast this spell without paying its mana cost', m[1]))]; };
 /* cards that care whether mana was spent: the banner and log note only show while one is on either battlefield */
+/* v4.82: Delney, Streetwise Lookout ("If a triggered ability of a creature you control with power 2 or less triggers, that ability triggers an additional time"). Each new trigger on my stack is looked at once (ab.dl); one from such a creature gets a copy right above it. Checked at render. */
+const DELRE=/If a triggered ability of a creature you control with power (\d+) or less triggers, that ability triggers an additional time/i;
+function delneyWatch(){ const m=G.me, st=m.st||[]; let lim=null;
+  for(const x of m.bf){ if(x.fd || (!x.k && !x.cu)) continue; const mm=(frontText(x)||'').match(DELRE); if(mm){ lim={n:+mm[1], src:cdata(x).n.split(',')[0]}; break; } }
+  let added=0;
+  for(let i=0;i<st.length;i++){ const t=st[i]; if(!t.ab || !(t.ab.tr || t.ab.etb || (t.cu && t.cu.t==='Triggered ability')) || t.ab.dl) continue; t.ab.dl=1; if(!lim || Date.now()-(t.ts||0)>5000 || t.ab.copy || t.ab.warpx || !t.ab.id) continue;
+    const f=find(t.ab.id); if(!f || !(f.z==='bf' || f.z==='gy') || !isCreature(f.c) || f.c.fd) continue; const p=powerOf(f.c); if(p>lim.n) continue;
+    const cp=JSON.parse(JSON.stringify(t)); delete cp.id; cp.ts=Date.now(); cp.ab.dlc=1; const nt=mk(null, cp); st.splice(i+1, 0, nt); i++; added++;
+    log(`${lim.src}: ${cname(f.c)} has power ${p}, so its trigger (${(t.cu&&t.cu.n)||'trigger'}) triggers an additional time.`); }
+  return added>0; }
+/* v4.82: Tunnel Ignus ("Whenever a land enters under an opponent's control, if that player had another land enter the battlefield under their control this turn, this creature deals 3 damage to that player"). The opponent's lands are counted per turn from what this table sees of their battlefield (a real opponent or Practice). */
+const IGNRE=/Whenever a land enters(?: the battlefield)? under an opponent(?:'|’)s control, if that player had another land enter the battlefield under their control this turn, (?:this creature|[^,.]+?) deals (\d+) damage to that player/i;
+function oppLandWatch(){ if(!G.opp){ G.olw=null; return false; } const ids=(G.opp.bf||[]).filter(x=>isLand(x)).map(x=>x.id), key=(G.opp.name||'')+'|'+(G.opp.dummy?1:0), t=G.turn.n||0, w=G.olw;
+  if(!w || w.key!==key){ G.olw={key, ids, t, n:0}; return false; }
+  if(w.t!==t){ w.t=t; w.n=0; }
+  const fresh=ids.filter(i=>!w.ids.includes(i)); w.ids=ids; if(!fresh.length || !t) return false; let pushed=false;
+  for(const id of fresh){ w.n++; if(w.n<2) continue; const land=(G.opp.bf||[]).find(x=>x.id===id);
+    for(const x of G.me.bf){ if(x.fd || (!x.k && !x.cu)) continue; const mm=(frontText(x)||'').match(IGNRE); if(!mm) continue;
+      trigPush(x, `${cdata(x).n.split(',')[0]} deals ${mm[1]} damage to that player.`); const tr=G.me.st[G.me.st.length-1]; if(tr && tr.ab) tr.ab.pl=oppId();
+      log(`${cdata(x).n.split(',')[0]}: ${land ? cname(land) : 'a land'} is the ${w.n===2?'second':w.n===3?'third':w.n+'th'} land to enter under ${G.opp.name||'the opponent'}'s control this turn, so its trigger goes on the stack.`); pushed=true; } }
+  return pushed; }
+/* v4.82: Suncleanser's locks: a creature (c.ncl) or a player (G.me.ncl) that can't get counters while the source remains on the battlefield. Counters that arrive anyway are taken off at render; the lock ends when the source has left (a short grace covers messages arriving before the opponent's battlefield does). */
+function ctrLockWatch(){ let ch=false; const live=l=>{ const a=l && l.src && findAny(l.src); return a ? a.z==='bf' : Date.now()-((l&&l.at)||0)<4000; };
+  for(const c of G.me.bf){ if(!c.ncl) continue; if(!live(c.ncl)){ delete c.ncl; ch=true; continue; }
+    if((c.c||0)!==0 || c.stun || c.silver || c.corr || (c.kw && c.kw.length)){ rmAllCtrs(c); log(`${c.ncl.by}: ${cname(c)} can't have counters put on it, so they are removed.`); ch=true; } }
+  const m=G.me; if(m.ncl){ if(!live(m.ncl)){ delete m.ncl; ch=true; } else for(const k in (m.ctr||{})) if(m.ctr[k]){ log(`${m.ncl.by}: ${m.name} can't get counters (${m.ctr[k]} ${k} removed).`); m.ctr[k]=0; ch=true; } }
+  return ch; }
 const noManaWatch = () => { for(const bf of [G.me.bf, (G.opp&&G.opp.bf)||[]]) for(const x of bf){ if(!x.fd && (x.k||x.cu) && /\bif no mana was spent to cast it\b/i.test(frontText(x)||'')) return cdata(x).n.split(',')[0]; } return null; };
 /* Chalice of the Void: while one is out, a spell on the stack whose mana value equals its charge counters shows CMC = N, a reminder for Chalice's controller */
 const CHALRE=/Whenever a player casts a spell with mana value equal to the number of charge counters on /i;
@@ -2102,11 +2150,11 @@ function oppSearchAsk(msg){ const by=String(msg.by||'An effect').slice(0,80), wh
 /* v4.38 (Ben): Practice "may search its library" (Price of Freedom, Demolition Field, Field of Ruin). I choose for it: a tile per matching name in
    its library (up to N for "up to N basic land cards"), or Practice doesn't search. The cards go straight onto its battlefield. */
 function dummySearchAsk(d, sp, by, who, must){ if(!d || !d.dummy || G.opp!==d) return; const n = typeof sp.n==='number' ? sp.n : 1;
-  const cs=(d.lib||[]).filter(c=>matchesDesc(c, sp.desc) && (!sp.basicType || BASICS.some(t=>new RegExp('\\b'+t+'\\b').test(faceTypeOf(c,0))))), seen=new Set(), shown=cs.filter(c=>!seen.has(cdata(c).n) && seen.add(cdata(c).n));
+  const cs=searchLib(d, false).filter(c=>matchesDesc(c, sp.desc) && (!sp.basicType || BASICS.some(t=>new RegExp('\\b'+t+'\\b').test(faceTypeOf(c,0))))), seen=new Set(), shown=cs.filter(c=>!seen.has(cdata(c).n) && seen.add(cdata(c).n));
   const what=`${n>1?'up to '+n+' ':'a'+(/^[aeiou]/i.test(sp.desc)?'n ':' ')}${sp.desc} card${n>1?'s':''}`, sel=[]; let full=false;
   let done=false; const fin=(ids, skip)=>{ if(done) return; done=true; closeModal(); const names=[]; for(const id of ids){ const c=d.lib.find(x=>x.id===id); if(!c) continue; d.lib.splice(d.lib.indexOf(c),1); Object.assign(c, {tap:!!sp.tapped, atk:false, c:0, ent:newEnt(), sick:false}); d.bf.push(c); names.push(cname(c)); }
     if(!skip){ shuffle(d.lib); G.oppSrch=G.turn.n||0; }   // v4.41: a search, found or not, counts (Archive Trap)
-    dummySync(); log(names.length ? `${by}: Practice searches its library, puts ${names.join(', ')} onto the battlefield${sp.tapped?' tapped':''}, then shuffles.` : skip ? `${by}: Practice doesn't search its library.` : `${by}: Practice searches its library, finds no ${sp.desc} card, then shuffles.`); changed(); };
+    dummySync(); log(names.length ? `${by}: Practice searches its library${censorNote(false)}, puts ${names.join(', ')} onto the battlefield${sp.tapped?' tapped':''}, then shuffles.` : skip ? `${by}: Practice doesn't search its library.` : `${by}: Practice searches its library${censorNote(false)}, finds no ${sp.desc} card, then shuffles.`); changed(); };
   if(!d.lib || !d.lib.length){ log(`${by}: Practice has no library to search.`); return; }
   const go=()=>{ if(!$('#modal').hidden){ setTimeout(go, 350); return; }
     const shownHTML=()=>shown.map(c=>cardHTML(c,'lib',true)).join('');
@@ -2114,7 +2162,7 @@ function dummySearchAsk(d, sp, by, who, must){ if(!d || !d.dummy || G.opp!==d) r
       [must ? ['Fail to find (shuffle)',()=>fin([]),'ghost'] : ["Practice doesn't search",()=>fin([], true),'ghost'], ...(must ? [] : [['Fail to find (shuffle)',()=>fin([]),'ghost']]), ['Look through its whole library',()=>toggle(),'ghost dsall'], ...(shown.length ? [['Put it onto its battlefield',()=>{ if(sel.length) fin(sel); },'go']] : [])], {wide:true, noClose:must, onClose:()=>fin([])});   // v4.42: closing it after seeing the library is a search that found nothing: shuffle
     const btn=$('footer button.go', el), upd=()=>{ if(btn){ btn.disabled=!sel.length; btn.textContent = sel.length ? `Put ${sel.map(id=>cname(cs.find(x=>x.id===id))).join(', ')} onto its battlefield` : (n>1?`Choose up to ${n}`:'Choose one'); } };
     const paint=()=>{ const g=$('#dsGrid', el); if(!g) return; g.querySelectorAll('.card').forEach(x=>{ const c=cs.find(y=>y.id===x.dataset.id); const on = full ? sel.includes(x.dataset.id) : !!c && sel.some(i=>cdata(cs.find(y=>y.id===i)).n===cdata(c).n); x.classList.toggle('sel', on); }); upd(); };
-    function toggle(){ full=!full; const g=$('#dsGrid', el), b=$('footer button.dsall', el); g.classList.toggle('lfan', full); g.innerHTML = full ? fanHTML(d.lib, x=>cs.includes(x)) : shownHTML(); if(full) fanWire(g); if(b) b.textContent = full ? 'Show only the cards it can find' : 'Look through its whole library'; paint(); }
+    function toggle(){ full=!full; const g=$('#dsGrid', el), b=$('footer button.dsall', el); g.classList.toggle('lfan', full); g.innerHTML = full ? fanHTML(searchLib(d, false), x=>cs.includes(x)) : shownHTML(); if(full) fanWire(g); if(b) b.textContent = full ? 'Show only the cards it can find' : 'Look through its whole library'; paint(); }
     upd();
     const g=$('#dsGrid', el); if(g) g.onclick=e=>{ const t=e.target.closest('.card[data-id]'); if(!t) return; const id=t.dataset.id, c0=cs.find(x=>x.id===id); if(!c0) return; const nm=cdata(c0).n;
       if(n>1){ const more=full ? (sel.includes(id) ? [] : [c0]) : cs.filter(x=>cdata(x).n===nm && !sel.includes(x.id)); if(sel.length<n && more.length) sel.push(more[0].id); else if(full){ const k=sel.indexOf(id); if(k>=0) sel.splice(k,1); } else for(let i=sel.length-1;i>=0;i--) if(cdata(cs.find(y=>y.id===sel[i])).n===nm) sel.splice(i,1); }   // each click adds another copy; once full, it clears that name
@@ -2353,10 +2401,13 @@ function trackPad(t, mine){ const g=[]; (t.list||[]).forEach((x,i)=>{ const e=g.
 const escRe = x => x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 function etbLines(c){ const nm=faceName(c,0), short=nm.split(',')[0]; const re=new RegExp('^(?:[A-Z][A-Za-z\' ]{2,30} — )?When(?:ever)? (?:this [A-Za-z]+|'+escRe(nm)+'|'+escRe(short)+') enters(?: the battlefield)?(?: (?:or|and) [^,]+)?, (.+)$','i');
   return (frontText(c)||'').split('\n').map(l=>l.trim()).filter(l=>re.test(l) && !/\bearthbend\b/i.test(l) && !blinkOf(l) && !/exile all graveyards/i.test(l) && spentOk(c, l)); }
-function etbTrigs(c){ for(const l of etbLines(c)){ const d=cdata(c), nm=d.n.split(',')[0];
-    const mkr=mk(null,{tok:true, ts:Date.now(), ab:Object.assign({id:c.id, etb:true}, c.xc!=null ? {x:c.xc} : {}), cu:{n:`${nm}: trigger`, t:'Triggered ability', o:l, img:d.img||''}}); G.me.st.push(mkr); log(`${nm} enters: its trigger goes on the stack.`);
-    if(HANDRE.test(l)){ G.mode={type:'arrow', from:mkr.id}; toast(`${nm}: click the player whose hand is revealed.`); }
-    else if(needsTarget(l)){ G.mode={type:'arrow', from:mkr.id}; toast(`${nm}: click its target (Esc for none).`); } } }
+function etbTrigs(c){ const L0=(frontText(c)||'').split('\n').map(x=>x.trim()); for(const l of etbLines(c)){ const d=cdata(c), nm=d.n.split(',')[0];
+    const put=(o, note)=>{ const mkr=mk(null,{tok:true, ts:Date.now(), ab:Object.assign({id:c.id, etb:true}, c.xc!=null ? {x:c.xc} : {}), cu:{n:`${nm}: trigger`, t:'Triggered ability', o, img:d.img||''}}); G.me.st.push(mkr); log(`${nm} enters: its trigger goes on the stack${note||''}.`);
+      if(HANDRE.test(o)){ G.mode={type:'arrow', from:mkr.id}; toast(`${nm}: click the player whose hand is revealed.`); }
+      else if(needsTarget(o)){ G.mode={type:'arrow', from:mkr.id}; toast(`${nm}: click its target (Esc for none).`); } };
+    if(/choose one\s*[—–-]?\s*$/i.test(l)){ const i=L0.indexOf(l), modes=[]; for(let j=i+1;j<L0.length && /^[•+]/.test(L0[j]);j++) modes.push(L0[j].replace(/^[•+]\s*/,''));   /* v4.82: a modal enter trigger (Suncleanser) chooses its mode as it goes on the stack */
+      if(i>=0 && modes.length>1){ setTimeout(()=>pickModes(c, {head:l, modes, min:1, max:1}, p=>{ put(modes[p[0]-1], ` (${modes[p[0]-1].slice(0,60)}${modes[p[0]-1].length>60?'…':''})`); changed(); }, {title:`${nm} enters: choose one`, skip:null}), 0); continue; } }
+    put(l); } }
 /* a target named only in a reflexive follow-up ("When you discard one or more nonland cards this way, tap up to that many target creatures") is chosen later, by that trigger */
 const needsTarget = t => /\btarget\b|\b(?:one or two|any number of|up to (?:two|three)|two|three) targets\b/i.test(String(t||'').split(/(?:^|\.\s+)When you [^,]+? this way,/i)[0]);
 const PHASE_RE={main1:/^At the beginning of (?:your first main phase|your precombat main phase|the first main phase of your turn), (.+)$/i, main2:/^At the beginning of (?:each of your postcombat main phases|your postcombat main phase|each of your second main phases|your second main phase), (.+)$/i, upkeep:/^At the beginning of (?:your upkeep|each upkeep|each player's upkeep), (.+)$/i, combat:/^At the beginning of (?:combat on your turn|each combat), (.+)$/i, end:/^At the beginning of (?:your end step|each end step|the end step), (.+)$/i, endEach:/^At the beginning of (?:each end step|the end step), (.+)$/i};
@@ -2629,7 +2680,7 @@ async function splitFound(ids, sp, by){ const m=G.me, cs=ids.map(i=>find(i)).fil
 function libSearch(sp, by, x, o={}){ let done=false;   // v4.42: once a search starts the library is shuffled, however the window closes
   const m=G.me, mv = sp.mv==='X' ? x : sp.mv!=null ? +sp.mv : null, n = sp.n==='X' ? (x||0) : sp.n;
   const ptN=(c,k)=>{ const v=parseInt(((cdata(c).pt||'').split('/')[k==='power'?0:1]||''),10); return isNaN(v) ? 0 : v; };
-  const cs=m.lib.filter(c=>matchesDesc(c, sp.desc) && (!sp.pt || ptN(c, sp.pt.k)<=sp.pt.n) && (mv==null || (sp.eq ? manaValue(c)===mv : manaValue(c)<=mv)) && (!sp.basicType || BASICS.some(t=>new RegExp('\\b'+t+'\\b').test(faceTypeOf(c,0))))).sort((a,b)=>cname(a).localeCompare(cname(b)));
+  const cs=searchLib(m).filter(c=>matchesDesc(c, sp.desc) && (!sp.pt || ptN(c, sp.pt.k)<=sp.pt.n) && (mv==null || (sp.eq ? manaValue(c)===mv : manaValue(c)<=mv)) && (!sp.basicType || BASICS.some(t=>new RegExp('\\b'+t+'\\b').test(faceTypeOf(c,0))))).sort((a,b)=>cname(a).localeCompare(cname(b)));
   const what=`${sp.desc||''} card${mv!=null?` with mana value ${mv}${sp.eq?'':' or less'}`:''}${sp.pt?` with ${sp.pt.k} ${sp.pt.n} or less`:''}`.trim(), sel=new Set(), cnt={};
   for(const c of cs) cnt[cdata(c).n]=(cnt[cdata(c).n]||0)+1;
   const shown = n===1 ? cs.filter((c,i)=>cs.findIndex(x=>cdata(x).n===cdata(c).n)===i) : cs;   // picking one: a tile per name, with how many copies
@@ -2639,12 +2690,12 @@ function libSearch(sp, by, x, o={}){ let done=false;   // v4.42: once a search s
     for(const id of ids){ const f=find(id); if(f && f.z==='lib'){ const le=sp.dest==='bf' ? landEntry(f.c) : null, tap = sp.tapped || how==='tapped' || (le && le.kind==='tapped') || (le && le.kind==='shock' && how!=='pay');
         if(how==='pay' && le && le.kind==='shock' && !sp.tapped){ m.life-=le.life; paid+=le.life; }
         names.push(cname(f.c)+(sp.dest==='bf' && tap && !sp.tapped ? ' (tapped)' : '')); foundMove(id, sp.dest, {silent:true, tap}); if(sp.ctr){ const g=find(id); if(g && g.z==='bf'){ g.c.c=(g.c.c||0)+1; names[names.length-1]+=' with an additional +1/+1 counter'; } } } }
-    shuffleLib(true); log(names.length ? `${by}: ${m.name} searches their library, puts ${names.join(', ')} ${sp.dest==='bf' ? 'onto the battlefield'+(sp.tapped?' tapped':'') : 'into their hand'}${paid?`, paying ${paid} life (now ${m.life})`:''}, then shuffles.` : `${by}: ${m.name} searches their library, finds no ${what}, then shuffles.`); changed(); };
+    shuffleLib(true); log(names.length ? `${by}: ${m.name} searches their library${censorNote()}, puts ${names.join(', ')} ${sp.dest==='bf' ? 'onto the battlefield'+(sp.tapped?' tapped':'') : 'into their hand'}${paid?`, paying ${paid} life (now ${m.life})`:''}, then shuffles.` : `${by}: ${m.name} searches their library${censorNote()}, finds no ${what}, then shuffles.`); changed(); };
   const el=modal(`${by}: ${n>1?'up to '+n:'a'}${/^[aeiou]/i.test(what)&&n===1?'n':''} ${what}${n>1?'s':''}`, `<span class="hint">Click ${n>1?'up to '+n+' cards':'the card'}${sp.dest==='split' ? ': one goes onto the battlefield'+(sp.tapped?' tapped':'')+', the other into your hand' : ' to put '+(sp.dest==='landbf' ? 'onto the battlefield'+(sp.tapped?' tapped':'')+' if it is a land, otherwise into your hand' : sp.dest==='bf' ? 'onto the battlefield'+(sp.tapped?' tapped':'') : 'into your hand')}. Your library is shuffled afterwards.</span>${cs.length ? '' : `<span class="hint"> There is no ${esc(what)} in your library.</span>`}<div class="grid" id="lsGrid">${shownHTML()}</div>`,
     [['Fail to find (shuffle)',()=>fin([]),'ghost'], ['Look through the whole library',()=>lsToggle(),'ghost lsall'], ['Put onto the battlefield tapped',()=>fin([...sel],'tapped'),'alt'], ['Choose',()=>fin([...sel], el._how),'go']], {wide:true, noClose:!!o.must, onClose:()=>fin([])});
   // v4.41 (Ben): while searching you may look at the whole library; it is laid out in its order, the cards that can't be chosen greyed
   function shownHTML(){ return shown.map(c=>n===1 && cnt[cdata(c).n]>1 ? `<span class="cewrap" style="position:relative">${cardHTML(c,'gy',true)}<span class="cemv">×${cnt[cdata(c).n]} in library</span></span>` : cardHTML(c,'gy',true)).join(''); }
-  let full=false; function lsToggle(){ full=!full; const g=$('#lsGrid'), b=$('footer button.lsall', el); if(!g) return; g.classList.toggle('lfan', full); g.innerHTML = full ? fanHTML(m.lib, x=>cs.includes(x)) : shownHTML(); if(full) fanWire(g);
+  let full=false; function lsToggle(){ full=!full; const g=$('#lsGrid'), b=$('footer button.lsall', el); if(!g) return; g.classList.toggle('lfan', full); g.innerHTML = full ? fanHTML(searchLib(m), x=>cs.includes(x)) : shownHTML(); if(full) fanWire(g);
     if(b) b.textContent = full ? 'Show only the cards you can find' : 'Look through the whole library'; [...g.querySelectorAll('.card')].forEach(e=>e.classList.toggle('sel', sel.has(e.dataset.id))); }
   const goB=$('footer button.go', el), altB=$('footer button.alt', el);
   const upd=()=>{ goB.disabled=!sel.size; el._how=null; altB.hidden=true;
@@ -2866,6 +2917,7 @@ async function simpleEffects(c, text, srcId){
     }
     if(c.ab && c.ab.sac) sen=sen.replace(/damage equal to (\d+) plus the sacrificed permanent(?:'|’)s mana value/i, (z,k)=>`${+k+(+c.ab.sac.mv||0)} damage`);   // Broadside Bombardiers
     if(/^(?:they|a creature destroyed this way|a creature dealt damage this way) can(?:'|’)t be regenerated(?: this turn)?\.?$|^this spell can(?:'|’)t be countered\.?$/i.test(sen)) continue; if(SLT){ const np=tgtPhrases(sen).length, mine=np ? tgAll.filter((t,i)=>tgS[i]>=slK && tgS[i]<slK+np) : (slPrev || tgAll); slIt=slPrev; tg.length=0; tg.push(...mine); if(np){ slPrev=mine.slice(); slK+=np; } }
+    if(/^until end of turn, if a nontoken creature would enter(?: the battlefield)? and it wasn(?:'|’)t cast, exile it instead\.?$/i.test(sen)){ m.mistT=G.turn.n||0; m.mistBy=(nm||'An effect').split(',')[0]; log(`${by}: until end of turn, a nontoken creature that would enter without being cast is exiled instead.`); changed(); continue; }   /* v4.82: Mistcaller */
     if(/^(?:When|Whenever|At) [^.]*,$/.test(sen) || !sen) continue;   // only the trigger's opening was left (the rest was handled above)
     // ---- v4.79: Ben's cards (Nov 1): extort, Plunge into Darkness, Sorin, Ravenous Neonate's −6
     { let q; const oppName=()=>G.opp?G.opp.name:'the opponent';
@@ -2909,7 +2961,10 @@ async function simpleEffects(c, text, srcId){
       if(/^each opponent exiles cards from the top of their library until that player has exiled cards with total mana value (\d+) or greater\.?$/i.test(sen)){ const k=+sen.match(/value (\d+)/)[1]; if(G.opp) send({t:'tasha', n:k, by, who:m.name}); else log(`${by}: there is no opponent.`); continue; }   // Tasha's Hideous Laughter
       if(/^the exiled card(?:'|’)s owner creates an X\/X blue Illusion creature token, where X is the mana value of the exiled card\.?$/i.test(sen)){ const rec=srcC && srcC.exRec; if(!rec){ log(`${by}: no card was exiled with it, so there is no Illusion.`); continue; }   // Skyclave Apparition
         const txt=`Create a ${rec.mv}/${rec.mv} blue Illusion creature token.`; if(rec.opp){ send({t:'mktxt', txt, by, who:m.name}); log(`${by}: ${G.opp?G.opp.name:'the opponent'} creates a ${rec.mv}/${rec.mv} blue Illusion creature token.`); delete srcC.exRec; continue; } delete srcC.exRec; sen=txt; }
-      if(/^remove all counters from target permanent\.?$/i.test(sen)){ if(!tg.length) log(`${by}: no target was chosen.`);   // Vampire Hexmage
+      if(/^it can(?:'|’)t have counters put on it for as long as (?:this creature|[^.]+?) remains on the battlefield\.?$/i.test(sen) && srcC){ for(const t of tg){ const f=find(t); if(f && f.z==='bf'){ f.c.ncl={src:srcC.id, by, at:Date.now()}; log(`${by}: ${cname(f.c)} can't have counters put on it while ${cname(srcC)} remains on the battlefield.`); } else { const a=findAny(t); if(a && a.z==='bf') send({t:'ctrlock', id:t, src:srcC.id, by}); } } changed(); continue; }   /* v4.82: Suncleanser */
+      if((r=sen.match(/^target opponent loses all counters\.?(?: that player can(?:'|’)t get counters for as long as (?:this creature|[^.]+?) remains on the battlefield\.?)?$/i))){ const lock=srcC && /That player can(?:'|’)t get counters for as long as/i.test(String(text)) ? srcC.id : null; if(lock) skipS.push(/^that player can(?:'|’)t get counters for as long as/i);
+        if(G.opp){ send({t:'losectr', by, who:m.name, lock}); log(`${by}: ${G.opp.name} loses all counters${lock?` and can't get counters while ${cname(srcC)} remains on the battlefield`:''}.`); } else log(`${by}: there is no opponent.`); changed(); continue; }
+      if(/^remove all counters from target (?:permanent|creature)\.?$/i.test(sen)){ if(!tg.length) log(`${by}: no target was chosen.`);   // Vampire Hexmage
         for(const t of tg){ const f=find(t); if(f && f.z==='bf'){ rmAllCtrs(f.c); log(`${by}: all counters are removed from ${cname(f.c)}.`); } else { const a=findAny(t); if(a && a.z==='bf'){ send({t:'rmctr', id:t, by, who:m.name}); log(`${by}: all counters are removed from ${G.opp?G.opp.name:'the opponent'}'s ${cname(a.c)}.`); } } } changed(); continue; }
       if(/^you may exile this card from your graveyard\.?$/i.test(sen)){ const g=srcId && find(srcId); if(!g || g.z!=='gy'){ log(`${by}: the card is no longer in the graveyard.`); didIt=false; continue; } const yes=await yesNo(by, `Exile ${cdata(g.c).n} from your graveyard?`, 'Exile it', "Don't"); didIt=!!yes; if(yes){ move(g.c.id,'ex',{silent:true}); log(`${by}: ${m.name} exiles ${cname(g.c)} from their graveyard.`); } else log(`${by}: ${m.name} doesn't exile it.`); continue; }   // Kozilek's Return
       if(/^this card deals (\d+) damage to each creature\.?$/i.test(sen)) sen=sen.replace(/^this card/i, by.split(':')[0]);
@@ -3038,7 +3093,7 @@ async function simpleEffects(c, text, srcId){
     if((r=sen.match(/^put (a|one|two|three|\d+) -1\/-1 counters? on target creature(?: an opponent controls| you don't control)?\.?$/i))){ const k=NUMW2[r[1].toLowerCase()]||+r[1]||1; for(const t of tg.filter(x=>x!=='p1' && x!=='p2')){ const f=find(t); if(f){ f.c.c=(f.c.c||0)-minusOneCounters(k, f.c); log(`${by}: ${cname(f.c)} gets ${k} -1/-1 counter${k>1?'s':''}.`); } else { send({t:'mod', id:t, o:{mctr:k}, by, who:m.name}); const a=findAny(t); log(`${by}: ${G.opp?G.opp.name+"'s ":''}${a?cname(a.c):'creature'} gets ${k} -1/-1 counter${k>1?'s':''}.`); } } changed(); continue; }
     // Buried Alive: "Search your library for up to three creature cards, put them into your graveyard, then shuffle."
     if((r=sen.match(/^search your library for up to (\w+) (.+?) cards?, put them into your graveyard, then shuffle\.?$/i))){ const k=NUMW2[r[1].toLowerCase()]||+r[1]||1, desc=r[2].trim(); waited=true;
-      await new Promise(res=>searchGate(async ()=>{ const cs=m.lib.filter(x=>matchesDesc(x, desc)).sort((a,b)=>cname(a).localeCompare(cname(b))); let ids=cs.length ? (await pickManyP(`${by}: up to ${k} ${desc} cards to put into your graveyard`, cs, 'Put them into the graveyard') || []) : [];
+      await new Promise(res=>searchGate(async ()=>{ const cs=searchLib(m).filter(x=>matchesDesc(x, desc)).sort((a,b)=>cname(a).localeCompare(cname(b))); let ids=cs.length ? (await pickManyP(`${by}: up to ${k} ${desc} cards to put into your graveyard`, cs, 'Put them into the graveyard') || []) : [];
         if(ids.length>k){ ids=ids.slice(0,k); toast(`Only ${k}: the first ${k} chosen.`); } const names=ids.map(i=>cname(find(i).c)); for(const i of ids) foundMove(i,'gy',{silent:true}); shuffleLib(true);
         log(`${by}: ${m.name} searches their library, puts ${names.length ? names.join(', ') : 'nothing'} into their graveyard, then shuffles.`); changed(); res(); }, by)); continue; }
     // Connive X: "Target creature you control connives X, where X is the number of creatures that died this turn." (Spymaster's Vault)
@@ -3461,7 +3516,7 @@ async function simpleEffects(c, text, srcId){
     // Reanimate: "You lose life equal to that card's mana value." (the card gyResolve just returned)
     if(/^you lose life equal to (?:that card(?:'|’)s|its) mana value\.?$/i.test(sen) && G.gyLast && G.gyLast.s===c.id){ const k=G.gyLast.mv||0; if(k){ m.life-=k; log(`${by}: ${m.name} loses ${k} life (now ${m.life}), the mana value of ${G.gyLast.n}.`); changed(); } continue; }
     // Entomb: "(You may) search your library for a(n) <kind> card, put it / that card into your graveyard, then shuffle."
-    if((r=sen.match(/^(you may )?search your library for an? (?:(.+?) )?card, put (?:it|that card) into your graveyard, then shuffle\.?$/i))){ const d=(r[2]||'').trim(), cs=m.lib.filter(x=>!d || d==='card' || matchesDesc(x, d));
+    if((r=sen.match(/^(you may )?search your library for an? (?:(.+?) )?card, put (?:it|that card) into your graveyard, then shuffle\.?$/i))){ const d=(r[2]||'').trim(), cs=searchLib(m).filter(x=>!d || d==='card' || matchesDesc(x, d));
       waited=true; const p=cs.length ? await pickP(`${by}: put ${/^[aeiou]/i.test(d||'x')?'an':'a'} ${d||''} card from your library into your graveyard`, cs, r[1] ? "Don't" : 'None found') : null;
       if(p && find(p.id) && find(p.id).z==='lib'){ move(p.id,'gy',{silent:true}); log(`${by}: ${m.name} searches their library and puts ${cname(p)} into their graveyard.`); } else log(`${by}: ${m.name} searches their library and puts nothing into their graveyard.`); shuffleLib(); changed(); continue; }
     // "Return all <kind> cards from your graveyard to the battlefield / to your hand."
@@ -3859,7 +3914,7 @@ async function simpleEffects(c, text, srcId){
     // ---- Batch 3 (v4.07): the cube's families
     if(/^if that spell is countered this way, (?:put it into its owner(?:'|’)s hand|put it on top of its owner(?:'|’)s library) instead of into that player(?:'|’)s graveyard\.?$/i.test(sen)) continue;   // done by the counter itself
     // tutors to the top: "Search your library for a (creature) card, (reveal it,) then shuffle and put that card on top."
-    if((r=sen.match(/^search your library for an? (?:(.+?) )?card,(?: reveal it,)? then shuffle and put (?:that|the) card on top\.?$/i))){ const d=(r[1]||'').trim(), cs=m.lib.filter(x=>!d || matchesDesc(x, d)); waited=true;
+    if((r=sen.match(/^search your library for an? (?:(.+?) )?card,(?: reveal it,)? then shuffle and put (?:that|the) card on top\.?$/i))){ const d=(r[1]||'').trim(), cs=searchLib(m).filter(x=>!d || matchesDesc(x, d)); waited=true;
       const p=cs.length ? await pickP(`${by}: choose ${/^[aeiou]/i.test(d||'x')?'an':'a'} ${d||''} card to put on top of your library`, cs, 'None found') : null; shuffleLib(true);
       if(p){ const i=m.lib.findIndex(x=>x.id===p.id); if(i>=0){ const [x]=m.lib.splice(i,1); m.lib.unshift(x); } log(`${by}: ${m.name} searches their library${d ? ', reveals '+cname(p) : ''}, shuffles and puts ${d ? 'it' : 'a card'} on top.`); } else log(`${by}: ${m.name} searches their library, finds nothing and shuffles.`); G.noUndo=true; changed(); continue; }
     // put a card from your hand onto the battlefield: Sneak Attack, Through the Breach, Flash, Stoneforge Mystic
@@ -3943,11 +3998,15 @@ async function simpleEffects(c, text, srcId){
       if(bite){ const p=powerOf(mc.c); log(`${by}: ${cname(mc.c)} deals damage equal to its power (${p}).`); dealDamage(other, p, cname(mc.c)); }
       else fight(mc.c, other, by);
       changed(); continue; }
+    if((r=sen.match(/^(.+?) deals (\d+) damage to that player\.?$/i)) && c.ab && (c.ab.pl==='p1' || c.ab.pl==='p2')){ dealDamage(c.ab.pl, +r[2], by); changed(); continue; }   /* v4.82: Tunnel Ignus */
     if((r=sen.match(/^(.+?) deals (\d+|X|that much) damage to (any target|target creature or planeswalker|target (?:attacking or blocking |attacking |blocking |tapped |flying |(?:white|blue|black|red|green|multicolored|monocolored|colorless|nonartifact|nonblack|nonred|nonwhite|nongreen|nonblue|non-Human|legendary)(?: or (?:white|blue|black|red|green))? )?(?:creature|planeswalker|battle|player)(?:,? (?:or |and\/or )?(?:creature|planeswalker|battle|player))*(?: with flying| without flying| an opponent controls| you don't control| your opponents control| you control)?|target player or planeswalker|target player|target opponent|that permanent|each opponent|each creature and each planeswalker|each creature)(?:, where X is ([^.]+?))?(?: and you gain (\d+|X|that much) life)?\.?$/i)) && !/\bif\b/i.test(sen)){
       const gain=r[5] ? (/^\d+$/.test(r[5]) ? +r[5] : null) : 0; const life=n0=>{ const g=gain===null ? n0 : gain; if(g>0 && gainOK(g, by)){ m.life+=g; log(`${by}: ${m.name} gains ${g} life (now ${m.life}).`); changed(); } };
       let n = /^\d+$/.test(r[2]) ? +r[2] : r[2].toUpperCase()==='X' ? (r[4] ? xValue(r[4], srcC) : (c.x!=null?c.x:(c.ab&&c.ab.x)||0)) : (sacPow||0);
       { const del=String(text).match(/Delirium — [^.]*? deals (\d+) damage instead if there are four or more card types among cards in your graveyard/i); if(del && gyTypes(m.gy).length>=4){ n=+del[1]; log(`${by}: delirium, so ${n} damage.`); } }
       { const mc=String(text).match(/Metalcraft — [^.]*? deals (\d+) damage instead if you control three or more artifacts/i); if(mc){ const k=m.bf.filter(x=>!x.fd && /\bArtifact\b/.test(faceType(x))).length; if(k>=3){ n=+mc[1]; log(`${by}: metalcraft (${k} artifacts), so ${n} damage.`); } } }
+      { const CW={white:'W',blue:'U',black:'B',red:'R',green:'G'}, ci=String(text).match(/\bIt deals (\d+) damage instead if that target is (white|blue|black|red|green)(?: and\/or (white|blue|black|red|green))?/i);   /* v4.82: Lithomantic Barrage */
+        if(ci){ skipS.push(/^It deals \d+ damage instead if that target is /i); const t0=tg.find(x=>x!=='p1' && x!=='p2' && findAny(x)), a=t0 && findAny(t0), cl=a ? cardColors(a.c) : [], want=[ci[2], ci[3]].filter(Boolean).map(x=>CW[x.toLowerCase()]);
+          if(cl.some(x=>want.includes(x))){ n=+ci[1]; log(`${by}: the target is ${[ci[2], ci[3]].filter(Boolean).join(' and/or ')}, so ${n} damage.`); } } }
       if(/each creature/i.test(r[3])){ for(const x of [...m.bf, ...((G.opp&&G.opp.bf)||[])]) if(isCreature(x) && !x.fd) damage(x.id, n, m.name); if(/planeswalker/i.test(r[3])) for(const x of [...m.bf, ...((G.opp&&G.opp.bf)||[])]) if(isPW(x)) dealDamage(x.id, n, by); log(`${by} deals ${n} damage to each creature${/planeswalker/i.test(r[3])?' and each planeswalker':''}.`); continue; }
       if(/each opponent|target opponent/i.test(r[3]) && !tg.length){ dealDamage(oppId(), n, by); life(n); continue; }
       const t=tg.find(x=>x==='p1'||x==='p2'||(findAny(x)&&findAny(x).z==='bf')); if(!t){ log(`${by}: no target was chosen.`); continue; } dealDamage(t, n, by); life(n); continue; }
@@ -4141,7 +4200,7 @@ async function simpleEffects(c, text, srcId){
       else if(/^if that permanent would die this turn, exile it instead\.?$/i.test(sen)){ const t=tgt0B(); if(t) pmod(t,{exd:true}); }
       else if(/^attach (?:it|this equipment) to target creature you control\.?$/i.test(sen)){ const t=tgAll.find(x=>{ const a=findAny(x); return a && a.mine && a.z==='bf' && isCreature(a.c); }), f=srcC && find(srcC.id);
         if(!t || !f || f.z!=='bf'){ log(`${by}: ${!t?'no creature was chosen':'it is gone'}.`); continue; } f.c.att=t; log(`${by}: ${cname(f.c)} is attached to ${cname(find(t).c)}.`); }
-      else if((r=sen.match(/^search your library and\/or graveyard for an? ([a-z ]+?) card(?: with mana value (\d+) or less)?, reveal it, and put it into your hand\.?$/i))){ const ok=x=>matchesDesc(x, r[1]) && (r[2]==null || manaValue(x)<=+r[2]), cs=[...m.lib.filter(ok), ...m.gy.filter(ok)]; waited=true;
+      else if((r=sen.match(/^search your library and\/or graveyard for an? ([a-z ]+?) card(?: with mana value (\d+) or less)?, reveal it, and put it into your hand\.?$/i))){ const ok=x=>matchesDesc(x, r[1]) && (r[2]==null || manaValue(x)<=+r[2]), cs=[...searchLib(m).filter(ok), ...m.gy.filter(ok)]; waited=true;
         const p=cs.length ? await pickP(`${by}: a${/^[aeiou]/i.test(r[1])?'n':''} ${r[1]} card${r[2]!=null?' with mana value '+r[2]+' or less':''} from your library or graveyard`, cs, 'None') : null; const fromLib=p && find(p.id) && find(p.id).z==='lib';
         if(p){ move(p.id,'hand',{silent:true}); log(`${by}: ${m.name} reveals ${cname(p)} from their ${fromLib?'library':'graveyard'} and puts it into their hand.`); } else log(`${by}: ${m.name} finds nothing.`); if(fromLib || !p){ shuffleLib(true); log(`${by}: ${m.name} shuffles.`); } skipS.push(/^if you search your library this way, shuffle\.?$/i); }
       else if(/^(?:this land|this vehicle) becomes a copy of target creature you control until end of turn\.?$/i.test(sen)){ const t=tgAll.find(x=>{ const a=findAny(x); return a && a.mine && a.z==='bf'; }), f=srcC && find(srcC.id); if(!t || !f){ log(`${by}: no creature was chosen.`); continue; } const x=find(t).c; applyCopy(f.c.id, {k:x.k, cu:x.cu, name:cdata(x).n}); }
@@ -4494,7 +4553,7 @@ function cycleTrigs(id){ const f=find(id); if(!f) return; const c=f.c, d=cdata(c
   if(out.length) log(`${out.join(', ')}: ${out.length>1?'triggers go':'its trigger goes'} on the stack (cycling).`); }
 function cycleSearch(kind, by){
   const m=G.me, want = c => { const t=faceTypeOf(c,0); if(kind==='basic land') return /\bBasic\b/.test(t) && /\bLand\b/.test(t); return new RegExp('\\b'+kind.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','i').test(t); };
-  const cs=m.lib.filter(want).sort((a,b)=>cname(a).localeCompare(cname(b)));
+  const cs=searchLib(m).filter(want).sort((a,b)=>cname(a).localeCompare(cname(b)));
   const done=c=>{ if(c){ foundMove(c.id,'hand',{silent:true}); log(`${by}: ${m.name} searches their library, reveals ${cname(c)}, puts it into their hand, then shuffles.`); } else log(`${by}: ${m.name} searches their library and finds no ${kind} card, then shuffles.`); shuffleLib(true); changed(); };
   if(!cs.length){ notice(`${by}`, `There is no ${kind} card in your library. It will be shuffled.`); done(null); return; }
   pickCard(`${by}: find a${/^[aeiou]/.test(kind)?'n':''} ${kind} card`, cs, c=>done(c), ['Find nothing (shuffle)',()=>{ closeModal(); done(null); },'ghost']);
@@ -5349,14 +5408,20 @@ function searchBlocker(pid){ const other = pid===G.myId ? ((G.opp&&G.opp.bf)||[]
 const AGENTRE=/You control your opponents while they're searching their libraries/i;
 const agentOf = () => { for(const c of ((G.opp&&G.opp.bf)||[])){ if(!c.fd && (c.k||c.cu) && AGENTRE.test(frontText(c)||'')) return {id:c.id, pid:oppId(), n:cdata(c).n, mode:'play'}; } return null; };
 function foundMove(id, dest, o){ const ag=agentOf(); if(!ag){ move(id, dest, o); return; } const f=find(id); if(!f) return; const nm=cname(f.c); move(id,'ex',{silent:true}); const g=find(id); if(g) g.c.by=ag; log(`${ag.n}: ${nm} is exiled instead; ${G.opp?G.opp.name:'the opponent'} may play it.`); }
+/* v4.82: Aven Mindcensor ("If an opponent would search a library, that player searches the top four cards of that library instead"): the searcher's opponent's Mindcensor limits what a search can find (the whole library is still shuffled) */
+const MINDRE=/If an opponent would search a library, that player searches the top (\w+) cards of that library instead/i;
+function censorOn(mine){ const bf = mine ? ((G.opp&&G.opp.bf)||[]) : G.me.bf; for(const x of bf){ if(x.fd || (!x.k && !x.cu)) continue; const mm=(frontText(x)||'').match(MINDRE); if(mm) return {n:NUMW2[mm[1].toLowerCase()]||+mm[1]||4, src:cdata(x).n}; } return null; }
+const searchLib = (m, mine=true) => { const cz=censorOn(mine), lib=(m&&m.lib)||[]; return cz ? lib.slice(0, cz.n) : lib; };
+const censorNote = (mine=true) => { const cz=censorOn(mine); return cz ? ` (${cz.src}: only the top ${cz.n} cards)` : ''; };
 function searchGate(go0, by){ const go=()=>{ if(G.opp) send({t:'srched'}); go0(); };
+  { const cz=censorOn(true); if(cz) toast(`${G.opp?G.opp.name:'Your opponent'}'s ${cz.src}: you search only the top ${cz.n} cards of your library.`); }
   { const ag=agentOf(); if(ag) toast(`${G.opp?G.opp.name:'Your opponent'}'s ${ag.n}: they control this search, and the cards you find are exiled for them.`); }
   const b=searchBlocker(G.myId); if(!b){ go(); return; } const me=G.me.name, opp=G.opp?G.opp.name:'your opponent';
   modal(`${b}`, `<span class="hint">${esc(opp)} controls ${esc(b)}: spells and abilities you control can't make you search your library${by?` (${esc(by)})`:''}.<br><br>Search anyway only if you have both agreed it's allowed.</span>`,
     [["Don't search",()=>{ closeModal(); log(`${by?by+': ':''}${me} doesn't search their library (${b}).`); },'ghost'], ['Search anyway',()=>{ closeModal(); log(`${me} searches their library anyway, with ${opp}'s ${b} on the battlefield.`); go(); },'go']]);
 }
 function landSearch(n, by){   // "search your library for up to N land cards, put them onto the battlefield tapped, then shuffle"
-  const m=G.me, lands=m.lib.filter(c=>isLand(c)).sort((a,b)=>cname(a).localeCompare(cname(b))), sel=new Set();
+  const m=G.me, lands=searchLib(m).filter(c=>isLand(c)).sort((a,b)=>cname(a).localeCompare(cname(b))), sel=new Set();
   let done=false; const fin=ids=>{ if(done) return; done=true; closeModal(); const names=[]; for(const id of ids){ const f=find(id); if(f && f.z==='lib'){ names.push(cname(f.c)); foundMove(id,'bf',{silent:true, tap:true}); } }
     shuffleLib(true); log(names.length ? `${by}: ${m.name} searches their library, puts ${names.length>1 ? names.slice(0,-1).join(', ')+' and '+names[names.length-1] : names[0]} onto the battlefield tapped, then shuffles.` : `${by}: ${m.name} searches their library, puts no lands onto the battlefield, then shuffles.`); changed(); };
   const el=modal(`${by}: up to ${n} land${n>1?'s':''}`, `<span class="hint">Click up to ${n} land card${n>1?'s':''} to put onto the battlefield tapped. Your library is shuffled afterwards.</span>${lands.length ? `<div class="grid" id="lsGrid">${lands.map(c=>cardHTML(c,'gy',true)).join('')}</div>` : '<span class="hint">There are no land cards in your library.</span>'}`,
@@ -5691,6 +5756,8 @@ function blockIssues(b, a){   // b: my would-be blocker, a: the attacker; reason
       if(bad){ out.push(`${an} has protection from ${t}`); break; } } }
   if(new RegExp("(?:^|\\n|\\.\\s)"+selfRe(a)+" can[’']t be blocked\\.", 'i').test(ao)) out.push(`${an} can't be blocked`);
   for(const m of ao.matchAll(new RegExp(selfRe(a)+" can[’']t be blocked by creatures with power (\\d+) or (less|greater)", 'gi'))){ const p=pw(b); if(m[2].toLowerCase()==='less' ? p<=+m[1] : p>=+m[1]) out.push(`${an} can't be blocked by creatures with power ${m[1]} or ${m[2].toLowerCase()}`); }
+  { const side = apid===G.myId ? G.me.bf : ((G.opp&&G.opp.bf)||[]); for(const x of side){ if(x.fd || (!x.k && !x.cu)) continue; const mm=(frontText(x)||'').match(/Creatures you control with power (\d+) or (less|greater) can(?:'|’)t be blocked by creatures with power (\d+) or (less|greater)/i); if(!mm) continue;   /* v4.82: Delney, Streetwise Lookout */
+      const pa=pw(a), pb=pw(b), okA = mm[2].toLowerCase()==='less' ? pa<=+mm[1] : pa>=+mm[1], hitB = mm[4].toLowerCase()==='less' ? pb<=+mm[3] : pb>=+mm[3]; if(okA && hitB) out.push(`${cdata(x).n.split(',')[0]}: ${an} (power ${pa}) can't be blocked by creatures with power ${mm[3]} or ${mm[4].toLowerCase()}`); } }
   for(const m of ao.matchAll(new RegExp(selfRe(a)+" can[’']t be blocked by (white|blue|black|red|green|artifact) creatures", 'gi'))){ const t=m[1].toLowerCase(); if(t==='artifact' ? isArtC(b) : cb.includes(COLN[t])) out.push(`${an} can't be blocked by ${t} creatures`); }
   for(const m of ao.matchAll(new RegExp(selfRe(a)+" can[’']t be blocked except by creatures with (flying|reach|defender|shadow)", 'gi'))){ if(!kwOn(b, m[1].toLowerCase())) out.push(`${an} can be blocked only by creatures with ${m[1].toLowerCase()}`); }
   if(new RegExp("(?:^|\\n|\\.\\s)"+selfRe(b)+" can[’']t block\\.", 'i').test(bo)) out.push(`${bn} can't block`);
@@ -6008,7 +6075,7 @@ const vsReal = () => !G.solo && !!G.opp && !G.opp.dummy;           // a real two
 const vsAny = () => !!G.opp && (!G.solo || !!G.opp.dummy);          // someone to fight: a friend or Practice
 /* messages Practice can't answer because it has no library or hand (v4.25, Ben: Ragavan seemed not to exile): the log says so instead of nothing happening */
 const DUMMY_NO={tasha:"there is no library to exile from", ragavan:"nothing is exiled from the top of its library", peek:"there is no top card to look at", peekhand:"there is no hand to look at", reveal:"there is no hand to reveal", youdraw:"it draws nothing", exlib:"there is no library to exile", oppsearch:"there is nothing to search", guide:"there is no top card to reveal", libtop:"there are no cards to look at", each:"it has no hand or library to do that with"};
-const DUMMY_OK=new Set(['yield','extractdo','rmctr','adj','dmg','loy','hit','mod','pump','cdmg','tapstun','wipe','gyall','gyexile','exhold','left','edict','mill','monarch']);
+const DUMMY_OK=new Set(['yield','extractdo','rmctr','ctrlock','losectr','adj','dmg','loy','hit','mod','pump','cdmg','tapstun','wipe','gyall','gyexile','exhold','left','edict','mill','monarch']);
 const newDummy = () => Object.assign(newPlayer(), {name:'Practice', dummy:true, deck:'Practice opponent', libN:0, handN:0, sideN:0, dealt:true, kept:true, compDone:true, deckReady:true, comp:[], lost:0});
 function makeDummy(){ if(G.opp && !G.opp.dummy) return; if(!G.opp) G.opp=newDummy(); }
 /* v4.39 (Ben): when Practice has to choose (discard a card, keep a creature, top or bottom), I choose for it in a window. The window's answer
@@ -6495,7 +6562,7 @@ const offerLive = c => !!c.offer && (c.offer===true || (c.offer===G.turn.n && !G
 let NMW=null, CHAL=[];   /* name of a card that cares whether mana was spent, set each render */
 function render(){
   if(DSW) return; if($('#table').hidden) return; const TS0=tapSnap(); autoArm(); paintUnl(); TGS=tgtSrcSpec();
-  auraBC(); camText(); NMW=noManaWatch(); CHAL=chaliceWatch(); trackGain(); if(checkCity()) setTimeout(changed, 0);   /* v4.55: ascend is checked again at every render (the call had been lost) */ if(G.opp && typeof G.opp.life==='number'){ if(G.oppLastLife!=null && G.opp.life<G.oppLastLife && G.turn.n) G.oppLost=G.turn.n; G.oppLastLife=G.opp.life; }   // v4.37: spectacle sees any loss of life (Practice too)
+  auraBC(); camText(); NMW=noManaWatch(); CHAL=chaliceWatch(); trackGain(); if(checkCity()) setTimeout(changed, 0); if(delneyWatch() | oppLandWatch() | ctrLockWatch()) setTimeout(changed, 0);   /* v4.55: ascend is checked again at every render (the call had been lost) */ if(G.opp && typeof G.opp.life==='number'){ if(G.oppLastLife!=null && G.opp.life<G.oppLastLife && G.turn.n) G.oppLost=G.turn.n; G.oppLastLife=G.opp.life; }   // v4.37: spectacle sees any loss of life (Practice too)
   const m=G.me, o=G.opp;
   FX=landEffects();
   HELD={}; for(const c of [...m.ex, ...((o&&o.ex)||[])]) if(c.by) HELD[c.by.id]=(HELD[c.by.id]||0)+1;
@@ -7272,7 +7339,9 @@ document.addEventListener('click', e=>{
   const bk=t.closest('[data-bk]'); if(bk){ const k=bk.dataset.bk; if(!blockStep()) return; if(k==='declare'){ G.mode={type:'pickblocker'}; toast('Click one of your untapped creatures to block with.'); render(); } else if(k==='reset'){ const n=G.me.arrows.filter(a=>a.blk).length; G.me.arrows=G.me.arrows.filter(a=>!a.blk); G.mode=null; if(n) log(`${G.me.name} resets their blocks.`); changed(); } else if(k==='finish'){ G.mode=null; doneBlocking(); } return; }
   const smp=t.closest('[data-smana]'); if(smp){ spendSpecial(+smp.dataset.smana); return; }
   const lifeB=t.closest('[data-life]'); if(lifeB){ const d=(+lifeB.dataset.life)*(e.shiftKey?5:1); if(lifeB.dataset.pl===G.myId) setLife(d); else if(G.opp){ send({t:'adj', life:d}); log(`${G.me.name} changes ${G.opp.name}'s life by ${d>0?'+':''}${d}.`); } return; }
-  const tk=t.closest('[data-take]'); if(tk){ const a=findAny(tk.dataset.take); if(a && a.c.by && a.c.by.ns && autoPayOn()){ const n=manaValue(a.c), id=tk.dataset.take; payFor(normSyms(n ? [String(n)] : []), {spell:true, card:a.c}, {title:`Cast ${cdata(a.c).n} (mana of any type)`, verb:'cast', done:()=>send({t:'take', id})}); return; } if(a && !a.mine && !tk.dataset.free && !isLand(a.c) && autoPayOn()){ const id=tk.dataset.take, c=a.c; (async()=>{   // v4.29: casting the opponent's exiled card (Ragavan, Dauthi) pays like any other cast
+  const tk=t.closest('[data-take]'); if(tk){ const a=findAny(tk.dataset.take);
+    if(a && !a.mine && !isLand(a.c) && !tk.dataset.lkok){ const lk=castLock(a.c, a.z); if(lk){ modal('Can\'t cast', `<span class="hint">${esc(lk)}.<br><br>Cast anyway only if you have both agreed it's allowed.</span>`, [["Don't cast",()=>closeModal(),'ghost'], ['Cast anyway',()=>{ closeModal(); log(`${G.me.name} casts anyway (${lk}).`); tk.dataset.lkok='1'; tk.click(); },'go']]); return; } }   /* v4.82: Drannith Magistrate */
+    if(a && a.c.by && a.c.by.ns && autoPayOn()){ const n=manaValue(a.c), id=tk.dataset.take; payFor(normSyms(n ? [String(n)] : []), {spell:true, card:a.c}, {title:`Cast ${cdata(a.c).n} (mana of any type)`, verb:'cast', done:()=>send({t:'take', id})}); return; } if(a && !a.mine && !tk.dataset.free && !isLand(a.c) && autoPayOn()){ const id=tk.dataset.take, c=a.c; (async()=>{   // v4.29: casting the opponent's exiled card (Ragavan, Dauthi) pays like any other cast
       let x; if(/\{X\}/.test(cdata(c).mc||'')){ x=await askN(`${cdata(c).n}: X =`, 0); if(x==null) return; }
       payFor(castSyms(c, {x}), {spell:true, card:c}, {title:`Cast ${cdata(c).n}`, verb:'cast', done:()=>{ send(Object.assign({t:'take', id}, x!=null ? {x} : {})); }}); })(); return; }
     send(Object.assign({t:'take', id:tk.dataset.take}, tk.dataset.free ? {free:1} : {})); tk.disabled=true; return; }
