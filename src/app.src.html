@@ -583,10 +583,11 @@ body.nomo *{transition:none!important}
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.82';
+const VERSION = 'v4.83';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.83','Nov 2',"New fetch land art: Expeditions (Zendikar Rising), in the Fetch tab of the land art box on the deck screen."],
   ['v4.82','Nov 2',"This week's new decks: Aven Mindcensor limits an opponent's searches to the top four cards, Drannith Magistrate stops casting from anywhere but the hand, Delney doubles small creatures' triggers and keeps them from being blocked by big ones, Lithomantic Barrage deals 5 to white or blue targets, Mistcaller exiles uncast creatures for the turn once sacrificed, Satoru draws when creatures enter without being cast, Suncleanser asks for its mode and keeps counters off, Tunnel Ignus punishes a second land in a turn, and Sunken Ruins (also Flooded Grove and Mystic Gate) filters mana. Mistcaller no longer acts like Containment Priest just by sitting there."],
   ['v4.81','Nov 1',"A warped card's right-click menu is short now: Cast from warp at the top, everything else under Manual handling."],
   ['v4.80','Nov 1',"Triggers from a transformed card show the side they come from: Sorin, Ravenous Neonate's extort now shows the planeswalker on the stack, not the creature."],
@@ -6299,7 +6300,8 @@ const LAND_FAMS=[
   {k:'fetch', n:'Fetch', names:FETCH10, styles:[{k:'std', n:'As your deck lists them'},
     {k:'orig', n:'Originals (Onslaught + Zendikar)', sets:['ons','zen'], pick:'low'},
     {k:'mod', n:'Modern (MH2 + MH3)', sets:['mh2','mh3'], pick:'low'},
-    {k:'fancy', n:'Fancy (Special Guests + MH3)', sets:['spg','mh3'], pick:'high', cn:{mh3:[340,370]}, ver:2}]},   // v4.72 (Ben): MH3's are the ones around #353 (Flooded Strand), not #464
+    {k:'fancy', n:'Fancy (Special Guests + MH3)', sets:['spg','mh3'], pick:'high', cn:{mh3:[340,370]}, ver:2},
+    {k:'zne', n:'Expeditions (Zendikar Rising)', ids:[['zne','1'],['zne','2'],['zne','3'],['zne','4'],['zne','5'],['zne','6'],['zne','7'],['zne','8'],['zne','9'],['zne','10']]}]},   // v4.83 (Ben): ZNE #1–10 are the ten fetches, one printing each   // v4.72 (Ben): MH3's are the ones around #353 (Flooded Strand), not #464
   {k:'surveil', n:'Surveil', names:SURV10, styles:[{k:'std', n:'As your deck lists them'}, {k:'alt', n:'Alternate art (Karlov Manor)', sets:['mkm'], pick:'low', cn:{mkm:[315,345]}}]}];   // v4.73 (Ben): MKM's other run, Commercial District is #324
 const BASICS_C=store.get('mt_basics', {});
 for(const x of BASIC_SETS) if(x.ids && BASICS_C[x.k] && Object.values(BASICS_C[x.k]).flat().length!==x.ids.length) delete BASICS_C[x.k];   // v4.70: a list saved before a set was pinned to exact numbers (Unsanctioned in v4.68) is forgotten, so the box and the deck both look it up again
