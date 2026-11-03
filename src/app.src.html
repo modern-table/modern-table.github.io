@@ -583,10 +583,11 @@ body.nomo *{transition:none!important}
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.83';
+const VERSION = 'v4.84';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.84','Nov 3',"Lands like Abandoned Air Temple that enter tapped unless you control a basic land now check for themselves instead of asking. A fetch or search window does the same. If the table gets it wrong, click the land to untap it."],
   ['v4.83','Nov 2',"New fetch land art: Expeditions (Zendikar Rising), in the Fetch tab of the land art box on the deck screen."],
   ['v4.82','Nov 2',"This week's new decks: Aven Mindcensor limits an opponent's searches to the top four cards, Drannith Magistrate stops casting from anywhere but the hand, Delney doubles small creatures' triggers and keeps them from being blocked by big ones, Lithomantic Barrage deals 5 to white or blue targets, Mistcaller exiles uncast creatures for the turn once sacrificed, Satoru draws when creatures enter without being cast, Suncleanser asks for its mode and keeps counters off, Tunnel Ignus punishes a second land in a turn, and Sunken Ruins (also Flooded Grove and Mystic Gate) filters mana. Mistcaller no longer acts like Containment Priest just by sitting there."],
   ['v4.81','Nov 1',"A warped card's right-click menu is short now: Cast from warp at the top, everything else under Manual handling."],
@@ -2650,6 +2651,7 @@ function judgeUnless(c, cond){ const others=G.me.bf.filter(x=>x.id!==c.id && !x.
   const hasT = w => others.some(x=>new RegExp('\\b'+w+'\\b','i').test(faceType(x)) || (isLand(x) && (lt=>!!lt && [...(lt.main||[]), ...(lt.plus||[])].some(t=>t.toLowerCase()===w.toLowerCase()))(landTypes(x, G.myId, fx))));
   if((m=cond.match(/^you control an? (\w+)(?:,? or an? (\w+))?$/i))) return hasT(m[1]) || (!!m[2] && hasT(m[2]));
   if((m=cond.match(/^you control (one|two|three|four|\d+) or (fewer|more) other lands$/i))){ const k=NUMW2[m[1].toLowerCase()]||+m[1]; return m[2].toLowerCase()==='fewer' ? lands.length<=k : lands.length>=k; }
+  if((m=cond.match(/^you control an? ([a-z][a-z \-]*)$/i))) return others.some(x=>matchesDesc(x, m[1]));   // v4.84: "you control a basic land" (Abandoned Air Temple), "a legendary creature" …
   return null; }
 async function landEnters(id){ const f=find(id); if(!f || f.z!=='bf') return; const c=f.c, le=landEntry(c); if(!le) return; const nm=cname(c);
   { const sp=untapLandsBy(); if(sp){ log(`${nm} enters untapped (${sp}).`); changed(); return; } }
@@ -2695,7 +2697,10 @@ function libSearch(sp, by, x, o={}){ let done=false;   // v4.42: once a search s
     goB.textContent = sel.size ? (sp.dest==='split' || sp.dest==='landbf' ? `Take ${sel.size>1?'these '+sel.size:'it'}` : `Put ${sel.size>1?sel.size+' ':''}${sp.dest==='bf'?'onto the battlefield':'into your hand'}`) : 'Choose';
     if(sel.size===1 && sp.dest==='bf' && !sp.tapped){ const f=find([...sel][0]), le=f && landEntry(f.c);
       if(le && le.kind==='shock'){ altB.hidden=false; goB.textContent=`Put onto the battlefield untapped, pay ${le.life} life`; el._how='pay'; }
-      else if(le && le.kind==='unless'){ altB.hidden=false; goB.textContent=`Put onto the battlefield untapped (${le.cond})`; el._how='untapped'; }
+      else if(le && le.kind==='unless'){ const ok=judgeUnless(f.c, le.cond);   // v4.84: the table judges the condition when it can
+        if(ok===true){ goB.textContent=`Put onto the battlefield untapped (${le.cond})`; el._how='untapped'; }
+        else if(ok===false){ goB.textContent=`Put onto the battlefield (it enters tapped: ${le.cond.replace(/^you /,'you don\'t ')})`; el._how='tapped'; }
+        else { altB.hidden=false; goB.textContent=`Put onto the battlefield untapped (${le.cond})`; el._how='untapped'; } }
       else if(le && le.kind==='tapped'){ goB.textContent='Put onto the battlefield (it enters tapped)'; } } }; upd();
   const g=$('#lsGrid'); if(g) g.onclick=e=>{ const cd=e.target.closest('.card[data-id]'); if(!cd) return; const id=cd.dataset.id; if(!cs.some(x=>x.id===id)) return; if(sel.has(id)) sel.delete(id); else { if(n===1) sel.clear(); if(sel.size>=n) return; sel.add(id); } [...g.querySelectorAll('.card')].forEach(e=>e.classList.toggle('sel', sel.has(e.dataset.id))); upd(); };
 }
