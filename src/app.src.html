@@ -40,7 +40,7 @@ h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
 @media (max-width:920px){.lobbybox{grid-template-columns:minmax(0,1fr);width:min(560px,100%)}}
 .lobbybox h1{font-size:44px;letter-spacing:.02em}
 .lobbybox p{margin:0;color:var(--dim);max-width:60ch}
-.lobbybox p.legal{max-width:none;font:12px/1.55 var(--ui);color:var(--dim);border-top:1px solid var(--line);padding-top:12px;margin-top:4px}.lobbybox p.legal a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+.lobbybox p.legal{max-width:none;font:12px/1.55 var(--ui);color:var(--dim);border-top:1px solid var(--line);padding-top:12px;margin-top:4px}.lobbybox p.legal .lgl{display:block}.lobbybox p.legal .lgl+.lgl{margin-top:.775em}.lobbybox p.legal a{color:inherit;text-decoration:underline;text-underline-offset:2px}
 .field{display:flex;flex-direction:column;gap:6px}
 .field label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
 /* affiliation (v4.88) */
@@ -544,7 +544,7 @@ body.nomo *{transition:none!important}
     </div>
     <p id="lobbyMsg" style="color:var(--go)"></p>
     <p><a href="#" id="fbLink" style="color:var(--brass)">Send feedback</a> <span style="color:var(--dim)">· report a bug or suggest a change</span></p>
-    <p class="legal">Modern Table is unofficial Fan Content permitted under the <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Fan Content Policy</a>. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.<br>Card images and card data from <a href="https://scryfall.com/" target="_blank" rel="noopener">Scryfall</a>. Tournament decklists from <a href="https://www.mtggoldfish.com/" target="_blank" rel="noopener">MTGGoldfish</a>. Free to use, with no ads, and not affiliated with any of these sites.<br>Store names and logos belong to their stores. Players pick one to show where they play; Modern Table isn't affiliated with or endorsed by any of them.</p>
+    <p class="legal"><span class="lgl">Modern Table is unofficial Fan Content permitted under the <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Fan Content Policy</a>. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.</span><span class="lgl">Card images and card data from <a href="https://scryfall.com/" target="_blank" rel="noopener">Scryfall</a>. Tournament decklists from <a href="https://www.mtggoldfish.com/" target="_blank" rel="noopener">MTGGoldfish</a>. Free to use, with no ads, and not affiliated with any of these sites.</span><span class="lgl">Store names and logos belong to their stores. Players pick one to show where they play; Modern Table isn't affiliated with or endorsed by any of them.</span></p>
     </div>
     <aside class="news" id="news" aria-label="What's new"></aside>
   </div>
@@ -608,7 +608,7 @@ body.nomo *{transition:none!important}
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.91';
+const VERSION = 'v4.92';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -621,6 +621,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.92','Nov 4',"A little more space between the notices at the bottom of the front page, so they're easier to read."],
   ['v4.91','Nov 4',"The store logo next to Affiliation on the front page has the same thin gold edge as the one beside your name at the table."],
   ['v4.90','Nov 4',"The store logo beside your name at the table now has a thin gold edge instead of a thick one."],
   ['v4.89','Nov 4',"The notice at the bottom of the front page now says that store names and logos belong to their stores, and that Modern Table isn't affiliated with or endorsed by any of them."],
