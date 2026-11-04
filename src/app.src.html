@@ -118,12 +118,13 @@ textarea#paste{width:100%;min-height:300px;font-family:ui-monospace,Menlo,Consol
 #myHand .card{width:calc(var(--cw)*1.12);margin:0 var(--hm,-10px);transition:transform .12s,margin .16s ease-out,width .16s ease-out,opacity .16s;flex:none}
 #myHand .card:hover{transform:translateY(-10%);z-index:5}#myHand .card.insb{margin-left:calc(var(--hm,-10px) + var(--cw)*.9)}#myHand .card.insa{margin-right:calc(var(--hm,-10px) + var(--cw)*.9)}#myHand .card.dragsrc{width:0;margin:0;opacity:0;visibility:hidden;border-width:0;overflow:hidden;transform:none;box-shadow:none;transition:width .16s ease-out,margin .16s ease-out}
 #mid{flex:none;height:44px;display:flex;align-items:center;gap:10px;padding:0 10px;border-block:1px solid var(--line);background:#0b1417cc}
-#turnlbl{font-family:var(--display);font-size:17px;white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis}
-#turnlbl.mine{color:var(--brass)}
+#turnlbl{display:flex;align-items:center;gap:7px;min-width:0;flex:0 1 auto;background:transparent;border:1px solid transparent;padding:3px 8px;font-family:var(--display);font-size:17px;white-space:nowrap}
+#turnlbl .tlt{min-width:0;overflow:hidden;text-overflow:ellipsis}#turnlbl.mine .tlt{color:var(--brass)}#turnlbl:hover,#turnlbl.open{border-color:var(--brass)}
+#turnlbl .tlc{font:11px var(--ui);color:var(--dim)}#turnlbl .tlp{flex:none;font:700 11px var(--ui);color:var(--brass);border:1px solid var(--brass);border-radius:4px;padding:1px 5px}
 .phases{display:flex;gap:3px;margin-inline:auto}
 .phases button{padding:4px 9px;font-size:12px;border-radius:99px;background:transparent}
 .phases button.on{background:var(--brass);border-color:var(--brass);color:#1b1205;font-weight:800}
-.tools{display:flex;gap:4px}#fsBtn{white-space:nowrap}#fsBtn .fs{display:none}@media (max-width:1599px){#fsBtn .fl{display:none}#fsBtn .fs{display:inline}}#pauseBtn.on{border-color:var(--brass);color:var(--brass)}.tools button{padding:4px 9px;font-size:12px}
+.tools{display:flex;gap:4px}#fsBtn{white-space:nowrap}#fsBtn .fs{display:none}@media (max-width:1599px){#fsBtn .fl{display:none}#fsBtn .fs{display:inline}}.tools button{padding:4px 9px;font-size:12px}
 
 .card{position:relative;width:var(--cw);aspect-ratio:488/680;border-radius:4.6%/3.3%;flex:none;background:#243b40;box-shadow:0 2px 6px #0008;transition:transform .15s,filter .15s,margin .15s;cursor:pointer;touch-action:none}
 .card img{position:absolute;inset:0;width:100%;height:100%;border-radius:inherit;display:block;pointer-events:none}
@@ -456,7 +457,7 @@ body.nomo .kc.won{animation:none}
 #about footer{display:flex;gap:6px;margin-top:8px;border-top:1px solid var(--line);padding-top:6px}#about footer button{font-size:12px;padding:3px 8px;white-space:nowrap}
 #ctx,#ctx2{position:fixed;z-index:90;background:#0b1417;border:1px solid var(--line);border-radius:8px;padding:4px;min-width:190px;box-shadow:0 10px 30px #000c;max-height:92vh;overflow:auto}
 #ctx button,#ctx2 button{display:flex;justify-content:space-between;gap:16px;width:100%;text-align:left;border:0;background:transparent;padding:5px 10px;border-radius:5px;font-size:13px}
-#ctx button:hover,#ctx2 button:hover,#ctx button.sub.open{background:#1c3238}#ctx kbd,#ctx2 kbd{color:var(--dim);font:11px var(--ui)}#ctx2{z-index:91}#ctx button.sub span{color:var(--dim)}#ctx button.back{color:var(--dim)}#ctx hr,#ctx2 hr{border:0;border-top:1px solid var(--line);margin:4px 0}
+#ctx button:hover,#ctx2 button:hover,#ctx button.sub.open{background:#1c3238}#ctx kbd,#ctx2 kbd{color:var(--dim);font:11px var(--ui)}#ctx2{z-index:91}#ctx button.sub span{color:var(--dim)}#ctx button.back{color:var(--dim)}#ctx hr,#ctx2 hr{border:0;border-top:1px solid var(--line);margin:4px 0}#ctx button.bad,#ctx2 button.bad{color:#ef7065}
 #modal{position:fixed;inset:0;z-index:70;background:#000a;display:grid;place-items:center;padding:16px}
 .sheet{background:var(--felt2);border:1px solid var(--line);border-radius:12px;max-width:min(1100px,100%);max-height:100%;display:flex;flex-direction:column;min-width:min(360px,100%)}
 .sheet header{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line)}
@@ -488,6 +489,20 @@ kbd.k{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:12px var
 }
 body.nomo *{transition:none!important}
 /* the tour (v4.27) */
+/* v4.86 Settings window */
+.setg h5{margin:12px 0 2px;font:800 11px var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--brass)}.setg h5:first-child{margin-top:0}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:6px 0;border-bottom:1px solid #2a404766}.setrow:last-child{border-bottom:0}
+.setrow .sl{min-width:0}.setrow .sl small{display:block;color:var(--dim);font-size:12px;line-height:1.35}.setrow .sl .lk{background:transparent;border:0;padding:0;color:var(--brass);font-size:12px}.setrow .sl .lk:hover{text-decoration:underline}
+.segs{display:flex;flex:none;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.segs button{border:0;border-left:1px solid var(--line);border-radius:0;background:transparent;color:var(--dim);padding:6px 11px;font-size:12px}.segs button:first-child{border-left:0}
+.segs button:hover{color:var(--ink)}.segs button.on{background:#1c3238;color:var(--brass);font-weight:800}
+/* v4.86 Explore the table */
+#exBlock{position:fixed;inset:0;z-index:199;background:transparent;cursor:help;touch-action:none}
+#exHi{position:fixed;z-index:200;border-radius:8px;box-shadow:0 0 0 2px var(--brass),0 0 18px 4px #d9b25f66;pointer-events:none}
+#exCard{position:fixed;z-index:201;width:310px;max-width:calc(100vw - 24px);background:#0b1417;border:1px solid var(--brass);border-radius:10px;padding:11px 14px 4px;box-shadow:0 10px 30px #000c;color:var(--ink);pointer-events:none}
+#exCard h4{margin:0 0 5px;font:800 12px var(--ui);letter-spacing:.06em;text-transform:uppercase;color:var(--brass)}#exCard p{margin:0 0 8px;font-size:13.5px;line-height:1.45}
+#exBar{position:fixed;z-index:202;left:50%;top:10px;transform:translateX(-50%);display:flex;align-items:center;gap:12px;max-width:calc(100vw - 24px);background:#0b1417;border:1px solid var(--brass);border-radius:8px;padding:7px 8px 7px 14px;box-shadow:0 8px 24px #000a;font-size:13px}
+#exBar b{color:var(--brass)}#exBar{pointer-events:none}#exBar button{pointer-events:auto}
 #tourHole{position:fixed;z-index:200;border-radius:10px;box-shadow:0 0 0 9999px #000a,0 0 0 2px var(--brass),0 0 18px 4px #d9b25f88;pointer-events:none;transition:all .25s ease}
 #tourBlock{position:fixed;inset:0;z-index:199;background:transparent}
 #tourCard{position:fixed;z-index:201;width:340px;max-width:calc(100vw - 32px);background:#0b1417;border:1px solid var(--brass);border-radius:10px;padding:14px 16px 12px;box-shadow:0 10px 30px #000c;color:var(--ink);transition:left .25s ease,top .25s ease}
@@ -543,7 +558,7 @@ body.nomo *{transition:none!important}
     <div id="oppBack" class="row opp"></div>
     <div id="oppFront" class="row front opp"></div>
     <div id="mid">
-      <span id="turnlbl"></span><span id="stormTag" class="pill" hidden></span>
+      <button id="turnlbl" title="Turn menu: pause your opponent, give control, take the turn"><span class="tlt"></span><span class="tlp" hidden></span><span class="tlc" aria-hidden="true">▾</span></button><span id="stormTag" class="pill" hidden></span>
       <div class="phases" id="phases"></div>
       <div class="tools">
         <button id="undoBtn" title="Undo your last action (Ctrl+Z)">↶ <span>Undo</span></button>
@@ -551,7 +566,6 @@ body.nomo *{transition:none!important}
         <button id="diceBtn" title="Dice and coin">⚄ <span>Roll</span></button>
         <button id="handBtn" title="Hand actions">✋ <span>Hand</span></button>
         <button id="practiceBtn" hidden title="Put things on Practice's side of the table: creatures to block, a planeswalker, other permanents">⚑ <span>Practice</span></button>
-        <button id="pauseBtn" title="Stop your opponent's next turn in their upkeep or draw step so you can act">⏸ <span>Pause</span></button>
         <button id="fsBtn" hidden title="Exit full screen">⤢ <span class="fl">Exit full screen</span><span class="fs">Exit</span></button>
         <button id="menuBtn" title="Table menu">☰</button>
       </div>
@@ -583,10 +597,11 @@ body.nomo *{transition:none!important}
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.85';
+const VERSION = 'v4.86';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.86','Nov 3',"The ☰ menu is shorter: this game (new game, change deck, concede), full screen, Settings, help, and Leave the table. All your settings (auto-draw, auto-pay, card menus, tapped cards, animations, streamer mode) are now in one Settings window. Click the turn name on the middle bar for the new turn menu: Pause moved there, with giving your opponent control and taking the turn. Shortcuts and help is now How the table works, with Explore the table: point at any part of the table to see what it is."],
   ['v4.85','Nov 3',"Cards with a spell on the front and a land on the back (Witch Enchanter, Sink into Stupor, Boggart Trawler…) open a short menu when clicked: cast the spell, or play the land, with the choice already made (pay 3 life for it untapped, or play it tapped). Shift-click still plays the land side tapped."],
   ['v4.84','Nov 3',"Lands like Abandoned Air Temple that enter tapped unless you control a basic land now check for themselves instead of asking. A fetch or search window does the same. If the table gets it wrong, click the land to untap it."],
   ['v4.83','Nov 2',"New fetch land art: Expeditions (Zendikar Rising), in the Fetch tab of the land art box on the deck screen."],
@@ -5716,8 +5731,14 @@ function resumePause(){ const t=G.turn; if(!t.hold || t.active!==G.myId) return;
 function askPause(at){ const on=G.opp?G.opp.name:'your opponent';
   if(!at){ if(G.me.pauseAsk){ delete G.me.pauseAsk; send({t:'pause', at:null}); log(`${G.me.name} no longer asks to pause ${on}'s next turn.`); changed(); } return; }
   G.me.pauseAsk={at}; send({t:'pause', at}); log(`${G.me.name} asks to pause ${on}'s next turn ${PAUSE_TXT[at]}.`); changed(); }
-function pauseMenu(x, y){ const on=G.opp?G.opp.name:'Opponent', a=G.me.pauseAsk&&G.me.pauseAsk.at, ck=k=>a===k?'✓ ':'';
-  menu(x, y, [[`${G.me.pauseSelf?'✓ ':''}On my next upkeep (my turn stops there)`, ()=>{ G.me.pauseSelf=!G.me.pauseSelf; log(G.me.pauseSelf ? `${G.me.name}'s next turn will stop in their upkeep.` : `${G.me.name} won't stop in their next upkeep.`); changed(); }], '-', [`${ck('up')}During ${on}'s next upkeep`, ()=>askPause('up')], [`${ck('pre')}During ${on}'s draw step (before the draw)`, ()=>askPause('pre')], [`${ck('post')}During ${on}'s draw step (after the draw)`, ()=>askPause('post')], a ? '-' : null, a ? ['Cancel the pause', ()=>askPause(null)] : null]); }
+function pauseItems(){ const on=G.opp?G.opp.name:'Opponent', a=G.me.pauseAsk&&G.me.pauseAsk.at, ck=k=>a===k?'✓ ':'';
+  return [[`${G.me.pauseSelf?'✓ ':''}On my next upkeep (my turn stops there)`, ()=>{ G.me.pauseSelf=!G.me.pauseSelf; log(G.me.pauseSelf ? `${G.me.name}'s next turn will stop in their upkeep.` : `${G.me.name} won't stop in their next upkeep.`); changed(); }], '-', [`${ck('up')}During ${on}'s next upkeep`, ()=>askPause('up')], [`${ck('pre')}During ${on}'s draw step (before the draw)`, ()=>askPause('pre')], [`${ck('post')}During ${on}'s draw step (after the draw)`, ()=>askPause('post')], a ? '-' : null, a ? ['Cancel the pause', ()=>askPause(null)] : null]; }
+/* v4.86 (Ben): the Turn menu, opened from the turn label: Pause (was a tools-bar button), Give control (was in ☰, without "(Emrakul)"), Take the turn (was in ☰). */
+function turnMenu(){ const b=$('#turnlbl'), r=b.getBoundingClientRect(), t=G.turn, m=G.me, pa=m.pauseAsk&&m.pauseAsk.at, on=G.opp?G.opp.name:'Opponent';
+  const ctl = !G.opp ? null : (m.ctl||m.ctlNext) ? ['Take back control of my turn', ()=>giveControl()] : [t.n&&t.active===G.myId&&!t.passed ? 'Give opponent control of this turn' : 'Give opponent control of my next turn', ()=>giveControl()];
+  menu(r.left, r.bottom+4, [ vsReal()&&t.n ? [pa ? `Pause: ${on}'s ${PAUSE_SHORT[pa]}` : (m.pauseSelf ? 'Pause: my next upkeep' : 'Pause a turn'), pauseItems()] : null, ctl,
+    ['Take the turn', ()=>{ setTurn({active:G.myId, phase:2, n:Math.max(1,G.turn.n)}); }, 'fix a mix-up'] ]);
+  b.classList.add('open'); const el=$('#ctx'), off=()=>{ if(el.hidden){ b.classList.remove('open'); clearInterval(iv); } }, iv=setInterval(off, 150); }
 /* v4.36 Choke: "Islands don't untap during their controllers' untap steps" on either battlefield */
 function chokeBy(){ for(const x of [...G.me.bf, ...((G.opp&&G.opp.bf)||[])]){ if(x.fd || (!x.k && !x.cu)) continue; if(/Islands don(?:'|’)t untap during their controllers(?:'|’)? untap steps/i.test(frontText(x)||'')) return cdata(x).n; } return null; }
 function startMyTurn(){
@@ -6626,7 +6647,8 @@ function render(){
     + opBy.map(c=>byHTML(c,false)).join('') + myBy.map(c=>byHTML(c,true)).join('');
   // turn + phases
   const t=G.turn, mine=t.active===G.myId, tl=$('#turnlbl');
-  tl.textContent = t.n ? `Turn ${t.n} · ${mine ? (t.passed ? 'you passed the turn' : 'your turn') : (o&&o.name||'Opponent')+(t.passed ? ' passed the turn' : "'s turn")}` : 'Before the game'; tl.className = mine&&t.n ? 'mine' : '';
+  tl.querySelector('.tlt').textContent = t.n ? `Turn ${t.n} · ${mine ? (t.passed ? 'you passed the turn' : 'your turn') : (o&&o.name||'Opponent')+(t.passed ? ' passed the turn' : "'s turn")}` : 'Before the game'; tl.classList.toggle('mine', !!(mine&&t.n));
+  { const tp=tl.querySelector('.tlp'), pa=m.pauseAsk&&m.pauseAsk.at, txt = pa ? `⏸ ${o&&o.name||'Opponent'}: ${PAUSE_SHORT[pa]}` : (m.pauseSelf ? '⏸ my upkeep' : ''); tp.hidden=!txt; tp.textContent=txt; }
   const stg=$('#stormTag'), showStorm=!!(t.n && ((m.cares&&m.cares.storm) || (o&&o.cares&&o.cares.storm)));
   stg.hidden=!showStorm; if(showStorm){ const mine_n=(m.cast&&m.cast.n)||0, opp_n=(o&&o.cast&&o.cast.n)||0; stg.innerHTML=`Storm <b>${mine_n+opp_n}</b>`; stg.title=`Spells cast this turn: ${mine_n} by you${o?`, ${opp_n} by ${o.name}`:''}. Click to add one of yours, right-click to take one off.`; }
   $('#phases').innerHTML = PH.map((p,i)=>`<button data-ph="${i}" class="${t.n&&t.phase===i?'on':''}">${p}</button>`).join('');
@@ -6639,7 +6661,7 @@ function render(){
   { const pb=$('#pracBar'); const h=pracBarHTML(); if(h){ pb.hidden=false; pb.innerHTML=h; const ob=$('#oppBack'), of=$('#oppFront'); pb.style.top=Math.max(8, ob.offsetTop + Math.max(0, (of.offsetTop + of.offsetHeight - ob.offsetTop - pb.offsetHeight)/2))+'px'; } else if(!pb.hidden){ pb.hidden=true; pb.innerHTML=''; } }
   { const lb=$('#loopBtn'); const ok=!blockStep() && (!!loopSpec() || !!samSpec()); if(ok){ lb.hidden=false; const fr=$('#myFront'), mid=$('#mid'); lb.style.top=Math.max(mid.offsetTop + mid.offsetHeight + 8, fr.offsetTop + 8)+'px'; } else if(!lb.hidden) lb.hidden=true; }
   markOverflow();
-  { const pb=$('#pauseBtn'), pa=m.pauseAsk&&m.pauseAsk.at; pb.hidden=!(vsReal() && t.n); { const pr=$('#practiceBtn'); if(pr) pr.hidden=!dummy(); } pb.classList.toggle('on', !!pa); pb.querySelector('span').textContent = pa ? 'Pause: '+PAUSE_SHORT[pa] : 'Pause'; }
+  { const pr=$('#practiceBtn'); if(pr) pr.hidden=!dummy(); }
   const nb=$('#next');
   if(!t.n){ nb.textContent='Waiting to start'; nb.disabled=true; }
   else if(t.passed){ nb.disabled=mine; nb.textContent = mine ? `Waiting for ${o&&o.name||'opponent'}` : 'Start my turn'; }
@@ -6727,7 +6749,7 @@ function menuFill(el, items){ el.innerHTML='';
   for(const it of items){ if(!it) continue; if(it==='-'){ el.appendChild(document.createElement('hr')); continue; }
     const b=document.createElement('button');
     if(Array.isArray(it[1])){ b.className='sub'; b.innerHTML=`<span>${esc(it[0])}</span><kbd>${cmStyle()==='swap'?'›':'▸'}</kbd>`; b.onclick=()=>subMenu(b, it[1], items); b.onmouseenter=()=>{ if(cmStyle()!=='swap') subMenu(b, it[1], items); }; }
-    else { b.innerHTML=`<span>${esc(it[0])}</span>${it[2]?`<kbd>${it[2]}</kbd>`:''}`; b.onclick=()=>{ closeMenu(); it[1](); }; if(el.id==='ctx') b.onmouseenter=()=>{ const s=$('#ctx2'); if(s){ s.hidden=true; el.querySelectorAll('.sub.open').forEach(x=>x.classList.remove('open')); } }; }
+    else { b.innerHTML=`<span>${esc(it[0])}</span>${it[2]?`<kbd>${it[2]}</kbd>`:''}`; if(it[3]) b.classList.add(it[3]); b.onclick=()=>{ closeMenu(); it[1](); }; if(el.id==='ctx') b.onmouseenter=()=>{ const s=$('#ctx2'); if(s){ s.hidden=true; el.querySelectorAll('.sub.open').forEach(x=>x.classList.remove('open')); } }; }
     el.appendChild(b); } }
 const menuClamp = (el, x, y) => { const r=el.getBoundingClientRect(); el.style.left=Math.max(4,Math.min(x, innerWidth-r.width-6))+'px'; el.style.top=Math.max(4,Math.min(y, innerHeight-r.height-6))+'px'; };
 function menu(x, y, items){
@@ -6992,18 +7014,35 @@ function fsEnter(){ const d=document.documentElement; let p;
 function fsExit(){ try{ if(navigator.keyboard && navigator.keyboard.unlock) navigator.keyboard.unlock(); }catch(e){} try{ if(document.exitFullscreen) document.exitFullscreen(); else if(document.webkitExitFullscreen) document.webkitExitFullscreen(); }catch(e){} }
 function fsSync(){ const b=$('#fsBtn'); if(b) b.hidden=!fsEl(); if(!fsEl()){ try{ if(navigator.keyboard && navigator.keyboard.unlock) navigator.keyboard.unlock(); }catch(e){} } setTimeout(()=>{ render(); drawArrows(); for(const el of [$('#pactPanel'), $('#payPanel')]) if(el && !el.hidden) placePay(el); }, 60); }
 document.addEventListener('fullscreenchange', fsSync); document.addEventListener('webkitfullscreenchange', fsSync);
-function tableMenu(x,y){
+function tableMenu(x,y){   /* v4.86 (Ben's layout B): this game · view and settings · help · the exit. Turn actions are on the turn label (turnMenu); settings in one window (settingsModal). */
   menu(x,y,[
     ['New game / sideboard',()=>confirmBox('Start a new game?','Both players go back to 20 life and reshuffle. You can sideboard first.',()=>newGame())],
-    G.opp&&[(G.me.ctl||G.me.ctlNext)?'Take back control of my turn':(G.turn.n&&G.turn.active===G.myId&&!G.turn.passed?'Give opponent control of this turn (Emrakul)':'Give opponent control of my next turn (Emrakul)'),()=>giveControl()],
-    ['Concede this game',()=>concede()],
-    ['Change deck',()=>showDecks()], ['Take the turn',()=>{ setTurn({active:G.myId, phase:2, n:Math.max(1,G.turn.n)}); }],
-    [S.autoDraw?'Turn off auto-draw each turn':'Turn on auto-draw each turn',()=>{ S.autoDraw=!S.autoDraw; store.set('mt_settings',S); toast('Auto-draw is '+(S.autoDraw?'on':'off')); }],
-    [`Auto-pay from mana pool: ${S.autoPay!==false?'On':'Off'}`,()=>{ S.autoPay=S.autoPay===false; store.set('mt_settings',S); toast(S.autoPay ? 'Auto-pay is on: spells and abilities take their cost from your mana pool.' : 'Auto-pay is off: spells go straight to the stack; spend mana by clicking its symbols.'); }],
+    ['Change deck',()=>showDecks()],
+    ['Concede this game',()=>concede(),'','bad'], '-',
     fsCan() && [fsEl() ? 'Exit full screen' : 'Full screen', ()=>fsEl() ? fsExit() : fsEnter()],
-    [`Tapped cards: ${({'18':'18°','90':'90°','90r':'90° with room'})[S.tap||TAP_DEF]}`,()=>tapStyleModal()], [`Animations: ${({on:'On',off:'Off',auto:'Follow my computer'})[S.anim||'on']}${noMotion()?' (off now)':''}`,()=>animModal()], [`Card menus: ${({fly:'Short, side menu',swap:'Short, same menu',full:'Full'})[cmStyle()]}`,()=>cmModal()], [`Streamer mode: ${({off:'Off',space:'Camera space',cam:'My camera'})[S.stream||'off']}`,()=>streamModal()],
-    ['Clear my arrows',()=>{ G.me.arrows=[]; changed(); }], ['Shortcuts and help',()=>helpModal()], ['Take the tour',()=>tourStart('table')], ["What's new",()=>newsModal()], ['Send feedback',()=>openFeedback()], '-',
+    ['Settings…',()=>settingsModal()], '-',
+    ['How the table works',()=>helpModal()], ['Take the tour',()=>tourStart('table')], ["What's new",()=>newsModal()], ['Send feedback',()=>openFeedback()], '-',
     ['Leave the table',()=>confirmBox('Leave this table?','Your seat is kept on this computer, so you can come back from the front page.',()=>{ save(); location.href=location.pathname+location.search; })] ]);
+}
+/* v4.86: every table setting in one window. Each row writes S and runs the same apply step its old single window did (those windows stay for the ⚙ on the camera box and anything else that calls them). */
+const SETROWS = [
+  {g:'Playing', k:'draw', l:'Auto-draw', h:'Draw for the turn without stopping in your upkeep.', o:{on:'On', off:'Off'}, get:()=>S.autoDraw?'on':'off', set:v=>{ S.autoDraw = v==='on'; }},
+  {g:'Playing', k:'pay', l:'Auto-pay', h:'Spells and abilities take their cost from your mana pool.', o:{on:'On', off:'Off'}, get:()=>S.autoPay!==false?'on':'off', set:v=>{ S.autoPay = v==='on'; }},
+  {g:'Playing', k:'cm', l:'Card menus', h:'Short shows what a known card does, with Manual handling for the rest.', o:{fly:'Short, side', swap:'Short, same', full:'Full'}, get:()=>cmStyle(), set:v=>{ S.cmenu=v; }},
+  {g:'Look', k:'tap', l:'Tapped cards', h:'Only on your screen; your opponent picks their own.', o:{'18':'18°', '90':'90°', '90r':'90° with room'}, get:()=>S.tap||TAP_DEF, set:v=>{ S.tap=v; applyTapStyle(); setTimeout(()=>{ render(); drawArrows(); }, 200); }},
+  {g:'Look', k:'anim', l:'Animations', h:()=>RMOT.matches ? 'This computer asks apps for less motion.' : 'Cards turning, the hand opening a gap, piles spreading.', o:{on:'On', off:'Off', auto:'Follow my computer'}, get:()=>S.anim||'on', set:v=>{ S.anim=v; applyMotion(); }},
+  {g:'Streaming', k:'stream', l:'Streamer mode', h:'A camera box at the bottom of the game log. Nothing is sent to your opponent.', o:{off:'Off', space:'Camera space', cam:'My camera'}, get:()=>S.stream||'off', set:v=>{ S.stream=v; applyStream(); }, more:()=>(S.stream||'off')!=='off' ? '<button class="lk" data-more="stream">Frame and camera…</button>' : ''} ];
+function settingsModal(){
+  const html=()=>{ let g='', out='';
+    for(const r of SETROWS){ if(r.g!==g){ if(g) out+='</div>'; g=r.g; out+=`<div class="setg"><h5>${esc(g)}</h5>`; }
+      const cur=r.get(), h=typeof r.h==='function'?r.h():r.h;
+      out+=`<div class="setrow"><div class="sl">${esc(r.l)}<small>${esc(h)}${r.more&&r.more()?' '+r.more():''}</small></div><div class="segs" role="group" aria-label="${esc(r.l)}">${Object.entries(r.o).map(([v,l])=>`<button data-set="${r.k}" data-v="${v}" class="${v===cur?'on':''}" aria-pressed="${v===cur}">${esc(l)}</button>`).join('')}</div></div>`; }
+    return out+'</div>'; };
+  const el=modal('Settings', `<div id="setBody">${html()}</div>`, [['Done',()=>closeModal(),'go']], {width:620});
+  const body=$('#setBody', el);
+  body.onclick=e=>{ const mb=e.target.closest('[data-more]'); if(mb){ closeModal(); streamModal(); return; }
+    const bt=e.target.closest('[data-set]'); if(!bt) return; const r=SETROWS.find(x=>x.k===bt.dataset.set); if(!r || r.get()===bt.dataset.v) return;
+    r.set(bt.dataset.v); store.set('mt_settings',S); toast(`${r.l}: ${r.o[bt.dataset.v]}.`); body.innerHTML=html(); render(); };
 }
 function confirmBox(title, text, yes){ modal(title, `<span class="hint">${esc(text)}</span>`, [['Cancel',()=>closeModal(),'ghost'],['Yes',()=>{ closeModal(); yes(); },'go']]); }
 /* The tour (v4.27, Ben): a spotlight on the real screen with a short note and Back / Next / Skip. From the front page it walks the front page,
@@ -7038,12 +7077,13 @@ const TOUR_STEPS = {
     {sel:'#myAv', t:'You', p:['Your life: − and + change it (Shift-click for 5). Tapping lands fills your mana pool, and spells pay from it by themselves.']},
     {sel:'#stackwrap', t:'The stack', p:['Spells and abilities wait here so both players can respond. Click the top one to resolve it.']},
     {sel:'#logwrap', t:'Game log and chat', p:['Everything either player does is written here. When something surprises you, look here first. Chat at the bottom.']},
+    {sel:'#turnlbl', t:'The turn menu', p:['Whose turn it is. Click it for the turn menu: <b>Pause</b> stops your opponent\'s next turn in their upkeep or draw step so you can act, <b>Give control</b> hands your turn to your opponent (Mindslaver, Emrakul), and <b>Take the turn</b> fixes a mix-up over whose turn it is.']},
     {sel:'#phases', t:'The turn', p:['The steps of the turn. The table untaps and draws for you. In combat, a bar helps you choose attackers, and your opponent declares blocks with theirs.']},
     {sel:'#next', t:'The big button', p:['Moves the turn along: next step, combat damage, end of turn. Space does the same.']},
-    {sel:'#mid .tools', t:'Tools', p:['<b>Undo</b> your last action · <b>Token / card</b> makes tokens or adds any card · <b>Roll</b> dice and coins · <b>Hand</b> discard, reveal, mulligan · <b>Practice</b> sets up your practice opponent · <b>Pause</b> stops your opponent\'s turn so you can act.']},
+    {sel:'#mid .tools', t:'Tools', p:['<b>Undo</b> your last action · <b>Token / card</b> makes tokens or adds any card · <b>Roll</b> dice and coins · <b>Hand</b> discard, reveal, mulligan · <b>Practice</b> sets up your practice opponent.']},
     {sel:'#undoBtn', t:'Nothing is final', p:['Undo steps back your own last action (Ctrl+Z).','Beyond that, anything can be put back by hand: drag cards, change life, add or remove counters, until the table matches what you both agree happened.']},
     {t:'Automatic first, by hand always', p:['Your cards should work by themselves: triggers go on the stack, targets are asked for, searches open, damage is dealt.','If a card doesn\'t do what it should, use <b>Send feedback</b> (in the ☰ menu) to say what you did and what you expected; that\'s how it gets fixed. Meanwhile you can always make it happen yourself with right-click and drag.']},
-    {sel:'#menuBtn', t:'The table menu', p:['<b>Shortcuts and help</b>, What\'s new, Send feedback, full screen, how tapped cards turn, auto-pay, a new game, and this tour again.']},
+    {sel:'#menuBtn', t:'The table menu', p:['A new game, change deck, concede, full screen, <b>Settings</b> (auto-draw, auto-pay, how tapped cards turn …), and help: <b>How the table works</b>, where <b>Explore the table</b> names any part of the screen you point at, this tour, What\'s new and Send feedback.']},
     {t:"You're all set", p:["You're in a practice game now: play a land, cast something, attack Practice.","When you're ready for a friend, go back to the front page (☰ → Leave the table) and open a table."]} ]
 };
 function tourStart(from){ if(TOUR) tourEnd(); TOUR={from, list:[], i:0};
@@ -7075,12 +7115,82 @@ function tourPlace(){ if(!TOUR) return; const hole=$('#tourHole'), card=$('#tour
   card.style.left=Math.max(8, Math.min(W-cw-8, L))+'px'; card.style.top=Math.max(8, Math.min(H-ch-8, T))+'px'; }
 document.addEventListener('keydown', e=>{ if(!TOUR) return; if(e.key==='Escape'){ tourEnd(); } else if(e.key==='ArrowRight' || e.key==='Enter'){ tourGo(1); } else if(e.key==='ArrowLeft'){ tourGo(-1); } else return; e.preventDefault(); e.stopImmediatePropagation(); }, true);
 document.addEventListener('keydown', e=>{ if(TOUR && !(e.target && /INPUT|TEXTAREA/.test(e.target.tagName))){ e.stopImmediatePropagation(); } }, true);
+/* v4.86 Explore the table (Ben): from How the table works. Point at (or tap) any part of the live table and it is outlined and named.
+   Zone level only: where things are and what they're for. The first match walking up from the element under the pointer wins, so list the
+   specific parts (a single pile, a tool button) before the areas that hold them. `tour` borrows that tour step's words so the two can't drift;
+   `hi` outlines several elements as one (both battlefield rows). When a part of the screen is added or renamed, add or update its entry here. */
+const tourTxt = sel => { const st=TOUR_STEPS.table.find(x=>x.sel===sel); return st ? {t:st.t, p:st.p} : null; };
+const EXPLORE = [
+  {sel:'#exBar', skip:1},
+  {sel:'#banner', tour:'#banner'},
+  {sel:'#atkBar', t:'Attack bar', p:['Shown in your declare-attackers step: choose your attackers, then declare them.']},
+  {sel:'#blockBar', t:'Block bar', p:['Shown when you are attacked: declare your blockers, or No blocks.']},
+  {sel:'#pracBar', t:"Practice's controls", p:["When Practice takes turns, its steps and attacks are run from this bar on its side."]},
+  {sel:'#turnSign', t:'End-of-round turns', p:['The round clock ran out: the game ends after turn 5 of these extra turns, then you both say who won.']},
+  {sel:'#oppHand', t:"Your opponent's hand", p:['Face down; the number is how many cards they hold. If they reveal their hand, you see it here face up.']},
+  {sel:'#oppFront, #oppBack', hi:'#oppFront, #oppBack', clipY:['#oppHand','#mid'], t:"Your opponent's battlefield", p:['Their creatures in the front row; their lands and other permanents behind.','Right-click one of their creatures to see how big it is right now: power and toughness, keywords, and where they come from.']},
+  {sel:'#myFront, #myBack', hi:'#myFront, #myBack', clipY:['#mid','#myHand'], tour:'#myFront'},
+  {sel:'#myHand', tour:'#myHand'},
+  {sel:'#myPiles .pile[data-pile="lib"]', t:'Your library', p:['Click to draw a card. Right-click to search, scry, mill or shuffle.']},
+  {sel:'#myPiles .pile[data-pile="gy"]', t:'Your graveyard', p:['Click to look through it. Right-click for more: exile it, shuffle it into your library.']},
+  {sel:'#myPiles .pile[data-pile="ex"]', t:'Your exile', p:['Cards exiled from your side. Click to look through it; cards you may still play are marked PLAYABLE.']},
+  {sel:'#myPiles .pile[data-pile="side"]', t:'Your sideboard', p:['Your sideboard cards. Between games, New game / sideboard lets you swap cards in and out.']},
+  {sel:'#myPiles', tour:'#myPiles'},
+  {sel:'#oppPiles', t:"Your opponent's library, graveyard and exile", p:['Click their graveyard or exile pile to look through it.']},
+  {sel:'#clockBox', t:'Round clock', p:['At a two-player table the match has 50 minutes, like a tournament round. When it runs out, the end-of-round turns begin.']},
+  {sel:'#winsBox', t:'Games won', p:["Games won this match: your opponent's count above, yours below. Best of three."]},
+  {sel:'#midRail', tour:'#midRail'},
+  {sel:'#oppAv', tour:'#oppAv'},
+  {sel:'#myAv', tour:'#myAv'},
+  {sel:'#stackwrap', tour:'#stackwrap'},
+  {sel:'#offerwrap', t:'Exiled by cards', p:["Cards exiled by an effect that can still be played or will come back, like a card Ragavan exiled from your opponent's library."]},
+  {sel:'#unlBox', t:"Cards the table hasn't learned", p:['Cards with the violet ring. They play by hand through the right-click menu; the link here asks for them to be made automatic.']},
+  {sel:'#camWrap', t:'Streamer box', p:["Streamer mode's camera box. Point at it for its ⚙ settings; turn it off in ☰ Settings."]},
+  {sel:'#chat', t:'Chat', p:['Type to talk to your opponent. What you write goes into the game log.']},
+  {sel:'#logwrap', tour:'#logwrap'},
+  {sel:'#drawBtn', t:'Draw a card', p:["With auto-draw off, your turn stops in the draw step: draw when you're ready."]},
+  {sel:'#turnlbl', tour:'#turnlbl'},
+  {sel:'#stormTag', t:'Storm count', p:['Spells cast this turn by both players. Click to add one of yours, right-click to take one off.']},
+  {sel:'#phases', tour:'#phases'},
+  {sel:'#next', tour:'#next'},
+  {sel:'#undoBtn', t:'Undo', p:["Steps back your own last action, one at a time (Ctrl+Z). It stops at a shuffle, the end of a turn, and anything that reached your opponent's side."]},
+  {sel:'#tokBtn', t:'Token / card', p:['Make a token, or add any card to the game.']},
+  {sel:'#diceBtn', t:'Roll', p:['Roll dice or flip a coin. The result goes in the game log for both of you.']},
+  {sel:'#handBtn', t:'Hand', p:['Actions for your whole hand: discard, reveal it, mulligan.']},
+  {sel:'#practiceBtn', t:'Practice', p:['Sets up your practice opponent: a deck, creatures and planeswalkers on its side, and whether it takes turns.']},
+  {sel:'#fsBtn', t:'Exit full screen', p:['Leaves full screen. Full screen itself is in the ☰ menu.']},
+  {sel:'#menuBtn', t:'The table menu (☰)', p:['A new game or sideboarding, change deck, concede, full screen, Settings, How the table works, the tour, What\'s new, Send feedback, and Leave the table.']},
+  {sel:'#mid .tools', tour:'#mid .tools'},
+  {sel:'#mid', t:'The middle bar', p:['Whose turn it is, the steps of the turn, the big button, and your tools.']} ];
+let EXP=null;
+const exTxt = e => e.tour ? (tourTxt(e.tour) || {t:'', p:[]}) : {t:e.t, p:e.p};
+function exploreStart(){ closeModal(); closeMenu(); if(TOUR) tourEnd(); exploreEnd(); if($('#table').hidden) return;
+  const mk=(id, html)=>{ const d=document.createElement('div'); d.id=id; if(html) d.innerHTML=html; document.body.appendChild(d); return d; };
+  EXP={cur:null, block:mk('exBlock'), hi:mk('exHi'), card:mk('exCard'), bar:mk('exBar', '<span><b>Explore the table:</b> point at anything (or tap it) to see what it is.</span><button class="go">Done</button>')};
+  EXP.hi.hidden=true; EXP.card.hidden=true; EXP.bar.querySelector('button').onclick=()=>exploreEnd();
+  const at=e=>exAt(e.clientX, e.clientY); EXP.block.addEventListener('pointermove', at); EXP.block.addEventListener('pointerdown', e=>{ e.preventDefault(); at(e); });
+  EXP.block.addEventListener('contextmenu', e=>e.preventDefault()); EXP.onR=()=>{ if(EXP && EXP.cur) exShow(EXP.cur); }; addEventListener('resize', EXP.onR); hideZoom(); }
+function exploreEnd(){ if(!EXP) return; for(const k of ['block','hi','card','bar']) EXP[k].remove(); removeEventListener('resize', EXP.onR); EXP=null; }
+const exVis = el => el && el.getClientRects().length && !el.closest('[hidden]');
+function exAt(x, y){ if(!EXP) return;
+  const under=document.elementsFromPoint(x, y).find(n=>!n.closest('#exBlock, #exHi, #exCard, #exBar'));
+  let hit=null; for(let n=under; n && n!==document.body && !hit; n=n.parentElement) hit=EXPLORE.find(e=>!e.skip && n.matches(e.sel) && exVis(n));
+  if(hit===EXP.cur) return; EXP.cur=hit; if(!hit){ EXP.hi.hidden=true; EXP.card.hidden=true; return; } exShow(hit); }
+function exShow(e){ const els=[...document.querySelectorAll(e.hi||e.sel)].filter(exVis); if(!els.length){ EXP.hi.hidden=true; EXP.card.hidden=true; return; }
+  const rs=els.map(x=>x.getBoundingClientRect()), L=Math.min(...rs.map(r=>r.left))-3, R=Math.max(...rs.map(r=>r.right))+3; let T=Math.min(...rs.map(r=>r.top))-3, B=Math.max(...rs.map(r=>r.bottom))+3;
+  if(e.clipY){ const a=$(e.clipY[0]), z=$(e.clipY[1]); if(exVis(a)) T=Math.max(T, a.getBoundingClientRect().bottom+1); if(exVis(z)) B=Math.min(B, z.getBoundingClientRect().top-1); }   // the battlefield rows' boxes overlap the hand and the middle bar
+  Object.assign(EXP.hi.style, {left:L+'px', top:T+'px', width:(R-L)+'px', height:(B-T)+'px'}); EXP.hi.hidden=false;
+  const tx=exTxt(e), c=EXP.card; c.innerHTML=`<h4>${tx.t}</h4>${tx.p.map(x=>`<p>${x}</p>`).join('')}`; c.hidden=false;
+  const cw=c.offsetWidth, chh=c.offsetHeight, W=innerWidth, H=innerHeight, gap=12;
+  let x, y; if(R+gap+cw<=W-8){ x=R+gap; y=T; } else if(L-gap-cw>=8){ x=L-gap-cw; y=T; } else { x=(L+R)/2-cw/2; y = B+gap+chh<=H-8 ? B+gap : T-gap-chh; }
+  c.style.left=Math.max(8, Math.min(x, W-cw-8))+'px'; c.style.top=Math.max(56, Math.min(y, H-chh-8))+'px'; }
+document.addEventListener('keydown', e=>{ if(!EXP || (e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName))) return; if(e.key==='Escape') exploreEnd(); e.preventDefault(); e.stopImmediatePropagation(); }, true);
 function helpModal(){
   const k=(a,b)=>`<div><kbd class="k">${a}</kbd> ${b}</div>`;
   const g=(h, ...l)=>`<h5>${h}</h5>${l.map(x=>`<div>${x}</div>`).join('')}`;
-  const el=modal('How this table works', `<div class="hrule"><b>Automatic first, by hand always.</b> Your cards work by themselves wherever the table can manage it. Anything else is in a right-click menu (on a card, a pile, your hand or library) or a drag away. The table warns before plays that look against the rules; you and your opponent decide. A card not working as it should? <b>Send feedback</b> with what you did and what you expected.</div>
-  <div class="two help"><div><h4>Mouse</h4>${g('Playing cards','Click a card in your hand: lands enter play, spells go to the stack (Shift-click: land tapped).','Right-click it for other ways to cast it (evoke, cycling, warp, its other side). Drag cards between zones.')}${g('The stack','Click a spell or ability to resolve it; a window asks when there is a choice. Right-click a permanent to use its abilities.')}${g('Targets','Right-drag from a card to its target to draw an arrow. Right-click either end to clear it.')}${g('Library and graveyard','Click your library to draw, right-click it to search, scry, mill or shuffle. Click a graveyard or exile pile to look through it.')}${g('Mana','Tap lands for mana. Spells and abilities pay from the pool; a window waits if it is short (auto-pay is in the table menu).')}${g('Turns and combat','The big button moves to the next step. In combat, choose attackers on the attack bar; your opponent blocks with theirs; then apply damage. Your opponent clicks Start my turn when you pass.')}${g('Life and the match','− and + beside a player (Shift-click for 5). The table notices a lost game and records the win. Two-player tables have a 50-minute round clock.')}${g('Mistakes','Undo steps back your own last action (not past a shuffle or the end of a turn). Anything else can be put back by hand.')}</div>
-  <div><h4>Keys, with the pointer over your card</h4>${k('T','tap or untap')}${k('A','attack: taps and gets a gold border')}${k('V','attack with vigilance: gold border, stays untapped')}${k('B','block: then click the attacker')}${k('R','target: then click a card or player')}${k('C','add a counter')}${k('X','remove a counter')}${k('−','mark 1 damage (works on your opponent\'s creatures too)')}${k('=','remove 1 damage')}${k('F','transform')}${k('G','graveyard')}${k('E','exile')}${k('H','hand')}<h4 style="margin-top:10px">Anywhere</h4>${k('D','draw a card')}${k('S','shuffle')}${k('Ctrl+Z','undo your last action')}${k('Space','next phase')}${k('Esc','cancel')}${g('Practice','Practice alone gives you an opponent called Practice. The ⚑ Practice button gives it a deck, puts creatures and planeswalkers on its side, and lets it take turns.')}${g('Table menu (☰)','Full screen, how tapped cards turn, auto-pay, What\'s new, Send feedback, and the tour.')}</div></div>`, [['Take the tour',()=>{ closeModal(); tourStart('table'); },'ghost'], ["What's new",()=>{ closeModal(); newsModal(); },'ghost'], ['Send feedback',()=>{ closeModal(); openFeedback(); },'ghost'], ['Got it',()=>closeModal(),'go']]);
+  const el=modal('How the table works', `<div class="hrule"><b>Automatic first, by hand always.</b> Your cards work by themselves wherever the table can manage it. Anything else is in a right-click menu (on a card, a pile, your hand or library) or a drag away. The table warns before plays that look against the rules; you and your opponent decide. A card not working as it should? <b>Send feedback</b> with what you did and what you expected.</div>
+  <div class="two help"><div><h4>Mouse</h4>${g('Playing cards','Click a card in your hand: lands enter play, spells go to the stack (Shift-click: land tapped).','Right-click it for other ways to cast it (evoke, cycling, warp, its other side). Drag cards between zones.')}${g('The stack','Click a spell or ability to resolve it; a window asks when there is a choice. Right-click a permanent to use its abilities.')}${g('Targets','Right-drag from a card to its target to draw an arrow. Right-click either end to clear it.')}${g('Library and graveyard','Click your library to draw, right-click it to search, scry, mill or shuffle. Click a graveyard or exile pile to look through it.')}${g('Mana','Tap lands for mana. Spells and abilities pay from the pool; a window waits if it is short (auto-pay is in ☰ Settings).')}${g('Turns and combat','The big button moves to the next step. In combat, choose attackers on the attack bar; your opponent blocks with theirs; then apply damage. Your opponent clicks Start my turn when you pass.')}${g('Life and the match','− and + beside a player (Shift-click for 5). The table notices a lost game and records the win. Two-player tables have a 50-minute round clock.')}${g('Mistakes','Undo steps back your own last action (not past a shuffle or the end of a turn). Anything else can be put back by hand.')}</div>
+  <div><h4>Keys, with the pointer over your card</h4>${k('T','tap or untap')}${k('A','attack: taps and gets a gold border')}${k('V','attack with vigilance: gold border, stays untapped')}${k('B','block: then click the attacker')}${k('R','target: then click a card or player')}${k('C','add a counter')}${k('X','remove a counter')}${k('−','mark 1 damage (works on your opponent\'s creatures too)')}${k('=','remove 1 damage')}${k('F','transform')}${k('G','graveyard')}${k('E','exile')}${k('H','hand')}<h4 style="margin-top:10px">Anywhere</h4>${k('D','draw a card')}${k('S','shuffle')}${k('Ctrl+Z','undo your last action')}${k('Space','next phase')}${k('Esc','cancel')}${g('Practice','Practice alone gives you an opponent called Practice. The ⚑ Practice button gives it a deck, puts creatures and planeswalkers on its side, and lets it take turns.')}${g('Menus','☰: new game, change deck, concede, full screen, Settings, help. Click the turn to pause, give control or take the turn.')}</div></div>`, [...($('#table').hidden ? [] : [['Explore the table',()=>exploreStart(),'ghost']]), ['Take the tour',()=>{ closeModal(); tourStart('table'); },'ghost'], ["What's new",()=>{ closeModal(); newsModal(); },'ghost'], ['Send feedback',()=>{ closeModal(); openFeedback(); },'ghost'], ['Got it',()=>closeModal(),'go']]);
 }
 /* sideboarding: the main deck laid out like a library search (Draft Table style), the sideboard as one overlapping column on the right,
    sorted by type (creatures, other spells, lands), color (W U B R G, multicolored, colorless) and mana value; a click moves one card across */
@@ -7391,7 +7501,7 @@ $('#fsBtn').onclick=()=>fsExit();
 $('#menuBtn').onclick=e=>{ const r=e.currentTarget.getBoundingClientRect(); tableMenu(r.left, r.bottom+4); };
 $('#handBtn').onclick=e=>{ const r=e.currentTarget.getBoundingClientRect(); handMenu(r.left, r.bottom+4); };
 $('#practiceBtn').onclick=e=>{ const r=e.currentTarget.getBoundingClientRect(); practiceMenu(r.left, r.bottom+4); };
-$('#pauseBtn').onclick=e=>{ const r=e.currentTarget.getBoundingClientRect(); pauseMenu(r.left, r.bottom+4); };
+$('#turnlbl').onclick=()=>turnMenu();
 $('#tokBtn').onclick=()=>tokenModal();
 $('#undoBtn').onclick=()=>undo();
 $('#diceBtn').onclick=e=>{ const r=e.currentTarget.getBoundingClientRect(), roll=n=>()=>log(`${G.me.name} rolls a d${n}: ${1+Math.floor(Math.random()*n)}.`);
