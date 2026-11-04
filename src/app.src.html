@@ -597,10 +597,11 @@ body.nomo *{transition:none!important}
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.86';
+const VERSION = 'v4.87';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.87','Nov 3',"The turn menu now opens with the pause choices, right at the top instead of under Pause. Pausing on your own next upkeep works in practice games too; pausing your opponent's upkeep or draw step is there at a table with a friend, even before the first turn."],
   ['v4.86','Nov 3',"The ☰ menu is shorter: this game (new game, change deck, concede), full screen, Settings, help, and Leave the table. All your settings (auto-draw, auto-pay, card menus, tapped cards, animations, streamer mode) are now in one Settings window. Click the turn name on the middle bar for the new turn menu: Pause moved there, with giving your opponent control and taking the turn. Shortcuts and help is now How the table works, with Explore the table: point at any part of the table to see what it is."],
   ['v4.85','Nov 3',"Cards with a spell on the front and a land on the back (Witch Enchanter, Sink into Stupor, Boggart Trawler…) open a short menu when clicked: cast the spell, or play the land, with the choice already made (pay 3 life for it untapped, or play it tapped). Shift-click still plays the land side tapped."],
   ['v4.84','Nov 3',"Lands like Abandoned Air Temple that enter tapped unless you control a basic land now check for themselves instead of asking. A fetch or search window does the same. If the table gets it wrong, click the land to untap it."],
@@ -5731,12 +5732,12 @@ function resumePause(){ const t=G.turn; if(!t.hold || t.active!==G.myId) return;
 function askPause(at){ const on=G.opp?G.opp.name:'your opponent';
   if(!at){ if(G.me.pauseAsk){ delete G.me.pauseAsk; send({t:'pause', at:null}); log(`${G.me.name} no longer asks to pause ${on}'s next turn.`); changed(); } return; }
   G.me.pauseAsk={at}; send({t:'pause', at}); log(`${G.me.name} asks to pause ${on}'s next turn ${PAUSE_TXT[at]}.`); changed(); }
-function pauseItems(){ const on=G.opp?G.opp.name:'Opponent', a=G.me.pauseAsk&&G.me.pauseAsk.at, ck=k=>a===k?'✓ ':'';
-  return [[`${G.me.pauseSelf?'✓ ':''}On my next upkeep (my turn stops there)`, ()=>{ G.me.pauseSelf=!G.me.pauseSelf; log(G.me.pauseSelf ? `${G.me.name}'s next turn will stop in their upkeep.` : `${G.me.name} won't stop in their next upkeep.`); changed(); }], '-', [`${ck('up')}During ${on}'s next upkeep`, ()=>askPause('up')], [`${ck('pre')}During ${on}'s draw step (before the draw)`, ()=>askPause('pre')], [`${ck('post')}During ${on}'s draw step (after the draw)`, ()=>askPause('post')], a ? '-' : null, a ? ['Cancel the pause', ()=>askPause(null)] : null]; }
+function pauseItems(){ const on=G.opp?G.opp.name:'Opponent', a=G.me.pauseAsk&&G.me.pauseAsk.at, ck=k=>a===k?'✓ ':'', real=vsReal();   // v4.87: my own upkeep stop works anywhere (practice too); the opponent's only at a friend's table, from before turn 1
+  return [[`${G.me.pauseSelf?'✓ ':''}Pause on my next upkeep (my turn stops there)`, ()=>{ G.me.pauseSelf=!G.me.pauseSelf; log(G.me.pauseSelf ? `${G.me.name}'s next turn will stop in their upkeep.` : `${G.me.name} won't stop in their next upkeep.`); changed(); }], real ? [`${ck('up')}Pause ${on}'s next upkeep`, ()=>askPause('up')] : null, real ? [`${ck('pre')}Pause ${on}'s draw step (before the draw)`, ()=>askPause('pre')] : null, real ? [`${ck('post')}Pause ${on}'s draw step (after the draw)`, ()=>askPause('post')] : null, real && a ? ['Cancel the pause', ()=>askPause(null)] : null]; }
 /* v4.86 (Ben): the Turn menu, opened from the turn label: Pause (was a tools-bar button), Give control (was in ☰, without "(Emrakul)"), Take the turn (was in ☰). */
 function turnMenu(){ const b=$('#turnlbl'), r=b.getBoundingClientRect(), t=G.turn, m=G.me, pa=m.pauseAsk&&m.pauseAsk.at, on=G.opp?G.opp.name:'Opponent';
   const ctl = !G.opp ? null : (m.ctl||m.ctlNext) ? ['Take back control of my turn', ()=>giveControl()] : [t.n&&t.active===G.myId&&!t.passed ? 'Give opponent control of this turn' : 'Give opponent control of my next turn', ()=>giveControl()];
-  menu(r.left, r.bottom+4, [ vsReal()&&t.n ? [pa ? `Pause: ${on}'s ${PAUSE_SHORT[pa]}` : (m.pauseSelf ? 'Pause: my next upkeep' : 'Pause a turn'), pauseItems()] : null, ctl,
+  menu(r.left, r.bottom+4, [ ...pauseItems(), '-', ctl,
     ['Take the turn', ()=>{ setTurn({active:G.myId, phase:2, n:Math.max(1,G.turn.n)}); }, 'fix a mix-up'] ]);
   b.classList.add('open'); const el=$('#ctx'), off=()=>{ if(el.hidden){ b.classList.remove('open'); clearInterval(iv); } }, iv=setInterval(off, 150); }
 /* v4.36 Choke: "Islands don't untap during their controllers' untap steps" on either battlefield */
