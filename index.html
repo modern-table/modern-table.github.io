@@ -591,10 +591,11 @@ body.nomo *{transition:none!important}
 </script>
 <script>
 "use strict";
-const VERSION = 'v4.84';
+const VERSION = 'v4.85';
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.85','Nov 3',"Cards with a spell on the front and a land on the back (Witch Enchanter, Sink into Stupor, Boggart Trawler…) open a short menu when clicked: cast the spell, or play the land, with the choice already made (pay 3 life for it untapped, or play it tapped). Shift-click still plays the land side tapped."],
   ['v4.84','Nov 3',"Lands like Abandoned Air Temple that enter tapped unless you control a basic land now check for themselves instead of asking. A fetch or search window does the same. If the table gets it wrong, click the land to untap it."],
   ['v4.83','Nov 2',"New fetch land art: Expeditions (Zendikar Rising), in the Fetch tab of the land art box on the deck screen."],
   ['v4.82','Nov 2',"This week's new decks: Aven Mindcensor limits an opponent's searches to the top four cards, Drannith Magistrate stops casting from anywhere but the hand, Delney doubles small creatures' triggers and keeps them from being blocked by big ones, Lithomantic Barrage deals 5 to white or blue targets, Mistcaller exiles uncast creatures for the turn once sacrificed, Satoru draws when creatures enter without being cast, Suncleanser asks for its mode and keeps counters off, Tunnel Ignus punishes a second land in a turn, and Sunken Ruins (also Flooded Grove and Mystic Gate) filters mana. Mistcaller no longer acts like Containment Priest just by sitting there."],
@@ -5580,7 +5581,27 @@ const spectacleOf = c => { if(c.fd || (!c.k && !c.cu)) return ''; const m=(front
 /* Adventure (Brazen Borrower // Petty Theft): cast the adventure half; it resolves into exile, and the creature can be cast from there later */
 function castAdventure(id){ const f=find(id); if(!f) return; const c=f.c, fs=splitFaces(c), mc=((cdata(c).mc||'').split(' // ')[1]||'');
   castSpell(id, {payCost:mc, silent:true, adv:1}, ()=>{ log(`${G.me.name} casts ${fs[1] ? fs[1].n : faceName(c,1)} (the adventure of ${faceName(c,0)}).`); }); }
+/* v4.85: a modal double-faced card whose back is a land. Left-click opens a short menu (cast the front, or play the land side with its entry choice
+   already made); Shift-click plays the land side tapped; the hand's right-click menu keeps its own items. */
+const mdfcLand = c => { const d=cdata(c); return !!d.back && d.lay!=='transform' && !/\bLand\b/.test(faceTypeOf(c,0)) && /\bLand\b/.test(faceTypeOf(c,1)); };
+function playLandSide(id, how){ const f=find(id); if(!f) return; if(f.z==='hand' && waitMull()) return; const c=f.c, m=G.me, n=G.turn.n||0, nm=faceName(c,1), le=landEntry(Object.assign({}, c, {flip:true}));
+  if(!m.lp || m.lp.n!==n) m.lp={n, k:0}; m.lp.k++; const k=m.lp.k; c.flip=true;
+  const tap = how==='tapped' || (le && le.kind==='tapped');
+  move(id,'bf',{silent:true, later:true, tap}); const g=find(id); if(!g) return;
+  let how2=''; if(how==='pay' && le && le.kind==='shock'){ m.life-=le.life; how2=`, paying ${le.life} life (now ${m.life}) so it enters untapped`; } else if(tap) how2=' tapped';
+  log(`${m.name} plays ${nm} (the land side of ${faceName(c,0)})${how2}${k>1 ? ', '+(ORDW[k]||k+'th')+' land this turn' : ''}.`); entered(g.c); changed();
+  if(how==='auto' && !(le && le.kind==='tapped')) landEnters(id); else if(tap) enteredTapped(g.c); }
+function mdfcMenu(id, x, y){ const f=find(id); if(!f) return; const c=f.c, front=faceName(c,0), back=faceName(c,1), le=landEntry(Object.assign({}, c, {flip:true})), it=[[`Cast ${front}`, ()=>playFromHand(id)]];
+  if(le && le.kind==='shock') it.push([`Play ${back} untapped (pay ${le.life} life)`, ()=>playLandSide(id,'pay')], [`Play ${back} tapped`, ()=>playLandSide(id,'tapped')]);
+  else if(le && le.kind==='tapped') it.push([`Play ${back} (enters tapped)`, ()=>playLandSide(id,'tapped')]);
+  else if(le && le.kind==='unless'){ const ok=judgeUnless(Object.assign({}, c, {flip:true}), le.cond);
+    if(ok===true) it.push([`Play ${back} untapped (${le.cond})`, ()=>playLandSide(id,'untapped')]);
+    else if(ok===false) it.push([`Play ${back} (enters tapped: ${le.cond.replace(/^you /,'you don\'t ')})`, ()=>playLandSide(id,'tapped')]);
+    else it.push([`Play ${back} untapped`, ()=>playLandSide(id,'untapped')], [`Play ${back} tapped`, ()=>playLandSide(id,'tapped')]); }
+  else it.push([`Play ${back}`, ()=>playLandSide(id,'auto')]);
+  menu(x, y, it); }
 function playBack(id, zone, tapped, pd){
+  if(zone==='bf'){ const f0=find(id); if(f0 && f0.z==='hand' && mdfcLand(f0.c)){ playLandSide(id, tapped ? 'tapped' : 'auto'); return; } }   // v4.85: counted and entered like any land play
   const f=find(id); if(!f) return; const c=f.c, nm=faceName(c,1);
   if(zone==='st' && !pd && autoPayOn()){ const sy=normSyms(costSyms((cdata(c).mc||'').split(' // ')[1]||'')); payFor(sy, {spell:true, card:c, id, from:f.z}, {title:`Cast ${nm}`, verb:'cast', done:r=>playBack(id, zone, tapped, r)}); return; }
   if(zone==='bf'){ c.flip=true; move(id,'bf',{silent:true,tap:!!tapped}); log(`${G.me.name} plays ${cname(c)} as a land (${nm})${tapped?' tapped':''}.`); if(!tapped) landEnters(id); }
@@ -7279,7 +7300,7 @@ document.addEventListener('pointerup', e=>{
   if(G.mode){ G.clkShift=!!e.shiftKey; finishMode(d.id); G.clkShift=false; return; }
   if(G.atkSel && d.mine && d.z==='bf' && atkStep()){ atkToggle(d.id); return; }
   if(!d.mine){ if(iControl()) remoteClick(d.id, d.z, e.clientX, e.clientY); return; }
-  if(d.z==='hand'){ const f=find(d.id); if(e.shiftKey && f && isLand(f.c)){ move(d.id,'bf',{tap:true}); changed(); } else playFromHand(d.id); } else if(d.z==='bf'){ const f=find(d.id); if(blockStep() && f && isCreature(f.c) && !f.c.tap){ startMode('block', d.id); return; } toggleTap(d.id, e.clientX, e.clientY); } else if(d.z==='st') resolve(d.id);
+  if(d.z==='hand'){ const f=find(d.id); if(f && mdfcLand(f.c) && !G.me.ctl){ /* v4.85: modal double-faced spell/land: menu, or Shift = land side tapped */ if(e.shiftKey) playLandSide(d.id,'tapped'); else mdfcMenu(d.id, e.clientX, e.clientY); return; } if(e.shiftKey && f && isLand(f.c)){ move(d.id,'bf',{tap:true}); changed(); } else playFromHand(d.id); } else if(d.z==='bf'){ const f=find(d.id); if(blockStep() && f && isCreature(f.c) && !f.c.tap){ startMode('block', d.id); return; } toggleTap(d.id, e.clientX, e.clientY); } else if(d.z==='st') resolve(d.id);
   else if(d.z==='side'){ const f=find(d.id); if(f && f.c.comp && d.el.closest('.playbox')) menu(e.clientX, e.clientY, compItems(f.c, d.id)); }
   else if(d.z==='ex'){ const f=find(d.id); if(f && f.c.pl && d.el.closest('.playbox')) menu(e.clientX, e.clientY, playItems(f.c, d.id)); else if(f && f.c.plot && d.el.closest('.playbox')) menu(e.clientX, e.clientY, [['Cast it without paying its mana cost',()=>plotCast(d.id)]]); }
 });
