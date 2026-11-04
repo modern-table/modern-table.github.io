@@ -166,17 +166,18 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 #dive header{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--rail);border-radius:10px 10px 0 0}
 #dive header h3{font-size:22px;display:flex;gap:8px;align-items:center}
 #dive .dvbody{overflow:auto;padding:12px 14px 16px;--w:clamp(76px,6.2vw,112px)}
-.dvgrid{display:grid;grid-template-columns:auto repeat(7,var(--w));gap:8px 10px;align-items:start}
+.dvgrid{display:grid;grid-template-columns:min-content repeat(7,var(--w));justify-content:start;gap:8px 10px;align-items:start}
 .dvgrid .rowh{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;align-self:stretch;padding:4px 0;border-right:1px solid var(--line);padding-right:4px}
 .dvgrid .colh{margin:0}
 .dvgrid .cell{min-height:20px}
 .dvgrid .lands{grid-column:2 / -1;display:flex;flex-wrap:wrap;gap:8px}
 .dvgrid .lands .c{width:var(--w)}
 .c.indk{box-shadow:0 0 0 2px var(--good),0 2px 6px #0008}
-.dvsw{display:flex;gap:4px}.pipbtn{padding:3px;border-radius:50%;background:transparent;border:1px solid transparent;line-height:0}.pipbtn.on{border-color:var(--brass)}.pipbtn .pip{width:24px;height:24px;font-size:11px}
+.dvsw{display:flex;gap:4px}.pipbtn{padding:3px;border-radius:50%;background:transparent;border:1px solid transparent;line-height:0}.pipbtn.on{border-color:var(--brass)}.pipbtn .pip{width:26px;height:26px;font-size:11px}.pip.ms{position:relative;overflow:hidden}.pip.ms img{position:absolute;inset:0;width:100%;height:100%;display:block}
+.pipbtn:not(.on){opacity:.55}.pipbtn:not(.on):hover{opacity:1}
 .c.indk .tag,.c.promo.indk .tag{color:var(--good);background:#000c;border:0}
 #dive .empty{color:var(--dim);padding:6px 0}
-@media (max-width:760px){ .poolwrap{grid-template-columns:1fr} .diverail{border-left:0;padding-left:0;position:static;flex-direction:row;flex-wrap:wrap} #dive{left:8px;right:8px;width:auto;top:8px;max-height:calc(100vh - 16px)} .dvgrid{grid-template-columns:auto repeat(7,72px)} }
+@media (max-width:760px){ .poolwrap{grid-template-columns:1fr} .diverail{border-left:0;padding-left:0;position:static;flex-direction:row;flex-wrap:wrap} #dive{left:8px;right:8px;width:auto;top:8px;max-height:calc(100vh - 16px)} .dvgrid{grid-template-columns:min-content repeat(7,72px)} }
 @media (prefers-reduced-motion:reduce){ .fan .c{animation:none} .cardback.ready{animation:none} .pk{transition:none} }
 @media (max-width:760px){ .regions{--w:76px} .pk{width:58px;height:104px} .kitbox{height:104px} .promo .c,.cardback{width:70px} .kitside{margin-left:0;align-items:flex-start} .body{grid-template-columns:1fr} #rail{border-right:0;border-bottom:1px solid var(--line);max-height:26vh} .panes{grid-template-columns:1fr} .grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))} }
 </style>
@@ -214,9 +215,10 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 <script src="../src/peerjs.min.js"></script>
 <script>
 "use strict";
-const VERSION = 'v0.19';
+const VERSION = 'v0.20';
 /* What's new on the front page (v0.19, like the Modern Table's NEWS): newest first, written for players. Add a line with every version bump. */
 const DNEWS = [
+  ['v0.20','Nov 4',"Colour dive: the cards line up from the left edge of the window, and the colour buttons in the window are mana symbols."],
   ['v0.19','Nov 4',"A What's new column on the front page, like the Modern Table's."],
   ['v0.18','Nov 4',"Colour dive: artifacts and other colourless cards now show in every colour's window, and the window has colour buttons to switch without closing it."],
   ['v0.17','Nov 4',"Colour dive on the deck-building screen: pick a colour beside your pool to see all its cards (gold and hybrid included) and the lands that make it, by mana value and type, with Bulk add to put them all in your deck."],
@@ -782,6 +784,7 @@ const GROUPS={
 /* ---------- Colour dive (v0.17) ---------- */
 const PIPC={W:'#f8f3d8',U:'#8fc1ea',B:'#a39a98',R:'#ec8c6a',G:'#7fbf73'};
 const BASICT={W:'Plains',U:'Island',B:'Swamp',R:'Mountain',G:'Forest'};
+const manaSym = k => `<span class="pip ms" style="background:${PIPC[k]}">${k}<img src="https://svgs.scryfall.io/card-symbols/${k}.svg" alt="" draggable="false" onerror="this.remove()"></span>`;
 /* What colours a land can make: basic land types, "Add {…}" (hybrid and choices included) and "any color". */
 function landMakes(d){
   const out=new Set(), t=d.t||'', o=d.o||'';
@@ -815,8 +818,8 @@ function diveHTML(){
   const lands=cs.filter(c=>kind(c)===2).sort(byColour);
   if(lands.length) g+=`<div class="rowh">Lands · ${lands.length}</div><div class="lands">${lands.map(tagged).join('')}</div>`;
   g+='</div>';
-  return `<div id="dive" role="dialog" aria-label="${COLNAME[k]} cards"><header><h3><span class="pip" style="background:${PIPC[k]}">${k}</span>${COLNAME[k]} <span class="hint" style="font:600 13px var(--ui)">${cs.length} cards · ${inD} in your deck</span></h3>
-    <span class="dvsw" role="group" aria-label="Switch colour">${[...'WUBRG'].map(x=>`<button class="pipbtn${x===k?' on':''}" data-dive-to="${x}" aria-label="${COLNAME[x]}" title="${COLNAME[x]}"><span class="pip" style="background:${PIPC[x]}">${x}</span></button>`).join('')}</span>
+  return `<div id="dive" role="dialog" aria-label="${COLNAME[k]} cards"><header><h3>${manaSym(k)}${COLNAME[k]} <span class="hint" style="font:600 13px var(--ui)">${cs.length} cards · ${inD} in your deck</span></h3>
+    <span class="dvsw" role="group" aria-label="Switch colour">${[...'WUBRG'].map(x=>`<button class="pipbtn${x===k?' on':''}" data-dive-to="${x}" aria-label="${COLNAME[x]}" title="${COLNAME[x]}">${manaSym(x)}</button>`).join('')}</span>
     <span style="margin-left:auto"></span><button class="go" id="diveAdd"${left.length?'':' disabled'}>Bulk add ${left.length} to deck</button><button id="diveOut"${inD?'':' disabled'} title="Take every ${COLNAME[k].toLowerCase()} card shown here out of the deck">Take all out</button><button class="ghost" id="diveClose" aria-label="Close">Close ✕</button></header>
     <div class="dvbody">${cs.length ? g : `<p class="empty">No ${COLNAME[k].toLowerCase()} cards or lands that make ${COLNAME[k].toLowerCase()} in this pool.</p>`}<p class="hint" style="margin:10px 0 0;font-size:12px">Hybrid and multicolour cards count for each of their colours; colourless cards show in every colour. Click a card to move it in or out of the deck; green edge = in your deck.</p></div></div>`;
 }
