@@ -215,13 +215,14 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 <script src="../src/peerjs.min.js"></script>
 <script>
 "use strict";
-const VERSION = 'v0.20';
+const VERSION = 'v0.21';
 /* What's new on the front page (v0.19, like the Modern Table's NEWS): newest first, written for players. Add a line with every version bump. */
 const DNEWS = [
-  ['v0.20','Nov 4',"Colour dive: the cards line up from the left edge of the window, and the colour buttons in the window are mana symbols."],
+  ['v0.21','Nov 4',"Color dive: the color buttons beside your pool are mana symbols too, and the Draft Table now spells color the American way."],
+  ['v0.20','Nov 4',"Color dive: the cards line up from the left edge of the window, and the color buttons in the window are mana symbols."],
   ['v0.19','Nov 4',"A What's new column on the front page, like the Modern Table's."],
-  ['v0.18','Nov 4',"Colour dive: artifacts and other colourless cards now show in every colour's window, and the window has colour buttons to switch without closing it."],
-  ['v0.17','Nov 4',"Colour dive on the deck-building screen: pick a colour beside your pool to see all its cards (gold and hybrid included) and the lands that make it, by mana value and type, with Bulk add to put them all in your deck."],
+  ['v0.18','Nov 4',"Color dive: artifacts and other colorless cards now show in every color's window, and the window has color buttons to switch without closing it."],
+  ['v0.17','Nov 4',"Color dive on the deck-building screen: pick a color beside your pool to see all its cards (gold and hybrid included) and the lands that make it, by mana value and type, with Bulk add to put them all in your deck."],
   ['v0.16','Nov 4',"Prereleases: host a sealed event for up to eight. Everyone opens a kit of six packs and a foil promo, one pack at a time, builds 40 cards, then plays three rounds. Cards can also be dragged between deck and pool."],
   ['v0.15','Oct 31',"Choose the art for your basic lands while building. It's the same setting as on the Modern Table, and your deck uses it there."],
   ['v0.13','Oct 23',"The set list shows only the sets whose cards the Modern Table plays fully: Reality Fracture, Final Fantasy, Modern Horizons 1 and 2, Khans of Tarkir and DF07's Legacy Cube."],
@@ -741,7 +742,7 @@ function buildHTML(host, me){
     if(!T){ const wait=V.seats.filter(s=>!s.bot && !s.ready).map(s=>s.name);
       h+=`<p class="hint" style="margin:0">${wait.length ? 'Still building: '+esc(wait.join(', '))+'.' : 'Everyone is ready.'}</p>${host ? `<div><button class="go" id="roundBtn">Start round 1</button></div>` : '<p class="hint" style="margin:0">The host starts round 1 when everyone is ready.</p>'}`;
     } else if(!T.total){
-      h+=`<p class="hint" style="margin:0">${sealed ? 'You are the only player, so there is no bracket.' : 'You drafted against bots, so there is no bracket.'}</p><div><a href="${playLink('s','')}" target="_blank" rel="noopener" id="soloLink"><button class="go">Practise with this deck on the Modern Table</button></a></div>`;
+      h+=`<p class="hint" style="margin:0">${sealed ? 'You are the only player, so there is no bracket.' : 'You drafted against bots, so there is no bracket.'}</p><div><a href="${playLink('s','')}" target="_blank" rel="noopener" id="soloLink"><button class="go">Practice with this deck on the Modern Table</button></a></div>`;
     } else {
       const R=T.rounds.length-1, rd=T.rounds[R], st=standings(T, V.seats);
       h+=`<div class="bar"><h3>${T.done ? 'Final standings' : `Round ${R+1} of ${T.total}`}</h3></div>`;
@@ -774,10 +775,10 @@ const opAll = () => B.op.opened.every(Boolean) && (B.op.promo || !V.kit.promo);
 function opSortIn(){ if(B.op.showing>=0) B.op.showing=-1; }
 function opOpen(i){ if(B.op.opened[i]) return; opSortIn(); B.op.opened[i]=1; B.op.showing=i; saveBuild(); render(); }
 function opOpenAll(){ B.op.opened=B.op.opened.map(()=>1); B.op.promo=1; B.op.showing=-1; saveBuild(); render(); }
-const COLNAME={W:'White',U:'Blue',B:'Black',R:'Red',G:'Green',M:'Multicolour',C:'Colourless',L:'Lands'};
+const COLNAME={W:'White',U:'Blue',B:'Black',R:'Red',G:'Green',M:'Multicolor',C:'Colorless',L:'Lands'};
 const COLDOT={W:'#efe7cf',U:'#8fc1ea',B:'#7d7372',R:'#ec8c6a',G:'#7fbf73',M:'#e2c46c',C:'#c9c3c0',L:'#b59a80'};
 const GROUPS={
-  colour:{ label:'Colour', order:['W','U','B','R','G','M','C','L'], key:d=>isLandCard(d)?'L':d.c.length>1?'M':d.c.length?d.c:'C', name:k=>COLNAME[k], dot:k=>COLDOT[k] },
+  colour:{ label:'Color', order:['W','U','B','R','G','M','C','L'], key:d=>isLandCard(d)?'L':d.c.length>1?'M':d.c.length?d.c:'C', name:k=>COLNAME[k], dot:k=>COLDOT[k] },
   mv:    { label:'Mana value', order:['0','1','2','3','4','5','6','7+','L'], key:d=>isLandCard(d)?'L':((d.cmc||0)>=7?'7+':String(Math.floor(d.cmc||0))), name:k=>k==='L'?'Lands':k+' mana' },
   type:  { label:'Card type', order:['Creature','Planeswalker','Instant','Sorcery','Artifact','Enchantment','Battle','Land'], key:d=>{ const t=d.t.split(' // ')[0]; return ['Land','Creature','Planeswalker','Battle','Instant','Sorcery','Artifact','Enchantment'].find(x=>t.includes(x))||'Artifact'; }, name:k=>k },
   rarity:{ label:'Rarity', order:['mythic','rare','special','uncommon','common'], key:d=>['mythic','rare','special','uncommon'].includes(d.r)?d.r:'common', name:k=>({mythic:'Mythic rare',rare:'Rare',special:'Special',uncommon:'Uncommon',common:'Common'})[k] }};
@@ -798,9 +799,9 @@ function landMakes(d){
 function inColour(d, k){ if(!d) return false; if(isLandCard(d)) return landMakes(d).has(k); return !d.c.length || d.c.includes(k); }
 function diveRailHTML(){
   const all=V.pool||[];
-  return `<div class="diverail"><div class="sec">Colour dive</div>${[...'WUBRG'].map(k=>{ const cs=all.filter(c=>inColour(CARDS[c.id], k)), left=cs.filter(c=>!inMain(c)).length;
-    return `<button class="divebtn${B.dive===k?' on':''}" data-dive="${k}" title="All ${COLNAME[k].toLowerCase()} and colourless cards and the lands that make ${COLNAME[k].toLowerCase()}, by mana value and type"><span class="pip" style="background:${PIPC[k]}">${k}</span><b>${COLNAME[k]}</b><small>${left}/${cs.length}</small></button>`; }).join('')}
-    <span class="hint" style="font-size:11px">Cards still in the pool / all of that colour.</span></div>`;
+  return `<div class="diverail"><div class="sec">Color dive</div>${[...'WUBRG'].map(k=>{ const cs=all.filter(c=>inColour(CARDS[c.id], k)), left=cs.filter(c=>!inMain(c)).length;
+    return `<button class="divebtn${B.dive===k?' on':''}" data-dive="${k}" title="All ${COLNAME[k].toLowerCase()} and colorless cards and the lands that make ${COLNAME[k].toLowerCase()}, by mana value and type">${manaSym(k)}<b>${COLNAME[k]}</b><small>${left}/${cs.length}</small></button>`; }).join('')}
+    <span class="hint" style="font-size:11px">Cards still in the pool / all of that color.</span></div>`;
 }
 function diveHTML(){
   const k=B.dive; if(!k || !'WUBRG'.includes(k)) return '';
@@ -819,9 +820,9 @@ function diveHTML(){
   if(lands.length) g+=`<div class="rowh">Lands · ${lands.length}</div><div class="lands">${lands.map(tagged).join('')}</div>`;
   g+='</div>';
   return `<div id="dive" role="dialog" aria-label="${COLNAME[k]} cards"><header><h3>${manaSym(k)}${COLNAME[k]} <span class="hint" style="font:600 13px var(--ui)">${cs.length} cards · ${inD} in your deck</span></h3>
-    <span class="dvsw" role="group" aria-label="Switch colour">${[...'WUBRG'].map(x=>`<button class="pipbtn${x===k?' on':''}" data-dive-to="${x}" aria-label="${COLNAME[x]}" title="${COLNAME[x]}">${manaSym(x)}</button>`).join('')}</span>
+    <span class="dvsw" role="group" aria-label="Switch color">${[...'WUBRG'].map(x=>`<button class="pipbtn${x===k?' on':''}" data-dive-to="${x}" aria-label="${COLNAME[x]}" title="${COLNAME[x]}">${manaSym(x)}</button>`).join('')}</span>
     <span style="margin-left:auto"></span><button class="go" id="diveAdd"${left.length?'':' disabled'}>Bulk add ${left.length} to deck</button><button id="diveOut"${inD?'':' disabled'} title="Take every ${COLNAME[k].toLowerCase()} card shown here out of the deck">Take all out</button><button class="ghost" id="diveClose" aria-label="Close">Close ✕</button></header>
-    <div class="dvbody">${cs.length ? g : `<p class="empty">No ${COLNAME[k].toLowerCase()} cards or lands that make ${COLNAME[k].toLowerCase()} in this pool.</p>`}<p class="hint" style="margin:10px 0 0;font-size:12px">Hybrid and multicolour cards count for each of their colours; colourless cards show in every colour. Click a card to move it in or out of the deck; green edge = in your deck.</p></div></div>`;
+    <div class="dvbody">${cs.length ? g : `<p class="empty">No ${COLNAME[k].toLowerCase()} cards or lands that make ${COLNAME[k].toLowerCase()} in this pool.</p>`}<p class="hint" style="margin:10px 0 0;font-size:12px">Hybrid and multicolor cards count for each of their colors; colorless cards show in every color. Click a card to move it in or out of the deck; green edge = in your deck.</p></div></div>`;
 }
 function diveBulk(add){ const k=B.dive; for(const c of (V.pool||[])){ if(!inColour(CARDS[c.id], k)) continue; const i=B.side.indexOf(c.u); if(add && i>=0) B.side.splice(i,1); else if(!add && i<0) B.side.push(c.u); } saveBuild(); render();
   toast(add ? `Every ${COLNAME[k].toLowerCase()} card is in your deck. Cull from there.` : `${COLNAME[k]} cards taken out of your deck.`); }
