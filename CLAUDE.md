@@ -2,7 +2,7 @@
 
 Repository `modern-table/modern-table.github.io` (the `modern-table` GitHub organization). The game is served by GitHub Pages from `main` at the repo root as https://modern-table.github.io/, so whatever `index.html` is on `main` is what players get. Moved here on 2026-10-17 from an older address, which now only forwards players here and carries their saved decks over (`#import=` in the URL, read by `IMPORTED` in both pages). Keep the project's public face free of personal names: commits are authored by Claude, and nothing in the repo, the pages or the README should name the maintainer.
 
-**Project notes:** each release adds its entry to the end of the Project doc `claude/modern-table-notes.md` (older history is in `claude/modern-table-history-v1-v3.md`). If the Project also has a `claude/modern-table-notes-v*-pending.md` doc, a session couldn't write the notes file: append that doc's entry to the end of `modern-table-notes.md`, update its "Current setup (as of …)" line, save, then delete the pending doc.
+**Project notes:** each release adds its entry to the end of the Project doc `claude/modern-table-notes.md` (older history is in `claude/modern-table-history-v1-v3.md`). If the Project also has a `claude/modern-table-notes-pending.md` doc, a session couldn't write the notes file: append that doc's entries to the end of `modern-table-notes.md`, update its "Current setup (as of …)" line, save, then delete the pending doc.
 
 ## Layout
 - `src/app.src.html`: game source (single page; placeholders `/*__DECKS__*/[]` and `/*__PEERJS__*/` are filled by the build).
