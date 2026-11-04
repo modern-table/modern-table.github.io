@@ -47,7 +47,7 @@ h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
 .lgsrow{display:flex;gap:10px;align-items:center}.lgsrow select{flex:1;min-width:0;height:38px;background:#0c181b;border:1px solid var(--line);border-radius:6px;padding:0 8px}
 .lgsp{flex:none;width:38px;height:38px;box-sizing:border-box;border:1px dashed var(--line);border-radius:5px;overflow:hidden}.lgsp.on{border:2px solid var(--brass)}.lgsp img{display:block;width:100%;height:100%;object-fit:cover}
 .lgsh{font-size:12px;color:var(--dim)}
-.lgsl{flex:none;width:34px;height:34px;box-sizing:border-box;border:2px solid var(--brass);border-radius:4px;object-fit:cover}
+.lgsl{flex:none;width:34px;height:34px;box-sizing:border-box;border:1px solid var(--brass);border-radius:4px;object-fit:cover}
 #banner.wide{max-width:min(660px,92vw)}#banner .mrow{flex-wrap:nowrap;align-items:center;gap:20px;margin:2px 0 4px}#banner .mvs{font:italic 20px var(--display);color:var(--brass)}
 #banner .mside{display:flex;align-items:center;gap:14px;min-width:0}#banner .mside.r{flex-direction:row-reverse;text-align:right}#banner .mtx{display:flex;flex-direction:column;gap:2px;min-width:0;text-align:left}#banner .mside.r .mtx{text-align:right}
 #banner .mnm{font:22px var(--display);color:var(--ink)}#banner .mst{font-size:12px;font-weight:700;color:var(--brass)}#banner .mdk{font-size:12px;color:var(--dim)}
@@ -616,7 +616,7 @@ body.nomo *{transition:none!important}
 </script>
 <script>
 "use strict";
-const VERSION = 'v4.89';
+const VERSION = 'v4.90';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -629,6 +629,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.90','Nov 4',"The store logo beside your name at the table now has a thin gold edge instead of a thick one."],
   ['v4.89','Nov 4',"The notice at the bottom of the front page now says that store names and logos belong to their stores, and that Modern Table isn't affiliated with or endorsed by any of them."],
   ['v4.88','Nov 4',"Rep your local game store: on the front page, under your name, pick your store from Affiliation (or No affiliation). Its logo shows beside your name at the table, and both players' logos, stores and decks show on the banner before each game. The tour has a new stop for it."],
   ['v4.87','Nov 3',"The turn menu now opens with the pause choices, right at the top instead of under Pause. Pausing on your own next upkeep works in practice games too; pausing your opponent's upkeep or draw step is there at a table with a friend, even before the first turn."],
