@@ -608,7 +608,7 @@ body.nomo *{transition:none!important}
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.93';
+const VERSION = 'v4.94';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -621,6 +621,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.94','Nov 4',"Cost reductions the table missed now count: Ghalta the Unstoppable (greatest power among your creatures) and Ghalta the Immovable (greatest toughness), plus Traxos, Academy Guardian, Wrath of the Bloodmane and Igneous Elemental when their condition is met. Thrasta, Tempest's Roar and Valiant Changeling now count too. With Ghalta the Immovable out, your creatures with more toughness than power deal combat damage equal to their toughness."],
   ['v4.93','Nov 4',"Left-clicking a planeswalker you control (the Jace token too) opens its loyalty abilities, including any that other cards give it, like the Ways' abilities from Reality Fracture."],
   ['v4.92','Nov 4',"A little more space between the notices at the bottom of the front page, so they're easier to read."],
   ['v4.91','Nov 4',"The store logo next to Affiliation on the front page has the same thin gold edge as the one beside your name at the table."],
@@ -2473,6 +2474,9 @@ const powerOf = c => { const dp=dynPT(c, G.myId); if(dp && !dp.printed) return d
 function condTrue(x, c){ x=String(x||'').toLowerCase().trim().replace(/\.$/,''); const m=G.me; let q;
   if((q=x.match(/^there are (\w+) or more card types among cards in your graveyard$/))) return gyTypes(m.gy).length >= (NUMW2[q[1]]||+q[1]||4);   // v4.60: delirium (Fear of Missing Out)
   if(/^you attacked (?:with a creature )?this turn$/.test(x)) return m.atkC===G.turn.n;
+  if(/^there is an? land card in your graveyard$/.test(x)) return m.gy.some(g=>isLand(g));   // v4.94: Igneous Elemental
+  if(/^you(?:'ve| have) cast a noncreature spell this turn$/.test(x)) return !!(m.cast && m.cast.nc>0);   // v4.94: Traxos, Academy Guardian (noteCast counts noncreature spells in cast.nc; m.cast resets every turn)
+  if((q=x.match(/^you control (an? .+)$/))){ const d=q[1].replace(/^an? /,''); return m.bf.some(b=>!b.fd && matchesDesc(b, d)); }   // v4.94: Wrath of the Bloodmane ("a legendary creature")
   if((q=x.match(/^an? graveyard has (\w+) or more cards in it$/))){ const k=NUMW2[q[1]]||+q[1]||20; return m.gy.length>=k || ((G.opp&&G.opp.gy)||[]).length>=k; }   // v4.36: Visions of Beyond
   if(/^you control a creature with power 4 or greater$/.test(x)) return m.bf.some(y=>!y.fd && isCreature(y) && powerOf(y)>=4);
   if(/^you have no cards in hand$/.test(x)) return m.hand.length===0;
@@ -5332,6 +5336,10 @@ function costCount(ph, pid, self){
     for(const c of me.bf){ if(c.fd || !isLand(c)) continue; const lt=landTypes(c, pid, fx), tl=faceType(c);
       for(const t of (lt && lt.main ? lt.main : BASICS.filter(t=>new RegExp('\\b'+t+'\\b').test(tl)))) set.add(t); if(lt) for(const t of lt.plus) set.add(t); }
     return set.size; }
+  if(/^other spells? cast this turn$/.test(p)) return pid===G.myId ? ((G.me.cast && G.me.cast.n) || 0) : ((G.opp && G.opp.cast && G.opp.cast.n) || 0);   // v4.94: Thrasta, Tempest's Roar (the spell being cast isn't counted yet)
+  if(/^creature types? among creatures you control$/.test(p)){ const set=new Set(); let all=false;   // v4.94: Valiant Changeling; a changeling has every creature type
+    for(const c of (me.bf||[])){ if(c.fd || !isCreature(c)) continue; if(/\bChangeling\b/i.test(frontText(c)||'') || (c.bc && c.bc.allct)) all=true; const t=(faceType(c)||'').split('—')[1]; if(t) for(const w of t.trim().split(/\s+/)) if(w) set.add(w); }
+    return all ? 99 : set.size; }
   return countPhrase(p, pid, self);
 }
 /* cost changes from permanents on either battlefield: "<kind> spells [you cast | your opponents cast] [of the chosen type] cost {N} less/more to cast"
@@ -5374,6 +5382,9 @@ function costNow(c, pid){
   pid=pid||G.myId; if(c.fd || (!c.k && !c.cu) || isLand(c)) return null; const d=cdata(c), mc=(d.mc||'').split(' // ')[0]; if(!mc) return null;
   const o=frontText(c)||''; let less=0, more=0; const why=[];
   for(const m of o.matchAll(/This spell costs \{(\d+)\} less to cast for each ([^.]+?)\./gi)){ const n=costCount(m[2], pid, c.id); if(n==null) continue; less+=n*(+m[1]); why.push(`${m[2]}: ${n} → −${n*m[1]}`); }
+  if(pid===G.myId){   // v4.94: "{X} less, where X is …" (the Ghaltas) and "{N} less if …" (Traxos, Wrath of the Bloodmane, Igneous Elemental); my own spells only, since they read my side
+    for(const m of o.matchAll(/This spell costs \{X\} less to cast, where X is ([^.]+?)\./gi)){ const n=xNum(m[1], c); if(n==null || !(n>0)) continue; less+=n; why.push(`${m[1]}: ${n} → −${n}`); }
+    for(const m of o.matchAll(/This spell costs \{(\d+)\} less to cast if (?!it targets\b)([^.]+?)\./gi)){ if(condTrue(m[2], c)!==true) continue; less+=+m[1]; why.push(`${m[2]} → −${m[1]}`); } }
   if(!why.length){ const a=o.match(/\bAffinity for (\w+)/i); if(a){ const n=costCount(a[1]+' you control', pid, c.id); if(n!=null){ less+=n; why.push(`${a[1]} you control: ${n} → −${n}`); } } }
   if(pid===G.myId) for(const e of (G.me.tmpRed||[])){ if(!spellMatches(c, e.desc)) continue; less+=e.n; why.push(`${e.by} −${e.n} (until your next turn)`); }
   for(const e of spellMods(c, pid)){ if(e.more) more+=e.n; else less+=e.n; why.push(`${e.name} ${e.more?'+':'−'}${e.n}${e.note}`); }
@@ -5916,13 +5927,19 @@ function splitAsk(att, power, bls, tr, toName){ return new Promise(res=>{ const 
       if(tot!==power){ el.querySelector('#spMsg').textContent=`Assign exactly ${power} (now ${tot}).`; return; }
       if(pl>0 && bls.some((b,i)=>v[i].n<lethalLeft(b,false,dt))){ el.querySelector('#spMsg').textContent='Trample: every blocker needs lethal damage before any goes to the player.'; return; }
       closeModal(); res({per:bls.map((b,i)=>v[i].n), over:pl}); },'go']], {noClose:true, width:520}); }); }
+/* v4.94: combat damage by toughness. Ghalta the Immovable ("Each creature you control with toughness greater than its power assigns combat damage equal to its toughness rather than its power")
+   and Doran ("Each creature assigns combat damage equal to its toughness rather than its power", every creature on both sides). mine = the creature is on my side. */
+const TOUGHDMG=/\bEach creature (you control )?(with toughness greater than its power )?assigns combat damage equal to its toughness rather than its power\b/i;
+function combatAmt(c, mine){ const p=mine ? powerOf(c) : powerAny({c, mine:false}); let use=false;
+  for(const [bf, side] of [[G.me.bf, true], [(G.opp&&G.opp.bf)||[], false]]) for(const x of bf){ if(x.fd || (!x.k && !x.cu)) continue; const m=(frontText(x)||'').match(TOUGHDMG); if(m && (!m[1] || side===mine)) use=true; }
+  if(!use) return p; const t=toughNow(c, mine ? G.myId : oppId()); return (t!=null && t>p) ? t : p; }
 async function applyCombat(step){ if(G.combatBusy) return; G.combatBusy=true; try{
   const t=G.turn, m=G.me, on=G.opp?G.opp.name:'the opponent', atk=m.bf.filter(c=>c.atk);
   const blkd = t.blkd || atk.filter(c=>((G.opp&&G.opp.arrows)||[]).some(a=>a.blk && a.b===c.id)).map(c=>c.id);
   const mine=[], theirs=[], said=[], dealt=new Set(), toPlayer=[]; let gainMe=0, gainThem=0;
   const fog=G.fogT===G.turn.n; if(fog) said.push('combat damage is prevented this turn');
   const add=(arr, to, n, src, dt)=>{ if(n>0 && !fog) arr.push({to, n, src:cname(src), dt:dt?1:0}); };
-  for(const c of atk){ if(!dealsIn(c, step)) continue; const p=powerOf(c); if(p<=0) continue; dealt.add(c.id); if(c.mazeT===G.turn.n){ said.push(`${cname(c)}'s combat damage is prevented`); continue; }
+  for(const c of atk){ if(!dealsIn(c, step)) continue; const p=combatAmt(c, true); if(p<=0) continue; dealt.add(c.id); if(c.mazeT===G.turn.n){ said.push(`${cname(c)}'s combat damage is prevented`); continue; }
     const pa=m.arrows.find(a=>a.atk && a.a===c.id), pw=pa && findAny(pa.b), tgt=pw && pw.z==='bf' ? pa.b : oppId(), tgtName=pw && pw.z==='bf' ? cname(pw.c) : on, dt=kwOn(c,'deathtouch'), tr=kwOn(c,'trample');
     const bls=combatBlockers(c.id); let toTgt=0;
     if(!blkd.includes(c.id)) toTgt=p;
@@ -5932,7 +5949,7 @@ async function applyCombat(step){ if(G.combatBusy) return; G.combatBusy=true; tr
     if(toTgt>0){ add(theirs, tgt, toTgt, c, dt); said.push(`${cname(c)} deals ${toTgt} to ${tgtName}${blkd.includes(c.id)?' (trample)':''}`); if(tgt===oppId() || /to a player or planeswalker/i.test(cdmgLine(c)||'')) toPlayer.push(c.id); }
     if(kwOn(c,'lifelink') && !fog) gainMe+=p; }
   for(const b of (G.opp&&G.opp.bf)||[]){ if(!isCreature(b) || b.fd) continue; const as=((G.opp.arrows)||[]).filter(a=>a.blk && a.a===b.id).map(a=>find(a.b)).filter(f=>f && f.z==='bf' && f.c.atk).map(f=>f.c); if(!as.length || !dealsIn(b, step)) continue;
-    const p=powerAny({c:b, mine:false}); if(p<=0) continue; dealt.add(b.id); const dt=kwOn(b,'deathtouch'); let left=p;
+    const p=combatAmt(b, false); if(p<=0) continue; dealt.add(b.id); const dt=kwOn(b,'deathtouch'); let left=p;
     as.forEach((a,i)=>{ const k=i===as.length-1 ? left : Math.min(left, lethalLeft(a, true, dt)); left-=k; if(a.mazeT===G.turn.n){ if(k>0) said.push(`${cname(b)}'s ${k} damage to ${cname(a)} is prevented`); return; } add(mine, a.id, k, b, dt); if(k>0) said.push(`${cname(b)} deals ${k} to ${cname(a)}`); });
     if(kwOn(b,'lifelink') && !fog) gainThem+=p; }
   // apply: my creatures, my life; the opponent's share by message
