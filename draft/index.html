@@ -156,7 +156,7 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 /* Colour dive (v0.17, Ben): a rail of colour buttons beside the pool; a colour opens a window with every card of that colour
    (hybrid and multicolour included) and the lands that make it, by mana value across and type down, with Bulk add. */
 .poolwrap{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:16px;align-items:start}
-.diverail{display:flex;flex-direction:column;gap:6px;border-left:1px solid var(--line);padding-left:14px;position:sticky;top:8px}
+.diverail{display:flex;flex-direction:column;gap:6px;border-left:1px solid var(--line);padding-left:14px;position:sticky;top:8px;margin-top:22px}
 .diverail .sec{margin:0 0 2px}
 .divebtn{display:flex;align-items:center;gap:8px;text-align:left;padding:6px 8px;background:#5d382b}
 .divebtn b{flex:1;font-weight:700}.divebtn small{color:var(--dim);font-variant-numeric:tabular-nums}
@@ -215,9 +215,10 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 <script src="../src/peerjs.min.js"></script>
 <script>
 "use strict";
-const VERSION = 'v0.21';
+const VERSION = 'v0.22';
 /* What's new on the front page (v0.19, like the Modern Table's NEWS): newest first, written for players. Add a line with every version bump. */
 const DNEWS = [
+  ['v0.22','Nov 4',"The color dive buttons sit a little lower, with more room under the Sort by menu."],
   ['v0.21','Nov 4',"Color dive: the color buttons beside your pool are mana symbols too, and the Draft Table now spells color the American way."],
   ['v0.20','Nov 4',"Color dive: the cards line up from the left edge of the window, and the color buttons in the window are mana symbols."],
   ['v0.19','Nov 4',"A What's new column on the front page, like the Modern Table's."],
