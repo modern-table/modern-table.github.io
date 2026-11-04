@@ -166,6 +166,7 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .dvgrid .lands{grid-column:2 / -1;display:flex;flex-wrap:wrap;gap:8px}
 .dvgrid .lands .c{width:var(--w)}
 .c.indk{box-shadow:0 0 0 2px var(--good),0 2px 6px #0008}
+.dvsw{display:flex;gap:4px}.pipbtn{padding:3px;border-radius:50%;background:transparent;border:1px solid transparent;line-height:0}.pipbtn.on{border-color:var(--brass)}.pipbtn .pip{width:24px;height:24px;font-size:11px}
 .c.indk .tag,.c.promo.indk .tag{color:var(--good);background:#000c;border:0}
 #dive .empty{color:var(--dim);padding:6px 0}
 @media (max-width:760px){ .poolwrap{grid-template-columns:1fr} .diverail{border-left:0;padding-left:0;position:static;flex-direction:row;flex-wrap:wrap} #dive{left:8px;right:8px;width:auto;top:8px;max-height:calc(100vh - 16px)} .dvgrid{grid-template-columns:auto repeat(7,72px)} }
@@ -203,7 +204,7 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 <script src="../src/peerjs.min.js"></script>
 <script>
 "use strict";
-const VERSION = 'v0.17';
+const VERSION = 'v0.18';
 // Only the sets and cube whose cards the Modern Table plays fully (2026-10-23); the other set files stay in draft/sets for later.
 const READY = ['fra','fin','mh2','mh1','ktk','df07'];
 const SETS_ALL = /*__SETS__*/[];
@@ -762,12 +763,13 @@ function landMakes(d){
   for(const m of o.matchAll(/\badd ([^.\n]*)/gi)) for(const sym of m[1].matchAll(/\{([^}]+)\}/g)) for(const k of 'WUBRG') if(sym[1].includes(k)) out.add(k);
   return out;
 }
-/* A card belongs to a colour if it is that colour (hybrid and gold cards count for each of theirs), or is a land that makes it. */
-function inColour(d, k){ if(!d) return false; if(isLandCard(d)) return landMakes(d).has(k); return d.c.includes(k); }
+/* A card belongs to a colour if it is that colour (hybrid and gold cards count for each of theirs), is colourless (artifacts and
+   other colourless spells fit any deck, so they show in every colour: Ben, v0.18), or is a land that makes it. */
+function inColour(d, k){ if(!d) return false; if(isLandCard(d)) return landMakes(d).has(k); return !d.c.length || d.c.includes(k); }
 function diveRailHTML(){
   const all=V.pool||[];
   return `<div class="diverail"><div class="sec">Colour dive</div>${[...'WUBRG'].map(k=>{ const cs=all.filter(c=>inColour(CARDS[c.id], k)), left=cs.filter(c=>!inMain(c)).length;
-    return `<button class="divebtn${B.dive===k?' on':''}" data-dive="${k}" title="All ${COLNAME[k].toLowerCase()} cards and the lands that make ${COLNAME[k].toLowerCase()}, by mana value and type"><span class="pip" style="background:${PIPC[k]}">${k}</span><b>${COLNAME[k]}</b><small>${left}/${cs.length}</small></button>`; }).join('')}
+    return `<button class="divebtn${B.dive===k?' on':''}" data-dive="${k}" title="All ${COLNAME[k].toLowerCase()} and colourless cards and the lands that make ${COLNAME[k].toLowerCase()}, by mana value and type"><span class="pip" style="background:${PIPC[k]}">${k}</span><b>${COLNAME[k]}</b><small>${left}/${cs.length}</small></button>`; }).join('')}
     <span class="hint" style="font-size:11px">Cards still in the pool / all of that colour.</span></div>`;
 }
 function diveHTML(){
@@ -787,8 +789,9 @@ function diveHTML(){
   if(lands.length) g+=`<div class="rowh">Lands · ${lands.length}</div><div class="lands">${lands.map(tagged).join('')}</div>`;
   g+='</div>';
   return `<div id="dive" role="dialog" aria-label="${COLNAME[k]} cards"><header><h3><span class="pip" style="background:${PIPC[k]}">${k}</span>${COLNAME[k]} <span class="hint" style="font:600 13px var(--ui)">${cs.length} cards · ${inD} in your deck</span></h3>
+    <span class="dvsw" role="group" aria-label="Switch colour">${[...'WUBRG'].map(x=>`<button class="pipbtn${x===k?' on':''}" data-dive-to="${x}" aria-label="${COLNAME[x]}" title="${COLNAME[x]}"><span class="pip" style="background:${PIPC[x]}">${x}</span></button>`).join('')}</span>
     <span style="margin-left:auto"></span><button class="go" id="diveAdd"${left.length?'':' disabled'}>Bulk add ${left.length} to deck</button><button id="diveOut"${inD?'':' disabled'} title="Take every ${COLNAME[k].toLowerCase()} card shown here out of the deck">Take all out</button><button class="ghost" id="diveClose" aria-label="Close">Close ✕</button></header>
-    <div class="dvbody">${cs.length ? g : `<p class="empty">No ${COLNAME[k].toLowerCase()} cards or lands that make ${COLNAME[k].toLowerCase()} in this pool.</p>`}<p class="hint" style="margin:10px 0 0;font-size:12px">Hybrid and multicolour cards count for each of their colours. Click a card to move it in or out of the deck; green edge = in your deck.</p></div></div>`;
+    <div class="dvbody">${cs.length ? g : `<p class="empty">No ${COLNAME[k].toLowerCase()} cards or lands that make ${COLNAME[k].toLowerCase()} in this pool.</p>`}<p class="hint" style="margin:10px 0 0;font-size:12px">Hybrid and multicolour cards count for each of their colours; colourless cards show in every colour. Click a card to move it in or out of the deck; green edge = in your deck.</p></div></div>`;
 }
 function diveBulk(add){ const k=B.dive; for(const c of (V.pool||[])){ if(!inColour(CARDS[c.id], k)) continue; const i=B.side.indexOf(c.u); if(add && i>=0) B.side.splice(i,1); else if(!add && i<0) B.side.push(c.u); } saveBuild(); render();
   toast(add ? `Every ${COLNAME[k].toLowerCase()} card is in your deck. Cull from there.` : `${COLNAME[k]} cards taken out of your deck.`); }
@@ -846,6 +849,7 @@ $('#main').addEventListener('click', e=>{
     if(card && !t.closest('[data-tab]')) return;
   }
   const tb=t.closest('[data-tab]'); if(tb){ tabNow=tb.dataset.tab; render(); return; }
+  const dt=t.closest('[data-dive-to]'); if(dt){ B.dive=dt.dataset.diveTo; saveBuild(); hideZoom(); render(); return; }
   const dv=t.closest('[data-dive]'); if(dv){ B.dive = B.dive===dv.dataset.dive ? null : dv.dataset.dive; saveBuild(); hideZoom(); render(); return; }
   if(id==='diveClose'){ B.dive=null; saveBuild(); hideZoom(); render(); return; }
   if(id==='diveAdd'){ diveBulk(true); return; }
