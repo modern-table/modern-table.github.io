@@ -544,7 +544,7 @@ body.nomo *{transition:none!important}
     </div>
     <p id="lobbyMsg" style="color:var(--go)"></p>
     <p><a href="#" id="fbLink" style="color:var(--brass)">Send feedback</a> <span style="color:var(--dim)">· report a bug or suggest a change</span></p>
-    <p class="legal">Modern Table is unofficial Fan Content permitted under the <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Fan Content Policy</a>. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.<br>Card images and card data from <a href="https://scryfall.com/" target="_blank" rel="noopener">Scryfall</a>. Tournament decklists from <a href="https://www.mtggoldfish.com/" target="_blank" rel="noopener">MTGGoldfish</a>. Free to use, with no ads, and not affiliated with any of these sites.</p>
+    <p class="legal">Modern Table is unofficial Fan Content permitted under the <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Fan Content Policy</a>. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.<br>Card images and card data from <a href="https://scryfall.com/" target="_blank" rel="noopener">Scryfall</a>. Tournament decklists from <a href="https://www.mtggoldfish.com/" target="_blank" rel="noopener">MTGGoldfish</a>. Free to use, with no ads, and not affiliated with any of these sites.<br>Store names and logos belong to their stores. Players pick one to show where they play; Modern Table isn't affiliated with or endorsed by any of them.</p>
     </div>
     <aside class="news" id="news" aria-label="What's new"></aside>
   </div>
@@ -608,7 +608,7 @@ body.nomo *{transition:none!important}
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.88';
+const VERSION = 'v4.89';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -621,6 +621,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.89','Nov 4',"The notice at the bottom of the front page now says that store names and logos belong to their stores, and that Modern Table isn't affiliated with or endorsed by any of them."],
   ['v4.88','Nov 4',"Rep your local game store: on the front page, under your name, pick your store from Affiliation (or No affiliation). Its logo shows beside your name at the table, and both players' logos, stores and decks show on the banner before each game. The tour has a new stop for it."],
   ['v4.87','Nov 3',"The turn menu now opens with the pause choices, right at the top instead of under Pause. Pausing on your own next upkeep works in practice games too; pausing your opponent's upkeep or draw step is there at a table with a friend, even before the first turn."],
   ['v4.86','Nov 3',"The ☰ menu is shorter: this game (new game, change deck, concede), full screen, Settings, help, and Leave the table. All your settings (auto-draw, auto-pay, card menus, tapped cards, animations, streamer mode) are now in one Settings window. Click the turn name on the middle bar for the new turn menu: Pause moved there, with giving your opponent control and taking the turn. Shortcuts and help is now How the table works, with Explore the table: point at any part of the table to see what it is."],
