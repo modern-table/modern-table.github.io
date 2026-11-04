@@ -146,6 +146,29 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .pane.over{border-color:var(--brass);box-shadow:inset 0 0 0 2px #e0a66a66}
 #ghost{position:fixed;z-index:85;pointer-events:none;width:var(--gw,110px);transform:translate(-50%,-30%) rotate(-3deg);opacity:.92}
 #ghost .c{width:100%}
+/* Colour dive (v0.17, Ben): a rail of colour buttons beside the pool; a colour opens a window with every card of that colour
+   (hybrid and multicolour included) and the lands that make it, by mana value across and type down, with Bulk add. */
+.poolwrap{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:16px;align-items:start}
+.diverail{display:flex;flex-direction:column;gap:6px;border-left:1px solid var(--line);padding-left:14px;position:sticky;top:8px}
+.diverail .sec{margin:0 0 2px}
+.divebtn{display:flex;align-items:center;gap:8px;text-align:left;padding:6px 8px;background:#5d382b}
+.divebtn b{flex:1;font-weight:700}.divebtn small{color:var(--dim);font-variant-numeric:tabular-nums}
+.divebtn.on{border-color:var(--brass);background:#6e4334}
+.pip{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;font:800 10px/1 var(--ui);color:#1b120e;box-shadow:inset 0 0 0 1px #0007;flex:none}
+#dive{position:fixed;z-index:70;top:calc(64px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));width:min(1120px,calc(100vw - 260px));max-height:calc(100vh - 88px);display:flex;flex-direction:column;background:var(--felt2);border:1px solid var(--brass);border-radius:10px;box-shadow:0 18px 50px #000b}
+#dive header{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--rail);border-radius:10px 10px 0 0}
+#dive header h3{font-size:22px;display:flex;gap:8px;align-items:center}
+#dive .dvbody{overflow:auto;padding:12px 14px 16px;--w:clamp(76px,6.2vw,112px)}
+.dvgrid{display:grid;grid-template-columns:auto repeat(7,var(--w));gap:8px 10px;align-items:start}
+.dvgrid .rowh{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;align-self:stretch;padding:4px 0;border-right:1px solid var(--line);padding-right:4px}
+.dvgrid .colh{margin:0}
+.dvgrid .cell{min-height:20px}
+.dvgrid .lands{grid-column:2 / -1;display:flex;flex-wrap:wrap;gap:8px}
+.dvgrid .lands .c{width:var(--w)}
+.c.indk{box-shadow:0 0 0 2px var(--good),0 2px 6px #0008}
+.c.indk .tag,.c.promo.indk .tag{color:var(--good);background:#000c;border:0}
+#dive .empty{color:var(--dim);padding:6px 0}
+@media (max-width:760px){ .poolwrap{grid-template-columns:1fr} .diverail{border-left:0;padding-left:0;position:static;flex-direction:row;flex-wrap:wrap} #dive{left:8px;right:8px;width:auto;top:8px;max-height:calc(100vh - 16px)} .dvgrid{grid-template-columns:auto repeat(7,72px)} }
 @media (prefers-reduced-motion:reduce){ .fan .c{animation:none} .cardback.ready{animation:none} .pk{transition:none} }
 @media (max-width:760px){ .regions{--w:76px} .pk{width:58px;height:104px} .kitbox{height:104px} .promo .c,.cardback{width:70px} .kitside{margin-left:0;align-items:flex-start} .body{grid-template-columns:1fr} #rail{border-right:0;border-bottom:1px solid var(--line);max-height:26vh} .panes{grid-template-columns:1fr} .grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))} }
 </style>
@@ -180,7 +203,7 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 <script src="../src/peerjs.min.js"></script>
 <script>
 "use strict";
-const VERSION = 'v0.16';
+const VERSION = 'v0.17';
 // Only the sets and cube whose cards the Modern Table plays fully (2026-10-23); the other set files stay in draft/sets for later.
 const READY = ['fra','fin','mh2','mh1','ktk','df07'];
 const SETS_ALL = /*__SETS__*/[];
@@ -682,8 +705,8 @@ function buildHTML(host, me){
     h+=`<div class="bar"><h3>${total} cards</h3><span class="hint">${deck.length} from your picks + ${lt} basic land${lt===1?'':'s'}${total<40?' · a draft deck needs at least 40':''}</span><span style="margin-left:auto"></span><button id="saveBtn">Save to my Modern Table decks</button><button id="copyBtn">Copy list</button></div>
       <div class="lands"><label class="bart" title="The art your basic lands use on the Modern Table. It's the same setting as the Basic lands box on the Modern Table's deck screen.">Basic land art<select id="bartSel">${BASIC_ART.map(x=>`<option value="${x.k}"${x.k===basicPref()?' selected':''}>${esc(x.n)}</option>`).join('')}</select></label>${LANDS.map(([k,n])=>`<span class="land">${landArtImg(n)?`<span class="lart" style="background-image:url('${landArtImg(n)}')"></span>`:''}${n}<button class="sm" data-land="${n}" data-d="-1" aria-label="Remove a ${n}">−</button><b>${B.lands[n]||0}</b><button class="sm" data-land="${n}" data-d="1" aria-label="Add a ${n}">+</button></span>`).join('')}<button id="sugBtn">Suggest lands</button></div>
       <div class="pane" data-zone="deck"><div class="bar"><h3>Deck</h3><span class="hint">${sealed ? 'drag cards up from your pool, or click them · click a card here to take it out' : 'click a card to take it out'}</span></div>${regionsHTML(deck, lt) || (sealed ? '<p class="hint">Your deck is empty. Drag cards up from your pool, or click them.</p>' : '<p class="hint">Everything is in the sideboard. Click cards below to put them back in your deck.</p>')}</div>
-      ${sealed ? `<div class="pane" data-zone="side"><div class="bar"><h3>Pool</h3><span class="hint">${side.length} card${side.length===1?'':'s'} · drag or click a card to add it to your deck</span><span style="margin-left:auto"></span>${grpSelHTML()}</div>${pilesHTML(side, B.grp) || '<p class="hint">Every card is in your deck.</p>'}</div>`
-      : `<div class="pane" data-zone="side"><div class="bar"><h3>Sideboard</h3><span class="hint">${side.length} card${side.length===1?'':'s'} · click a card to add it to your deck</span></div>${regionsHTML(side, 0) || '<p class="hint">Empty. Click a card in your deck to move it here.</p>'}</div>`}`;
+      ${sealed ? `<div class="pane" data-zone="side"><div class="bar"><h3>Pool</h3><span class="hint">${side.length} card${side.length===1?'':'s'} · drag or click a card to add it to your deck</span><span style="margin-left:auto"></span>${grpSelHTML()}</div><div class="poolwrap"><div>${pilesHTML(side, B.grp) || '<p class="hint">Every card is in your deck.</p>'}</div>${diveRailHTML()}</div></div>`
+      : `<div class="pane" data-zone="side"><div class="bar"><h3>Sideboard</h3><span class="hint">${side.length} card${side.length===1?'':'s'} · click a card to add it to your deck</span></div><div class="poolwrap"><div>${regionsHTML(side, 0) || '<p class="hint">Empty. Click a card in your deck to move it here.</p>'}</div>${diveRailHTML()}</div></div>`}${diveHTML()}`;
   } else {
     if(!T){ const wait=V.seats.filter(s=>!s.bot && !s.ready).map(s=>s.name);
       h+=`<p class="hint" style="margin:0">${wait.length ? 'Still building: '+esc(wait.join(', '))+'.' : 'Everyone is ready.'}</p>${host ? `<div><button class="go" id="roundBtn">Start round 1</button></div>` : '<p class="hint" style="margin:0">The host starts round 1 when everyone is ready.</p>'}`;
@@ -728,6 +751,47 @@ const GROUPS={
   mv:    { label:'Mana value', order:['0','1','2','3','4','5','6','7+','L'], key:d=>isLandCard(d)?'L':((d.cmc||0)>=7?'7+':String(Math.floor(d.cmc||0))), name:k=>k==='L'?'Lands':k+' mana' },
   type:  { label:'Card type', order:['Creature','Planeswalker','Instant','Sorcery','Artifact','Enchantment','Battle','Land'], key:d=>{ const t=d.t.split(' // ')[0]; return ['Land','Creature','Planeswalker','Battle','Instant','Sorcery','Artifact','Enchantment'].find(x=>t.includes(x))||'Artifact'; }, name:k=>k },
   rarity:{ label:'Rarity', order:['mythic','rare','special','uncommon','common'], key:d=>['mythic','rare','special','uncommon'].includes(d.r)?d.r:'common', name:k=>({mythic:'Mythic rare',rare:'Rare',special:'Special',uncommon:'Uncommon',common:'Common'})[k] }};
+/* ---------- Colour dive (v0.17) ---------- */
+const PIPC={W:'#f8f3d8',U:'#8fc1ea',B:'#a39a98',R:'#ec8c6a',G:'#7fbf73'};
+const BASICT={W:'Plains',U:'Island',B:'Swamp',R:'Mountain',G:'Forest'};
+/* What colours a land can make: basic land types, "Add {…}" (hybrid and choices included) and "any color". */
+function landMakes(d){
+  const out=new Set(), t=d.t||'', o=d.o||'';
+  for(const k of 'WUBRG') if(new RegExp('\\b'+BASICT[k]+'\\b').test(t.split(' // ').pop())) out.add(k);
+  if(/mana of any (one )?colou?r|any colou?r/i.test(o)) for(const k of 'WUBRG') out.add(k);
+  for(const m of o.matchAll(/\badd ([^.\n]*)/gi)) for(const sym of m[1].matchAll(/\{([^}]+)\}/g)) for(const k of 'WUBRG') if(sym[1].includes(k)) out.add(k);
+  return out;
+}
+/* A card belongs to a colour if it is that colour (hybrid and gold cards count for each of theirs), or is a land that makes it. */
+function inColour(d, k){ if(!d) return false; if(isLandCard(d)) return landMakes(d).has(k); return d.c.includes(k); }
+function diveRailHTML(){
+  const all=V.pool||[];
+  return `<div class="diverail"><div class="sec">Colour dive</div>${[...'WUBRG'].map(k=>{ const cs=all.filter(c=>inColour(CARDS[c.id], k)), left=cs.filter(c=>!inMain(c)).length;
+    return `<button class="divebtn${B.dive===k?' on':''}" data-dive="${k}" title="All ${COLNAME[k].toLowerCase()} cards and the lands that make ${COLNAME[k].toLowerCase()}, by mana value and type"><span class="pip" style="background:${PIPC[k]}">${k}</span><b>${COLNAME[k]}</b><small>${left}/${cs.length}</small></button>`; }).join('')}
+    <span class="hint" style="font-size:11px">Cards still in the pool / all of that colour.</span></div>`;
+}
+function diveHTML(){
+  const k=B.dive; if(!k || !'WUBRG'.includes(k)) return '';
+  const cs=(V.pool||[]).filter(c=>inColour(CARDS[c.id], k)), left=cs.filter(c=>!inMain(c)), inD=cs.length-left.length;
+  const kind=c=>{ const d=CARDS[c.id]; return !d ? 1 : isLandCard(d) ? 2 : /\bCreature\b/.test(d.t.split(' // ')[0]) ? 0 : 1; };
+  const mvk=c=>{ const v=Math.floor((CARDS[c.id]||{}).cmc||0); return v<=1 ? 0 : Math.min(v,7)-1; };
+  const MV=['0–1','2','3','4','5','6','7+'];
+  const tagged=c=>{ const h=cardHTML(c, inMain(c)?'indk':''); return inMain(c) ? h.replace(/<span class="tag">[^<]*<\/span>/, '').replace(/<\/div>$/, '<span class="tag">IN DECK</span></div>') : h; };
+  let g=`<div class="dvgrid"><span></span>${MV.map(m=>`<div class="colh">${m}</div>`).join('')}`;
+  for(const [label,kk] of [['Creatures',0],['Non-creature spells',1]]){
+    const row=cs.filter(c=>kind(c)===kk); if(!row.length) continue;
+    g+=`<div class="rowh">${label} · ${row.length}</div>`;
+    for(let i=0;i<7;i++){ const cell=row.filter(c=>mvk(c)===i).sort(byColour); g+=`<div class="cell"><div class="col">${cell.map(tagged).join('')}</div></div>`; }
+  }
+  const lands=cs.filter(c=>kind(c)===2).sort(byColour);
+  if(lands.length) g+=`<div class="rowh">Lands · ${lands.length}</div><div class="lands">${lands.map(tagged).join('')}</div>`;
+  g+='</div>';
+  return `<div id="dive" role="dialog" aria-label="${COLNAME[k]} cards"><header><h3><span class="pip" style="background:${PIPC[k]}">${k}</span>${COLNAME[k]} <span class="hint" style="font:600 13px var(--ui)">${cs.length} cards · ${inD} in your deck</span></h3>
+    <span style="margin-left:auto"></span><button class="go" id="diveAdd"${left.length?'':' disabled'}>Bulk add ${left.length} to deck</button><button id="diveOut"${inD?'':' disabled'} title="Take every ${COLNAME[k].toLowerCase()} card shown here out of the deck">Take all out</button><button class="ghost" id="diveClose" aria-label="Close">Close ✕</button></header>
+    <div class="dvbody">${cs.length ? g : `<p class="empty">No ${COLNAME[k].toLowerCase()} cards or lands that make ${COLNAME[k].toLowerCase()} in this pool.</p>`}<p class="hint" style="margin:10px 0 0;font-size:12px">Hybrid and multicolour cards count for each of their colours. Click a card to move it in or out of the deck; green edge = in your deck.</p></div></div>`;
+}
+function diveBulk(add){ const k=B.dive; for(const c of (V.pool||[])){ if(!inColour(CARDS[c.id], k)) continue; const i=B.side.indexOf(c.u); if(add && i>=0) B.side.splice(i,1); else if(!add && i<0) B.side.push(c.u); } saveBuild(); render();
+  toast(add ? `Every ${COLNAME[k].toLowerCase()} card is in your deck. Cull from there.` : `${COLNAME[k]} cards taken out of your deck.`); }
 const grpSelHTML = () => `<label class="bart" for="grpSel">Sort by<select id="grpSel">${Object.entries(GROUPS).map(([k,g])=>`<option value="${k}"${k===B.grp?' selected':''}>${g.label}</option>`).join('')}</select></label>`;
 /* A sealed pool sorted the way players lay one out at a prerelease: a pile per colour (or mana value, type, rarity), cheapest first, creatures first. */
 function pilesHTML(cards, grp){
@@ -782,6 +846,11 @@ $('#main').addEventListener('click', e=>{
     if(card && !t.closest('[data-tab]')) return;
   }
   const tb=t.closest('[data-tab]'); if(tb){ tabNow=tb.dataset.tab; render(); return; }
+  const dv=t.closest('[data-dive]'); if(dv){ B.dive = B.dive===dv.dataset.dive ? null : dv.dataset.dive; saveBuild(); hideZoom(); render(); return; }
+  if(id==='diveClose'){ B.dive=null; saveBuild(); hideZoom(); render(); return; }
+  if(id==='diveAdd'){ diveBulk(true); return; }
+  if(id==='diveOut'){ diveBulk(false); return; }
+  if(card && card.closest('#dive')){ toggleSide(+card.dataset.u); return; }
   if(card && card.closest('[data-zone]')){ if(Date.now()-DRAG.end < 250) return; toggleSide(+card.dataset.u); return; }
   const lb=t.closest('[data-land]'); if(lb){ const n=lb.dataset.land; B.lands[n]=Math.max(0, (B.lands[n]||0)+(+lb.dataset.d)); saveBuild(); render(); return; }
   if(id==='sugBtn'){ suggestLands(); return; }
@@ -816,6 +885,7 @@ document.addEventListener('pointerup', e=>{ const d=DRAG.on; DRAG.on=null; if(!d
   d.g.remove(); d.el.style.opacity=''; DRAG.end=Date.now(); $$('#main [data-zone]').forEach(p=>p.classList.remove('over'));
   const z=dragZone(e.clientX, e.clientY); if(z && z.dataset.zone!==d.from) toggleSide(d.u);
 });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && B && B.dive && $('#dive')){ B.dive=null; saveBuild(); hideZoom(); render(); } });
 document.addEventListener('dragstart', e=>{ if(e.target.closest && e.target.closest('#main .c')) e.preventDefault(); });
 $('#rail').addEventListener('click', e=>{ const b=e.target.closest('[data-force]'); if(!b || ROLE!=='host') return; const i=+b.dataset.force, s=H.seats[i]; if(s && s.queue.length){ doPick(i, choice(s).u); pump(); sync(); } });
 $('#codePill').onclick=()=>{ if(navigator.clipboard) navigator.clipboard.writeText(CODE).then(()=>toast('Code copied'), ()=>{}); };
