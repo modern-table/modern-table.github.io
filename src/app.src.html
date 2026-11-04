@@ -608,7 +608,7 @@ body.nomo *{transition:none!important}
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.92';
+const VERSION = 'v4.93';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -621,6 +621,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.93','Nov 4',"Left-clicking a planeswalker you control (the Jace token too) opens its loyalty abilities, including any that other cards give it, like the Ways' abilities from Reality Fracture."],
   ['v4.92','Nov 4',"A little more space between the notices at the bottom of the front page, so they're easier to read."],
   ['v4.91','Nov 4',"The store logo next to Affiliation on the front page has the same thin gold edge as the one beside your name at the table."],
   ['v4.90','Nov 4',"The store logo beside your name at the table now has a thin gold edge instead of a thick one."],
@@ -4874,8 +4875,7 @@ function landBanner(lt){
 function abilitiesOf(c){
   if(c.fd || (!c.k && !c.cu)) return []; const out=[], nm=faceName(c,c.flip?1:0), pw=isPW(c);
   if(isLand(c)){ const lt=landTypes(c, G.me.bf.some(x=>x.id===c.id) ? G.myId : oppId(), landEffects()); if(lt && lt.main) return isSaga(c) ? sagaGained(c).filter(a=>!/^add\b/i.test(a.eff)) : []; }
-  const push=(cost,eff)=>{ cost=cost.trim(); eff=eff.trim(); if(!cost || !eff || /^add\b/i.test(eff) || /\bthis card\b/i.test(cost) || /\bempower Jace\b/i.test(eff)) return; if(!out.some(a=>a.cost===cost && a.eff===eff)) out.push({cost, eff}); };
-  for(const a of grantedPwAbils(c)) push(a.cost, a.eff);
+  const push=(cost,eff,from)=>{ cost=cost.trim(); eff=eff.trim(); if(!cost || !eff || (/^add\b/i.test(eff) && !(pw && /^[+−-]?(\d+|X)$/.test(cost))) || /\bthis card\b/i.test(cost) || /\bempower Jace\b/i.test(eff)) return; if(!out.some(a=>a.cost===cost && a.eff===eff)) out.push(from ? {cost, eff, from} : {cost, eff}); };   // v4.93: a loyalty ability that adds mana isn't a mana ability, so it is listed (Way of the Pyromancer's +1)
   for(let line of frontText(c).split('\n')){
     line=line.trim(); let m;
     if(!line.includes(':') && (m=line.replace(/^[A-Z][A-Za-z' ]{1,30} — (?=(?:Equip|Crew|Reconfigure|Fortify)\b)/,'').match(/^(Equip|Crew|Reconfigure|Fortify)\b\s*(?:—\s*)?(.+)$/))){ out.push({cost:m[2].trim(), eff:m[1], kw:true}); continue; }
@@ -4887,6 +4887,7 @@ function abilitiesOf(c){
     const cost=m[1].trim(), loy=/^[+−-]?(\d+|X)$/.test(cost);
     if(loy ? pw : (/\{[^}]+\}/.test(cost) || /^(Sacrifice|Discard|Pay|Remove|Exile|Tap|Untap|Return|Reveal|Put|Exert|Forage|Collect evidence)\b/i.test(cost))) push(cost, m[2]);
   }
+  for(const a of grantedPwAbils(c)) push(a.cost, a.eff, a.from);   // its own abilities first, then those other cards give it (v4.93)
   return out;
 }
 const abText = a => a.kw ? a.eff+' '+a.cost : a.cost+': '+a.eff;
@@ -5694,6 +5695,9 @@ function toggleTap(id, x, y){
   if(convokeTap(c)) return;
   if(!c.fd && sacManaOf(c)){ const a=sacManaOf(c); if(x==null){ const el=$(`#table .card[data-id="${id}"]`), r=el?el.getBoundingClientRect():{left:200,top:200,width:0}; x=r.left+r.width/2; y=r.top+20; } menu(x, y, [[`Sacrifice it: add ${[...a.out].map(k=>'{'+k+'}').join('')}`, ()=>sacForMana(id)], '-', [c.tap?'Untap':'Tap', ()=>{ if(c.tap) untapCard(c); else c.tap=true; changed(); }]]); return; }
   if(c.tap){ if(c.mt && manaUntap(c)) return; untapCard(c); changed(); return; }
+  if(x!=null && !c.fd && isPW(c) && !isCreature(c)){ const abs=abilitiesOf(c);   // v4.93 (Ben): a click on a planeswalker (the Jace token too) opens its loyalty abilities, its own and those other cards give it; T still taps
+    if(abs.length){ const lbl=a=>{ const t=abText(a); return (t.length>70 ? t.slice(0,68)+'…' : t)+(a.from ? `  (${a.from})` : ''); };
+      menu(x, y, [...abs.map(a=>[lbl(a), ()=>activate(id, a)]), '-', ['Tap', ()=>{ c.tap=true; changed(); }]]); return; } }
   if(x!=null && !c.fd && isLand(c)){ const fe=abilitiesOf(c).filter(a=>fetchOf(a));   // v4.63: clicking a fetch land asks: Fetch, its mana if something gives it some (Urborg, Yavimaya, Leyline of the Guildpact), or tap it for nothing; clicking elsewhere closes
     if(fe.length){ const mana=manaAbilities(c).map(a=>[abilityLabel(a), ()=>{ if(useAbility(c,a)) changed(); }]);
       menu(x, y, [...fe.map(a=>[abLabel(a), ()=>activate(id,a)]), ...mana, '-', [mana.length ? 'Tap without adding mana' : 'Tap (no mana)', ()=>{ c.tap=true; changed(); }]]); return; } }
