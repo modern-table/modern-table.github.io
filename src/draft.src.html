@@ -167,7 +167,7 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 #dive header h3{font-size:22px;display:flex;gap:8px;align-items:center}
 #dive .dvbody{overflow:auto;padding:12px 14px 16px;--w:clamp(76px,6.2vw,112px)}
 .dvgrid{display:grid;grid-template-columns:min-content repeat(7,var(--w));justify-content:start;gap:8px 10px;align-items:start}
-.dvgrid .rowh{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;align-self:stretch;padding:4px 0;border-right:1px solid var(--line);padding-right:4px}
+.dvgrid .rowh{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);writing-mode:vertical-rl;transform:rotate(180deg);text-align:end;align-self:stretch;padding:4px 0;border-right:1px solid var(--line);padding-right:4px}
 .dvgrid .colh{margin:0}
 .dvgrid .cell{min-height:20px}
 .dvgrid .lands{grid-column:2 / -1;display:flex;flex-wrap:wrap;gap:8px}
@@ -215,9 +215,10 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 <script src="../src/peerjs.min.js"></script>
 <script>
 "use strict";
-const VERSION = 'v0.22';
+const VERSION = 'v0.23';
 /* What's new on the front page (v0.19, like the Modern Table's NEWS): newest first, written for players. Add a line with every version bump. */
 const DNEWS = [
+  ['v0.23','Nov 4',"Color dive: the row labels (Creatures, Non-creature spells, Lands) start at the top of their rows."],
   ['v0.22','Nov 4',"The color dive buttons sit a little lower, with more room under the Sort by menu."],
   ['v0.21','Nov 4',"Color dive: the color buttons beside your pool are mana symbols too, and the Draft Table now spells color the American way."],
   ['v0.20','Nov 4',"Color dive: the cards line up from the left edge of the window, and the color buttons in the window are mana symbols."],
