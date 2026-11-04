@@ -60,7 +60,7 @@ def load_db(draft):
 
 JS = r"""(items) => {
   const m = G.me, opp = G.opp, out = [];
-  m.bf = []; m.gy = []; m.hand = []; m.cast = {n:1, is:1, nc:1}; if(opp){ opp.bf = []; opp.cast = {n:1, is:1, nc:1}; }
+  m.bf = []; m.gy = []; m.hand = []; m.cast = {n:1, is:1, nc:1}; m.drn = {t:G.turn.n, n:1}; if(opp){ opp.bf = []; opp.cast = {n:1, is:1, nc:1}; opp.drn = {t:G.turn.n, n:1}; }
   const card = f => mk(null, {cu:{n:f.n, t:f.t, o:f.o, mc:f.mc||'', pt:f.pt||''}});
   const anchored = fn => [...String(fn).matchAll(/\/\^((?:[^\/\\\n]|\\.)+)\$\//g)].map(x=>{ try{ return new RegExp('^'+x[1]+'$', 'i'); }catch(e){ return null; } }).filter(Boolean);
   const abilPhr = anchored(abilLess);
@@ -69,10 +69,11 @@ JS = r"""(items) => {
   for(const x of src.matchAll(/\/((?:\\.|\[(?:\\.|[^\]\n])*\]|[^\/\n\[\\])+)\/([gimsuy]*)/g)){ if(!/cost/i.test(x[1]) || !/less|more/.test(x[1])) continue;
     if(x[1].replace(/\\.|\[[^\]]*\]|\([^)]*\|[^)]*\)/g, '').replace(/[^a-z]/gi, '').length < 35) continue;   /* generic detectors ("costs {N} (less|more) to cast") are not handlers */
     try{ lits.push(new RegExp(x[1], x[2].replace(/g/g,'')||'i')); }catch(e){} }
-  const litHit = s => { const t = s.replace(/^[+−\-]?(?:\d+|X):\s*/, ''); return lits.find(re => re.test(t) || re.test(t.toLowerCase())); };
+  let LINE = '';   /* the whole printed line the sentence came from: some handlers read two sentences at once (Zirda) */
+  const litHit = s => { const t = s.replace(/^[+−\-]?(?:\d+|X):\s*/, ''), L = LINE.replace(/^[+−\-]?(?:\d+|X):\s*/, ''); return lits.find(re => re.test(t) || re.test(t.toLowerCase()) || re.test(L)); };
   for(const it of items){
-    const c = card(it); c.lvl = 9; const sents = it.o.replace(/\([^)]*\)/g, '').split(/\n|(?<=\.)\s+(?=[A-Z{+−])/).map(s=>s.trim()).filter(Boolean);
-    for(const s0 of sents){
+    const c = card(it); c.lvl = 9; const sents = it.o.replace(/\([^)]*\)/g, '').split('\n').flatMap(l=>l.split(/(?<=\.)\s+(?=[A-Z{+−])/).map(s=>({s:s.trim(), l:l.trim()}))).filter(x=>x.s);
+    for(const {s:s0, l} of sents){ LINE = l;
       const s = s0.replace(/^(?!This\b)[A-Z][\w'’ -]{1,30} — (?=This spell|This ability)/, '');   // ability word: "Domain — This spell costs …"
       let r = null, q;
       const res = (ok, how) => { r = {card: it.card, face: it.n, line: s, ok, how}; };

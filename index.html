@@ -616,7 +616,7 @@ body.nomo *{transition:none!important}
 </script>
 <script>
 "use strict";
-const VERSION = 'v4.94';
+const VERSION = 'v4.95';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -629,6 +629,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.95','Nov 4',"Casting a prepared creature's spell (Emergency Phytomedic's Seed Suture and the rest) now asks for its target right away, like any spell you cast; so do other copies you cast, one after another when there are several (Esc for no target). Cost cuts that weren't counted now are: Ghostfire Blade's equip onto a colorless creature, Zirda, the Dawnwaker (never below one mana), Heliod, the Warped Eclipse (for each card your opponents drew this turn), and Firion, Wild Rose Warrior, whose token copies of your Equipment now appear, with cheaper equip, and are sacrificed at the next upkeep."],
   ['v4.94','Nov 4',"Cost reductions the table missed now count: Ghalta the Unstoppable (greatest power among your creatures) and Ghalta the Immovable (greatest toughness), plus Traxos, Academy Guardian, Wrath of the Bloodmane and Igneous Elemental when their condition is met. Thrasta, Tempest's Roar and Valiant Changeling now count too. With Ghalta the Immovable out, your creatures with more toughness than power deal combat damage equal to their toughness."],
   ['v4.93','Nov 4',"Left-clicking a planeswalker you control (the Jace token too) opens its loyalty abilities, including any that other cards give it, like the Ways' abilities from Reality Fracture."],
   ['v4.92','Nov 4',"A little more space between the notices at the bottom of the front page, so they're easier to read."],
@@ -1418,7 +1419,7 @@ function turnCleanup(prev, next){
   if(next.phase===5 && prev.phase!==5 && sacEndTrig()) ch=true;   // first, so it sits under the other end-step triggers
   if(warpTrig(prev, next)) ch=true;   // v4.65: warp's delayed trigger, also under the step's other triggers
   if(next.n===prev.n && next.phase!==prev.phase && !next.passed){ if(next.phase===3 && prev.phase<3 && next.active===G.myId && phaseTrigs('combat', true)) ch=true; if(next.phase===5 && prev.phase!==5 && phaseTrigs('end', next.active===G.myId)) ch=true; }
-  if(G.opp && next.n && next.active!==G.myId && !next.passed){ const ot=m.oppT||(m.oppT={}); if(ot.up!==next.n){ ot.up=next.n; if(oppPhase('up')) ch=true; } if(next.phase>=1 && ot.dr!==next.n){ ot.dr=next.n; if(oppPhase('dr')) ch=true; } }
+  if(G.opp && next.n && next.active!==G.myId && !next.passed){ const ot=m.oppT||(m.oppT={}); if(ot.up!==next.n){ ot.up=next.n; if(oppPhase('up')) ch=true; if(upkSacTick(true, next.n)) ch=true; } if(next.phase>=1 && ot.dr!==next.n){ ot.dr=next.n; if(oppPhase('dr')) ch=true; } }
   if(next.active===G.myId && next.phase===2 && prev.phase<2 && next.n===prev.n) setTimeout(paradigmAsk, 0);
   if(next.active===G.myId && next.phase===2 && prev.phase<2 && next.n===prev.n && !next.passed && main1Trigs()) ch=true;
   if(next.active===G.myId && next.phase===4 && prev.phase!==4 && next.n===prev.n && !next.passed && phaseTrigs('main2', true)) ch=true;   // v4.79: "At the beginning of each of your postcombat main phases" (Sorin of House Markov)
@@ -2019,9 +2020,9 @@ function satoruNote(c){ const z=ZLOG.slice().reverse().find(e=>e.c===c || (e.c &
 function othersEnter(c){ const out=[], cr=isCreature(c), art=/\bArtifact\b/.test(faceType(c)), pw=isPW(c); if(!cr && !art && !pw) return out;
   for(const x of G.me.bf){ if(x.fd || (!x.k && !x.cu)) continue; const nm=faceName(x,0), sn=nm.split(',')[0];
     const m=(frontText(x)||'').match(new RegExp('Whenever (?:(this creature|'+escRe(nm)+'|'+escRe(sn)+') or )?another (nontoken creature|creature or artifact|creature or planeswalker|creature|artifact) you control enters(?: the battlefield)?, ([^\\n]+)','i'))
-      || (x.id!==c.id && (frontText(x)||'').match(/Whenever an? ()(nontoken artifact|nontoken creature|creature or artifact|artifact|creature) you control enters(?: the battlefield)?, ([^\n]+)/i)); if(!m) continue;
-    const self=x.id===c.id; if(self && !m[1]) continue; if(!self && !((/creature/i.test(m[2]) && cr) || (/artifact/i.test(m[2]) && art) || (/planeswalker/i.test(m[2]) && pw))) continue; if(/nontoken/i.test(m[2]) && c.tok) continue;
-    out.push(()=>{ const d=cdata(x); G.me.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:x.id, tr:true}, cu:{n:`${sn}: trigger`, t:'Triggered ability', o:m[0], img:d.img||''}})); }); }
+      || (x.id!==c.id && (frontText(x)||'').match(/Whenever an? ()(nontoken Equipment|nontoken artifact|nontoken creature|creature or artifact|artifact|creature) you control enters(?: the battlefield)?, ([^\n]+)/i)); if(!m) continue; if(/equipment/i.test(m[2]) && !/\bEquipment\b/.test(faceType(c))) continue;
+    const self=x.id===c.id; if(self && !m[1]) continue; if(!self && !((/creature/i.test(m[2]) && cr) || (/artifact/i.test(m[2]) && art) || (/planeswalker/i.test(m[2]) && pw) || (/equipment/i.test(m[2]) && /\bEquipment\b/.test(faceType(c))))) continue; if(/nontoken/i.test(m[2]) && c.tok) continue;
+    out.push(()=>{ const d=cdata(x); G.me.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:x.id, tr:true, ent:c.id}, cu:{n:`${sn}: trigger`, t:'Triggered ability', o:m[0], img:d.img||''}})); }); }
   return out; }
 /* "Whenever you attack, …" (once per combat; Guide of Souls asks for energy only when there is enough) and delayed "whenever you attack this turn" (Dalkovan Encampment) */
 function youAttack(){ const m=G.me; if(m.atkC===G.turn.n) return; m.atkC=G.turn.n; const out=[];
@@ -2889,8 +2890,10 @@ async function stationIt(id){ const f=find(id); if(!f || f.z!=='bf') return; con
 const prepSpell = c => { const fs=splitFaces(c); return cdata(c).lay==='prepare' && fs[1] ? {n:fs[1].n, o:fs[1].o, mc:((cdata(c).mc||'').split(' // ')[1]||''), t:((cdata(c).t||'').split(' // ')[1]||'Sorcery').trim()} : null; };
 /* a copy cast onto the stack (prepared spells, paradigm): counted as a cast, and "whenever you cast" triggers (prowess) see it */
 function copyCast(cp){ noteCast(cp); castTriggers(cp); castTrigs(cp); }
+/* v4.95: a copy cast onto the stack that needs a target waits for it (cp.tq); autoArm starts the arrow once no window or pay panel is open, one copy after another; Esc = no target (cp.nt) */
+function copyTq(cp){ const tx=stackText(cp)||cdata(cp).o||''; if(needsTarget(tx) && !HANDRE.test(tx)) cp.tq=1; return cp; }
 function castPrepared(id){ const f=find(id); if(!f || f.z!=='bf' || !f.c.prep) return; const c=f.c, sp=prepSpell(c); if(!sp) return;
-  const go=pd=>{ const g=find(id); if(!g || !g.c.prep) return; delete g.c.prep; const cp=mk(null,{tok:true, ts:Date.now(), cu:{n:sp.n, t:sp.t, o:sp.o, mc:sp.mc, img:cdata(c).img||''}}); G.me.st.push(cp); copyCast(cp); log(`${G.me.name} casts a copy of ${sp.n} from ${cname(c)} (${sp.mc||'free'}); it is no longer prepared.`); changed(); };
+  const go=pd=>{ const g=find(id); if(!g || !g.c.prep) return; delete g.c.prep; const cp=mk(null,{tok:true, ts:Date.now(), cu:{n:sp.n, t:sp.t, o:sp.o, mc:sp.mc, img:cdata(c).img||''}}); G.me.st.push(copyTq(cp)); copyCast(cp); log(`${G.me.name} casts a copy of ${sp.n} from ${cname(c)} (${sp.mc||'free'}); it is no longer prepared.`); changed(); };
   if(sp.mc && autoPayOn()) payFor(normSyms(costSyms(sp.mc)), {abil:true, card:c, id, from:'bf'}, {title:`Cast a copy of ${sp.n}`, verb:'cast', done:go}); else { if(sp.mc){ const cv=pactCover(sp.mc); if(cv.all) payCost(cv.syms.join(',')); } go(); } }
 const devotionTo = (cols, side) => { let n=0; for(const x of (side&&side.bf)||[]){ if(x.fd || (!x.k && !x.cu)) continue; for(const mm of (cdata(x).mc||'').matchAll(/\{([^}]+)\}/g)){ if(mm[1].split('/').some(k=>cols.includes(k))) n++; } } return n; };
 const devoNot = c => { if(c.fd || (!c.k && !c.cu)) return false; const o=cdata(c).o||''; if(!/isn't a creature/i.test(o)) return false; const m=o.match(/As long as your devotion to (\w+)(?: and (\w+))? is less than (\w+), [^.]+? isn't a creature/i); if(!m) return false;
@@ -3251,7 +3254,7 @@ async function simpleEffects(c, text, srcId){
     if(/^you may copy the exiled card\.?$/i.test(sen)){ const e=srcC && srcC.impId ? find(srcC.impId) : null; if(!(e && e.z==='ex')){ log(`${by}: no card is exiled with it.`); didIt=false; continue; }
       waited=true; didIt=await yesNo(by, `Copy ${cname(e.c)}?`, 'Copy it', "Don't"); if(didIt) G.copyOf=e.c; continue; }
     if(/^you may cast the copy without paying its mana cost\.?$/i.test(sen)){ const e=G.copyOf; G.copyOf=null; if(!e) continue; waited=true; if(!(await yesNo(by, `Cast the copy of ${cname(e)} without paying its mana cost?`, 'Cast it', "Don't"))){ log(`${by}: ${m.name} doesn't cast the copy.`); continue; }
-      const cp=mk(e.k, Object.assign({tok:true, ts:Date.now(), nm:1}, e.cu ? {cu:e.cu} : {})); m.st.push(cp); noteCast(cp); log(`${by}: ${m.name} casts a copy of ${cname(e)} without paying its mana cost.`); if(needsTarget(stackText(cp)||'')){ G.mode={type:'arrow', from:cp.id}; toast(`${cname(e)} (copy): click its target.`); } changed(); continue; }
+      const cp=mk(e.k, Object.assign({tok:true, ts:Date.now(), nm:1}, e.cu ? {cu:e.cu} : {})); m.st.push(cp); noteCast(cp); log(`${by}: ${m.name} casts a copy of ${cname(e)} without paying its mana cost.`); copyTq(cp); changed(); continue; }
     // Orim's Chant: "Target player can't cast spells this turn."
     if(/^target player can(?:'|’)t cast spells this turn\.?$/i.test(sen)){ const p=tg.find(x=>x==='p1'||x==='p2') || oppId(); if(p===G.myId){ m.lock={n:G.turn.n, by}; log(`${by}: ${m.name} can't cast spells this turn.`); } else { send({t:'lock', by, nc:false}); log(`${by}: ${G.opp?G.opp.name:'the opponent'} can't cast spells this turn.`); } changed(); continue; }
     // Beza: "… if an opponent controls more lands than you / has more life than you / controls more creatures / has more cards in hand"
@@ -3514,6 +3517,10 @@ async function simpleEffects(c, text, srcId){
     if(/^untap all lands you control\.?$/i.test(sen)){ let k=0; for(const x of m.bf) if(isLand(x) && x.tap){ x.tap=false; k++; } log(`${by}: ${m.name} untaps ${k} land${k===1?'':'s'}.`); changed(); continue; }
     if((r=sen.match(/^you may put an? (.+?) card from among them into your hand\.?$/i)) && G.lastMilled){ waited=true; const cs=G.lastMilled.map(i=>find(i)).filter(f=>f && f.z==='gy' && matchesDesc(f.c, r[1])).map(f=>f.c); G.lastMilled=null;
       if(!cs.length){ log(`${by}: no ${r[1]} card was milled.`); continue; } const p=await pickP(`${by}: you may put a ${r[1]} card from among them into your hand`, cs, "Don't"); if(p && find(p.id) && find(p.id).z==='gy'){ move(p.id,'hand',{silent:true}); log(`${by}: ${m.name} puts ${cname(p)} into their hand.`); changed(); } continue; }
+    if((r=sen.match(/^create a token that(?:'|’)s a copy of it, except it has "this equipment(?:'|’)s equip abilities cost \{(\d+)\} less to activate\.?"\.?(\s*sacrifice that token at the beginning of the next upkeep\.?)?$/i))){   /* v4.95: Firion, Wild Rose Warrior (the Equipment that entered is c.ab.ent) */
+      if(!r[2]) skipS.push(/^sacrifice that token at the beginning of the next upkeep\.?$/i); const f=c.ab && c.ab.ent && find(c.ab.ent); if(!f || f.z!=='bf'){ log(`${by}: the Equipment is no longer on the battlefield, so no copy is made.`); continue; }
+      const x=f.c, tk=mk(x.k,{tok:true, cu:x.cu, c:0}); tk.tokT=G.turn.n; tk.eqLess=+r[1]; tk.note=`Equip costs {${r[1]}} less`; tk.sacUp=G.turn.n||1; tk.sacUpAny=1; m.bf.push(tk); made=[tk];
+      log(`${by}: ${m.name} creates a token copy of ${cname(x)} whose equip abilities cost {${r[1]}} less. It is sacrificed at the beginning of the next upkeep.`); entered(tk); changed(); continue; }
     if((r=sen.match(/^create a token that(?:'|’)s a copy of target (?:nonlegendary )?(?:artifact or creature|creature|artifact) you control(, except it has haste|, except it(?:'|’)s an artifact in addition to its other types)?\.?$/i))){ made=[]; for(const t of tg){ const f=find(t); if(!f || f.z!=='bf'){ log(`${by}: the target is gone, so no copy is made.`); continue; } const x=f.c, tk=mk(x.k,{tok:true, cu:x.cu, c:0, sick:!!G.turn.n}); tk.tokT=G.turn.n; if(r[1] && /haste/i.test(r[1])){ tk.hst=G.turn.n||1; tk.sick=false; } if(r[1] && /artifact/i.test(r[1])) tk.bc={add:'Artifact', till:1e9}; m.bf.push(tk); made.push(tk); log(`${by}: ${m.name} creates a token that's a copy of ${cname(x)}${r[1] && /haste/i.test(r[1]) ? ', with haste' : ''}.`); entered(tk); } if(!tg.length) log(`${by}: no target was chosen.`); changed(); continue; }
     if(/^copy target instant or sorcery spell you control\.?$/i.test(sen)){ for(const t of tg){ const f=find(t); if(!f || f.z!=='st'){ log(`${by}: that spell is no longer on the stack.`); continue; } const x=f.c; m.st.push(mk(x.k, Object.assign({tok:true, ts:Date.now()}, x.md ? {md:x.md.slice()} : {}, x.x!=null ? {x:x.x} : {}))); log(`${by}: ${m.name} copies ${cname(x)}. Right-drag from the copy to give it new targets.`); } if(!tg.length) log(`${by}: no target was chosen.`); changed(); continue; }
     if(/^you may choose new targets for the copy\.?$/i.test(sen)) continue;
@@ -4300,7 +4307,7 @@ async function simpleEffects(c, text, srcId){
         if(!all && !xs.length){ const cs=m.gy.filter(x=>x.id!==c.id && /\b(Instant|Sorcery)\b/.test(faceType(x))); waited=true; const p=cs.length ? await pickP(`${by}: exile an instant or sorcery card from your graveyard`, cs, 'None') : null; if(p) xs=[p]; }
         if(!xs.length){ log(`${by}: no instant or sorcery card was exiled.`); skipS.push(/^for each card exiled this way, copy it/i); continue; } if(m.gtg) m.gtg=m.gtg.filter(e=>e.s!==c.id);
         for(const x of xs) move(x.id,'ex',{silent:true}); log(`${by}: ${m.name} exiles ${xs.map(cname).join(', ')}.`); waited=true; const ok=await yesNo(by, `Cast ${xs.length===1?'the copy':'the '+xs.length+' copies'} without paying ${xs.length===1?'its mana cost':'their mana costs'}?`, 'Cast', "Don't");
-        if(ok) for(const x of xs){ const cp=mk(x.k, Object.assign({tok:true, ts:Date.now(), nm:1}, x.cu ? {cu:x.cu} : {})); m.st.push(cp); noteCast(cp); log(`${by}: ${m.name} casts a copy of ${cname(x)} without paying its mana cost.`); if(needsTarget(stackText(cp)||cdata(cp).o||'')){ G.mode={type:'arrow', from:cp.id}; toast(`${cdata(cp).n}: click its target.`); } }
+        if(ok) for(const x of xs){ const cp=mk(x.k, Object.assign({tok:true, ts:Date.now(), nm:1}, x.cu ? {cu:x.cu} : {})); m.st.push(cp); noteCast(cp); log(`${by}: ${m.name} casts a copy of ${cname(x)} without paying its mana cost.`); copyTq(cp); }
         skipS.push(/^for each card exiled this way, copy it/i); }
       else if(/^exile up to one target nonland card of each card type from your graveyard\.?$/i.test(sen)){ const types=['Artifact','Battle','Creature','Enchantment','Instant','Kindred','Planeswalker','Sorcery'], cs=m.gy.filter(x=>!isLand(x)); waited=true;
         let ids=cs.length ? ((await pickManyP(`${by}: exile up to one nonland card of each card type from your graveyard`, cs, 'Exile them')) || []) : []; const used=new Set(), xs=[];
@@ -4309,7 +4316,7 @@ async function simpleEffects(c, text, srcId){
       else if(/^copy those cards\.?$/i.test(sen)){ }
       else if(/^you may cast any number of spells with total mana value (\d+) or less from among the copies without paying their mana costs\.?$/i.test(sen)){ const lim=+sen.match(/(\d+)/)[1], xs=(G.uld||[]).map(i=>find(i)).filter(Boolean).map(f=>f.c); G.uld=null; if(!xs.length) continue; waited=true;
         const ids=(await pickManyP(`${by}: cast copies with total mana value ${lim} or less, free`, xs, 'Cast them')) || []; let tot=0;
-        for(const i of ids){ const x=xs.find(y=>y.id===i); if(!x) continue; const v=manaValue(x); if(tot+v>lim){ log(`${by}: ${cname(x)} would go over ${lim} total, so it isn't cast.`); continue; } tot+=v; const cp=mk(x.k, Object.assign({tok:true, ts:Date.now(), nm:1}, x.cu ? {cu:x.cu} : {})); m.st.push(cp); noteCast(cp); log(`${by}: ${m.name} casts a copy of ${cname(x)} without paying its mana cost.`); } }
+        for(const i of ids){ const x=xs.find(y=>y.id===i); if(!x) continue; const v=manaValue(x); if(tot+v>lim){ log(`${by}: ${cname(x)} would go over ${lim} total, so it isn't cast.`); continue; } tot+=v; const cp=mk(x.k, Object.assign({tok:true, ts:Date.now(), nm:1}, x.cu ? {cu:x.cu} : {})); m.st.push(copyTq(cp)); noteCast(cp); log(`${by}: ${m.name} casts a copy of ${cname(x)} without paying its mana cost.`); } }
       else if(/^copy target activated or triggered ability you control X times\.?$/i.test(sen)){ const t=tgAll.find(x=>{ const f=find(x); return f && f.z==='st' && (f.c.ab || f.c.ch); }), k=(c.ab && c.ab.x!=null ? +c.ab.x : c.xc!=null ? +c.xc : 1)||1;
         if(!t){ log(`${by}: no ability of yours was targeted.`); continue; } const o=find(t).c, tgts=m.arrows.filter(a=>a.a===o.id).map(a=>a.b); for(let i=0;i<k;i++){ const cp=mk(null, {tok:true, ts:Date.now()+i+1, ab:Object.assign({}, o.ab||{}, {copy5:1}), ch:o.ch ? Object.assign({}, o.ch) : undefined, cu:Object.assign({}, o.cu||{})}); m.st.push(cp); for(const b of tgts) m.arrows.push({a:cp.id, b}); }
         log(`${by}: ${m.name} copies ${cname(o)} ${k} time${k===1?'':'s'}${tgts.length?' (same targets; drag to change)':''}.`); }
@@ -4571,7 +4578,7 @@ function phaseIn(ids, by){ const m=G.me, back=[]; for(const id of ids){ const i=
 function phaseInBy(src, by){ phaseIn((G.me.ph||[]).filter(c=>c.phz===src).map(c=>c.id), by); }
 /* Vanishing: at the beginning of my upkeep a time counter comes off; when the last one does, it is sacrificed */
 function vanishTick(){ const m=G.me, xs=m.bf.filter(c=>!c.fd && (c.k||c.cu) && /(?:^|\n)Vanishing\b/.test(frontText(c)||'') && (c.c||0)>0); for(const c of xs){ c.c--; log(`Upkeep: a time counter comes off ${cname(c)} (${c.c} left).`); if(c.c<=0){ log(`${cname(c)}: the last time counter is gone, so it is sacrificed.`); move(c.id,'gy',{silent:true}); } } return xs.length>0; }
-function upkSacTick(){ const m=G.me, xs=m.bf.filter(c=>c.sacUp && c.sacUp<G.turn.n); for(const c of xs){ log(`Upkeep: ${G.me.name} sacrifices ${cname(c)}.`); move(c.id,'gy',{silent:true}); } return xs.length>0; }
+function upkSacTick(any, n){ n=n||G.turn.n; const m=G.me, xs=m.bf.filter(c=>c.sacUp && c.sacUp<n && (!any || c.sacUpAny)); for(const c of xs){ log(`Upkeep: ${G.me.name} sacrifices ${cname(c)}.`); move(c.id,'gy',{silent:true}); } return xs.length>0; }
 function suspendTick(){ const m=G.me, xs=m.ex.filter(c=>c.susp); if(!xs.length) return false;
   for(const c of xs){ c.c=Math.max(0,(c.c||0)-1); if(c.c>0){ log(`Upkeep: a time counter comes off ${cname(c)} (${c.c} left).`); continue; }
     delete c.susp; delete c.c; log(`Upkeep: the last time counter comes off ${cname(c)}: ${G.me.name} casts it without paying its mana cost.`); if(isCreature(c)) c.hst=G.turn.n||1;
@@ -4773,7 +4780,8 @@ function blinkAuto(src, b){ const d=cdata(src), sn=srcName(src);
 /* v4.17: an automatic trigger waiting for its target keeps asking (the prompt comes back after other clicks, attack arrows or other triggers)
    until a target is clicked, or NO TARGET / Esc is chosen. */
 const autoWait = () => G.me.st.find(x=>x.ab && x.ab.auto && !x.ab.nt && !(x.bt && x.bt.length));
-function autoArm(){ if(G.mode || G.atkSel || PAY || !$('#modal').hidden || (G.turn && G.turn.cs==='blk' && pblockStep())) return; { const q=G.me.st.find(x=>x.ab && x.ab.tq && !x.ab.nt && !G.me.arrows.some(a=>a.a===x.id)); if(q){ G.mode={type:'arrow', from:q.id, tq:1}; return; } }   // v4.44: the next trigger still waiting for its target (two Hedron Crabs)
+function autoArm(){ if(G.mode || G.atkSel || PAY || !$('#modal').hidden || (G.turn && G.turn.cs==='blk' && pblockStep())) return; { const q=G.me.st.find(x=>x.ab && x.ab.tq && !x.ab.nt && !G.me.arrows.some(a=>a.a===x.id)); if(q){ G.mode={type:'arrow', from:q.id, tq:1}; return; } }
+  { const q=G.me.st.find(x=>x.tq && !x.nt && !G.me.arrows.some(a=>a.a===x.id)); if(q){ G.mode={type:'arrow', from:q.id, tq:1}; toast(`${cdata(q).n} (copy): click its target (Esc for none).`); return; } }   // v4.95: copies cast onto the stack (copyTq). v4.44: the next trigger still waiting for its target (two Hedron Crabs)
   const w=autoWait(); if(w) G.mode={type:'arrow', from:w.id, auto:1}; }
 function autoNone(id){ const f=find(id); if(f && f.c.ab){ f.c.ab.nt=1; log(`${srcName(f.c)}'s trigger has no target.`); } if(G.mode && G.mode.from===id) G.mode=null; changed(); }
 const blinkTrig = c => { const b=blinkOf(frontText(c)); return b && (b.when==='enters' || b.when==='attacks') ? b : null; };
@@ -4906,7 +4914,7 @@ const abText = a => a.kw ? a.eff+' '+a.cost : a.cost+': '+a.eff;
 const fetchOf = a => { if(!/\bsacrifice\b/i.test(a.cost) || !/\{T\}/.test(a.cost) || !/^\s*search your library\b/i.test(a.eff||'')) return null; const sp=searchSpec(a.eff); return sp && sp.dest==='bf' && /\b(land|plains|island|swamp|mountain|forest)\b/i.test(sp.desc) ? sp : null; };
 const abLabel = a => { const fs=fetchOf(a); if(fs){ const l=a.cost.match(/pay (\d+) life/i); return `Fetch (${fs.desc}${fs.tapped?', enters tapped':''}${l?', pay '+l[1]+' life':''})`; } const t='Activate  '+abText(a); return t.length>84 ? t.slice(0,82)+'…' : t; };
 function activate(id, a, evDone, extra){ if(waitMull()) return;
-  { const f0=find(id); if(f0 && f0.z==='bf' && a && a.kw && /^Equip$/i.test(a.eff) && !(extra && extra.eqT) && /costs \{\d+\} less to activate for each \+1\/\+1 counter on the creature it targets/i.test(frontText(f0.c)||'')){ G.mode={type:'eqtgt', from:id, a, evDone}; toast(`${cdata(f0.c).n}: where would you like to equip it? Click a creature you control.`); render(); return; } }
+  { const f0=find(id); if(f0 && f0.z==='bf' && a && a.kw && /^Equip$/i.test(a.eff) && !(extra && extra.eqT) && (/costs \{\d+\} less to activate for each \+1\/\+1 counter on the creature it targets/i.test(frontText(f0.c)||'') || EQIF_RE.test(frontText(f0.c)||''))){ G.mode={type:'eqtgt', from:id, a, evDone}; toast(`${cdata(f0.c).n}: where would you like to equip it? Click a creature you control.`); render(); return; } }
   if(a && a.kw && /^Crew$/i.test(a.eff)){ crewIt(id, parseInt(a.cost,10)||1); return; }
   { const f0=find(id); if(f0 && f0.z==='bf' && !(extra&&extra.totem) && !totemGate(f0.c, ()=>activate(id, a, evDone, Object.assign({}, extra||{}, {totem:1})))) return; }
   { const f0=find(id); if(f0 && f0.z==='bf'){ const c0=f0.c, ex=extra||{};
@@ -5204,7 +5212,15 @@ function castSyms(c, o){
 const replicateCost = c => { if(c.fd || (!c.k && !c.cu)) return ''; const m=(frontText(c)||'').match(/(?:^|\n)Replicate\s*((?:\{[^}]+\})+)/i); return m ? m[1] : ''; };
 const exileForLess = c => { if(c.fd || (!c.k && !c.cu)) return null; const m=(frontText(c)||'').match(/you may exile any number of (\w+) cards from your hand\. This spell costs \{(\d+)\} less to cast for each card exiled this way/i); return m ? {desc:m[1].toLowerCase(), n:+m[2]} : null; };
 const abilSyms = (cost, x, less) => normSyms(costSyms(cost).filter(k=>k!=='T' && k!=='Q' && k!=='E'), x, less);
-function abilLess(c, a, ex){ { const q=String(frontText(c)||'').match(/costs \{(\d+)\} less to activate for each \+1\/\+1 counter on the creature it targets/i), t=ex && ex.eqT && find(ex.eqT); if(q && a && a.kw && /^Equip$/i.test(a.eff)) return t ? (+q[1])*Math.max(0, t.c.c||0) : 0; } const r=String((a&&a.eff)||'').match(/This ability costs \{(\d+)\} less to activate for each (other )?([^.]+?)\./i); if(!r) return 0; const k=+r[1], d=r[3].toLowerCase(), m=G.me; let n=0;
+function abilLess(c, a, ex){ const base=abilLess0(c, a, ex); let k=0; const isEq=a && a.kw && /^Equip$/i.test(a.eff), t=ex && ex.eqT && find(ex.eqT);
+  if(isEq){ const q=String(frontText(c)||'').match(EQIF_RE); if(q && t && matchesDesc(t.c, q[2].replace(/^an?\s+/i,''))) k+=+q[1];   // v4.95: Ghostfire Blade ("… if it targets a colorless creature")
+    const g=String(frontText(c)||'').match(/This Equipment(?:'|’)s equip abilities cost \{(\d+)\} less to activate\./i); if(g) k+=+g[1]; if(c.eqLess) k+=c.eqLess; }   // Firion's token copies (c.eqLess)
+  let less=base+k; const zr=G.me.bf.filter(x=>!x.fd && (x.k || x.cu)).map(x=>(frontText(x)||'').match(/Abilities you activate that aren(?:'|’)t mana abilities cost \{(\d+)\} less to activate\. This effect can(?:'|’)t reduce the mana in that cost to less than one mana/i)).filter(Boolean);
+  if(zr.length && a && a.cost && G.me.bf.includes(c)){ const sy=costSyms(String(a.cost).replace(/\.\s*This ability costs[^]*$/i,'')).filter(k=>k!=='T' && k!=='Q' && k!=='E' && k!=='X'), gen=sy.filter(k=>/^\d+$/.test(k)).reduce((s,k)=>s+(+k),0), oth=sy.length-sy.filter(k=>/^\d+$/.test(k)).length;
+    let g=Math.max(0, gen-less); for(const z of zr){ const cut=Math.max(0, Math.min(+z[1], g, g+oth-1)); less+=cut; g-=cut; } }   // v4.95: Zirda, the Dawnwaker (never below one mana)
+  return less; }
+const EQIF_RE=/equip ability costs \{(\d+)\} less to activate if it targets (an? [^.]+?)\./i;
+function abilLess0(c, a, ex){ { const q=String(frontText(c)||'').match(/costs \{(\d+)\} less to activate for each \+1\/\+1 counter on the creature it targets/i), t=ex && ex.eqT && find(ex.eqT); if(q && a && a.kw && /^Equip$/i.test(a.eff)) return t ? (+q[1])*Math.max(0, t.c.c||0) : 0; } const r=String((a&&a.eff)||'').match(/This ability costs \{(\d+)\} less to activate for each (other )?([^.]+?)\./i); if(!r) return 0; const k=+r[1], d=r[3].toLowerCase(), m=G.me; let n=0;
   if(/^town you control$/.test(d)) n=m.bf.filter(x=>!x.fd && (!r[2] || x.id!==c.id) && /\bTown\b/.test(faceType(x))).length; else if(/^\+1\/\+1 counter on creatures you control$/.test(d)) n=m.bf.filter(x=>!x.fd && isCreature(x)).reduce((s,x)=>s+Math.max(0,x.c||0),0); return k*n; }
 const symStr = ks => ks.map(k=>`{${k}}`).join('');
 function payPlan(syms, ctx, ch){
@@ -5380,7 +5396,9 @@ function spellMods(c, pid){
       const chosen=/\bof the chosen type\b/i.test(subj) ? x.chosen : null; if(/\bof the chosen type\b/i.test(subj) && !chosen) continue;
       let n=+cm[1], note='';
       if(tail){ if(/^for each other spell that player has cast this turn$/i.test(tail)){ n*=casts; note=` (${casts} other spell${casts===1?'':'s'} this turn)`; if(!n) continue; }
-        else if(/^except during its controller's turn$/i.test(tail)){ if(G.turn.active===pid) continue; note=' (not your turn)'; } else continue; }
+        else if(/^except during its controller's turn$/i.test(tail)){ if(G.turn.active===pid) continue; note=' (not your turn)'; }
+        else if(/^for each card your opponents have drawn this turn$/i.test(tail)){ const os=pid===G.myId ? G.opp : G.me, dn=os && os.drn && os.drn.t===G.turn.n ? os.drn.n||0 : 0; n*=dn; note=` (${dn} card${dn===1?'':'s'} drawn by opponents this turn)`; if(!n) continue; }   // v4.95: Heliod, the Warped Eclipse
+        else continue; }
       const desc=subj.replace(/\bfrom anywhere other than your hand\b/i,' ').replace(/\b(?:you cast|your opponents cast|each opponent casts?|an opponent casts|a player casts|of the chosen type)\b/gi,' ').replace(/\bspells?\b/i,' ').replace(/^\s*each\b/i,'').replace(/\s+/g,' ').trim();
       if(!spellMatches(c, desc, chosen)) continue;
       out.push({n, more:cm[2].toLowerCase()==='more', name:cdata(x).n.split(',')[0], note}); } }
@@ -5752,7 +5770,7 @@ function setLife(d){ if(d>0 && noGainBy()){ toast(`${G.me.name} can't gain life:
 function setTurn(t, fresh){ if(t.phase!==3 && 'cs' in t){ t=Object.assign({}, t); delete t.cs; } const prev=G.turn; G.turn=t; send({t:'turn', turn:t, fresh:!!fresh}); if(turnCleanup(prev, t)) changed(); else { render(); save(); } }
 function paradigmAsk(){ const m=G.me; if(!(m.para||[]).length || m.paraT===G.turn.n) return; m.paraT=G.turn.n;
   setTimeout(async ()=>{ for(const e of m.para){ const f=find(e.id); if(!f) continue; const yes=await yesNo(`${e.n}: paradigm`, `Cast a copy of ${e.n} without paying its mana cost?`, 'Cast a copy', 'Not now'); if(!yes) continue;
-    const cp=mk(f.c.k, Object.assign({tok:true, ts:Date.now(), nm:1}, f.c.cu ? {cu:f.c.cu} : {})); m.st.push(cp); copyCast(cp); log(`${m.name} casts a copy of ${e.n} (paradigm) without paying its mana cost.`); if(needsTarget(stackText(cp)||cdata(cp).o||'') && !G.mode){ G.mode={type:'arrow', from:cp.id}; toast(`${e.n}: click its target.`); } changed(); } }, 300); }
+    const cp=mk(f.c.k, Object.assign({tok:true, ts:Date.now(), nm:1}, f.c.cu ? {cu:f.c.cu} : {})); m.st.push(cp); copyCast(cp); log(`${m.name} casts a copy of ${e.n} (paradigm) without paying its mana cost.`); copyTq(cp); changed(); } }, 300); }
 /* Pause (v3.66): the player who is not active asks to stop the other player's next turn in the upkeep ('up'), in the draw step before
    the draw ('pre') or after it ('post'). The request travels as {t:'pause'} and waits on the active side as G.me.pauseReq; when the turn
    reaches that point it stops with G.turn.hold={pid, at}: the asker gets the gold button ("Pass priority back" → {t:'resume'}), the
@@ -7569,7 +7587,7 @@ $('#diceBtn').onclick=e=>{ const r=e.currentTarget.getBoundingClientRect(), roll
 $('#camSet').onclick=()=>streamModal(); applyStream();
 $('#chat').onkeydown=e=>{ e.stopPropagation(); if(e.key==='Enter' && e.target.value.trim()){ const text=`${G.me.name}: ${e.target.value.trim()}`; addLog(text,'cm'); send({t:'log', text, chat:1}); e.target.value=''; } };
 document.addEventListener('keydown', e=>{
-  if(e.key==='Escape'){ if(PAY && !G.mode && $('#modal').hidden){ payAction('cancel'); closeMenu(); return; } if(G.mode && G.mode.type==='atktgt'){ const md=G.mode; G.mode=null; atkTarget(md, oppId()); closeMenu(); return; } if(G.mode && G.mode.auto){ autoNone(G.mode.from); closeMenu(); return; } if(G.mode && G.mode.tq){ if(!tgtNextSlot(G.mode, true)){ const f=find(G.mode.from); if(f && f.c.ab && !G.me.arrows.some(a=>a.a===f.c.id)){ f.c.ab.nt=1; const sn=String(srcName(f.c)), k=sn.indexOf(': '); log(k>0 ? `${sn.slice(0,k)}'s ${sn.slice(k+2)} has no target.` : `${sn}'s trigger has no target.`); } G.mode=null; } render(); closeMenu(); return; } if(G.mode && (G.mode.type==='pblock' || G.mode.type==='pblock2')){ G.mode=null; render(); closeMenu(); return; } if(G.atkSel && !G.mode){ G.atkSel=null; render(); closeMenu(); return; } if(G.mode){ if(!tgtNextSlot(G.mode, true)) G.mode=null; render(); } closeMenu(); if(!$('#modal')._noClose) closeModal(); return; }
+  if(e.key==='Escape'){ if(PAY && !G.mode && $('#modal').hidden){ payAction('cancel'); closeMenu(); return; } if(G.mode && G.mode.type==='atktgt'){ const md=G.mode; G.mode=null; atkTarget(md, oppId()); closeMenu(); return; } if(G.mode && G.mode.auto){ autoNone(G.mode.from); closeMenu(); return; } if(G.mode && G.mode.tq){ if(!tgtNextSlot(G.mode, true)){ const f=find(G.mode.from); if(f && f.c.ab && !G.me.arrows.some(a=>a.a===f.c.id)){ f.c.ab.nt=1; const sn=String(srcName(f.c)), k=sn.indexOf(': '); log(k>0 ? `${sn.slice(0,k)}'s ${sn.slice(k+2)} has no target.` : `${sn}'s trigger has no target.`); } else if(f && f.c.tq && !G.me.arrows.some(a=>a.a===f.c.id)){ f.c.nt=1; log(`${cname(f.c)} (copy) has no target.`); } G.mode=null; } render(); closeMenu(); return; } if(G.mode && (G.mode.type==='pblock' || G.mode.type==='pblock2')){ G.mode=null; render(); closeMenu(); return; } if(G.atkSel && !G.mode){ G.atkSel=null; render(); closeMenu(); return; } if(G.mode){ if(!tgtNextSlot(G.mode, true)) G.mode=null; render(); } closeMenu(); if(!$('#modal')._noClose) closeModal(); return; }
   if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='z' && !/INPUT|TEXTAREA/.test(document.activeElement.tagName) && !$('#table').hidden && $('#modal').hidden){ e.preventDefault(); undo(); return; }
   if(/INPUT|TEXTAREA/.test(document.activeElement.tagName) || $('#table').hidden || !$('#modal').hidden || e.ctrlKey || e.metaKey || e.altKey) return;
   const k=e.key.toLowerCase();
