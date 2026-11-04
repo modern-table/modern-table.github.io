@@ -113,7 +113,41 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 #zoom{position:fixed;z-index:80;pointer-events:none;display:flex;gap:6px}
 #zoom img{width:300px;border-radius:14px;box-shadow:0 10px 30px #000c}
 #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#000d;border:1px solid var(--brass);padding:8px 16px;border-radius:99px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:90}
-@media (max-width:760px){ .regions{--w:76px} .body{grid-template-columns:1fr} #rail{border-right:0;border-bottom:1px solid var(--line);max-height:26vh} .panes{grid-template-columns:1fr} .grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))} }
+/* sealed (v0.16): the prerelease kit, opened one pack at a time */
+.c.promo .tag{color:#ffe7b0;background:#7a1d16e6;border:1px solid #f3cf8a}
+.kit{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;padding:14px 16px;border-radius:10px;background:radial-gradient(120% 100% at 50% 0%,#7d4c3b,var(--felt) 75%);border:1px solid var(--line)}
+.kitbox{height:150px;width:auto;display:block;filter:drop-shadow(0 6px 10px #0009)}
+.packs{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.pk{position:relative;width:84px;height:150px;padding:0;border:0;background:none;border-radius:4px;transition:transform .15s ease,opacity .2s}
+.pk img{width:100%;height:100%;object-fit:contain;display:block;filter:drop-shadow(0 6px 8px #0009);pointer-events:none}
+.pk.drawn{background:linear-gradient(160deg,#3b1f52,#1d2a4a 55%,#0f1730);box-shadow:0 6px 14px #0008;color:#fff}
+.pk.drawn::before,.pk.drawn::after{content:"";position:absolute;left:0;right:0;height:7px;background:repeating-linear-gradient(90deg,#c9d7ea 0 4px,#8ea2c2 4px 8px);opacity:.85}
+.pk.drawn::before{top:0}.pk.drawn::after{bottom:0}
+.pk .pt{position:absolute;left:0;right:0;bottom:14px;font:11px/1.15 var(--display);text-align:center;letter-spacing:.06em;text-transform:uppercase;padding:0 4px}
+.pk .pn{position:absolute;top:-8px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--rail);border:1px solid var(--line);font:800 11px/18px var(--ui);color:var(--dim);text-align:center}
+.pk:hover:not(:disabled){transform:translateY(-6px) rotate(-1.5deg);border-color:transparent}
+.pk:disabled{opacity:.22;cursor:default;transform:none}
+.pk:disabled:hover{border-color:transparent}
+.promo{display:flex;flex-direction:column;gap:6px;align-items:center}
+.promo .c{width:96px}
+.cardback{position:relative;width:96px;aspect-ratio:488/680;padding:0;border:0;border-radius:4.6%/3.3%;overflow:hidden;background:#3a2620;box-shadow:0 4px 10px #0009;transition:transform .15s}
+.cardback img{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+.cardback:hover{transform:translateY(-6px) rotate(1.5deg)}
+.cardback.ready{animation:glow 1.6s ease-in-out infinite}
+@keyframes glow{50%{box-shadow:0 0 0 3px #e0a66a99,0 0 22px #e0a66a99}}
+.kitside{margin-left:auto;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.kitside .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.reveal{background:#391f17;border:1px solid var(--line);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.fan{display:flex;gap:8px;flex-wrap:wrap}
+.fan .c{width:clamp(96px,8.6vw,136px);animation:flipin .38s ease both}
+.fan .c.hit{box-shadow:0 0 0 2px var(--brass),0 0 18px #e0a66a99}
+@keyframes flipin{from{transform:perspective(600px) rotateY(90deg);opacity:0}to{transform:none;opacity:1}}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:-1px;margin-right:5px;box-shadow:inset 0 0 0 1px #0007}
+.pane.over{border-color:var(--brass);box-shadow:inset 0 0 0 2px #e0a66a66}
+#ghost{position:fixed;z-index:85;pointer-events:none;width:var(--gw,110px);transform:translate(-50%,-30%) rotate(-3deg);opacity:.92}
+#ghost .c{width:100%}
+@media (prefers-reduced-motion:reduce){ .fan .c{animation:none} .cardback.ready{animation:none} .pk{transition:none} }
+@media (max-width:760px){ .regions{--w:76px} .pk{width:58px;height:104px} .kitbox{height:104px} .promo .c,.cardback{width:70px} .kitside{margin-left:0;align-items:flex-start} .body{grid-template-columns:1fr} #rail{border-right:0;border-bottom:1px solid var(--line);max-height:26vh} .panes{grid-template-columns:1fr} .grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))} }
 </style>
 </head>
 <body>
@@ -121,14 +155,15 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
   <a class="corner" href="../">Modern Table →</a>
   <div class="lobbybox">
     <h1>Draft Table <small id="verTag" style="font:600 13px var(--ui);color:var(--dim);letter-spacing:.08em"></small></h1>
-    <p>Booster draft for up to eight, with packs built to each set's real odds. Draft, build a 40-card deck, then play your matches on the <a href="../">Modern Table</a>.</p>
+    <p>Booster draft or a prerelease for up to eight, with packs built to each set's real odds. Build a 40-card deck, then play your matches on the <a href="../">Modern Table</a>.</p>
     <div class="field"><label for="nameIn">Your name</label><input id="nameIn" maxlength="20" placeholder="Planeswalker"></div>
     <div class="choices">
       <button class="choice" id="hostBtn"><div><b>Host a draft</b><span>Pick the set, get a six-letter code for your friends. Bots fill empty seats.</span></div><span>→</span></button>
+      <button class="choice" id="sealedBtn"><div><b>Host a prerelease</b><span>Sealed: everyone opens a prerelease kit of six packs and a foil promo, builds 40 cards, then plays three rounds.</span></div><span>→</span></button>
       <div class="choice" style="border:1px solid var(--line);border-radius:6px">
-        <div style="flex:1;min-width:0"><b>Join a draft</b><div class="joinrow" style="margin-top:6px"><input id="codeIn" maxlength="6" placeholder="CODE" aria-label="Draft code"><button id="joinBtn" class="go">Join</button></div></div>
+        <div style="flex:1;min-width:0"><b>Join with a code</b><div class="joinrow" style="margin-top:6px"><input id="codeIn" maxlength="6" placeholder="CODE" aria-label="Draft code"><button id="joinBtn" class="go">Join</button></div></div>
       </div>
-      <button class="choice" id="resumeBtn" hidden><div><b>Return to your draft</b><span id="resumeTxt"></span></div><span>→</span></button>
+      <button class="choice" id="resumeBtn" hidden><div><b>Return to your event</b><span id="resumeTxt"></span></div><span>→</span></button>
     </div>
     <p id="lobbyMsg" style="color:var(--go)"></p>
     <p class="legal">The Draft Table is unofficial Fan Content permitted under the <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Fan Content Policy</a>. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.<br>Card images and card data from <a href="https://scryfall.com/" target="_blank" rel="noopener">Scryfall</a>. Pack odds from <a href="https://github.com/taw/magic-sealed-data" target="_blank" rel="noopener">magic-sealed-data</a>. Free to use, with no ads, and not affiliated with any of these sites.</p>
@@ -145,12 +180,14 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 <script src="../src/peerjs.min.js"></script>
 <script>
 "use strict";
-const VERSION = 'v0.15';
+const VERSION = 'v0.16';
 // Only the sets and cube whose cards the Modern Table plays fully (2026-10-23); the other set files stay in draft/sets for later.
 const READY = ['fra','fin','mh2','mh1','ktk','df07'];
 const SETS_ALL = [{"code":"fra","name":"Reality Fracture","size":14,"group":"Recent"},{"code":"hob","name":"The Hobbit","size":14,"group":"Recent"},{"code":"msh","name":"Marvel Super Heroes","size":14,"group":"Recent"},{"code":"sos","name":"Secrets of Strixhaven","size":14,"group":"Recent"},{"code":"tmt","name":"Teenage Mutant Ninja Turtles","size":14,"group":"Recent"},{"code":"ecl","name":"Lorwyn Eclipsed","size":14,"group":"Recent"},{"code":"tla","name":"Avatar: The Last Airbender","size":14,"group":"Recent"},{"code":"spm","name":"Marvel's Spider-Man","size":14,"group":"Recent"},{"code":"eoe","name":"Edge of Eternities","size":14,"group":"Recent"},{"code":"fin","name":"Final Fantasy","size":14,"group":"Recent"},{"code":"tdm","name":"Tarkir: Dragonstorm","size":14,"group":"Favourites"},{"code":"fdn","name":"Foundations","size":14,"group":"Favourites"},{"code":"dsk","name":"Duskmourn: House of Horror","size":14,"group":"Favourites"},{"code":"blb","name":"Bloomburrow","size":14,"group":"Favourites"},{"code":"mh3","name":"Modern Horizons 3","size":14,"group":"Favourites"},{"code":"mom","name":"March of the Machine","size":15,"group":"Favourites"},{"code":"neo","name":"Kamigawa: Neon Dynasty","size":15,"group":"Favourites"},{"code":"mh2","name":"Modern Horizons 2","size":15,"group":"Favourites"},{"code":"eld","name":"Throne of Eldraine","size":15,"group":"Favourites"},{"code":"mh1","name":"Modern Horizons","size":15,"group":"Favourites"},{"code":"war","name":"War of the Spark","size":15,"group":"Favourites"},{"code":"dom","name":"Dominaria","size":15,"group":"Favourites"},{"code":"ktk","name":"Khans of Tarkir","size":15,"group":"Favourites"},{"code":"isd","name":"Innistrad","size":15,"group":"Favourites"},{"code":"roe","name":"Rise of the Eldrazi","size":15,"group":"Favourites"},{"code":"df07","name":"DF07's Legacy Cube","size":15,"group":"Cubes"},{"code":"mtgo-vintage","name":"MTGO Vintage Cube (Oct 2026)","size":15,"group":"Cubes"}];
 const SETS = SETS_ALL.filter(s=>READY.includes(s.code));
 const PREFIX = 'draft-table-v1-';
+const BACK_IMG = 'https://backs.scryfall.io/large/0/a/0aeebaf5-8c7d-4636-9e82-8c27447861f7.jpg';   // the card back the Modern Table uses
+const KIT_PACKS = 6;                // a prerelease kit: six Play Boosters and one foil promo
 const $ = (s, el=document) => el.querySelector(s), $$ = (s, el=document) => [...el.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -271,6 +308,32 @@ function genPack(set, nextUid){
   return out;
 }
 
+/* The prerelease promo: one traditional foil card from the booster's rare slot (its "rare…" sheet, at that sheet's odds),
+   counting each card once at its lowest collector number so the promo is the plain printing. None for cubes. */
+function promoFor(set, nextUid){
+  if(set.cube) return null;
+  const name=Object.keys(set.sheets).find(k=>/^rare/.test(k)); if(!name) return null;
+  const sh=set.sheets[name], best=new Map(), num=id=>parseInt(id.split(':')[1],10)||9999;
+  for(let i=0;i<sh.c.length;i+=2){ const id=baseId(set.ids[sh.c[i]]), d=CARDS[id], key=d ? d.n : id, w=sh.c[i+1], b=best.get(key);
+    if(!b || num(id)<num(b.id)) best.set(key, {id, w:Math.max(w, b?b.w:0)}); else b.w=Math.max(b.w, w); }
+  const flat=[]; for(const {id,w} of best.values()) flat.push(id, w);
+  const pick=weighted(flat, ()=>false); return pick===-1 ? null : {u:nextUid(), id:pick, f:1, promo:1};
+}
+function cubeDealer(set){ let pile=[]; return n=>{ const out=[]; while(out.length<n){ if(!pile.length) pile=shuffle(set.ids.filter(id=>CARDS[id])); if(!pile.length) break; out.push({u:++H.uid, id:pile.pop(), f:0}); } return out; }; }
+/* Sealed: no bots and no passing. Each player gets a kit; the cards are their pool from the start, opening the packs happens on their own screen. */
+function startSealed(set){
+  H.seats=H.seats.filter(s=>!s.bot);
+  H.uid=0; H.size=set.size; H.gen=(H.gen||0)+1;
+  const deal = set.cube ? cubeDealer(set) : null;
+  for(const s of H.seats){
+    const packs=Array.from({length:KIT_PACKS}, ()=>deal ? deal(set.size) : genPack(set, ()=>++H.uid)), promo=promoFor(set, ()=>++H.uid);
+    s.kit={packs:packs.map(p=>p.map(c=>c.u)), promo:promo?promo.u:0};
+    s.pool=[...packs.flat(), ...(promo?[promo]:[])]; s.queue=[]; s.ready=false; s.due=0;
+  }
+  H.phase='build'; H.round=0; H.busy=''; H.tour=null; H.packs=null;
+  sync();
+}
+
 /* ================= bot picks (also used when a player's clock runs out) ================= */
 const isLandCard = d => /\bLand\b/.test((d.t||'').split(' // ')[0]);
 function mainColors(pool){
@@ -302,7 +365,7 @@ const dirOf = round => round===2 ? -1 : 1;
 function setDue(s){ s.due = (H.timer && !s.bot && s.queue.length) ? Date.now()+H.timer*1000 : 0; }
 function view(i){
   const s=H.seats[i], p=s.queue[0]||null;
-  return { t:'v', code:H.code, gen:H.gen||0, set:H.set, pod:H.pod, timer:H.timer, phase:H.phase, round:H.round, me:i, size:H.size||0, busy:H.busy||'',
+  return { t:'v', mode:H.mode||'draft', kit:s.kit||null, code:H.code, gen:H.gen||0, set:H.set, pod:H.pod, timer:H.timer, phase:H.phase, round:H.round, me:i, size:H.size||0, busy:H.busy||'',
     seats:H.seats.map(x=>({name:x.name, bot:x.bot?1:0, on:isOn(x)?1:0, q:x.queue.length, n:x.pool.length, ready:x.ready?1:0, host:x.pid===PID?1:0})),
     pack:p, pool:s.pool, left:s.due ? Math.max(0, s.due-Date.now()) : 0, tour:H.tour||null };
 }
@@ -342,11 +405,11 @@ async function startDraft(){
   useCache(H.set);
   await ensure(allIds(set), (a,t)=>{ H.busy=`Loading cards ${a}/${t}…`; sync(); });
   if(set.cube){ const miss=set.ids.filter(i=>!CARDS[i]); if(miss.length){ const nm=miss.map(x=>x.slice(2)); console.warn('Cube cards not found on Scryfall:', nm); setTimeout(()=>toast(`${nm.length} cube card${nm.length>1?'s were':' was'} not found on Scryfall and left out: ${nm.slice(0,8).join(', ')}${nm.length>8?'…':''}`, 12000), 400); } if(set.ids.length-miss.length < set.size*3){ H.busy=''; sync(); toast('Could not load the cube cards. Check your connection and try again.'); return; } }
+  if(H.mode==='sealed'){ startSealed(set); return; }
   while(H.seats.length<H.pod) H.seats.push({pid:'bot'+H.seats.length, name:BOTS[H.seats.length%BOTS.length], bot:1, pool:[], queue:[]});
   shuffle(H.seats);
   H.uid=0; H.size=set.size; H.gen=(H.gen||0)+1;
-  if(set.cube){ let pile=[]; const deal=()=>{ const out=[]; while(out.length<set.size){ if(!pile.length) pile=shuffle(set.ids.filter(id=>CARDS[id])); if(!pile.length) break; out.push({u:++H.uid, id:pile.pop(), f:0}); } return out; };
-    H.packs=[0,1,2].map(()=>H.seats.map(deal)); }
+  if(set.cube){ const deal=cubeDealer(set); H.packs=[0,1,2].map(()=>H.seats.map(()=>deal(set.size))); }
   else H.packs=[0,1,2].map(()=>H.seats.map(()=>genPack(set, ()=>++H.uid)));
   H.seats.forEach(s=>{ s.pool=[]; s.queue=[]; s.ready=false; });
   H.phase='draft'; H.round=0; H.busy=''; H.tour=null;
@@ -444,7 +507,7 @@ function guestPeer(){
     c.on('open', ()=>{ conn=c; setNet('connected'); c.send({t:'join', pid:PID, name:SETTINGS.name||'Player'}); });
     c.on('data', m=>{ if(!m || typeof m!=='object') return;
       if(m.t==='v') gotView(m);
-      else if(m.t==='no'){ store.del('dt_guest'); try{ p.destroy(); }catch(e){} peer=null; showLobby(m.why==='full' ? 'That draft is full.' : 'That draft has already started.'); } });
+      else if(m.t==='no'){ store.del('dt_guest'); try{ p.destroy(); }catch(e){} peer=null; showLobby(m.why==='full' ? 'That event is full.' : 'That event has already started.'); } });
     c.on('close', ()=>{ if(conn===c){ conn=null; setNet('joining'); setTimeout(dial, 2000); } });
     c.on('error', e=>console.warn('conn error', e)); };
   p.on('open', dial);
@@ -466,13 +529,13 @@ function gotView(v){
   if(v.phase==='draft' && v.round!==lastRound){ lastRound=v.round; if(v.round>1) toast(`Pack ${v.round}: passing ${v.round===2?'right':'left'}`); }
   if(v.phase!=='draft') lastRound=0;
   const stage=v.phase+':'+(v.tour ? v.tour.rounds.length+(v.tour.done?'d':'') : '');
-  if(stage!==lastStage){ if(v.phase==='play' && lastStage) tabNow='tour'; if(v.phase==='build' && lastStage.startsWith('draft')) tabNow='deck'; lastStage=stage; }
+  if(stage!==lastStage){ if(v.phase==='play' && lastStage) tabNow='tour'; if(v.phase==='build' && (lastStage.startsWith('draft') || lastStage.startsWith('lobby'))) tabNow='deck'; lastStage=stage; }
   if(sel!=null && !(v.pack||[]).some(c=>c.u===sel)) sel=null;
   render();
 }
 function cardHTML(c, cls=''){
   const d=CARDS[c.id];
-  return `<div class="c ${cls}${c.f?' foil':''}" data-u="${c.u}" data-id="${esc(c.id)}">${d && d.img ? `<img src="${esc(d.img)}" alt="${esc(d.n)}" loading="lazy" draggable="false">` : `<div class="txt"><b>${esc(d?d.n:c.id)}</b><i>${esc(d?d.t:missed[c.id]?'No card data yet':'Loading…')}</i><span>${esc(d?d.o:'')}</span></div>`}${c.f?'<span class="tag">FOIL</span>':''}</div>`;
+  return `<div class="c ${cls}${c.f?' foil':''}${c.promo?' promo':''}" data-u="${c.u}" data-id="${esc(c.id)}">${d && d.img ? `<img src="${esc(d.img)}" alt="${esc(d.n)}" loading="lazy" draggable="false">` : `<div class="txt"><b>${esc(d?d.n:c.id)}</b><i>${esc(d?d.t:missed[c.id]?'No card data yet':'Loading…')}</i><span>${esc(d?d.o:'')}</span></div>`}${c.promo?'<span class="tag">PROMO</span>':c.f?'<span class="tag">FOIL</span>':''}</div>`;
 }
 const RANK={mythic:0, rare:1, uncommon:2, common:3};
 const colourKey = d => !d ? 9 : isLandCard(d) ? 7 : d.c.length>1 ? 5 : d.c.length===0 ? 6 : 'WUBRG'.indexOf(d.c);
@@ -499,11 +562,11 @@ function render(){
   const dir = V.phase==='draft' ? (V.round===2 ? '↑ passing' : '↓ passing') : '';
   V.seats.forEach((s,i)=>{
     const busy=V.phase==='draft' && s.q>0;
-    const note = V.phase==='draft' ? `${s.n} picked${s.q>1?` · ${s.q} packs waiting`:''}` : V.phase==='build' ? (s.bot?'bot':s.ready?'deck ready':'building') : s.bot?'bot':s.host?'host':'';
+    const note = V.phase==='draft' ? `${s.n} picked${s.q>1?` · ${s.q} packs waiting`:''}` : V.phase==='build' ? (s.bot?'bot':s.ready?'deck ready':V.mode==='sealed'?'opening and building':'building') : s.bot?'bot':s.host?'host':'';
     r+=`<div class="seat ${i===V.me?'me ':''}${!s.on?'off':busy?'busy':'on'}"><span class="dot"></span><span class="nm">${esc(s.name)}${i===V.me?' (you)':''}<small>${esc(note)}${!s.on?' · disconnected':''}</small></span><span>${host && !s.bot && i!==V.me && V.phase==='draft' ? `<button class="sm" data-force="${i}" title="Pick for this player now"${busy?'':' disabled'}>Pick</button>` : ''}</span></div>`;
     if(dir && i<V.seats.length-1) r+=`<div class="arrow">${dir[0]}</div>`;
   });
-  if(V.phase==='lobby'){ const open=V.pod-V.seats.length; if(open>0) r+=`<p class="hint">${open} open seat${open>1?'s':''}. Bots take any that are still empty when the draft starts.</p>`; }
+  if(V.phase==='lobby'){ const open=V.pod-V.seats.length; if(open>0) r+= V.mode==='sealed' ? `<p class="hint">Room for ${open} more. Everyone who has joined when you start gets a kit.</p>` : `<p class="hint">${open} open seat${open>1?'s':''}. Bots take any that are still empty when the draft starts.</p>`; }
   if(dir) r+=`<p class="hint">${V.round===2 ? 'Pack 2 passes right (up this list).' : `Pack ${V.round} passes left (down this list).`}</p>`;
   setHTML($('#rail'), r);
 
@@ -511,14 +574,16 @@ function render(){
   let h='';
   if(V.phase==='lobby'){
     const groups=[...new Set(SETS.map(s=>s.group))];
-    h+=`<div class="bar"><h3>${host ? 'Set up the draft' : 'Waiting for the host to start'}</h3></div>
-      <p class="hint" style="max-width:62ch;margin:0">Send your friends the code <b style="color:var(--ink);letter-spacing:.15em">${esc(CODE)}</b>. They open this page and choose Join a draft. Each player gets three packs of ${esc(setName(V.set))}; you pick one card and pass the rest.</p>`;
+    const sealed=V.mode==='sealed';
+    h+=`<div class="bar"><h3>${host ? (sealed ? 'Set up the prerelease' : 'Set up the draft') : 'Waiting for the host to start'}</h3></div>
+      <p class="hint" style="max-width:62ch;margin:0">Send your friends the code <b style="color:var(--ink);letter-spacing:.15em">${esc(CODE)}</b>. They open this page and choose Join with a code. ${sealed ? `Each player opens a prerelease kit: six packs of ${esc(setName(V.set))} and a foil promo, then builds a 40-card deck from them.` : `Each player gets three packs of ${esc(setName(V.set))}; you pick one card and pass the rest.`}</p>`;
     if(host) h+=`<div class="setrow">
+        <div class="field"><label for="fmtSel">Format</label><select id="fmtSel"><option value="draft"${sealed?'':' selected'}>Booster draft</option><option value="sealed"${sealed?' selected':''}>Prerelease (sealed)</option></select></div>
         <div class="field"><label for="setSel">Set</label><select id="setSel">${groups.map(g=>`<optgroup label="${esc(g)}">${SETS.filter(s=>s.group===g).map(s=>`<option value="${s.code}"${s.code===V.set?' selected':''}>${esc(s.name)}</option>`).join('')}</optgroup>`).join('')}</select></div>
-        <div class="field"><label for="podSel">Seats</label><select id="podSel">${[2,3,4,5,6,7,8].map(n=>`<option${n===V.pod?' selected':''}>${n}</option>`).join('')}</select></div>
-        <div class="field"><label for="timeSel">Pick timer</label><select id="timeSel">${[[0,'Off'],[45,'45 seconds'],[75,'75 seconds'],[120,'2 minutes']].map(([n,l])=>`<option value="${n}"${n===V.timer?' selected':''}>${l}</option>`).join('')}</select></div>
-        <button class="go" id="startBtn"${V.busy?' disabled':''}>Start the draft</button></div><p class="hint" id="busyMsg" style="margin:0">${esc(V.busy)}</p>`;
-    else h+=`<p class="hint" style="margin:0">${esc(V.busy || `${setName(V.set)} · ${V.pod} seats · ${V.timer ? V.timer+' second pick timer' : 'no pick timer'}`)}</p>`;
+        ${sealed ? '' : `<div class="field"><label for="podSel">Seats</label><select id="podSel">${[2,3,4,5,6,7,8].map(n=>`<option${n===V.pod?' selected':''}>${n}</option>`).join('')}</select></div>
+        <div class="field"><label for="timeSel">Pick timer</label><select id="timeSel">${[[0,'Off'],[45,'45 seconds'],[75,'75 seconds'],[120,'2 minutes']].map(([n,l])=>`<option value="${n}"${n===V.timer?' selected':''}>${l}</option>`).join('')}</select></div>`}
+        <button class="go" id="startBtn"${V.busy?' disabled':''}>${sealed ? 'Start the prerelease' : 'Start the draft'}</button></div><p class="hint" id="busyMsg" style="margin:0">${esc(V.busy)}</p>`;
+    else h+=`<p class="hint" style="margin:0">${esc(V.busy || (sealed ? `Prerelease · ${setName(V.set)} · up to ${V.pod} players` : `${setName(V.set)} · ${V.pod} seats · ${V.timer ? V.timer+' second pick timer' : 'no pick timer'}`))}</p>`;
   }
   else if(V.phase==='draft'){
     const n=V.seats.length, from=V.seats[(V.me-dirOf(V.round)+n)%n];
@@ -536,7 +601,9 @@ function render(){
   tickClock();
 }
 /* ---------- after the draft: deck building and the tournament ---------- */
-function loadBuild(){ const key=V.code+':'+V.gen; if(B && B.code===key) return; B=store.get('dt_build', null); if(!B || B.code!==key) B={code:key, side:[], lands:{Plains:0,Island:0,Swamp:0,Mountain:0,Forest:0}};
+function loadBuild(){ const key=V.code+':'+V.gen; if(B && B.code===key) return; B=store.get('dt_build', null);
+  if(!B || B.code!==key) B={code:key, side: V.mode==='sealed' ? (V.pool||[]).map(c=>c.u) : [], lands:{Plains:0,Island:0,Swamp:0,Mountain:0,Forest:0}};   // sealed: everything starts in the pool
+  if(V.mode==='sealed' && !B.op) B.op={opened:Array(KIT_PACKS).fill(0), promo:0, showing:-1, built:0}; if(!B.grp) B.grp='colour';
   if(!B.side){ const d=B.deck||[]; B.side=d.length ? (V.pool||[]).filter(c=>!d.includes(c.u)).map(c=>c.u) : []; delete B.deck; } }   // builds saved before v0.7 listed the deck instead
 const inMain = c => !B.side.includes(c.u);
 const saveBuild = () => store.set('dt_build', B);
@@ -555,7 +622,7 @@ function deckText(){
   const basics=LANDS.filter(([,n])=>B.lands[n]>0).map(([,n])=>B.lands[n]+' '+n);
   return [...lines(deck), ...basics].join('\n') + '\n\nSideboard\n' + lines(side).join('\n');
 }
-const deckName = () => `Draft: ${setName(V.set)} (${V.code})`;
+const deckName = () => `${V.mode==='sealed' ? 'Sealed' : 'Draft'}: ${setName(V.set)} (${V.code})`;
 function saveDeck(quiet){
   const name=deckName(), sv=store.get('mt_decks', []).filter(d=>d.name!==name);
   sv.unshift({name, text:deckText()}); store.set('mt_decks', sv);
@@ -607,22 +674,25 @@ async function basicArtLoad(k){ const s=BASIC_ART.find(x=>x.k===k); if(!s || !(s
 const landArtImg = n => { const k=basicPref(); return (BART[k]||{})[n] || ''; };
 function buildHTML(host, me){
   loadBuild(); { const k=basicPref(); if(k!=='std' && k!=='rnd' && !BART[k]) setTimeout(()=>basicArtLoad(k), 0); }
+  const sealed=V.mode==='sealed', opening = sealed && !(B.op && B.op.built);
   const T=V.tour, deck=V.pool.filter(inMain).sort(byColour), side=V.pool.filter(c=>!inMain(c)).sort(byColour), lt=landTotal(), total=deck.length+lt;
-  let h=`<div class="bar"><button class="${tabNow==='deck'?'on':''}" data-tab="deck">Your deck</button><button class="${tabNow==='tour'?'on':''}" data-tab="tour">Tournament</button><span style="margin-left:auto"></span>${V.phase==='build' ? `<button class="${me.ready?'on':'go'}" id="readyBtn">${me.ready?'Ready ✓ (click to keep building)':'My deck is ready'}</button>` : ''}</div>`;
-  if(tabNow==='deck'){
+  let h=`<div class="bar"><button class="${tabNow==='deck'?'on':''}" data-tab="deck">${opening ? 'Your kit' : 'Your deck'}</button><button class="${tabNow==='tour'?'on':''}" data-tab="tour">Tournament</button><span style="margin-left:auto"></span>${V.phase==='build' && !opening ? `<button class="${me.ready?'on':'go'}" id="readyBtn">${me.ready?'Ready ✓ (click to keep building)':'My deck is ready'}</button>` : ''}</div>`;
+  if(tabNow==='deck' && opening) h+=kitHTML();
+  else if(tabNow==='deck'){
     h+=`<div class="bar"><h3>${total} cards</h3><span class="hint">${deck.length} from your picks + ${lt} basic land${lt===1?'':'s'}${total<40?' · a draft deck needs at least 40':''}</span><span style="margin-left:auto"></span><button id="saveBtn">Save to my Modern Table decks</button><button id="copyBtn">Copy list</button></div>
       <div class="lands"><label class="bart" title="The art your basic lands use on the Modern Table. It's the same setting as the Basic lands box on the Modern Table's deck screen.">Basic land art<select id="bartSel">${BASIC_ART.map(x=>`<option value="${x.k}"${x.k===basicPref()?' selected':''}>${esc(x.n)}</option>`).join('')}</select></label>${LANDS.map(([k,n])=>`<span class="land">${landArtImg(n)?`<span class="lart" style="background-image:url('${landArtImg(n)}')"></span>`:''}${n}<button class="sm" data-land="${n}" data-d="-1" aria-label="Remove a ${n}">−</button><b>${B.lands[n]||0}</b><button class="sm" data-land="${n}" data-d="1" aria-label="Add a ${n}">+</button></span>`).join('')}<button id="sugBtn">Suggest lands</button></div>
-      <div class="pane" data-zone="deck"><div class="bar"><h3>Deck</h3><span class="hint">click a card to take it out</span></div>${regionsHTML(deck, lt) || '<p class="hint">Everything is in the sideboard. Click cards below to put them back in your deck.</p>'}</div>
-      <div class="pane" data-zone="side"><div class="bar"><h3>Sideboard</h3><span class="hint">${side.length} card${side.length===1?'':'s'} · click a card to add it to your deck</span></div>${regionsHTML(side, 0) || '<p class="hint">Empty. Click a card in your deck to move it here.</p>'}</div>`;
+      <div class="pane" data-zone="deck"><div class="bar"><h3>Deck</h3><span class="hint">${sealed ? 'drag cards up from your pool, or click them · click a card here to take it out' : 'click a card to take it out'}</span></div>${regionsHTML(deck, lt) || (sealed ? '<p class="hint">Your deck is empty. Drag cards up from your pool, or click them.</p>' : '<p class="hint">Everything is in the sideboard. Click cards below to put them back in your deck.</p>')}</div>
+      ${sealed ? `<div class="pane" data-zone="side"><div class="bar"><h3>Pool</h3><span class="hint">${side.length} card${side.length===1?'':'s'} · drag or click a card to add it to your deck</span><span style="margin-left:auto"></span>${grpSelHTML()}</div>${pilesHTML(side, B.grp) || '<p class="hint">Every card is in your deck.</p>'}</div>`
+      : `<div class="pane" data-zone="side"><div class="bar"><h3>Sideboard</h3><span class="hint">${side.length} card${side.length===1?'':'s'} · click a card to add it to your deck</span></div>${regionsHTML(side, 0) || '<p class="hint">Empty. Click a card in your deck to move it here.</p>'}</div>`}`;
   } else {
     if(!T){ const wait=V.seats.filter(s=>!s.bot && !s.ready).map(s=>s.name);
       h+=`<p class="hint" style="margin:0">${wait.length ? 'Still building: '+esc(wait.join(', '))+'.' : 'Everyone is ready.'}</p>${host ? `<div><button class="go" id="roundBtn">Start round 1</button></div>` : '<p class="hint" style="margin:0">The host starts round 1 when everyone is ready.</p>'}`;
     } else if(!T.total){
-      h+=`<p class="hint" style="margin:0">You drafted against bots, so there is no bracket.</p><div><a href="${playLink('s','')}" target="_blank" rel="noopener" id="soloLink"><button class="go">Practise with this deck on the Modern Table</button></a></div>`;
+      h+=`<p class="hint" style="margin:0">${sealed ? 'You are the only player, so there is no bracket.' : 'You drafted against bots, so there is no bracket.'}</p><div><a href="${playLink('s','')}" target="_blank" rel="noopener" id="soloLink"><button class="go">Practise with this deck on the Modern Table</button></a></div>`;
     } else {
       const R=T.rounds.length-1, rd=T.rounds[R], st=standings(T, V.seats);
       h+=`<div class="bar"><h3>${T.done ? 'Final standings' : `Round ${R+1} of ${T.total}`}</h3></div>`;
-      if(T.done) h+=`<p style="margin:0;color:var(--brass);font:400 20px var(--display)">${esc(st[0].name)} wins the draft.</p>`;
+      if(T.done) h+=`<p style="margin:0;color:var(--brass);font:400 20px var(--display)">${esc(st[0].name)} wins the ${sealed ? 'prerelease' : 'draft'}.</p>`;
       else {
         rd.tables.forEach((t,k)=>{ const mine=t.a===V.me || t.b===V.me, A=V.seats[t.a].name, Bn=V.seats[t.b].name, can=mine||host, is=(x,y)=>t.res && t.res[0]===x && t.res[1]===y;
           const chip=(x,y,l)=>`<button class="sm ${is(x,y)?'on':''}" data-res="${k}" data-x="${x}" data-y="${y}"${can?'':' disabled'}>${esc(l)}</button>`;
@@ -630,30 +700,89 @@ function buildHTML(host, me){
             ${mine ? `<div><a href="${playLink(t.a===V.me?'h':'g', t.code)}" target="_blank" rel="noopener" data-play="1"><button class="go">Open my match on the Modern Table</button></a> <span class="hint">Table code ${esc(t.code)}. Keep this page open.</span></div>` : ''}
             ${can ? `<div class="chips">${chip(2,0,A+' 2–0')}${chip(2,1,A+' 2–1')}${chip(1,1,'Draw 1–1')}${chip(1,2,Bn+' 2–1')}${chip(0,2,Bn+' 2–0')}</div>` : ''}</div>`; });
         if(rd.bye!=null) h+=`<p class="hint" style="margin:0">${esc(V.seats[rd.bye].name)} has the bye this round.</p>`;
-        if(host){ const open=rd.tables.filter(t=>!t.res).length; h+=`<div><button class="${open?'':'go'}" id="roundBtn">${R+1>=T.total ? 'Finish the draft' : 'Start round '+(R+2)}</button>${open?` <span class="hint">${open} match${open>1?'es':''} not reported yet.</span>`:''}</div>`; }
+        if(host){ const open=rd.tables.filter(t=>!t.res).length; h+=`<div><button class="${open?'':'go'}" id="roundBtn">${R+1>=T.total ? (sealed ? 'Finish the prerelease' : 'Finish the draft') : 'Start round '+(R+2)}</button>${open?` <span class="hint">${open} match${open>1?'es':''} not reported yet.</span>`:''}</div>`; }
       }
       h+=`<table><thead><tr><th>#</th><th>Player</th><th class="n">Points</th><th class="n">Matches</th><th class="n">Games</th></tr></thead><tbody>${st.map((s,i)=>`<tr><td>${i+1}</td><td>${esc(s.name)}</td><td class="n">${s.pts}</td><td class="n">${s.w}–${s.l}${s.d?'–'+s.d:''}</td><td class="n">${s.gw}–${s.gl}</td></tr>`).join('')}</tbody></table>`;
     }
-    if(host && V.phase!=='lobby') h+=`<div><button class="ghost sm" id="againBtn">Start a new draft with these players</button></div>`;
+    if(host && V.phase!=='lobby') h+=`<div><button class="ghost sm" id="againBtn">${sealed ? 'Start a new event with these players' : 'Start a new draft with these players'}</button></div>`;
   }
+  return h;
+}
+/* ---------- sealed: the kit, opened one pack at a time (v0.16) ----------
+   Ben's prerelease mode: the kit's sealed packs (Wizards' wrapper art from draft/packs/<set>/, drawn wrappers otherwise) and the
+   promo face down as a card back; a pack fans out in pack order, then its cards are sorted into piles below. All of this is on
+   the player's own screen (B.op): the host already dealt the cards as the pool. */
+const PACKIMG={};
+async function packImgs(set){ if(set in PACKIMG) return; PACKIMG[set]=null;
+  try{ const r=await fetch('packs/'+set+'/index.json'); if(r.ok){ const j=await r.json(); if(j && Array.isArray(j.boosters)){ PACKIMG[set]=j; render(); } } }catch(e){} }
+const coverOf = (u, n) => { let h=(u*0x9E3779B1)>>>0; h^=h>>>15; h=Math.imul(h, 0x85EBCA6B)>>>0; h^=h>>>13; return (h>>>0)%n; };   // a pack's wrapper, fixed per pack
+const byU = () => new Map((V.pool||[]).map(c=>[c.u, c]));
+const opAll = () => B.op.opened.every(Boolean) && (B.op.promo || !V.kit.promo);
+function opSortIn(){ if(B.op.showing>=0) B.op.showing=-1; }
+function opOpen(i){ if(B.op.opened[i]) return; opSortIn(); B.op.opened[i]=1; B.op.showing=i; saveBuild(); render(); }
+function opOpenAll(){ B.op.opened=B.op.opened.map(()=>1); B.op.promo=1; B.op.showing=-1; saveBuild(); render(); }
+const COLNAME={W:'White',U:'Blue',B:'Black',R:'Red',G:'Green',M:'Multicolour',C:'Colourless',L:'Lands'};
+const COLDOT={W:'#efe7cf',U:'#8fc1ea',B:'#7d7372',R:'#ec8c6a',G:'#7fbf73',M:'#e2c46c',C:'#c9c3c0',L:'#b59a80'};
+const GROUPS={
+  colour:{ label:'Colour', order:['W','U','B','R','G','M','C','L'], key:d=>isLandCard(d)?'L':d.c.length>1?'M':d.c.length?d.c:'C', name:k=>COLNAME[k], dot:k=>COLDOT[k] },
+  mv:    { label:'Mana value', order:['0','1','2','3','4','5','6','7+','L'], key:d=>isLandCard(d)?'L':((d.cmc||0)>=7?'7+':String(Math.floor(d.cmc||0))), name:k=>k==='L'?'Lands':k+' mana' },
+  type:  { label:'Card type', order:['Creature','Planeswalker','Instant','Sorcery','Artifact','Enchantment','Battle','Land'], key:d=>{ const t=d.t.split(' // ')[0]; return ['Land','Creature','Planeswalker','Battle','Instant','Sorcery','Artifact','Enchantment'].find(x=>t.includes(x))||'Artifact'; }, name:k=>k },
+  rarity:{ label:'Rarity', order:['mythic','rare','special','uncommon','common'], key:d=>['mythic','rare','special','uncommon'].includes(d.r)?d.r:'common', name:k=>({mythic:'Mythic rare',rare:'Rare',special:'Special',uncommon:'Uncommon',common:'Common'})[k] }};
+const grpSelHTML = () => `<label class="bart" for="grpSel">Sort by<select id="grpSel">${Object.entries(GROUPS).map(([k,g])=>`<option value="${k}"${k===B.grp?' selected':''}>${g.label}</option>`).join('')}</select></label>`;
+/* A sealed pool sorted the way players lay one out at a prerelease: a pile per colour (or mana value, type, rarity), cheapest first, creatures first. */
+function pilesHTML(cards, grp){
+  const g=GROUPS[grp]||GROUPS.colour, b={};
+  for(const c of cards){ const d=CARDS[c.id], k=d ? g.key(d) : g.order[g.order.length-1]; (b[k]=b[k]||[]).push(c); }
+  const keys=g.order.filter(k=>b[k]); if(!keys.length) return '';
+  const cre=c=>{ const d=CARDS[c.id]; return d && /\bCreature\b/.test(d.t.split(' // ')[0]) ? 0 : 1; };
+  const sortP=l=>l.sort((x,y)=>{ const a=CARDS[x.id], z=CARDS[y.id]; return ((a&&a.cmc)||0)-((z&&z.cmc)||0) || cre(x)-cre(y) || String(a&&a.n).localeCompare(String(z&&z.n)); });
+  return `<div class="regions">${keys.map(k=>{ const l=sortP(b[k]), cols=[]; for(let i=0;i<l.length;i+=12) cols.push(l.slice(i,i+12));
+    return `<div class="region"><div class="sec">${g.dot?`<span class="dot" style="background:${g.dot(k)}"></span>`:''}${esc(g.name(k))} <b>${l.length}</b></div><div class="cols">${cols.map(cl=>`<div class="col">${cl.map(c=>cardHTML(c)).join('')}</div>`).join('')}</div></div>`; }).join('')}</div>`;
+}
+function kitHTML(){
+  const K=V.kit, op=B.op, U=byU(), img=PACKIMG[V.set]; if(!(V.set in PACKIMG)) setTimeout(()=>packImgs(V.set), 0);
+  const n=op.opened.filter(Boolean).length, covers=img && img.boosters.length ? img.boosters : null;
+  const promo=K.promo ? U.get(K.promo) : null, all=opAll();
+  let h=`<div class="kit">${img && img.kit ? `<img class="kitbox" src="packs/${esc(V.set)}/${esc(img.kit)}" alt="${esc(setName(V.set))} Prerelease Pack">` : ''}
+    <div class="packs">${K.packs.map((p,i)=>{ const cv=covers ? covers[coverOf(p[0], covers.length)] : '';
+      return `<button class="pk${cv?'':' drawn'}" data-pack="${i}"${op.opened[i]?' disabled':''} aria-label="Pack ${i+1}${op.opened[i]?', opened':''}">${cv ? `<img src="packs/${esc(V.set)}/${esc(cv)}" alt="">` : `<span class="pt">${esc(setName(V.set))}</span>`}<span class="pn">${i+1}</span></button>`; }).join('')}</div>
+    ${K.promo ? `<div class="promo">${op.promo && promo ? cardHTML(promo) : `<button class="cardback${op.opened.every(Boolean)?' ready':''}" id="promoBtn" aria-label="Turn over the promo card"><img src="${BACK_IMG}" alt=""></button>`}<span class="sec" style="margin:0">Foil promo</span></div>` : ''}
+    <div class="kitside"><div class="row"><button class="go" id="openNext"${n===KIT_PACKS?' disabled':''}>Open next pack</button><button id="openAll"${all?' disabled':''}>Open everything</button></div>
+      <span class="hint">${n} of ${KIT_PACKS} packs opened${K.promo ? (op.promo ? ' · promo revealed' : ' · promo face down') : ''}</span></div></div>`;
+  if(op.showing>=0){ const cards=K.packs[op.showing].map(u=>U.get(u)).filter(Boolean);
+    h+=`<div class="reveal"><div class="bar"><h3>Pack ${op.showing+1} of ${KIT_PACKS}</h3><span style="margin-left:auto"></span><button class="go" id="sortIn">Sort into my pool</button></div>
+      <div class="fan">${cards.map((c,j)=>{ const d=CARDS[c.id], hit=d && ['rare','mythic','special'].includes(d.r); return cardHTML(c, hit?'hit':'').replace('class="c ', `style="animation-delay:${j*70}ms" class="c `); }).join('')}</div></div>`; }
+  const pool=[]; K.packs.forEach((p,i)=>{ if(op.opened[i] && i!==op.showing) for(const u of p){ const c=U.get(u); if(c) pool.push(c); } });
+  if(promo && op.promo) pool.push(promo);
+  h+=`<div class="pane"><div class="bar"><h3>Your pool <b style="color:var(--brass)">${pool.length}</b></h3><span style="margin-left:auto"></span>${grpSelHTML()}<button class="go" id="buildGo"${all && op.showing<0?'':' disabled'} title="${all && op.showing<0?'':'Open every pack and the promo first'}">Build your deck</button></div>
+    ${pilesHTML(pool, B.grp) || '<p class="hint">Open a pack to start your pool.</p>'}</div>`;
   return h;
 }
 
 /* ================= clicks ================= */
 function toggleSide(u){ loadBuild(); const i=B.side.indexOf(u); if(i>=0) B.side.splice(i,1); else B.side.push(u); saveBuild(); hideZoom(); render(); }
-$('#main').addEventListener('change', e=>{ if(e.target && e.target.id==='bartSel'){ setBasicPref(e.target.value); render(); toast(e.target.value==='std' ? 'Your basic lands will use the usual art.' : e.target.value==='rnd' ? 'Your basic lands will use a different set each match.' : 'Your basic lands will use this art on the Modern Table.'); } });
+$('#main').addEventListener('change', e=>{ if(e.target && e.target.id==='grpSel' && B){ B.grp=e.target.value; saveBuild(); render(); return; } if(e.target && e.target.id==='bartSel'){ setBasicPref(e.target.value); render(); toast(e.target.value==='std' ? 'Your basic lands will use the usual art.' : e.target.value==='rnd' ? 'Your basic lands will use a different set each match.' : 'Your basic lands will use this art on the Modern Table.'); } });
 $('#main').addEventListener('click', e=>{
   if(!V) return;
   const t=e.target, card=t.closest('.c'), id=t.closest('button') && t.closest('button').id;
   if(V.phase==='draft'){
     if(card && card.closest('#pack')){ const u=+card.dataset.u; if(sel===u && e.detail>1){ act({t:'pick', u}); sel=null; } else { sel=u; render(); } return; }
     if(id==='takeBtn' && sel!=null){ act({t:'pick', u:sel}); sel=null; return; }
-    if(card && card.closest('[data-zone]')) toggleSide(+card.dataset.u);
+    if(card && card.closest('[data-zone]') && Date.now()-DRAG.end >= 250) toggleSide(+card.dataset.u);
     return;
   }
   if(id==='startBtn'){ startDraft(); return; }
+  if(V.mode==='sealed' && B && B.op && !B.op.built){
+    const pk=t.closest('[data-pack]'); if(pk && !pk.disabled){ opOpen(+pk.dataset.pack); return; }
+    if(id==='openNext'){ const i=B.op.opened.indexOf(0); if(i>=0) opOpen(i); return; }
+    if(id==='openAll'){ opOpenAll(); return; }
+    if(id==='promoBtn'){ B.op.promo=1; saveBuild(); render(); return; }
+    if(id==='sortIn'){ opSortIn(); saveBuild(); render(); return; }
+    if(id==='buildGo'){ B.op.built=1; saveBuild(); render(); window.scrollTo(0,0); $('#main').scrollTop=0; return; }
+    if(card && !t.closest('[data-tab]')) return;
+  }
   const tb=t.closest('[data-tab]'); if(tb){ tabNow=tb.dataset.tab; render(); return; }
-  if(card && card.closest('[data-zone]')){ toggleSide(+card.dataset.u); return; }
+  if(card && card.closest('[data-zone]')){ if(Date.now()-DRAG.end < 250) return; toggleSide(+card.dataset.u); return; }
   const lb=t.closest('[data-land]'); if(lb){ const n=lb.dataset.land; B.lands[n]=Math.max(0, (B.lands[n]||0)+(+lb.dataset.d)); saveBuild(); render(); return; }
   if(id==='sugBtn'){ suggestLands(); return; }
   if(id==='saveBtn'){ saveDeck(); return; }
@@ -666,12 +795,31 @@ $('#main').addEventListener('click', e=>{
 });
 $('#main').addEventListener('change', e=>{
   if(ROLE!=='host' || !H || H.phase!=='lobby') return;
-  if(e.target.id==='setSel') H.set=e.target.value; else if(e.target.id==='podSel') H.pod=Math.max(+e.target.value, H.seats.length); else if(e.target.id==='timeSel') H.timer=+e.target.value; else return;
+  if(e.target.id==='fmtSel'){ H.mode=e.target.value==='sealed'?'sealed':'draft'; H.pod = H.mode==='sealed' ? 8 : Math.max(Math.min(H.pod, 8), H.seats.length); }
+  else if(e.target.id==='setSel') H.set=e.target.value; else if(e.target.id==='podSel') H.pod=Math.max(+e.target.value, H.seats.length); else if(e.target.id==='timeSel') H.timer=+e.target.value; else return;
   sync();
 });
+const DRAG={on:null, end:0};
+$('#main').addEventListener('pointerdown', e=>{
+  if(e.pointerType==='touch' || e.button>0) return;
+  const el=e.target.closest('.c'), z=el && el.closest('[data-zone]'); if(!z) return;
+  DRAG.on={u:+el.dataset.u, from:z.dataset.zone, x:e.clientX, y:e.clientY, el, g:null};
+});
+function dragZone(x, y){ const el=document.elementFromPoint(x, y); return el && el.closest('#main [data-zone]'); }
+document.addEventListener('pointermove', e=>{ const d=DRAG.on; if(!d) return;
+  if(!d.g){ if(Math.hypot(e.clientX-d.x, e.clientY-d.y) < 7) return;
+    d.g=document.createElement('div'); d.g.id='ghost'; d.g.style.setProperty('--gw', d.el.offsetWidth+'px'); d.g.innerHTML=d.el.outerHTML; document.body.appendChild(d.g); d.el.style.opacity=.3; hideZoom(); }
+  e.preventDefault(); d.g.style.left=e.clientX+'px'; d.g.style.top=e.clientY+'px';
+  const z=dragZone(e.clientX, e.clientY); $$('#main [data-zone]').forEach(p=>p.classList.toggle('over', p===z && p.dataset.zone!==d.from));
+});
+document.addEventListener('pointerup', e=>{ const d=DRAG.on; DRAG.on=null; if(!d || !d.g) return;
+  d.g.remove(); d.el.style.opacity=''; DRAG.end=Date.now(); $$('#main [data-zone]').forEach(p=>p.classList.remove('over'));
+  const z=dragZone(e.clientX, e.clientY); if(z && z.dataset.zone!==d.from) toggleSide(d.u);
+});
+document.addEventListener('dragstart', e=>{ if(e.target.closest && e.target.closest('#main .c')) e.preventDefault(); });
 $('#rail').addEventListener('click', e=>{ const b=e.target.closest('[data-force]'); if(!b || ROLE!=='host') return; const i=+b.dataset.force, s=H.seats[i]; if(s && s.queue.length){ doPick(i, choice(s).u); pump(); sync(); } });
 $('#codePill').onclick=()=>{ if(navigator.clipboard) navigator.clipboard.writeText(CODE).then(()=>toast('Code copied'), ()=>{}); };
-$('#leaveBtn').onclick=()=>{ if(!confirm(ROLE==='host' ? 'Leave? You are the host, so this ends the draft for everyone.' : 'Leave this draft?')) return; store.del(ROLE==='host'?'dt_host':'dt_guest'); location.href=location.pathname+location.search; };
+$('#leaveBtn').onclick=()=>{ if(!confirm(ROLE==='host' ? 'Leave? You are the host, so this ends it for everyone.' : 'Leave this event?')) return; store.del(ROLE==='host'?'dt_host':'dt_guest'); location.href=location.pathname+location.search; };
 /* hover: a readable copy of the card */
 function hideZoom(){ $('#zoom').hidden=true; }
 document.addEventListener('mouseover', e=>{
@@ -688,21 +836,23 @@ const nameIn=$('#nameIn'); nameIn.value=SETTINGS.name||''; $('#verTag').textCont
 function saveName(){ SETTINGS.name=(nameIn.value.trim()||'Player').slice(0,20); store.set('mt_settings', Object.assign(store.get('mt_settings',{}), {name:SETTINGS.name})); }
 function showLobby(msg){ ROLE=''; V=null; $('#room').hidden=true; $('#lobby').hidden=false; $('#lobbyMsg').textContent=msg||''; }
 function showRoom(){ $('#lobby').hidden=true; $('#room').hidden=false; drawTop(); }
-function beginHost(saved){
+function beginHost(saved, mode){
   saveName(); ROLE='host';
-  H = saved || { code:randCode(), set:SETS.length?SETS[0].code:'', pod:8, timer:75, phase:'lobby', round:0, uid:0, size:0, busy:'', tour:null, packs:null, seats:[{pid:PID, name:SETTINGS.name, bot:0, pool:[], queue:[]}] };
+  H = saved || { mode:mode||'draft', code:randCode(), set:SETS.length?SETS[0].code:'', pod:8, timer:75, phase:'lobby', round:0, uid:0, size:0, busy:'', tour:null, packs:null, seats:[{pid:PID, name:SETTINGS.name, bot:0, pool:[], queue:[]}] };
+  if(!H.mode) H.mode='draft'; if(!saved && H.mode==='sealed') H.timer=0;
   H.busy=''; CODE=H.code; conns.clear();
   if(saved){ useCache(H.set); if(H.phase==='draft'){ loadSet(H.set).catch(()=>{}); H.seats.forEach(setDue); } }
   showRoom(); hostPeer(); sync();
 }
 function beginGuest(code){ saveName(); ROLE='guest'; CODE=code; store.set('dt_guest', {code, at:Date.now()}); showRoom(); setHTML($('#rail'), ''); setHTML($('#main'), '<p class="hint">Connecting to the draft…</p>'); guestPeer(); }
-$('#hostBtn').onclick=()=>beginHost(null);
+$('#hostBtn').onclick=()=>beginHost(null, 'draft');
+$('#sealedBtn').onclick=()=>beginHost(null, 'sealed');
 $('#joinBtn').onclick=()=>{ const c=$('#codeIn').value.trim().toUpperCase(); if(c.length<4){ $('#lobbyMsg').textContent='Type the code your host sent you.'; return; } beginGuest(c); };
 $('#codeIn').onkeydown=e=>{ if(e.key==='Enter') $('#joinBtn').click(); };
 { const h=store.get('dt_host', null), g=store.get('dt_guest', null);
-  if(h && h.seats && h.seats.some(s=>s.pid===PID)){ $('#resumeBtn').hidden=false; $('#resumeTxt').textContent=`You are hosting ${h.code} · ${setName(h.set)}`; $('#resumeBtn').onclick=()=>beginHost(h); }
+  if(h && h.seats && h.seats.some(s=>s.pid===PID)){ $('#resumeBtn').hidden=false; $('#resumeTxt').textContent=`You are hosting ${h.code} · ${h.mode==='sealed'?'prerelease · ':''}${setName(h.set)}`; $('#resumeBtn').onclick=()=>beginHost(h); }
   else if(g && g.code && Date.now()-g.at < 864e5){ $('#resumeBtn').hidden=false; $('#resumeTxt').textContent='Draft '+g.code; $('#resumeBtn').onclick=()=>beginGuest(g.code); } }
-window.__D = { get H(){ return H; }, get V(){ return V; }, genPack, loadSet, ensure, useCache, get CARDS(){ return CARDS; } };
+window.__D = { get H(){ return H; }, get V(){ return V; }, get B(){ return B; }, genPack, promoFor, loadSet, ensure, useCache, get CARDS(){ return CARDS; } };
 </script>
 </body>
 </html>
