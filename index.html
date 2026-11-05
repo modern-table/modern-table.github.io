@@ -409,6 +409,7 @@ body.nomo .kc.won{animation:none}
 .axslots{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line);--cw:104px}.axslot{width:calc(var(--cw) + 16px);min-height:calc(var(--cw) * 1.4 + 34px);border:1px dashed var(--line);border-radius:8px;padding:6px 8px;display:flex;flex-direction:column;gap:4px;align-items:center}.axslot h6{margin:0;font:800 10px var(--ui);letter-spacing:.1em;text-transform:uppercase;color:var(--brass)}.axslot>span{color:var(--dim);font-size:11px;text-align:center;margin-top:30px}.axslot.ok{border-color:var(--good);background:#5fc98d14}.axslot.full{border-style:solid;border-color:var(--brass)}
 #totGrid .card.sel,#gytGrid .card.sel{box-shadow:0 0 0 3px var(--good)}
 .ribban{position:absolute;left:0;right:0;top:30%;text-align:center;font:800 calc(var(--cw)*.095)/1.15 var(--ui);letter-spacing:.06em;color:#1b1205;background:#d9b25fee;border-top:1px solid #fffa;border-bottom:1px solid #fffa;padding:calc(var(--cw)*.02) 0;box-shadow:0 2px 6px #0009;pointer-events:none}
+.cpick{display:flex;gap:10px;justify-content:center;padding:6px 0 4px}.cpk{display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 10px;min-width:74px}.cpk .ms{width:44px;height:44px;font-size:20px;box-shadow:0 2px 4px #0008}.cpk span{font:600 12px var(--ui)}
 .ms{position:relative;width:20px;height:20px;border-radius:50%;display:inline-grid;place-items:center;font:800 11px var(--ui);color:#1b1205;font-style:normal;flex:none}
 .ms img{position:absolute;inset:0;width:100%;height:100%}
 .ms-W{background:#f3ecc6}.ms-U{background:#a9d6ee}.ms-B{background:#b5a9a4}.ms-R{background:#eea58c}.ms-G{background:#97cfa6}.ms-C{background:#cfcfcf}
@@ -616,7 +617,7 @@ body.nomo *{transition:none!important}
 </script>
 <script>
 "use strict";
-const VERSION = 'v4.97';
+const VERSION = 'v4.98';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -632,6 +633,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.98','Nov 5',"Springleaf Drum's menu reads like the card: choose the creature to tap, then pick the color from the five mana symbols. Dalkovan Encampment's attack trigger now shows the Encampment's picture on the stack."],
   ['v4.97','Nov 5',"Ajani, Nacatl Avenger's 0: activating it no longer asks for a target. The Cat is made, and only then does the damage trigger go on the stack and ask where to aim. It also now sees your other red permanents (Ragavan, Mobilize Warriors and the rest), so the damage happens. Grist's −2 asks for its target the same way, after you sacrifice."],
   ['v4.96','Nov 4',"Store affiliations are switched off for now: no store choice on the front page, and no store logos at the table or on the banner before a game."],
   ['v4.95','Nov 4',"Casting a prepared creature's spell (Emergency Phytomedic's Seed Suture and the rest) now asks for its target right away, like any spell you cast; so do other copies you cast, one after another when there are several (Esc for no target). Cost cuts that weren't counted now are: Ghostfire Blade's equip onto a colorless creature, Zirda, the Dawnwaker (never below one mana), Heliod, the Warped Eclipse (for each card your opponents drew this turn), and Firion, Wild Rose Warrior, whose token copies of your Equipment now appear, with cheaper equip, and are sacrificed at the next upkeep."],
@@ -1412,6 +1414,21 @@ function useAbility(c, a, noExtra){
   if(!payCost(a.cost)){ toast(`That costs ${costLabel(a.cost)}. Put it in your mana pool first, then try again.`); return false; }
   c.tap=true; c.mt={o:a.out, t:G.turn.n, ph:G.turn.phase, sm:(a.only || a.rider) ? 1 : 0}; if(a.only || a.rider){ const m=G.me, src=cdata(c).n.split(',')[0]; m.smana=m.smana||[]; for(const k of a.out) if(MANA.includes(k)) m.smana.push({k, src, only:a.only||'', rider:a.rider||'', chosen:c.chosen||''}); if(!noExtra) log(`${G.me.name} taps ${cname(c)} for ${[...a.out].map(k=>'{'+k+'}').join('')}${a.only ? `: spend ${a.out.length>1?'this mana':'it'} only ${a.only}` : ''}${a.rider==='haste' ? ' (a creature spell paid with it gains haste)' : ''}.`); } else addMana(a.out); if(!noExtra && (isCreature(c) || c.anim)) extraMana(c); if(a.rem) c.c--; if(a.dmg){ G.me.life-=a.dmg; log(`${cname(c)} deals ${a.dmg} damage to ${G.me.name} (now ${G.me.life}).`); } if(a.life){ G.me.life-=a.life; log(`${G.me.name} pays ${a.life} life for ${cname(c)}'s mana (now ${G.me.life}).`); } if(a.sacs){ const g=find(c.id); if(g && g.z==='bf'){ log(`${G.me.name} taps and sacrifices ${cname(c)} for ${[...a.out].map(k=>'{'+k+'}').join('')}.`); move(c.id,'gy',{silent:true}); } } if(a.exert){ c.exert=true; log(`${G.me.name} exerts ${cname(c)}. It will not untap next turn.`); } return true;
 }
+/* v4.98 (Ben): an "any color" mana ability that also taps one of your creatures (Springleaf Drum) is one menu item worded as the card; the creature is chosen and tapped first, then the color (a mana ability: no stack) */
+function manaItems(c, ch){ ch=ch||changed; const abs=manaAbilities(c), grp=abs.filter(a=>a.tcr && a.out.length===1 && 'WUBRG'.includes(a.out)), one=grp.length>1, out=[];
+  if(one){ const ln=(cdata(c).o||'').split('\n').map(l=>l.trim()).find(l=>/Tap an untapped creature you control[^:\n]*:\s*Add\b/i.test(l)) || 'Tap an untapped creature you control: Add one mana of any color.'; out.push([ln, ()=>anyColorTap(c, grp, ch)]); }
+  for(const a of abs) if(!(one && grp.includes(a))) out.push([abilityLabel(a), ()=>{ if(useAbility(c,a)) ch(); }]);
+  return out; }
+function colorPick(title){ return new Promise(res=>{ let done=false; const fin=v=>{ if(done) return; done=true; closeModal(); res(v); };
+  if(!$('#modal').hidden) closeModal();
+  const el=modal(title, `<div class="cpick">${'WUBRG'.split('').map(k=>`<button class="cpk" data-cpk="${k}" title="${MNAME[k]}">${symHTML([k])}<span>${MNAME[k]}</span></button>`).join('')}</div><span class="hint">Choose the color of mana to add.</span>`, [['Cancel',()=>fin(null),'ghost']], {onClose:()=>{ if(!done){ done=true; res(null); } }});
+  el.querySelector('.cpick').onclick=e=>{ const b=e.target.closest('[data-cpk]'); if(b) fin(b.dataset.cpk); }; }); }
+async function anyColorTap(c, grp, ch){ const f=find(c.id); if(!f || f.z!=='bf') return; if(c.tap){ toast('It is already tapped.'); return; }
+  const cs=G.me.bf.filter(x=>isCreature(x) && !x.tap && !x.fd && x.id!==c.id); if(!cs.length){ toast('You need an untapped creature to tap for this.'); return; }
+  const nm=cdata(c).n.split(',')[0], p = cs.length===1 ? cs[0] : await pickP(`${nm}: tap an untapped creature you control`, cs, 'Cancel'); const g=p && find(p.id); if(!g || g.z!=='bf' || g.c.tap) return;
+  g.c.tap=true; render();
+  const k=await colorPick(`${nm}: add one mana of any color`); if(!k){ g.c.tap=false; render(); return; }
+  const a=grp.find(x=>x.out===k); log(`${G.me.name} taps ${cname(g.c)} for ${cdata(c).n}.`); if(useAbility(c, Object.assign({}, a, {tcDone:1}))) ch(); else { g.c.tap=false; render(); } }
 const manaLabel = o => MANA.filter(k=>o.includes(k)).map(k=>{ const n=o.split(k).length-1; return (n>1?n+' ':'')+MNAME[k]; }).join(' + ');
 function addMana(o){ const m=G.me; if(!m.mana) m.mana=noMana(); for(const ch of o) if(ch in m.mana) m.mana[ch]++; }
 function turnCleanup(prev, next){
@@ -2034,7 +2051,7 @@ function youAttack(){ const m=G.me; if(m.atkC===G.turn.n) return; m.atkC=G.turn.
   for(const x of m.bf){ if(x.fd || (!x.k && !x.cu)) continue; const mm=(frontText(x)||'').match(/(?:^|\n)Whenever you attack, ([^\n]+)/i); if(!mm) continue; const need=(mm[1].match(/^you may pay ((?:\{E\})+)/i)||[])[1];
     if(need && (m.ctr.energy||0) < (need.match(/\{E\}/g)||[]).length) continue; const d=cdata(x), sn=d.n.split(',')[0];
     m.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:x.id, tr:true}, cu:{n:`${sn}: attack trigger`, t:'Triggered ability', o:mm[0].replace(/^\n/,''), img:d.img||''}})); out.push(sn); }
-  for(const e of (m.wya||[]).filter(e=>e.n===G.turn.n)){ m.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:null, tr:true}, cu:{n:`${e.src}: delayed trigger`, t:'Triggered ability', o:e.txt, img:''}})); out.push(e.src); }
+  for(const e of (m.wya||[]).filter(e=>e.n===G.turn.n)){ m.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:null, tr:true}, cu:{n:`${e.src}: delayed trigger`, t:'Triggered ability', o:e.txt, img:e.img||''}})); out.push(e.src); }
   if(out.length) log(`${m.name} attacks: ${out.join(', ')} trigger${out.length>1?'s go':' goes'} on the stack.`); }
 /* locks on casting and activating: Voice of Victory, Ranger-Captain of Eos (sent by its controller), Clarion Conqueror, Grafdigger's Cage */
 function castLock(c, from){ const o=(G.opp&&G.opp.bf)||[];
@@ -3507,7 +3524,7 @@ async function simpleEffects(c, text, srcId){
       const pay = have>=k && await yesNo(by, `Pay ${'{E}'.repeat(k)} to keep ${cdata(srcC).n}? You have ${have} energy.`, `Pay ${k} energy`, 'Sacrifice it');
       if(pay){ m.ctr.energy=have-k; log(`${by}: ${m.name} pays ${k} energy to keep ${cname(srcC)} (${m.ctr.energy} left).`); } else { log(`${by}: ${m.name} ${have<k?`has only ${have} energy, so `:''}sacrifices ${cname(srcC)}.`); move(srcC.id,'gy',{silent:true}); } changed(); continue; }
     if(/^sacrifice (?:them|it|those tokens) at the beginning of the next end step\.?$/i.test(sen)){ for(const tk of made){ tk.sacEnd=1; tk.sacBy=String(by).split(":")[0]; } continue; }
-    if((r=String(text).match(/^(?:[^\n]*?)Whenever you attack this turn, ([\s\S]+)$/i)) && /^whenever you attack this turn,/i.test(sen)){ (m.wya=(m.wya||[]).filter(e=>e.n===G.turn.n)).push({n:G.turn.n, src:by, txt:r[1].trim()}); log(`${by}: the next time ${m.name} attacks this turn, ${r[1].trim().replace(/\.$/,'')}.`); break; }
+    if((r=String(text).match(/^(?:[^\n]*?)Whenever you attack this turn, ([\s\S]+)$/i)) && /^whenever you attack this turn,/i.test(sen)){ (m.wya=(m.wya||[]).filter(e=>e.n===G.turn.n)).push({n:G.turn.n, src:by, txt:r[1].trim(), img:(srcC && cdata(srcC).img) || cdata(c).img || ''});   /* v4.98: the trigger shows its source's picture (Dalkovan Encampment) */ log(`${by}: the next time ${m.name} attacks this turn, ${r[1].trim().replace(/\.$/,'')}.`); break; }
     if((r=sen.match(/^then if you have the city's blessing, for each token you control that entered (?:the battlefield )?this turn, create a token that's a copy of it\.?$/i))){ if(!m.city) continue; const ts=m.bf.filter(x=>x.tok && x.tokT===G.turn.n); const cps=[]; for(const x of ts){ const tk=mk(null,{tok:true, cu:Object.assign({}, x.cu||{}), k:x.k}); tk.tokT=G.turn.n; tk.sick=true; m.bf.push(tk); cps.push(tk); } for(const tk of cps) entered(tk); log(`${by}: city's blessing, ${m.name} copies ${ts.length} token${ts.length===1?'':'s'} that entered this turn.`); changed(); continue; }
     if((r=sen.match(/^if you do, (.+?) gains ["“]when this creature leaves the battlefield, ([^"”]+)["”]\.?$/i))){ const t=srcC || (c.ab && find(c.ab.id) && find(c.ab.id).c); if(hit.length && t){ t.gainLtb=r[2].trim(); log(`${by}: ${cname(t)} gains "When this creature leaves the battlefield, ${r[2].trim().replace(/\.$/,'')}."`); changed(); } else if(!hit.length) log(`${by}: nothing was exiled, so it gains nothing.`); continue; }
     if((r=sen.match(/^(?:target|each) opponent draws (a|one|two|three|\d+) cards?\.?$/i))){ const k=NUMW2[r[1].toLowerCase()]||+r[1]||1; if(G.opp){ send({t:'youdraw', n:k, by}); log(`${by}: ${G.opp.name} draws ${k===1?'a card':k+' cards'}.`); } continue; }
@@ -5746,12 +5763,12 @@ function toggleTap(id, x, y){
       menu(x, y, [...fe.map(a=>[abLabel(a), ()=>activate(id,a)]), ...mana, '-', [mana.length ? 'Tap without adding mana' : 'Tap (no mana)', ()=>{ c.tap=true; changed(); }]]); return; } }
   const emp = c.fd ? [] : empowerItems(c);
   if(emp.length){ if(x==null){ const el=$(`#table .card[data-id="${id}"]`), r=el?el.getBoundingClientRect():{left:200,top:200,width:0}; x=r.left+r.width/2; y=r.top+20; }
-    const mana = (isLand(c) || /\{T\}[^:\n]*: add/i.test(cdata(c).o||'')) ? manaAbilities(c).map(a=>[abilityLabel(a), ()=>{ if(useAbility(c,a)) changed(); }]) : [];
+    const mana = (isLand(c) || /\{T\}[^:\n]*: add/i.test(cdata(c).o||'')) ? manaItems(c) : [];
     menu(x, y, [...emp, ...mana, '-', [mana.length ? 'Tap without adding mana' : 'Tap', ()=>{ c.tap=true; changed(); }]]); return; }
   if(!c.fd && (isLand(c) || (!isCreature(c) && /\{T\}[^:\n]*: add/i.test(cdata(c).o||'')))){
     const abs=manaAbilities(c);
     if(abs.length>1 || (abs.length===1 && (abs[0].cost || abs[0].rem))){ if(x==null){ const el=$(`#table .card[data-id="${id}"]`), r=el?el.getBoundingClientRect():{left:200,top:200,width:0}; x=r.left+r.width/2; y=r.top+20; }
-      menu(x, y, [...abs.map(a=>[abilityLabel(a), ()=>{ if(useAbility(c,a)) changed(); }]), '-', ['Tap without adding mana', ()=>{ c.tap=true; changed(); }]]); return; }
+      menu(x, y, [...manaItems(c), '-', ['Tap without adding mana', ()=>{ c.tap=true; changed(); }]]); return; }
     if(abs.length===1){ if(abs[0].only || abs[0].rider || abs[0].sacs){ useAbility(c, abs[0]); changed(); return; } addMana(abs[0].out); c.mt={o:abs[0].out, t:G.turn.n, ph:G.turn.phase}; if(isCreature(c)) extraMana(c); }
   }
   c.tap=true; changed();
@@ -6970,7 +6987,7 @@ function cardMenu(id, x, y){
   let items=[];
   if(z==='bf') items=[
     [c.tap?'Untap':(isCreature(c)?'Tap (no mana)':'Tap'),()=>{ if(c.tap){ untapCard(c); ch(); } else if(isCreature(c)){ c.tap=true; ch(); } else toggleTap(id); },'T'],
-    ...((!c.tap && !c.fd && /\{T\}[^:\n]*: add/i.test(cdata(c).o||'')) ? manaAbilities(c).map(a=>OWN([abilityLabel(a), ()=>{ if(useAbility(c,a)) ch(); }])) : []), ...abilitiesOf(c).map(a=>OWN([abLabel(a), ()=>activate(id,a)])), cdmgLine(c)&&['Dealt combat damage to a player (put its trigger on the stack)',()=>cdmgTrig(id)], [c.atk?'Remove from combat':'Attack (taps)',()=>attack(id,false),'A'], !c.atk&&['Attack with vigilance (stays untapped)',()=>attack(id,true),'V'],
+    ...((!c.tap && !c.fd && /\{T\}[^:\n]*: add/i.test(cdata(c).o||'')) ? manaItems(c, ch).map(OWN) : []), ...abilitiesOf(c).map(a=>OWN([abLabel(a), ()=>activate(id,a)])), cdmgLine(c)&&['Dealt combat damage to a player (put its trigger on the stack)',()=>cdmgTrig(id)], [c.atk?'Remove from combat':'Attack (taps)',()=>attack(id,false),'A'], !c.atk&&['Attack with vigilance (stays untapped)',()=>attack(id,true),'V'],
     stationN(c)&&OWN(['Station (tap another creature: charge counters equal to its power)',()=>stationIt(id)]), c.prep&&prepSpell(c)&&OWN([`Cast a copy of ${prepSpell(c).n} ${prepSpell(c).mc} (no longer prepared)`,()=>castPrepared(id)]),
     (canAnimate(c)||c.anim)&&[c.anim?'Return to land row now':'Become a creature (until end of turn)',()=>animateLand(id)], ...(c.fd?[]:empowerItems(c).map(OWN)),
     druidLoop(c)&&OWN([`Repeat the loop N times… (tap for mana, untap; ${minusOneBy()} stops the counter)`,()=>runDruidLoop(id)]),
