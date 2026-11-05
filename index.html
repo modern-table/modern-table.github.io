@@ -533,7 +533,7 @@ body.nomo *{transition:none!important}
     <p id="tourLine" hidden><a href="#" id="tourLink" style="color:var(--brass);font-weight:700">Take the three-minute tour</a> <span style="color:var(--dim)">· new here? see how the table works</span><button id="tourX" class="ghost" title="No thanks (the tour stays in the ☰ menu at the table)" aria-label="Close">×</button></p></div>
     <div class="lmain">
     <div class="field"><label for="nameIn">Your name</label><input id="nameIn" maxlength="20" placeholder="Planeswalker"></div>
-    <div class="field" id="lgsField"><label for="lgsIn">Affiliation</label><div class="lgsrow"><span id="lgsPrev" class="lgsp"></span><select id="lgsIn"></select></div><span class="lgsh">Rep your local game store: its logo shows beside your name at the table.</span></div>
+    <div class="field" id="lgsField" hidden><label for="lgsIn">Affiliation</label><div class="lgsrow"><span id="lgsPrev" class="lgsp"></span><select id="lgsIn"></select></div><span class="lgsh">Rep your local game store: its logo shows beside your name at the table.</span></div>
     <div class="choices">
       <button class="choice" id="hostBtn"><div><b>Open a table</b><span>Get a six-letter code to send to your friend.</span></div><span>→</span></button>
       <div class="choice" style="border:1px solid var(--line);border-radius:6px">
@@ -544,7 +544,7 @@ body.nomo *{transition:none!important}
     </div>
     <p id="lobbyMsg" style="color:var(--go)"></p>
     <p><a href="#" id="fbLink" style="color:var(--brass)">Send feedback</a> <span style="color:var(--dim)">· report a bug or suggest a change</span></p>
-    <p class="legal"><span class="lgl">Modern Table is unofficial Fan Content permitted under the <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Fan Content Policy</a>. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.</span><span class="lgl">Card images and card data from <a href="https://scryfall.com/" target="_blank" rel="noopener">Scryfall</a>. Tournament decklists from <a href="https://www.mtggoldfish.com/" target="_blank" rel="noopener">MTGGoldfish</a>. Free to use, with no ads, and not affiliated with any of these sites.</span><span class="lgl">Store names and logos belong to their stores. Players pick one to show where they play; Modern Table isn't affiliated with or endorsed by any of them.</span></p>
+    <p class="legal"><span class="lgl">Modern Table is unofficial Fan Content permitted under the <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Fan Content Policy</a>. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.</span><span class="lgl">Card images and card data from <a href="https://scryfall.com/" target="_blank" rel="noopener">Scryfall</a>. Tournament decklists from <a href="https://www.mtggoldfish.com/" target="_blank" rel="noopener">MTGGoldfish</a>. Free to use, with no ads, and not affiliated with any of these sites.</span><span class="lgl" id="lglStore" hidden>Store names and logos belong to their stores. Players pick one to show where they play; Modern Table isn't affiliated with or endorsed by any of them.</span></p>
     </div>
     <aside class="news" id="news" aria-label="What's new"></aside>
   </div>
@@ -616,7 +616,7 @@ body.nomo *{transition:none!important}
 </script>
 <script>
 "use strict";
-const VERSION = 'v4.95';
+const VERSION = 'v4.96';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -624,11 +624,15 @@ const LGS = [
   {k:'gamers-gauntlet', n:"Gamer's Gauntlet"}, {k:'gob', n:'GOB'}, {k:'jesters-gallery', n:"Jester's Gallery"}, {k:'motor-city-gaming', n:'Motor City Gaming'},
   {k:'mythic-forge-gaming', n:'Mythic Forge Gaming'}, {k:'riw-hobbies-games', n:'RIW Hobbies & Games'}, {k:'the-8th-side', n:'The 8th Side'},
   {k:'the-upkeep-games', n:'The Upkeep Games'}, {k:'time-travelers', n:'Time Travelers'}, {k:'twin-knights-gaming', n:'Twin Knights Gaming'} ];
-const lgsOf = k => LGS.find(x=>x.k===k) || null;
+/* v4.96 (Ben): affiliation is switched off for now. With AFF_ON false nothing shows (front-page field, store notice line, logos beside names,
+   match intro, tour stop) and saved or published choices are ignored. The logos stay in lgs/; set AFF_ON = true to bring it all back. */
+const AFF_ON = false;
+const lgsOf = k => AFF_ON ? (LGS.find(x=>x.k===k) || null) : null;
 const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" src="lgs/${L.k}.png" alt="${esc(L.n)}" title="${esc(L.n)}">` : ''; };
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.96','Nov 4',"Store affiliations are switched off for now: no store choice on the front page, and no store logos at the table or on the banner before a game."],
   ['v4.95','Nov 4',"Casting a prepared creature's spell (Emergency Phytomedic's Seed Suture and the rest) now asks for its target right away, like any spell you cast; so do other copies you cast, one after another when there are several (Esc for no target). Cost cuts that weren't counted now are: Ghostfire Blade's equip onto a colorless creature, Zirda, the Dawnwaker (never below one mana), Heliod, the Warped Eclipse (for each card your opponents drew this turn), and Firion, Wild Rose Warrior, whose token copies of your Equipment now appear, with cheaper equip, and are sacrificed at the next upkeep."],
   ['v4.94','Nov 4',"Cost reductions the table missed now count: Ghalta the Unstoppable (greatest power among your creatures) and Ghalta the Immovable (greatest toughness), plus Traxos, Academy Guardian, Wrath of the Bloodmane and Igneous Elemental when their condition is met. Thrasta, Tempest's Roar and Valiant Changeling now count too. With Ghalta the Immovable out, your creatures with more toughness than power deal combat damage equal to their toughness."],
   ['v4.93','Nov 4',"Left-clicking a planeswalker you control (the Jace token too) opens its loyalty abilities, including any that other cards give it, like the Ways' abilities from Reality Fracture."],
@@ -7131,7 +7135,7 @@ const TOUR_STEPS = {
   lobby: [
     {t:'Welcome to Modern Table', p:['A Magic table for you and a friend, in the browser. This tour shows you around in about three minutes.','<b>Automatic first, by hand always:</b> the table plays your cards for you wherever it can, and anything it doesn\'t do, you can still do yourself.']},
     {sel:'#nameIn', t:'Your name', p:['This is what your opponent sees, in the log and on the table.']},
-    {sel:'#lgsField', t:'Rep your LGS', p:['Pros sit down with their team logo beside their name. Why should you sit down unbranded? Pick your local game store and its logo goes beside your name at the table, and on the banner before every game, so your opponent knows exactly who\'s about to beat them.','Flying solo? <b>No affiliation</b> is right at the top of the list. No hard feelings (your store might have a few).']},
+    ...(AFF_ON ? [{sel:'#lgsField', t:'Rep your LGS', p:['Pros sit down with their team logo beside their name. Why should you sit down unbranded? Pick your local game store and its logo goes beside your name at the table, and on the banner before every game, so your opponent knows exactly who\'s about to beat them.','Flying solo? <b>No affiliation</b> is right at the top of the list. No hard feelings (your store might have a few).']}] : []),
     {sel:'#hostBtn', t:'Open a table', p:['You get a <b>six-letter code</b>. Send it to your friend (text, Discord, anything) and they join with it. The code stays on your screen until they arrive.']},
     {sel:'#codeIn', up:2, t:'Join a table', p:['Got a code from a friend? Type it here and press Join.']},
     {sel:'#soloBtn', t:'Practice alone', p:['Try a deck by yourself. You get an opponent called <b>Practice</b> to attack, and it can bring a deck of its own and take turns.','We\'ll open a practice game now so you can see the table.']},
@@ -7885,6 +7889,7 @@ function paintTour(){
 
 /* ================= lobby ================= */
 const nameIn=$('#nameIn'); nameIn.value=S.name;
+$('#lgsField').hidden=!AFF_ON; $('#lglStore').hidden=!AFF_ON;
 { const sel=$('#lgsIn'), srt=n=>n.replace(/^The /,''); sel.innerHTML = '<option value="">No affiliation</option>' + [...LGS].sort((a,b)=>srt(a.n).localeCompare(srt(b.n))).map(L=>`<option value="${L.k}">${esc(L.n)}</option>`).join('');
   if(!lgsOf(S.lgs)) S.lgs=''; sel.value=S.lgs||'';
   const paint=()=>{ const pv=$('#lgsPrev'); pv.innerHTML=lgsImg(S.lgs,''); pv.classList.toggle('on', !!lgsOf(S.lgs)); };
