@@ -608,7 +608,7 @@ body.nomo *{transition:none!important}
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.96';
+const VERSION = 'v4.97';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -624,6 +624,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.97','Nov 5',"Ajani, Nacatl Avenger's 0: activating it no longer asks for a target. The Cat is made, and only then does the damage trigger go on the stack and ask where to aim. It also now sees your other red permanents (Ragavan, Mobilize Warriors and the rest), so the damage happens. Grist's −2 asks for its target the same way, after you sacrifice."],
   ['v4.96','Nov 4',"Store affiliations are switched off for now: no store choice on the front page, and no store logos at the table or on the banner before a game."],
   ['v4.95','Nov 4',"Casting a prepared creature's spell (Emergency Phytomedic's Seed Suture and the rest) now asks for its target right away, like any spell you cast; so do other copies you cast, one after another when there are several (Esc for no target). Cost cuts that weren't counted now are: Ghostfire Blade's equip onto a colorless creature, Zirda, the Dawnwaker (never below one mana), Heliod, the Warped Eclipse (for each card your opponents drew this turn), and Firion, Wild Rose Warrior, whose token copies of your Equipment now appear, with cheaper equip, and are sacrificed at the next upkeep."],
   ['v4.94','Nov 4',"Cost reductions the table missed now count: Ghalta the Unstoppable (greatest power among your creatures) and Ghalta the Immovable (greatest toughness), plus Traxos, Academy Guardian, Wrath of the Bloodmane and Igneous Elemental when their condition is met. Thrasta, Tempest's Roar and Valiant Changeling now count too. With Ghalta the Immovable out, your creatures with more toughness than power deal combat damage equal to their toughness."],
@@ -2452,7 +2453,7 @@ function etbTrigs(c){ const L0=(frontText(c)||'').split('\n').map(x=>x.trim()); 
       if(i>=0 && modes.length>1){ setTimeout(()=>pickModes(c, {head:l, modes, min:1, max:1}, p=>{ put(modes[p[0]-1], ` (${modes[p[0]-1].slice(0,60)}${modes[p[0]-1].length>60?'…':''})`); changed(); }, {title:`${nm} enters: choose one`, skip:null}), 0); continue; } }
     put(l); } }
 /* a target named only in a reflexive follow-up ("When you discard one or more nonland cards this way, tap up to that many target creatures") is chosen later, by that trigger */
-const needsTarget = t => /\btarget\b|\b(?:one or two|any number of|up to (?:two|three)|two|three) targets\b/i.test(String(t||'').split(/(?:^|\.\s+)When you [^,]+? this way,/i)[0]);
+const needsTarget = t => /\btarget\b|\b(?:one or two|any number of|up to (?:two|three)|two|three) targets\b/i.test(String(t||'').split(/(?:^|\.\s+)When you (?:do|[^,]+? this way),/i)[0]);   // v4.97: "When you do, … any target" (Ajani, Nacatl Avenger's 0, Grist's −2) targets when that trigger goes on the stack
 const PHASE_RE={main1:/^At the beginning of (?:your first main phase|your precombat main phase|the first main phase of your turn), (.+)$/i, main2:/^At the beginning of (?:each of your postcombat main phases|your postcombat main phase|each of your second main phases|your second main phase), (.+)$/i, upkeep:/^At the beginning of (?:your upkeep|each upkeep|each player's upkeep), (.+)$/i, combat:/^At the beginning of (?:combat on your turn|each combat), (.+)$/i, end:/^At the beginning of (?:your end step|each end step|the end step), (.+)$/i, endEach:/^At the beginning of (?:each end step|the end step), (.+)$/i};
 function phaseTrigs(kind, mineTurn){ const re = kind==='end' && !mineTurn ? PHASE_RE.endEach : PHASE_RE[kind], out=[], rem=[];
   for(const c of G.me.bf){ if(c.fd || (!c.k && !c.cu)) continue; const d=cdata(c), nm=faceName(c, c.flip?1:0).split(',')[0];
@@ -2481,7 +2482,8 @@ function condTrue(x, c){ x=String(x||'').toLowerCase().trim().replace(/\.$/,'');
   if(/^you attacked (?:with a creature )?this turn$/.test(x)) return m.atkC===G.turn.n;
   if(/^there is an? land card in your graveyard$/.test(x)) return m.gy.some(g=>isLand(g));   // v4.94: Igneous Elemental
   if(/^you(?:'ve| have) cast a noncreature spell this turn$/.test(x)) return !!(m.cast && m.cast.nc>0);   // v4.94: Traxos, Academy Guardian (noteCast counts noncreature spells in cast.nc; m.cast resets every turn)
-  if((q=x.match(/^you control (an? .+)$/))){ const d=q[1].replace(/^an? /,''); return m.bf.some(b=>!b.fd && matchesDesc(b, d)); }   // v4.94: Wrath of the Bloodmane ("a legendary creature")
+  if((q=x.match(/^you control (an? .+)$/))){ let d=q[1].replace(/^an? /,''); const oth=d.match(/^(.+?) other than (.+)$/), nm=oth ? oth[2].split(',')[0].trim() : ''; if(oth) d=oth[1];   /* v4.97: "a red permanent other than Ajani" (Ajani, Nacatl Avenger): the source itself doesn't count */
+    return m.bf.some(b=>!b.fd && !(oth && ((c && b.id===c.id) || (!/^(?:this|it|that)\b/.test(nm) && faceName(b, b.flip?1:0).toLowerCase().split(',')[0].trim()===nm))) && matchesDesc(b, d)); }   // v4.94: Wrath of the Bloodmane ("a legendary creature")
   if((q=x.match(/^an? graveyard has (\w+) or more cards in it$/))){ const k=NUMW2[q[1]]||+q[1]||20; return m.gy.length>=k || ((G.opp&&G.opp.gy)||[]).length>=k; }   // v4.36: Visions of Beyond
   if(/^you control a creature with power 4 or greater$/.test(x)) return m.bf.some(y=>!y.fd && isCreature(y) && powerOf(y)>=4);
   if(/^you have no cards in hand$/.test(x)) return m.hand.length===0;
@@ -4979,7 +4981,7 @@ function activate(id, a, evDone, extra){ if(waitMull()) return;
   if(!peek && /\buntap (?:another |up to one )?(?:other )?target\b/i.test(abText(a))){ G.mode={type:'arrow', from:mkr.id}; toast(`${nm}: click the permanent to untap.`); }
   if(a.kw && /^(Equip|Reconfigure)$/i.test(a.eff) && /^Equip$/i.test(a.eff)){ if(extra && extra.eqT){ G.me.arrows.push({a:mkr.id, b:extra.eqT}); log(`${nm}: equip ${cname(find(extra.eqT) ? find(extra.eqT).c : {k:''})}.`); } else { G.mode={type:'arrow', from:mkr.id}; toast(`${nm}: click the creature you control to equip.`); } }
   if(peek){ G.mode={type:'arrow', from:mkr.id}; toast(`${nm}: click the player whose ${hpeek?'hand':'library'} you look at (you or your opponent).`); }
-  else if(!G.mode && /\btarget\b/i.test(a.eff) && !(extra && extra.gyt!=null)){ G.mode={type:'arrow', from:mkr.id}; toast(`${nm}: click its target (Esc for none).`); }
+  else if(!G.mode && needsTarget(a.eff) && !(extra && extra.gyt!=null)){ G.mode={type:'arrow', from:mkr.id}; toast(`${nm}: click its target (Esc for none).`); }
   if(extra && extra.copy){ const title=`${nm}'s ability was put on the stack`; notice(title, `It targets ${extra.copy.name} in your graveyard. Click it on the stack to resolve it; ${nm} then becomes a copy of ${extra.copy.name} until end of turn.`); send({t:'notice', title, text:`It targets ${extra.copy.name} in ${G.me.name}'s graveyard. When it resolves, ${nm} becomes a copy of ${extra.copy.name} until end of turn.`}); }
   changed();
 }
