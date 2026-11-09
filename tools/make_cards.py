@@ -68,7 +68,8 @@ def deck_names(path='src/decks.txt'):
         line = line.strip()
         if not line or line.startswith('#') or line.startswith('@@') or line.lower() == 'sideboard': continue
         m = re.match(r'(\d+)\s+(.+)', line)
-        if m: names.add(m.group(2).strip())
+        # split cards: MTGTop8 writes "Crime/Punishment"; Scryfall and the game use "Crime // Punishment" (parseDeck does the same)
+        if m: names.add(re.sub(r'\s*/{1,2}\s*', ' // ', m.group(2).strip()))
     return sorted(names)
 
 def load_bulk(path):

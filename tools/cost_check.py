@@ -163,6 +163,7 @@ def main():
         print(__doc__); return 0
     items, missing = [], []
     for n in names:
+        n = re.sub(r'\s*/{1,2}\s*', ' // ', n)  # "Wear/Tear" (MTGTop8) = "Wear // Tear"
         c = db.get(norm(n)) or db.get(norm(n.split(' // ')[0]))
         if not c:
             missing.append(n); continue
