@@ -311,7 +311,7 @@ body.nomo .kc.won{animation:none}
 :is(#pactPanel,#payPanel) .pcost{display:flex;gap:6px;align-items:center;flex-wrap:wrap}:is(#pactPanel,#payPanel) .pcost .ms{width:30px;height:30px;font-size:15px;filter:grayscale(1);opacity:.35;transition:opacity .15s}:is(#pactPanel,#payPanel) .pcost .ms.ok{filter:none;opacity:1;box-shadow:0 0 0 2px var(--good)}
 :is(#pactPanel,#payPanel) .pst{font-weight:800;color:var(--dim)}:is(#pactPanel,#payPanel) .pst.ok{color:var(--good)}:is(#pactPanel,#payPanel) .pbtns{display:flex;gap:8px;flex-wrap:wrap}:is(#pactPanel,#payPanel) .pbtns button{font-size:12.500px}
 .lkban{position:absolute;left:0;right:0;top:36%;text-align:center;font:800 calc(var(--cw)*.085)/1.1 var(--ui);letter-spacing:.06em;color:#eafcff;background:linear-gradient(#11606b,#0b3f47);border-top:1px solid #7fe3ee;border-bottom:1px solid #04252a;padding:calc(var(--cw)*.025) 2px;box-shadow:0 2px 6px #0009;pointer-events:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lkban small{display:block;font-size:.72em;letter-spacing:.12em;color:#a8eef5}
-.card.lk{box-shadow:0 0 0 1px #5fd4e099,0 0 8px 1px #5fd4e044}.card.lk.lkhot{box-shadow:0 0 0 2px #5fd4e0,0 0 18px 5px #5fd4e0aa}
+.card.lk{box-shadow:0 0 0 1px #5fd4e099,0 0 8px 1px #5fd4e044}.card.lk.lkhot{box-shadow:0 0 0 2px #5fd4e0,0 0 18px 5px #5fd4e0aa}.card.hk.lkhot{box-shadow:0 0 0 2px var(--brass),0 0 18px 6px color-mix(in srgb,var(--brass) 70%,transparent)}
 .cpban{position:absolute;left:0;right:0;top:20%;text-align:center;font:800 calc(var(--cw)*.095)/1.1 var(--ui);letter-spacing:.1em;color:#fff;background:linear-gradient(#3b2a66,#24183f);border-top:1px solid #b9a7ff;border-bottom:1px solid #120c22;padding:calc(var(--cw)*.025) 2px;box-shadow:0 2px 6px #0009;pointer-events:none;text-transform:uppercase}
 .card.gtg{box-shadow:0 0 0 2px var(--bad),0 0 14px 4px #e2574caa}
 .tgban{position:absolute;left:0;right:0;top:56%;text-align:center;font:800 calc(var(--cw)*.085)/1.15 var(--ui);letter-spacing:.06em;color:#fff;background:#8f1f17e6;border-top:1px solid #ffb3ab;border-bottom:1px solid #3a0b08;padding:2px 2px;pointer-events:none;text-transform:uppercase}
@@ -681,7 +681,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 </script>
 <script>
 "use strict";
-const VERSION = 'v4.106';
+const VERSION = 'v4.107';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -697,6 +697,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.107','Nov 9',"Cards exiled until something leaves the battlefield (Leyline Binding, Portable Hole, Temporary Lockdown) come back by themselves, Practice's included. Point at the exiled card and the permanent holding it lights up, and the other way round. Terrasymbiosis only counts counters you put; Tameshi sees any noncreature permanent returned to hand."],
   ['v4.106','Nov 9',"Eight more of this week's cards play themselves: Liliana of the Veil's −6 piles, Indomitable Creativity, Temporary Lockdown, Suppression Ray, Necromentia, Tameshi, Reality Architect, Gran-Gran and Hidetsugu Consumes All's Vessel (its 10-damage win included)."],
   ['v4.105','Nov 9',"Counter cards play themselves: Hardened Scales, Loading Zone (on +1/+1 counters), Terrasymbiosis, Zabaz, the Glimmerwasp and The Ozolith. Moonsnare Prototype and Urza, Lord High Artificer can tap artifacts for mana."],
   ['v4.104','Nov 9',"Eleven more cards from this week's decks play themselves: Riveteers Charm, Skyline Cascade, Fallaji Archaeologist, Hangarback Walker, Raph & Mikey, Bitter Triumph, Dispatch, River of Tears, Sea Gate Restoration, Dwarven Mine and Waterlogged Teachings (its search now finds cards with flash too)."],
@@ -1159,7 +1160,7 @@ function lifeGuard(){ const m=G.me; if(!m || !G.turn) return; const n=G.turn.n;
   if(m.lifeLock && m.lifeLock.n===n && m.life!==m.lifeLock.v){ const d=m.life-m.lifeLock.v; m.life=m.lifeLock.v; fix(d); addLog(`${m.name}'s life total can't change this turn (${d>0?'+':''}${d} undone).`,'s'); send({t:'log', text:`${m.name}'s life total can't change this turn.`}); }
   else if(m.noGain===n && m.lastL!=null && m.life>m.lastL){ const d=m.life-m.lastL; m.life=m.lastL; fix(d); addLog(`${m.name} can't gain life this turn (+${d} undone).`,'s'); send({t:'log', text:`${m.name} can't gain life this turn.`}); }
   m.lastL=m.life; }
-function changed(){ if(DSW) return; dedupeIds(); lossCheck(); clearTimeout(G.sbaT); G.sbaT=setTimeout(sbaDeaths, 150); legendCheck(); lifeGuard(); try{ scalesWatch(); }catch(e){} try{ tapWatch(); }catch(e){} try{ ctrWatch(); }catch(e){} try{ kaitoWatch(); }catch(e){} if(G.me.ctr.energy>0) G.me.energySeen=true; if((G.me.ctr.poison||0)>0) G.me.poisonSeen=true; checkHeld(); pruneGtg(); pruneArrows(); warpPrune(); for(const x of G.me.bf) if(x.tok && x.tokT==null) x.tokT=G.turn.n||0;   /* every token knows the turn it entered (Ocelot Pride's copies) */ checkpoint(); render(); clearTimeout(syncT); syncT=setTimeout(()=>{ send({t:'state', s:pub()}); save(); }, 40); }
+function changed(){ if(DSW) return; dedupeIds(); lossCheck(); clearTimeout(G.sbaT); G.sbaT=setTimeout(sbaDeaths, 150); legendCheck(); lifeGuard(); try{ scalesWatch(); }catch(e){} try{ tapWatch(); }catch(e){} try{ ctrWatch(); }catch(e){} try{ kaitoWatch(); }catch(e){} if(G.me.ctr.energy>0) G.me.energySeen=true; if((G.me.ctr.poison||0)>0) G.me.poisonSeen=true; checkHeld(); if(dummy()) asDummy(()=>checkHeld()); pruneGtg(); pruneArrows(); warpPrune(); for(const x of G.me.bf) if(x.tok && x.tokT==null) x.tokT=G.turn.n||0;   /* every token knows the turn it entered (Ocelot Pride's copies) */ checkpoint(); render(); clearTimeout(syncT); syncT=setTimeout(()=>{ send({t:'state', s:pub()}); save(); }, 40); }
 function save(){ if(DSW) return; if(G.code || G.solo) store.set('mt_session', {code:G.code, solo:G.solo, myId:G.myId, me:G.me, dum:(G.opp&&G.opp.dummy)?G.opp:null, turn:G.turn, idc:G.idc, mt:mtWire(), mtEnd:(G.mt&&G.mt.end)||null, at:Date.now()}); }
 function log(text, cls){ addLog(text, cls||'m'); send({t:'log', text}); if(G.me && G.turn && G.turn.n && /\bsacrific(?:es|ed)\b/i.test(text) && String(text).includes(G.me.name) && !/sacrifices nothing|nothing is sacrificed/i.test(text)) G.me.sacT=G.turn.n; }
 /* Vehicles: crewed this turn (c.crew = turn), or "As long as you control eight or more permanents named X, this Vehicle is an artifact creature" (Phoenix Fleet Airship) */
@@ -1262,6 +1263,7 @@ function onMsg(m){
   else if(m.t==='each'){ if(['wheel','loot','rdisc','disc','dl','gyshuf','dh7','sat','mjx','mjret','exh','bal','ccl','krx','cres','mdh7','exl'].includes(m.op)) DPROM=eachDo(m, m.by); }
   else if(m.t==='edict'){ edictPick(m); }
   else if(m.t==='creative'){ creativeReveal(Math.max(0, Math.min(20, +m.n||0)), `${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'effect').slice(0,60)}`); }   // v4.106 Indomitable Creativity
+  else if(m.t==='tohand'){ tameshiTrig(null, m.n); }   // v4.107: the other player's noncreature permanent went to their hand (Tameshi)
   else if(m.t==='sacids'){ sacIds((m.ids||[]).slice(0,200).map(String), `${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'effect').slice(0,60)}`); }   // v4.106 Liliana of the Veil's −6
   else if(m.t==='q'){ answerQ(m.rid, m.q); }
   else if(m.t==='libtake'){ const by=`${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'effect').slice(0,60)}`, take=m.take && find(m.take); G.noUndo=true; if(take && take.z==='lib'){ const c=take.c; G.me.lib.splice(take.i,1); send({t:'give', card:c, zone:'bf'}); log(`${by}: ${G.opp?G.opp.name:'the opponent'} puts ${cname(c)} from ${G.me.name}'s library onto the battlefield under their control.`); }
@@ -1319,7 +1321,7 @@ function onMsg(m){
   else if(m.t==='livingend'){ livingEnd(`${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'Living End').slice(0,60)}`); }
   else if(m.t==='gybottom'){ gyBottom(String(m.by||'An effect').slice(0,60), String(m.who||'Opponent').slice(0,40)); }
   else if(m.t==='topbottom'){ DPROM=topBottom(m.id, String(m.by||'An effect').slice(0,60), String(m.who||'Opponent').slice(0,40)); }
-  else if(m.t==='mod'){ const f=find(m.id); if(f && f.z==='bf'){ const o=cleanMod(m.o); applyMod(f.c, o); changed(); } }   // the caster already logged it
+  else if(m.t==='mod'){ const f=find(m.id); if(f && f.z==='bf'){ const o=cleanMod(m.o); if(o.ctr>0) f.c.octr=(f.c.octr||0)+o.ctr; applyMod(f.c, o); changed(); } }   // octr: +1/+1 counters the other player put (Terrasymbiosis says "you put")   // the caster already logged it
   else if(m.t==='pump'){ const f=find(m.id); if(f && f.z==='bf'){ const p=Math.max(-20,Math.min(20,+m.p||0)), q=Math.max(-20,Math.min(20,+m.q||0)); boost(f.c, p, q); log(`${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'An effect').slice(0,60)}: ${cname(f.c)} gets ${String(m.txt||'').slice(0,12)} until end of turn.`); changed(); } }
   else if(m.t==='left'){ const off=[]; let ch=false; for(const x of G.me.bf) if(x.att===m.id){ x.att=null; ch=true; G.me.arrows=G.me.arrows.filter(a=>a.a!==x.id); if(x.bw){ delete x.bw; log(`${cname(x)} is no longer attached to a creature, so it becomes a creature again.`); } else if(isAura(x)) off.push(x.id); } if(off.length) auraOff(off); else if(ch) changed(); }
   else if(m.t==='oppsearch' && m.top){ topTutor(`${String(m.who||'Opponent').slice(0,40)}'s ${String(m.by||'effect').slice(0,60)}`); }
@@ -1369,7 +1371,7 @@ function move(id, zone, o={}){
   if(from==='gy'){ delete c.fbk; delete c.gyc; }
   if(from==='bf' && zone!=='bf'){ delete c.ncl; delete c.nabT; c.bfx=(c.bfx||0)+1; }   /* v4.82: Suncleanser's lock ends with that object; v4.102: so does the Wondrous Wasp's (nabT), and bfx counts departures so a creature that left and came back is a new object */
   if(from==='bf' && zone!=='bf' && !c.fd && isCreature(c)) ozolithTrig(c);   /* v4.104 The Ozolith: counters as they were */
-  if(from==='bf' && zone==='hand' && !c.fd && !isCreature(c)) tameshiTrig(c);   /* v4.106 Tameshi */
+  if(from==='bf' && zone==='hand' && !c.fd && !isCreature(c)){ tameshiTrig(c); if(G.opp) send({t:'tohand', n:cdata(c).n}); }   /* v4.106 Tameshi; v4.107: the other player's Tameshi hears of it too */
   if(from==='side' && zone!=='side' && G.turn.n) c.sideOrig=1; if(zone==='side') delete c.sideOrig;
   if(zone==='bf'){ if(from==='st' && c.nm) c.nmE=1; else delete c.nmE; } else delete c.nmE;   /* v4.82: "no mana was spent to cast it" kept for Satoru */
   if(zone!=='st'){ delete c.ovl; delete c.md; delete c.half; delete c.sacMV; delete c.sacTp; delete c.addPaid; delete c.gift; delete c.nm; delete c.unc; delete c.pc; } if(zone!=='st' && zone!=='bf'){ delete c.ev; delete c.spent; delete c.dash; delete c.hst; } if(zone!=='bf') delete c.exEnd;
@@ -2300,7 +2302,7 @@ function hitTargets(ts, by, kind){ const m=G.me, out=[];
       if(kind==='exile') G.lastHitEx={by, mv:manaValue(f.c), opp:false};
       move(t, kind==='bounce' ? 'hand' : kind==='exile' ? 'ex' : 'gy', {silent:true}); log(`${by} ${kind==='bounce' ? 'returns' : kind==='exile' ? 'exiles' : 'destroys'} ${m.name}'s ${n}${kind==='bounce' ? ' to its owner\'s hand' : ''}.`); continue; }
     if(f && f.z==='st' && kind==='bounce'){ out.push('me'); const n=cname(f.c); move(t,'hand',{silent:true}); log(`${by} returns ${m.name}'s ${n} from the stack to their hand.`); continue; }
-    const a=findAny(t); if(a && (a.z==='bf' || (a.z==='st' && kind==='bounce'))){ out.push('opp'); if(kind==='bounce' && a.z==='bf') tameshiTrig(a.c); if(kind==='exile' && a.z==='bf') G.lastHitEx={by, mv:manaValue(a.c), opp:true}; send({t:'hit', id:t, kind, by, who:m.name}); } else log(`${by}: its target is no longer on the battlefield.`); }
+    const a=findAny(t); if(a && (a.z==='bf' || (a.z==='st' && kind==='bounce'))){ out.push('opp'); if(kind==='exile' && a.z==='bf') G.lastHitEx={by, mv:manaValue(a.c), opp:true}; send({t:'hit', id:t, kind, by, who:m.name}); } else log(`${by}: its target is no longer on the battlefield.`); }
   m.arrows=m.arrows.filter(a=>!ts.includes(a.b)); return out; }
 function hitMe(msg){ const f=find(msg.id), by=String(msg.by||'An effect').slice(0,80), who=String(msg.who||'Opponent').slice(0,40), bounce=msg.kind==='bounce'; if(!f || !(f.z==='bf' || (f.z==='st' && bounce))) return;
   const n=cname(f.c); if(msg.kind==='destroy' && indestr(f.c)){ log(`${who}'s ${by}: ${n} is indestructible, so it isn't destroyed.`); return; }
@@ -2738,17 +2740,18 @@ const TERRA_RE=/Whenever you put one or more \+1\/\+1 counters on a creature you
 /* v4.106 Tameshi, Reality Architect: "Whenever one or more noncreature permanents are returned to hand, draw a card. This ability triggers only once each turn."
    Seen from move() for my permanents (battlefield → hand) and from my own bounces of the opponent's (hitTargets 'bounce'); an opponent returning their own permanent isn't seen. */
 const TAMESHI_RE=/Whenever one or more noncreature permanents are returned to hand, ([^\n]+?)\s*This ability triggers only once each turn\./i;
-function tameshiTrig(c){ if(!c || c.fd || isCreature(c)) return; for(const x of G.me.bf){ if(x.fd || (!x.k && !x.cu) || x.id===c.id) continue; const r=(frontText(x)||'').match(TAMESHI_RE); if(!r || x.tmT===G.turn.n) continue; x.tmT=G.turn.n;
-    pushTrig(x, r[1], 'trigger'); log(`${cdata(x).n.split(',')[0]}: ${cname(c)} was returned to hand, so its trigger goes on the stack.`); } }
+function tameshiTrig(c, nm){ if(c && (c.fd || isCreature(c))) return; const what=c ? cname(c) : esc(String(nm||'a noncreature permanent').slice(0,80)); for(const x of G.me.bf){ if(x.fd || (!x.k && !x.cu) || (c && x.id===c.id)) continue; const r=(frontText(x)||'').match(TAMESHI_RE); if(!r || x.tmT===G.turn.n) continue; x.tmT=G.turn.n;
+    pushTrig(x, r[1], 'trigger'); log(`${cdata(x).n.split(',')[0]}: ${what} was returned to its owner's hand, so its trigger goes on the stack.`); } if(!c) changed(); }
 /* v4.106 Gran-Gran: "Whenever <this> becomes tapped, …": a watcher compares each permanent's tapped state with the last look (c.ptw; move() clears it, and entering tapped isn't becoming tapped) */
 function tapWatch(){ for(const c of G.me.bf){ if(c.fd || (!c.k && !c.cu)){ c.ptw=!!c.tap; continue; } const was=c.ptw; c.ptw=!!c.tap; if(was==null || was || !c.tap) continue;
     const nm=faceName(c,0), r=(frontText(c)||'').match(new RegExp('(?:^|\\n)Whenever (?:this (?:creature|permanent|artifact|land)|'+escRe(nm)+'|'+escRe(nm.split(',')[0])+') becomes tapped, ([^\\n]+)','i')); if(!r) continue;
     const t=pushTrig(c, r[1], 'trigger'), msg=`${nm.split(',')[0]} became tapped, so its trigger goes on the stack.`; addLog(msg,'m'); send({t:'log', text:msg}); } }
 function scalesWatch(){ const m=G.me, live=m.bf.filter(x=>!x.fd && (x.k||x.cu)), has=re=>live.filter(x=>re.test(frontText(x)||'')), sc=has(SCALES_RE), zn=has(LZONE_RE), te=has(TERRA_RE);
-  for(const c of m.bf){ const v=Math.max(0, c.c||0); if(c.fd || !isCreature(c) || c.psw==null){ c.psw=v; continue; } const k=v-c.psw; if(k<=0){ c.psw=v; continue; }
-    let tot=k+sc.length; for(let i=0;i<zn.length;i++) tot*=2; const add=tot-k, nm=cname(c);
+  for(const c of m.bf){ const v=Math.max(0, c.c||0); if(c.fd || !isCreature(c) || c.psw==null){ c.psw=v; continue; } const k=v-c.psw; if(k<=0){ c.psw=v; delete c.octr; continue; }
+    let tot=k+sc.length; for(let i=0;i<zn.length;i++) tot*=2; const add=tot-k, nm=cname(c), byOpp=Math.min(k, c.octr||0); c.octr=0;
     if(add>0){ c.c=(c.c||0)+add; const why=[...sc, ...zn].map(x=>cdata(x).n.split(',')[0]); const t=`${why.join(' and ')}: ${nm} gets ${tot} +1/+1 counter${tot===1?'':'s'} instead of ${k}.`; addLog(t,'m'); send({t:'log', text:t}); }
     c.psw=Math.max(0, c.c||0);
+    if(byOpp>=k) continue;   // v4.107: all of it came from the other player's effect, so Terrasymbiosis ("Whenever you put …") doesn't trigger
     for(const x of te){ if(x.teT===G.turn.n) continue; x.teT=G.turn.n; const d=cdata(x), sn=d.n.split(',')[0]; m.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:x.id, tr:true}, cu:{n:`${sn}: trigger`, t:'Triggered ability', o:`You may draw ${tot} card${tot===1?'':'s'}.`, img:d.img||''}})); const t=`${sn}: +1/+1 counters were put on ${nm}, so its trigger goes on the stack.`; addLog(t,'m'); send({t:'log', text:t}); } } }
 function ctrWatch(){ for(const c of G.me.bf){ if(c.fd || (!c.k && !c.cu)) continue; const nm=faceName(c,0), short=nm.split(',')[0];
     const m=(frontText(c)||'').match(new RegExp('(?:^|\\n)Whenever one or more \\+1\\/\\+1 counters are put on (?:this creature|'+escRe(nm)+'|'+escRe(short)+'), ([^\\n]+)','i')); if(!m){ continue; }
@@ -6738,6 +6741,7 @@ function attLink(c, mine){ const own=(mine ? G.me.bf : (G.opp&&G.opp.bf)) || [],
   if(on.length){ const au=on.every(isAura); ban=`<span class="lkban" title="${esc((au?'Enchanted by ':'Attached: ')+on.map(x=>cdata(x).n).join(', '))}"><small>${au?'ENCHANTED BY':'ATTACHED'}</small>${esc(on.map(x=>faceName(x,0)).join(', '))}</span>`; }
   else if(c.att && !own.some(x=>x.id===c.att)){ const t=other.find(x=>x.id===c.att); if(t){ ids=[c.id]; const nm=t.fd ? 'a face-down card' : faceName(t, t.flip?1:0); ban=`<span class="lkban" title="${esc((isAura(c)?'Enchanting ':'Attached to ')+nm)}"><small>${isAura(c)?'ENCHANTING':'ATTACHED TO'}</small>${esc(nm)}</span>`; } }
   return ids.length ? {ban, ids:ids.join(' ')} : null; }
+const heldBy = id => [...G.me.ex, ...((G.opp&&G.opp.ex)||[])].some(x=>x.by && x.by.mode==='hold' && !x.by.mon && x.by.id===id);
 function lkHot(cd){ for(const x of document.querySelectorAll('.card.lkhot')) x.classList.remove('lkhot'); if(!cd || !cd.dataset.lk) return;
   const ids=cd.dataset.lk.split(' '); for(const x of document.querySelectorAll('.card[data-lk]')) if(x.dataset.lk.split(' ').some(i=>ids.includes(i))) x.classList.add('lkhot'); }
 document.addEventListener('mouseover', e=>{ const cd=e.target && e.target.closest ? e.target.closest('.card[data-lk]') : null; if(cd || document.querySelector('.card.lkhot')) lkHot(cd); });
@@ -6758,6 +6762,8 @@ function cardHTML(c, z, mine, cls=''){
     + (z==='bf' && c.o && c.o !== (mine?G.myId:oppId()) ? '<span class="badge ctl">borrowed</span>' : '');
   if(z==='bf' && !backUp){ const lt=landTypes(c, mine?G.myId:oppId(), FX||landEffects()); if(lt) b+=landBanner(lt); }
   let lkA=''; if(z==='bf' && !backUp){ const lk=attLink(c, mine); if(lk){ b+=lk.ban; cls+=' lk'; lkA=` data-lk="${lk.ids}"`; } }
+  { const hk = z==='bf' && !backUp ? (heldBy(c.id) ? c.id : '') : (z==='ex' && c.by && c.by.mode==='hold' && !c.by.mon && c.by.id) ? String(c.by.id) : '';   // v4.107: a held exile and the permanent holding it light each other on hover
+    if(hk){ cls+=' hk'; lkA = lkA ? lkA.replace(/"$/, ' '+hk+'"') : ` data-lk="${hk}"`; } }
   if(z==='bf' && c.cp){ b+=`<span class="cpban" title="${esc(c.cp.orig)}, copying ${esc((cdata(c).n)||'a card')}${c.cp.until?' until end of turn':''}">${esc(c.cp.orig)}</span>`; }
   if(z==='bf' && c.dmg && !backUp){ const T=toughNow(c, mine?G.myId:oppId()), le=T!=null && c.dmg>=T; if(le) cls+=' dmglethal'; b+=`<span class="badge dmg${le?' lethal':''}" title="Damage marked this turn">${c.dmg} dmg${le?'<small>LETHAL</small>':''}</span>`; }
   if(z==='bf' && c.eb && !backUp) b+='<span class="ebban" title="Earthbent: a creature with haste that is still a land">EARTHBENT</span>';
