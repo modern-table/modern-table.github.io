@@ -379,6 +379,9 @@ body.nomo .kc.won{animation:none}
 .nmban{position:absolute;left:0;right:0;top:56%;text-align:center;font:800 calc(var(--cw)*.095)/1.15 var(--ui);letter-spacing:.06em;color:#fff;background:#000e;border-top:1px solid #fffa;border-bottom:1px solid #fffa;padding:calc(var(--cw)*.02) 0;box-shadow:0 2px 6px #0009;pointer-events:none}
 .wrpban{position:absolute;left:0;right:0;top:44%;text-align:center;font:800 calc(var(--cw)*.13)/1.1 var(--ui);letter-spacing:.14em;color:#fff;background:#000e;border-top:1px solid #fffa;border-bottom:1px solid #fffa;padding:calc(var(--cw)*.025) 0;box-shadow:0 2px 6px #0009;pointer-events:none}
 /* warp (v4.24, Ben): a WARP banner on a permanent cast for its warp cost, in the WARPED banner's place and style, with when it leaves underneath */
+.card.tqnow{box-shadow:0 0 0 2px var(--brass),0 0 16px 5px color-mix(in srgb,var(--brass) 70%,transparent)!important;animation:tqpulse 1.4s ease-in-out infinite}@keyframes tqpulse{50%{box-shadow:0 0 0 2px var(--brass),0 0 26px 9px color-mix(in srgb,var(--brass) 45%,transparent)}}body.nomo .card.tqnow{animation:none}
+.tqban{position:absolute;left:0;right:0;top:40%;text-align:center;font:800 calc(var(--cw)*.105)/1.05 var(--ui);letter-spacing:.12em;color:#1a1408;background:var(--brass);padding:calc(var(--cw)*.03) 0 calc(var(--cw)*.025);box-shadow:0 2px 6px #0009;pointer-events:none}
+.card.tqnext{outline:2px dashed var(--brass);outline-offset:-2px}.tqtag{position:absolute;left:4%;top:40%;white-space:nowrap;font:800 calc(var(--cw)*.075)/1 var(--ui);letter-spacing:.1em;color:var(--brass);background:#000d;border:1px solid var(--brass);border-radius:3px;padding:calc(var(--cw)*.025) calc(var(--cw)*.04);pointer-events:none}
 .wpban{position:absolute;left:0;right:0;top:40%;text-align:center;font:800 calc(var(--cw)*.13)/1.05 var(--ui);letter-spacing:.16em;color:#fff;background:#000e;border-top:1px solid #fffa;border-bottom:1px solid #fffa;padding:calc(var(--cw)*.025) 0 calc(var(--cw)*.02);box-shadow:0 2px 6px #0009;pointer-events:none}.wpban.exban{top:56%}.nabban{top:70%;font-size:calc(var(--cw)*.088);letter-spacing:.08em;white-space:nowrap}.wpban small{display:block;font-size:.5em;letter-spacing:.1em;color:#d8d8d8;margin-top:1px}
 .badge.zz{left:4%;bottom:6%;border-color:#b9a7ff;color:#d6ccff;background:#120d2bdd;font-size:calc(var(--cw)*.15);white-space:nowrap}
 .badge.held{left:4%;top:4%;border-color:var(--opp);color:var(--opp)}
@@ -686,7 +689,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 </script>
 <script>
 "use strict";
-const VERSION = 'v4.110';
+const VERSION = 'v4.111';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -702,6 +705,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.111','Nov 9',"With several triggers waiting for targets, the stack shows which one is asking: it glows and reads CHOOSE TARGET, and the ones still waiting have a dashed outline and a NEXT tag until it's their turn."],
   ['v4.110','Nov 9',"When several triggers that need a target go on the stack together (two Roiling Canopies, Archon of Cruelty entering alongside another trigger), each one now asks for its target in turn: target the first, and the next one's arrow starts right away. Esc still means no target for the one you're on."],
   ['v4.109','Nov 9',"The NEW! banner is gone from lands. Point at a land-for-turn circle instead: the land that used it lights up (or its pile, if it was fetched or bounced), and the tip says what gave you the land play, which land it was and where it is now, e.g. 'Dryad of the Ilysian Grove — Windswept Heath (graveyard)'. Point at a land you played this turn and its circle lights up."],
   ['v4.108','Nov 9',"Land for turn: on each player's turn, circles in the bottom-left of their hand row show their land plays, filling as lands are played. Dryad of the Ilysian Grove, Azusa, Oracle of Mul Daya and Exploration add circles while they're out; Explore and each Way of the Paradox trigger add one for that turn. Fetched lands and lands put in by Arboreal Grazer don't count. Out of land plays? You're asked first, and 'Play additional land anyway' notes it in the log. Crucible of Worlds and Ramunap Excavator let you play a land for turn from the graveyard, Oracle of Mul Daya from the top of your library. Dragging a land from your hand onto the battlefield on your turn now plays it."],
@@ -6806,7 +6810,8 @@ function cardHTML(c, z, mine, cls=''){
   let lkA=''; if(z==='bf' && !backUp){ const lk=attLink(c, mine); if(lk){ b+=lk.ban; cls+=' lk'; lkA=` data-lk="${lk.ids}"`; } }
   { const hk = z==='bf' && !backUp ? (heldBy(c.id) ? c.id : '') : (z==='ex' && c.by && c.by.mode==='hold' && !c.by.mon && c.by.id) ? String(c.by.id) : '';   // v4.107: a held exile and the permanent holding it light each other on hover
     if(hk){ cls+=' hk'; lkA = lkA ? lkA.replace(/"$/, ' '+hk+'"') : ` data-lk="${hk}"`; } }
-  if(z==='bf' && LPID.has(c.id)) lkA+=` data-lpk="${esc(c.id)}"`;   /* v4.109: played this turn: linked to its land-for-turn circle (lpHot) */
+  if(z==='bf' && LPID.has(c.id)) lkA+=` data-lpk="${esc(c.id)}"`;
+  if(z==='st' && mine && ((c.ab && trigTq(c)) || (c.tq && !c.nt)) && !G.me.arrows.some(a=>a.a===c.id)){ const now=G.mode && G.mode.type==='arrow' && G.mode.from===c.id; cls+=now?' tqnow':' tqnext'; b+=now?'<span class="tqban">CHOOSE TARGET</span>':'<span class="tqtag" title="Asks for its target next">NEXT</span>'; }   /* v4.111: which trigger on my stack is asking for its target now, and which are still waiting */   /* v4.109: played this turn: linked to its land-for-turn circle (lpHot) */
   if(z==='bf' && c.cp){ b+=`<span class="cpban" title="${esc(c.cp.orig)}, copying ${esc((cdata(c).n)||'a card')}${c.cp.until?' until end of turn':''}">${esc(c.cp.orig)}</span>`; }
   if(z==='bf' && c.dmg && !backUp){ const T=toughNow(c, mine?G.myId:oppId()), le=T!=null && c.dmg>=T; if(le) cls+=' dmglethal'; b+=`<span class="badge dmg${le?' lethal':''}" title="Damage marked this turn">${c.dmg} dmg${le?'<small>LETHAL</small>':''}</span>`; }
   if(z==='bf' && c.eb && !backUp) b+='<span class="ebban" title="Earthbent: a creature with haste that is still a land">EARTHBENT</span>';
