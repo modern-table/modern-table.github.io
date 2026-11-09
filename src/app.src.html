@@ -673,7 +673,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.102';
+const VERSION = 'v4.103';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -689,6 +689,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.103','Nov 8',"Norin the Wary, Loran of the Third Path and Secluded Courtyard read their current card wording (\"exile Norin\", \"When Loran enters\", \"a creature source of the chosen type\")."],
   ['v4.102','Nov 8',"Fourteen more cards play themselves: Plaza of Heroes, Secluded Courtyard, Unclaimed Territory, Relic of Legends, Norin the Wary, Arbaaz Mir, Jirina, Dauntless General, Satoru, the Infiltrator, The Wondrous Wasp, Reki, the History of Kamigawa, Meddling Mage, Loran of the Third Path, Mai, Scornful Striker and Lavinia, Azorius Renegade. Mana that can only be spent on certain spells now says so in the tap menu."],
   ['v4.101','Nov 5',"A short welcome splash plays the first time you open the table each day. Click or press any key to skip it."],
   ['v4.100','Nov 5',"An exerted permanent (Arena of Glory, exert creatures) now carries an EXERTED banner, like the WARP banner, in place of the old Zzz mark."],
@@ -2543,7 +2544,7 @@ function trackPad(t, mine){ const g=[]; (t.list||[]).forEach((x,i)=>{ const e=g.
    put an ab.etb / ab.ph marker on my stack with that line; autoResolve carries out the simple parts. Lines with an intervening "if" only get a log reminder
    at the start of a step, so the upkeep doesn't stop every turn for them. */
 const escRe = x => x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-function etbLines(c){ const nm=faceName(c,0), short=nm.split(',')[0]; const re=new RegExp('^(?:[A-Z][A-Za-z\' ]{2,30} — )?When(?:ever)? (?:this [A-Za-z]+|'+escRe(nm)+'|'+escRe(short)+') enters(?: the battlefield)?(?: (?:or|and) [^,]+)?, (.+)$','i');
+function etbLines(c){ const nm=faceName(c,0), short=nm.split(',')[0], w1=nm.split(/[ ,]/)[0]; const re=new RegExp('^(?:[A-Z][A-Za-z\' ]{2,30} — )?When(?:ever)? (?:this [A-Za-z]+|'+escRe(nm)+'|'+escRe(short)+(w1!==nm && !/^the$/i.test(w1) ? '|'+escRe(w1) : '')+') enters(?: the battlefield)?(?: (?:or|and) [^,]+)?, (.+)$','i');
   return (frontText(c)||'').split('\n').map(l=>l.trim()).filter(l=>re.test(l) && !/\bearthbend\b/i.test(l) && !blinkOf(l) && !/exile all graveyards/i.test(l) && spentOk(c, l)); }
 function etbTrigs(c){ const L0=(frontText(c)||'').split('\n').map(x=>x.trim()); for(const l of etbLines(c)){ const d=cdata(c), nm=d.n.split(',')[0];
     const put=(o, note)=>{ const mkr=mk(null,{tok:true, ts:Date.now(), ab:Object.assign({id:c.id, etb:true}, c.xc!=null ? {x:c.xc} : {}), cu:{n:`${nm}: trigger`, t:'Triggered ability', o, img:d.img||''}}); G.me.st.push(mkr); log(`${nm} enters: its trigger goes on the stack${note||''}.`);
@@ -3898,7 +3899,7 @@ async function simpleEffects(c, text, srcId){
       if(!ts.length){ log(`${by}: no creature loses its abilities.`); continue; } if(!g || g.z!=='bf'){ log(`${by}: ${cname(srcC)} has left the battlefield, so nothing loses its abilities.`); continue; }
       srcC.nabT=ts.map(t=>({id:t, bfx:findAny(t).c.bfx||0})); log(`${by}: ${ts.map(t=>cname(findAny(t).c)).join(', ')} loses all abilities for as long as ${cname(srcC)} remains on the battlefield.`); changed(); continue; }
     // v4.102 Norin the Wary: "exile Norin the Wary. Return it to the battlefield under its owner's control at the beginning of the next end step." (Yorion's delayed return)
-    if(srcC && (r=sen.match(/^exile (this creature|this permanent|[^.]+?)\.?$/i)) && /(?:^|[.\n]\s*)return it to the battlefield under its owner(?:'|’)s control at the beginning of the next end step/i.test(String(text)) && (/^this /i.test(r[1]) || [faceName(srcC,0), faceName(srcC,0).split(',')[0]].some(n=>n.toLowerCase()===r[1].toLowerCase()))){
+    if(srcC && (r=sen.match(/^exile (this creature|this permanent|[^.]+?)\.?$/i)) && /(?:^|[.\n]\s*)return it to the battlefield under its owner(?:'|’)s control at the beginning of the next end step/i.test(String(text)) && (/^this /i.test(r[1]) || (fn=>{ const w=r[1].toLowerCase(); return fn===w || fn.split(',')[0]===w || fn.startsWith(w+' ') || fn.startsWith(w+','); })(faceName(srcC,0).toLowerCase()))){   /* Scryfall says "exile Norin" */
       skipS.push(/^return it to the battlefield under its owner(?:'|’)s control at the beginning of the next end step\.?$/i); const g=find(srcC.id);
       if(!g || g.z!=='bf'){ log(`${by}: ${cname(srcC)} isn't on the battlefield any more, so nothing is exiled or returned.`); continue; }
       move(srcC.id,'ex',{silent:true}); const e=find(srcC.id); if(e && e.z==='ex' && !srcC.tok){ e.c.retEnd=1; (m.endT=m.endT||[]).push({src:faceName(srcC,0).split(',')[0], txt:`Return ${faceName(srcC,0)} to the battlefield under its owner's control.`}); log(`${by}: ${cname(srcC)} is exiled; it returns at the beginning of the next end step.`); } else log(`${by}: ${cname(srcC)} is exiled.`); changed(); continue; }
@@ -5290,7 +5291,7 @@ const riderOf = ln => /If (?:any of )?that mana is spent on a creature spell, it
 function specRule(only){
   const t=(only||'').replace(/,?\s*and that spell can(?:'|’)t be countered/i,'').trim(); if(!t) return null;
   const sp=t.match(/\bcast (?:an? )?([\w\s-]*?)\s*spells?\b( of the chosen type)?/i), ab=t.match(/\bactivate (?:an? )?abilit(?:y|ies) of (?:an? )?([\w\s-]+?)(?=\s*$|\s+or\b|,)/i);
-  return sp || ab ? {spell: sp ? sp[1].trim() : null, chosen: !!(sp && sp[2]), abil: ab ? ab[1].trim() : null, abChosen: !!ab && /\bactivate\b.*\bof the chosen type\s*$/i.test(t)} : null;   /* v4.102: Secluded Courtyard's abilities are of the chosen type too */
+  return sp || ab ? {spell: sp ? sp[1].trim() : null, chosen: !!(sp && sp[2]), abil: ab ? ab[1].trim().replace(/\s+of the chosen type$/i,'').replace(/\s+sources?$/i,'') : null, abChosen: !!ab && /\bactivate\b.*\bof the chosen type\s*$/i.test(t)} : null;   /* v4.102: Secluded Courtyard's abilities are of the chosen type too */
 }
 const descMatch = (c, desc, chosen) => (!chosen || spellMatches(c, '', chosen)) && (desc||'').split(/\s+/).filter(Boolean).every(w=>{ const lw=w.toLowerCase(), ww = /^sources?$/.test(lw) ? '' : lw in TYPEW ? TYPEW[lw] : w; return !ww || spellMatches(c, ww, null); });
 function specAllows(e, ctx){ if(!e.only) return true; const r=specRule(e.only); if(!r) return null; const c=ctx.card; if(!c) return false;
