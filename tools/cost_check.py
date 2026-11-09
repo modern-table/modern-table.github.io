@@ -82,6 +82,7 @@ JS = r"""(items) => {
       else if(/^This spell costs \{\d+\} less to cast if it targets an? [^.]+\.$/i.test(s)){ m.hand.push(c); const t = targetDiscount(c); m.hand = []; t ? res('ok', 'targetDiscount (cheaper cast in the hand menu)') : res('no', 'targetDiscount gives nothing'); }
       else if((q = s.match(/^This spell costs \{(\d+)\} less to cast if ([^.]+?)\.$/i))){ const v = condTrue(q[2], c); v==null ? res('phrase', `condTrue can't judge "${q[2]}"`) : res('ok', `condTrue("${q[2]}") = ${v}`); }
       else if(/^This spell costs\b/i.test(s)) res('no', 'costNow reads no "This spell costs" line worded like this');
+      else if((q = s.match(/\bcosts? \{\d+\} (?:less|more) to cast as long as ([^.]+?)\.$/i)) && /\bspells?\b/i.test(s)){ const v = condTrue(q[1], c); v==null ? res('phrase', `condTrue can't judge "${q[1]}"`) : res('ok', `spellMods, as long as: condTrue("${q[1]}") = ${v}`); }   /* v4.106 Gran-Gran */
       else if(/\bcosts? \{\d+\} (?:less|more) to cast\b/i.test(s) && /\bspells?\b/i.test(s)){
         const keep = spellMatches; let hit = false;
         try{ spellMatches = () => true;
