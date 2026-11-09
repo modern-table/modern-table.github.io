@@ -240,7 +240,9 @@ body.t90r .pilT{margin:0 calc(var(--cw)*.16)}
 .twrap .thint{font:600 10px var(--ui);color:var(--dim);letter-spacing:.04em;padding-left:6px}
 .lpt{position:absolute;left:14px;bottom:10px;display:flex;flex-direction:column;align-items:flex-start;gap:4px;z-index:6;pointer-events:auto}.lpt .lpl{font:600 9px var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}.lpt .lpr{display:flex;flex-wrap:wrap;gap:5px;max-width:132px}
 .lpc{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;border:2px solid var(--brass);box-sizing:border-box;font:700 11px/1 var(--ui);font-style:normal;color:#1a1408;transition:background .2s}.lpc.on{background:var(--brass)}.lpc.turn{border-style:dashed}.lpc.turn.on{border-style:solid}.lpc.over{border-color:#d9822b;background:#d9822b}.lpc.gone{opacity:.55}
-#myHand.haslpt{padding-left:150px}.handrow.opp.haslpt .hn{top:10px;transform:none}.handrow.opp .lpt{bottom:6px;left:10px}
+#myHand.haslpt{padding-left:150px}.lpc[data-lpk]{cursor:default}.lpc.lphot{box-shadow:0 0 0 2px var(--brass),0 0 12px 3px color-mix(in srgb,var(--brass) 75%,transparent)}.lpc.over.lphot{box-shadow:0 0 0 2px #d9822b,0 0 12px 3px #d9822baa}
+.card.lphot{box-shadow:0 0 0 2px var(--brass),0 0 18px 6px color-mix(in srgb,var(--brass) 70%,transparent)!important}.pile.lphot{box-shadow:0 0 0 2px var(--brass),0 0 18px 6px color-mix(in srgb,var(--brass) 70%,transparent);border-radius:8px}
+#lpTip{position:fixed;z-index:9000;pointer-events:none;background:#0d1512f2;border:1px solid var(--brass);color:#e9e1cc;font:600 12px var(--ui);padding:5px 9px;border-radius:6px;white-space:nowrap;box-shadow:0 4px 14px #0008}#lpTip[hidden]{display:none}.handrow.opp.haslpt .hn{top:10px;transform:none}.handrow.opp .lpt{bottom:6px;left:10px}
 #myHand.hastrk{padding-right:calc(clamp(130px,calc(var(--cw)*1.45),170px) + 30px)}#myHand{position:relative}
 .tnote{position:absolute;right:12px;top:50%;transform:translateY(-50%) rotate(-4deg);width:34px;height:42px;border-radius:2px;background:repeating-linear-gradient(#fbfbf6 0 6px,#b9d3ea 6px 7px);box-shadow:0 3px 8px #000a;cursor:help;z-index:6;border-top:6px solid #5b6b78}
 .tnote::after{content:"";position:absolute;left:6px;right:5px;top:8px;height:20px;background:repeating-linear-gradient(transparent 0 4px,#1d2a3a88 4px 5px,transparent 5px 7px);clip-path:polygon(0 0,95% 0,80% 30%,100% 45%,70% 70%,90% 100%,0 100%)}
@@ -676,7 +678,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.108';
+const VERSION = 'v4.109';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -692,6 +694,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.109','Nov 9',"The NEW! banner is gone from lands. Point at a land-for-turn circle instead: the land that used it lights up (or its pile, if it was fetched or bounced), and the tip says what gave you the land play, which land it was and where it is now, e.g. 'Dryad of the Ilysian Grove — Windswept Heath (graveyard)'. Point at a land you played this turn and its circle lights up."],
   ['v4.108','Nov 9',"Land for turn: on each player's turn, circles in the bottom-left of their hand row show their land plays, filling as lands are played. Dryad of the Ilysian Grove, Azusa, Oracle of Mul Daya and Exploration add circles while they're out; Explore and each Way of the Paradox trigger add one for that turn. Fetched lands and lands put in by Arboreal Grazer don't count. Out of land plays? You're asked first, and 'Play additional land anyway' notes it in the log. Crucible of Worlds and Ramunap Excavator let you play a land for turn from the graveyard, Oracle of Mul Daya from the top of your library. Dragging a land from your hand onto the battlefield on your turn now plays it."],
   ['v4.107','Nov 9',"Cards exiled until something leaves the battlefield (Leyline Binding, Portable Hole, Temporary Lockdown) come back by themselves, Practice's included. Point at the exiled card and the permanent holding it lights up, and the other way round. Terrasymbiosis only counts counters you put; Tameshi sees any noncreature permanent returned to hand."],
   ['v4.106','Nov 9',"Eight more of this week's cards play themselves: Liliana of the Veil's −6 piles, Indomitable Creativity, Temporary Lockdown, Suppression Ray, Necromentia, Tameshi, Reality Architect, Gran-Gran and Hidetsugu Consumes All's Vessel (its 10-damage win included)."],
@@ -1417,7 +1420,7 @@ function move(id, zone, o={}){
 function draw(n=1, quiet, step){ const m=G.me; let k=0; { const ns=((G.opp&&G.opp.bf)||[]).find(x=>!x.fd && (x.k||x.cu) && /Each opponent can(?:'|’)t draw more than one card each turn/i.test(frontText(x)||'')); if(ns){ if(!m.dn || m.dn.t!==G.turn.n) m.dn={t:G.turn.n, k:0}; const room=Math.max(0, 1-m.dn.k); if(n>room){ if(!quiet) log(`${cdata(ns).n.split(',')[0]}: ${m.name} can't draw more than one card this turn${room?'':', so they draw nothing'}.`); n=room; } m.dn.k+=n; if(!n) return 0; } } if(step && n===1 && !draw.noDredge && m.gy.some(x=>dredgeN(x) && m.lib.length>=dredgeN(x))){ setTimeout(dredgeAsk, 0); return 1; } if(n>0 && m.hand.length<=1){ const rq=m.bf.filter(x=>!x.fd && (x.k||x.cu) && /As long as you have one or fewer cards in hand, if you would draw one or more cards, you draw that many cards plus one instead/i.test(frontText(x)||'')); if(rq.length){ n+=rq.length; if(!quiet) log(`${rq.map(x=>cdata(x).n).join(', ')}: ${m.name} has one or fewer cards in hand, so they draw ${n} instead.`); } } const want=n; while(n-- > 0 && m.lib.length){ m.hand.push(m.lib.shift()); k++; } if(k<want && G.turn.n && m.kept){ if(m.dummy) m.emptyDraw=1; else { G.emptyDraw=true; lossCheck(); } } if(!quiet) log(`${m.name} draws ${k===1?'a card':k+' cards'}.`); if(k && G.turn.n) drawTrigs(k); if(!k && !quiet) toast('Your library is empty.'); if(k && !quiet && G.opp && G.turn.n) send({t:'drew', n:k, first:step?1:0}); return k; }
 function shuffleLib(quiet){ G.noUndo=true; shuffle(G.me.lib); if(!quiet) log(`${G.me.name} shuffles their library.`); }
 const ORDW=['','first','second','third','fourth','fifth','sixth','seventh','eighth','ninth','tenth'];
-function playFromHand(id, ov){ const f=find(id); if(!f) return; if(f.z==='hand' && waitMull()) return; if(isLand(f.c)){ if(ov===undefined) return landGate(id, cdata(f.c).n, a=>playFromHand(id, a)); const m=G.me, n=G.turn.n||0, fz=f.z; if(!m.lp || m.lp.n!==n) m.lp={n, k:0}; m.lp.k++; if(ov) m.lp.ov=(m.lp.ov||0)+1; const k=m.lp.k;
+function playFromHand(id, ov){ const f=find(id); if(!f) return; if(f.z==='hand' && waitMull()) return; if(isLand(f.c)){ if(ov===undefined) return landGate(id, cdata(f.c).n, a=>playFromHand(id, a)); const m=G.me, n=G.turn.n||0, fz=f.z; if(!m.lp || m.lp.n!==n) m.lp={n, k:0}; m.lp.k++; if(ov) m.lp.ov=(m.lp.ov||0)+1; (m.lp.pl=m.lp.pl||[]).push({id, ov:!!ov, nm:cdata(f.c).n.split(' // ')[0]}); const k=m.lp.k;
     move(id,'bf',{silent:true, later:true}); log(`${m.name} plays ${cname(f.c)}${fz==='gy' ? ' from their graveyard' : fz==='lib' ? ' from the top of their library' : ''}${k>1 ? ', '+(ORDW[k]||k+'th')+' land this turn' : ''}${ov ? ' (an additional land for turn, played anyway)' : ''}.`); entered(f.c); changed(); landEnters(id); } else castSpell(id); }
 /* v4.108: land for turn. One land play a turn, plus one per "You may play an/two/three additional land(s) on each of your turns" on the battlefield (Dryad of the Ilysian Grove, Azusa, Oracle of Mul Daya, Exploration, Wayward Swordtooth), plus each "You may play an additional land this turn" that resolved this turn (Explore, Way of the Paradox's loyalty trigger: m.lpx = {n, s:[source names]}). m.lp = {n, k, ov}: lands played this turn and how many of them were played anyway past the limit. Only playing a land counts (playFromHand, playLandSide, a land dragged from the hand on my turn); lands put onto the battlefield (fetches, Arboreal Grazer, Shift-click) don't. Published as lp / lpx; the tracker (lpTrack) sits in the bottom-left of the active player's hand row on both screens. */
 const LP_NUM={an:1, one:1, two:2, three:3};
@@ -1429,12 +1432,28 @@ const landsPlayed = m => (m && m.lp && m.lp.n===(G.turn.n||0)) ? (m.lp.k||0) : 0
 function landGrant(m, src){ const n=G.turn.n||0; if(!m.lpx || m.lpx.n!==n) m.lpx={n, s:[]}; m.lpx.s.push(src); }
 function landGate(id, nm, go){ const m=G.me; if(DSW || m.ctl || !G.turn.n || G.turn.active!==G.myId) return go(false); const sl=landSlots(m).length, k=landsPlayed(m); if(k<sl) return go(false);
   modal('No land plays left', `<span class="hint">${esc(`${m.name} has played ${k===1 ? 'a land' : k+' lands'} this turn and has no land plays left. Play ${nm||'this land'} anyway? The log will note it as an additional land for turn.`)}</span>`, [['Cancel',()=>closeModal(),'ghost'],['Play additional land anyway',()=>{ closeModal(); go(true); },'go']]); }
-function lpTrack(m, opp){ if(!m || !G.turn.n || G.turn.active!==(opp ? oppId() : G.myId)) return ''; const sl=landSlots(m), k=landsPlayed(m), ov=Math.min((m.lp&&m.lp.n===G.turn.n&&m.lp.ov)||0, k), legal=k-ov;
-  const tip=s=> s.kind==='base' ? 'Land for turn' : s.kind==='each' ? `${s.src}: an additional land on each of ${opp?'their':'your'} turns` : `${s.src}: an additional land this turn`;
-  let h=sl.map((s,i)=>`<i class="lpc ${s.kind}${i<legal?' on':''}" title="${esc(tip(s)+(i<legal?' (played)':' (not played yet)'))}"></i>`).join('');
-  for(let i=sl.length;i<legal;i++) h+=`<i class="lpc gone on" title="Land played while a card allowing more land plays was out"></i>`;
-  for(let i=0;i<ov;i++) h+=`<i class="lpc over on" title="An additional land played anyway">+</i>`;
+function lpTrack(m, opp){ if(!m || !G.turn.n || G.turn.active!==(opp ? oppId() : G.myId)) return ''; const sl=landSlots(m), lp=(m.lp && m.lp.n===G.turn.n) ? m.lp : null, pl=(lp&&lp.pl)||[], legalP=pl.filter(p=>!p.ov), overP=pl.filter(p=>p.ov);
+  const k=lp ? lp.k||0 : 0, ov=Math.min((lp&&lp.ov)||0, k), legal=k-ov;
+  const lab=s=> s.kind==='base' ? 'Land for turn' : s.src;
+  const circ=(cls, label, p, inner)=>`<i class="lpc ${cls}"${p ? ` data-lpk="${esc(p.id)}"` : ''} data-tip="${esc(label)}"${p ? ` data-tnm="${esc(p.nm||'')}"` : ''}>${inner||''}</i>`;
+  let h=sl.map((s,i)=>circ(s.kind+(i<legal?' on':''), lab(s), i<legal ? legalP[i] : null)).join('');
+  for(let i=sl.length;i<legal;i++) h+=circ('gone on', 'Extra land play (its source has left)', legalP[i]);
+  for(let i=0;i<ov;i++) h+=circ('over on', 'Played anyway', overP[i], '+');
   return `<div class="lpt${opp?' opp':''}"><span class="lpl">Land for turn</span><span class="lpr">${h}</span></div>`; }
+/* v4.109: circle ↔ land hover link. LPID = ids of lands played this turn (both players); a played land on the battlefield carries data-lpk. Pointing at either lights the other (brass, .lphot); a circle whose land has left the battlefield lights the pile it is in, and its tooltip (#lpTip) reads "<source> — <land> (<where it is now>)". */
+let LPID=new Set();
+function lpIds(){ const r=new Set(), n=G.turn.n||0; for(const m of [G.me, G.opp]) if(m && m.lp && m.lp.n===n) for(const p of m.lp.pl||[]) r.add(p.id); return r; }
+const LPZN={bf:'battlefield', gy:'graveyard', ex:'exile', hand:'hand', lib:'library', st:'stack', ph:'phased out', side:'sideboard', comp:'sideboard'};
+function lpWhere(id){ const a=findAny(id); if(!a) return {z:null, txt:'out of sight'}; return {z:a.z, mine:a.mine, txt:LPZN[a.z]||a.z}; }
+function lpHot(id, from){ for(const x of document.querySelectorAll('.lphot')) x.classList.remove('lphot'); const tip=$('#lpTip'); if(tip && !(from && from.classList.contains('lpc'))) tip.hidden=true; if(!id) return;
+  for(const x of document.querySelectorAll(`[data-lpk="${CSS.escape(id)}"]`)) x.classList.add('lphot');
+  const w=lpWhere(id); if(w.z && w.z!=='bf'){ const pz= w.z==='comp' ? 'side' : w.z, pile=document.querySelector(`.pile[data-pile="${pz}"][data-o="${w.mine?'me':'opp'}"]`); if(pile) pile.classList.add('lphot'); else for(const x of document.querySelectorAll(`.card[data-id="${CSS.escape(id)}"]`)) x.classList.add('lphot'); } }
+function lpTipShow(el){ let tip=$('#lpTip'); if(!tip){ tip=document.createElement('div'); tip.id='lpTip'; document.body.appendChild(tip); }
+  const id=el.dataset.lpk, txt=el.dataset.tip + (id ? ` — ${el.dataset.tnm || 'a land'} (${lpWhere(id).txt})` : ' — not played yet');
+  tip.textContent=txt; tip.hidden=false; const r=el.getBoundingClientRect(), tw=tip.offsetWidth, th=tip.offsetHeight; let y=r.top-th-8; if(y<4) y=r.bottom+8; tip.style.left=Math.max(6, Math.min(innerWidth-tw-6, r.left+r.width/2-tw/2))+'px'; tip.style.top=y+'px'; }
+document.addEventListener('mouseover', e=>{ const t=e.target && e.target.closest ? e.target : null; const c=t && t.closest('.lpc'), k=t && t.closest('[data-lpk]');
+  if(c) lpTipShow(c); else { const tip=$('#lpTip'); if(tip) tip.hidden=true; }
+  if(k) lpHot(k.dataset.lpk, c); else if(document.querySelector('.lphot')) lpHot(null); });
 function resolve(id){ const f=find(id); if(!f) return; const c=f.c; if(!c.ab && !c.ch && c.x!=null) c.xc=c.x;
   if(c.pact){ pactPanel(id); return; }
   gyResolve(c); blinkResolve(c);
@@ -5243,7 +5262,7 @@ function activate(id, a, evDone, extra){ if(waitMull()) return;
   changed();
 }
 /* player aids, nothing enforced: c.sick marks a permanent that came under my control since my turn began (shown on creatures without haste);
-   c.lft marks the land I played from my hand this turn */
+   c.lft marks a land that came from my hand this turn (no longer drawn: v4.109 links played lands to the land-for-turn circles, LPID) */
 const abilHaste = bf => { const x=bf.find(x=>!x.fd && (x.k||x.cu) && /You may activate abilities of creatures you control as though those creatures had haste/i.test(frontText(x)||'')); return x ? cdata(x).n.split(',')[0] : ''; };
 const hasHaste = c => !!c.eb || (!!c.hst && c.hst===G.turn.n) || (c.kw||[]).includes('haste') || (!c.fd && /(^|\n|, )haste\b|\b(?:has|have) haste\b/i.test(frontText(c))) || grantedKw(c, G.myId).some(k=>k.k==='haste');
 const showSick = c => !!c.sick && !c.imp && (c.fd || isCreature(c) || c.anim) && !hasHaste(c);
@@ -5917,7 +5936,7 @@ function castAdventure(id){ const f=find(id); if(!f) return; const c=f.c, fs=spl
    already made); Shift-click plays the land side tapped; the hand's right-click menu keeps its own items. */
 const mdfcLand = c => { const d=cdata(c); return !!d.back && d.lay!=='transform' && !/\bLand\b/.test(faceTypeOf(c,0)) && /\bLand\b/.test(faceTypeOf(c,1)); };
 function playLandSide(id, how, ov){ const f=find(id); if(!f) return; if(f.z==='hand' && waitMull()) return; if(ov===undefined) return landGate(id, faceName(f.c,1), a=>playLandSide(id, how, a)); const c=f.c, m=G.me, n=G.turn.n||0, nm=faceName(c,1), le=landEntry(Object.assign({}, c, {flip:true}));
-  if(!m.lp || m.lp.n!==n) m.lp={n, k:0}; m.lp.k++; if(ov) m.lp.ov=(m.lp.ov||0)+1; const k=m.lp.k; c.flip=true;
+  if(!m.lp || m.lp.n!==n) m.lp={n, k:0}; m.lp.k++; if(ov) m.lp.ov=(m.lp.ov||0)+1; (m.lp.pl=m.lp.pl||[]).push({id, ov:!!ov, nm}); const k=m.lp.k; c.flip=true;
   const tap = how==='tapped' || (le && le.kind==='tapped');
   move(id,'bf',{silent:true, later:true, tap}); const g=find(id); if(!g) return;
   let how2=''; if(how==='pay' && le && le.kind==='shock'){ m.life-=le.life; how2=`, paying ${le.life} life (now ${m.life}) so it enters untapped`; } else if(tap) how2=' tapped';
@@ -6776,6 +6795,7 @@ function cardHTML(c, z, mine, cls=''){
   let lkA=''; if(z==='bf' && !backUp){ const lk=attLink(c, mine); if(lk){ b+=lk.ban; cls+=' lk'; lkA=` data-lk="${lk.ids}"`; } }
   { const hk = z==='bf' && !backUp ? (heldBy(c.id) ? c.id : '') : (z==='ex' && c.by && c.by.mode==='hold' && !c.by.mon && c.by.id) ? String(c.by.id) : '';   // v4.107: a held exile and the permanent holding it light each other on hover
     if(hk){ cls+=' hk'; lkA = lkA ? lkA.replace(/"$/, ' '+hk+'"') : ` data-lk="${hk}"`; } }
+  if(z==='bf' && LPID.has(c.id)) lkA+=` data-lpk="${esc(c.id)}"`;   /* v4.109: played this turn: linked to its land-for-turn circle (lpHot) */
   if(z==='bf' && c.cp){ b+=`<span class="cpban" title="${esc(c.cp.orig)}, copying ${esc((cdata(c).n)||'a card')}${c.cp.until?' until end of turn':''}">${esc(c.cp.orig)}</span>`; }
   if(z==='bf' && c.dmg && !backUp){ const T=toughNow(c, mine?G.myId:oppId()), le=T!=null && c.dmg>=T; if(le) cls+=' dmglethal'; b+=`<span class="badge dmg${le?' lethal':''}" title="Damage marked this turn">${c.dmg} dmg${le?'<small>LETHAL</small>':''}</span>`; }
   if(z==='bf' && c.eb && !backUp) b+='<span class="ebban" title="Earthbent: a creature with haste that is still a land">EARTHBENT</span>';
@@ -6787,7 +6807,6 @@ function cardHTML(c, z, mine, cls=''){
   if(z==='st' && c.nm && !backUp && NMW) b+='<span class="nmban" title="No mana was spent to cast this spell">NO MANA<br>WAS SPENT</span>';
   if(z==='bf' && c.chosen && !backUp) b+=`<span class="chban" title="Chosen">${esc(c.chosen)}</span>`;
   if(z==='bf' && c.prep && !backUp){ const sp=prepSpell(c); b+=`<span class="prepban" title="Prepared: you may cast a copy of ${esc(sp?sp.n:'its spell')} (right-click). Doing so unprepares it.">PREPARED!</span>`; }
-  if(z==='bf' && c.lft){ cls+=' lft'; b+='<span class="lftban">NEW!</span>'; }
   if(z==='bf' && showSick(c)){ const ah=abilHaste(mine ? G.me.bf : ((G.opp&&G.opp.bf)||[])); b+=`<span class="kc sick${c.o && c.o !== (mine?G.myId:oppId()) ? ' low' : ''}${ah?' abil':''}" title="${ah ? `Summoning sick, but it can use its abilities (${esc(ah)})` : 'Summoning sick'}">${SICK_SVG}</span>`; }
   if(z==='hand' && mine && !backUp){ const cn=costNow(c); if(cn && cn.delta) b+=`<span class="costbox${cn.delta>0?' up':''}" title="Cost now (printed ${esc(cn.printed)})">${symHTML(cn.syms)}</span>`; }
   if(z==='side' && c.comp) b+='<span class="compban">COMPANION</span>';
@@ -6850,7 +6869,7 @@ function rowsHTML(bf, mine){
   // v4.50: each group (a card, a pile, a card with what is attached to it) is drawn above the groups to its right, so a card tapped sideways
   // overlaps its right-hand neighbour with its top (name and art) instead of being covered by that neighbour's bottom (Ben)
   const zgOf = () => { let z=19; return html => { const v=Math.max(1, z--); return html.replace(/ data-z="bf"/g, ` data-z="bf" style="--zg:${v}"`); }; };
-  let L='', run=[]; const zB=zgOf(), zF=zgOf(); lands.forEach((c,i)=>{ run.push(c); const n=lands[i+1]; const same = n && n.k===c.k && n.tap===c.tap && !c.c && !c.lft && !n.lft && !host.has(c.id) && !host.has(n.id);
+  let L='', run=[]; const zB=zgOf(), zF=zgOf(); lands.forEach((c,i)=>{ run.push(c); const n=lands[i+1]; const same = n && n.k===c.k && n.tap===c.tap && !c.c && !LPID.has(c.id) && !LPID.has(n.id) && !host.has(c.id) && !host.has(n.id);
     if(!same){ L += zB(wrapT(run, run.map((x,j)=> j<run.length-1 ? cardHTML(x,'bf',mine,'under') : one(x)).join(''))); run=[]; } });
   // identical tokens share a pile: same token, same state, nothing attached, not part of an arrow
   const arrowed=new Set(); for(const p of [G.me, G.opp]) for(const a of ((p&&p.arrows)||[])){ arrowed.add(a.a); arrowed.add(a.b); }
@@ -6948,7 +6967,7 @@ function tapStyleModal(){ const cur=S.tap||TAP_DEF;
 const offerLive = c => !!c.offer && (c.offer===true || (c.offer===G.turn.n && !G.turn.passed));
 let NMW=null, CHAL=[];   /* name of a card that cares whether mana was spent, set each render */
 function render(){
-  if(DSW) return; if($('#table').hidden) return; const TS0=tapSnap(); autoArm(); paintUnl(); TGS=tgtSrcSpec();
+  if(DSW) return; if($('#table').hidden) return; LPID=lpIds(); const TS0=tapSnap(); autoArm(); paintUnl(); TGS=tgtSrcSpec();
   auraBC(); camText(); NMW=noManaWatch(); CHAL=chaliceWatch(); trackGain(); if(checkCity()) setTimeout(changed, 0); if(delneyWatch() | oppLandWatch() | ctrLockWatch() | norinWatch()) setTimeout(changed, 0);   /* v4.55: ascend is checked again at every render (the call had been lost) */ if(G.opp && typeof G.opp.life==='number'){ if(G.oppLastLife!=null && G.opp.life<G.oppLastLife && G.turn.n) G.oppLost=G.turn.n; G.oppLastLife=G.opp.life; }   // v4.37: spectacle sees any loss of life (Practice too)
   const m=G.me, o=G.opp;
   FX=landEffects();
@@ -7217,7 +7236,7 @@ document.addEventListener('pointerover', e=>{
   if(pk && (fan || !findAny(el.dataset.id))){ if(pk.k || pk.cu) showZoom(cdata(pk), el.getBoundingClientRect(), '', fan); else hideZoom(); return; }   // v4.45
   const f=findAny(el.dataset.id); if(!f){ if(el.dataset.id.startsWith('s:')) showZoom(DB[el.dataset.id.slice(2)], el.getBoundingClientRect()); return; }
   const c=f.c; if((!c.k && !c.cu) || (c.fd && !f.mine)) { hideZoom(); return; }
-  const d=cdata(c); showZoom((c.flip&&d.back)?{...d,img:d.back}:d, el.getBoundingClientRect(), ctrLine(c)+(c.note?`\nNote: ${c.note}`:'')+(f.z==='bf' && dynPT(c, f.mine?G.myId:oppId()) ? (x=>`\nNow ${x.p}/${x.t}${x.why?' ('+x.why+')':''}`)(dynPT(c, f.mine?G.myId:oppId())) : '')+(f.z==='bf' && c.cp ? `\n${c.cp.orig}, copying ${cdata(c).n}${c.cp.until?' until end of turn':''}` : '')+(f.z==='hand' && f.mine ? (x=>x ? `\nCost now: ${x.cost}${x.delta ? ` (printed ${x.printed}; ${x.why})` : ` (unchanged: ${x.why})`}` : '')(costNow(c)) : '')+(f.z==='bf' && c.eb ? '\nEarthbent: a creature with haste that is still a land; when it dies or is exiled, it returns tapped' : '')+(f.z==='bf' && c.bw && c.att ? '\nBestowed: an Aura while attached; it becomes a creature again if that creature leaves the battlefield' : '')+(f.z==='bf' ? (x=>x?'\n'+x:'')(giftsLine(c, f.mine?G.myId:oppId())) : '')+(f.z==='bf' && c.chosen ? `\nChosen: ${c.chosen}` : '')+(f.z==='bf' && c.dmg ? `\nDamage marked this turn: ${c.dmg}` : '')+(f.z==='bf' && c.lft ? '\nLand played this turn' : '')+(f.z==='bf' && c.wp ? '\nCast for its warp cost: goes to the warp zone at the beginning of the next end step' : '')+(f.z==='ex' && c.warp ? (c.warp===G.turn.n ? '\nIn the warp zone: may be cast again from the next turn on' : '\nIn the warp zone: may be cast from here') : '')+(f.z==='bf' && showSick(c) ? '\nSummoning sick: came under its controller\'s control this turn' : '')+(f.z==='st' && c.md && c.md.length && modesOf(c) ? '\nChosen:\n'+c.md.map(i=>'• '+(modesOf(c).modes[i-1]||'')).join('\n') : ''));
+  const d=cdata(c); showZoom((c.flip&&d.back)?{...d,img:d.back}:d, el.getBoundingClientRect(), ctrLine(c)+(c.note?`\nNote: ${c.note}`:'')+(f.z==='bf' && dynPT(c, f.mine?G.myId:oppId()) ? (x=>`\nNow ${x.p}/${x.t}${x.why?' ('+x.why+')':''}`)(dynPT(c, f.mine?G.myId:oppId())) : '')+(f.z==='bf' && c.cp ? `\n${c.cp.orig}, copying ${cdata(c).n}${c.cp.until?' until end of turn':''}` : '')+(f.z==='hand' && f.mine ? (x=>x ? `\nCost now: ${x.cost}${x.delta ? ` (printed ${x.printed}; ${x.why})` : ` (unchanged: ${x.why})`}` : '')(costNow(c)) : '')+(f.z==='bf' && c.eb ? '\nEarthbent: a creature with haste that is still a land; when it dies or is exiled, it returns tapped' : '')+(f.z==='bf' && c.bw && c.att ? '\nBestowed: an Aura while attached; it becomes a creature again if that creature leaves the battlefield' : '')+(f.z==='bf' ? (x=>x?'\n'+x:'')(giftsLine(c, f.mine?G.myId:oppId())) : '')+(f.z==='bf' && c.chosen ? `\nChosen: ${c.chosen}` : '')+(f.z==='bf' && c.dmg ? `\nDamage marked this turn: ${c.dmg}` : '')+(f.z==='bf' && LPID.has(c.id) ? '\nLand played this turn' : '')+(f.z==='bf' && c.wp ? '\nCast for its warp cost: goes to the warp zone at the beginning of the next end step' : '')+(f.z==='ex' && c.warp ? (c.warp===G.turn.n ? '\nIn the warp zone: may be cast again from the next turn on' : '\nIn the warp zone: may be cast from here') : '')+(f.z==='bf' && showSick(c) ? '\nSummoning sick: came under its controller\'s control this turn' : '')+(f.z==='st' && c.md && c.md.length && modesOf(c) ? '\nChosen:\n'+c.md.map(i=>'• '+(modesOf(c).modes[i-1]||'')).join('\n') : ''));
 });
 document.addEventListener('pointerdown', e=>{ if(!e.target.closest('#ctx, #ctx2')) closeMenu(); }, true);
 
@@ -7245,7 +7264,7 @@ function cardMenu(id, x, y){
     isCreature(c)&&['Mark damage…',async()=>{ const n=await askN('Mark damage', 1); if(n>0) damage(id, n); },'−'], c.dmg&&['Remove damage',()=>damage(id, -c.dmg)],
     ['Block…',()=>startMode('block',id),'B'], ['Target…',()=>startMode('arrow',id),'R'],
     (b=>b && (b.when==='enters' || c.atk) && OWN([`${b.now?'Blink':'Flicker'} target…  (${srcName(c).split(',')[0]}'s trigger)`, ()=>{ G.mode={type:'arrow', from:id, sure:true}; render(); }]))(blinkTrig(c)),
-    showSick(c)&&['Remove the summoning-sick mark',()=>{ delete c.sick; ch(); }], c.lft&&['Remove the NEW! banner',()=>{ delete c.lft; ch(); }],
+    showSick(c)&&['Remove the summoning-sick mark',()=>{ delete c.sick; ch(); }], 
     !c.fd&&modesOf(c)&&OWN(['Choose a mode… (tells your opponent)',()=>{ const md=modesOf(c); pickModes(c, md, p=>{ if(p.length){ log(modeLog(c, md, p)); ch(); } }, {title:`${faceName(c,c.flip?1:0)}: choose`, go:'Confirm'}); }]), '-',
     [c.exert?'Remove exert':'Exert (skips its next untap)',()=>{ c.exert=!c.exert; if(c.exert) log(`${G.me.name} exerts ${cname(c)}. It will not untap next turn.`); ch(); }],
     ['Add a stun counter',()=>{ c.stun=(c.stun||0)+1; log(`${cname(c)} gets a stun counter (${c.stun}).`); ch(); }], c.stun>0&&['Remove a stun counter',()=>{ c.stun--; ch(); }],
