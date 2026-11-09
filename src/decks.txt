@@ -1,3 +1,1126 @@
+@@ MTGO Challenge 32|2026-11-08|93492|1|Scepter Chant|nahuel10|910192
+4 Silence
+4 Day's Undoing
+3 Preordain
+4 Solitude
+1 Geier Reach Sanitarium
+2 Polluted Delta
+2 Plains
+2 Island
+2 Meticulous Archive
+1 Monumental Henge
+4 Narset, Parter of Veils
+4 Orim's Chant
+1 Otawara, Soaring City
+2 Hallowed Fountain
+3 Prismatic Ending
+1 Razorgrass Ambush
+1 Godless Shrine
+1 Sink into Stupor
+4 Flooded Strand
+4 Teferi, Time Raveler
+1 Thundering Falls
+3 Arid Mesa
+1 Isochron Scepter
+2 Wrath of the Skies
+2 Erode
+1 Celestial Colonnade
+Sideboard
+3 Consign to Memory
+3 Mystical Dispute
+3 Sanctifier en-Vec
+2 The Wandering Emperor
+4 Sanctum Prelate
+
+@@ MTGO Challenge 16|2026-11-07|93408|1|Living End|Foxantes|909604
+1 Breeding Pool
+1 Colossal Skyturtle
+1 Commercial District
+4 Endurance
+4 Force of Negation
+1 Steam Vents
+3 Generous Ent
+1 Hedge Maze
+1 Island
+4 Misty Rainforest
+4 Oliphaunt
+4 Street Wraith
+1 Sacred Foundry
+4 Shardless Agent
+1 Sink into Stupor
+1 Forest
+1 Stomping Ground
+4 Wistfulness
+3 Striped Riverwinder
+4 Subtlety
+1 Teferi, Time Raveler
+1 Temple Garden
+1 Thundering Falls
+1 Valakut Awakening
+4 Violent Outburst
+1 Waker of Waves
+3 Living End
+Sideboard
+2 Teferi, Time Raveler
+2 Force of Vigor
+4 Mystical Dispute
+2 Inevitable Betrayal
+3 Clarion Conqueror
+2 Obsidian Charmaw
+
+@@ MTGO Challenge 32|2026-11-06|93441|1|Landless Belcher|bugzbugs|909868
+3 Counterspell
+3 Preordain
+4 Lotus Bloom
+4 Whir of Invention
+3 Force of Negation
+1 Beyeen Veil
+4 Jwari Disruption
+4 Sea Gate Restoration
+4 Tameshi, Reality Architect
+4 Goblin Charbelcher
+4 Hydroelectric Specimen
+4 Sink into Stupor
+4 Suppression Ray
+4 Waterlogged Teachings
+2 Into the Flood Maw
+4 Disrupting Shoal
+1 Stock Up
+3 Spell Snare
+Sideboard
+2 Engineered Explosives
+1 Tormod's Crypt
+3 Mystical Dispute
+4 Consign to Memory
+1 Tamiyo, Inquisitive Student
+2 Unable to Scream
+2 Harbinger of the Seas
+
+@@ MTGO Challenge 32|2026-11-05|93268|1|Ruby Storm|makaaaa|908738
+1 Gemstone Caverns
+2 Twinned Vision
+2 Bloodstained Mire
+4 Ruby Medallion
+4 Pyretic Ritual
+2 Valakut Awakening
+4 Reckless Impulse
+4 Wrenn's Resolve
+4 Hex Magic
+2 Wish
+3 Past in Flames
+1 Artist's Talent
+4 Manamorphose
+2 Arid Mesa
+1 Commercial District
+1 Elegant Parlor
+4 Desperate Ritual
+4 Ral, Monsoon Mage
+1 Sacred Foundry
+2 Scalding Tarn
+1 Stomping Ground
+3 Wooded Foothills
+4 Mountain
+Sideboard
+1 Past in Flames
+3 Nature's Claim
+3 Veil of Summer
+1 Voice of Victory
+1 Empty the Warrens
+2 Brotherhood's End
+1 Grapeshot
+3 Prismatic Ending
+
+@@ Regional Championship - MIT Championship (Taipei)|2026-11-01|93105|1|Rakdos Delirium|Wei_hao_huang|907298
+4 Dark Matter Manipulator
+4 Fear of Missing Out
+4 Moonshadow
+4 Nethergoyf
+4 Street Wraith
+4 Detective's Phoenix
+2 Stitcher's Supplier
+4 Mishra's Bauble
+4 Bloodstained Mire
+4 Marsh Flats
+3 Blood Crypt
+2 Raucous Theater
+2 Swamp
+1 Blackcleave Cliffs
+1 Verdant Catacombs
+1 Troll of Khazad-dum
+4 Flare of Malice
+3 Lightning Bolt
+1 Fatal Push
+4 Thoughtseize
+Sideboard
+2 Blood Moon
+2 Nihil Spellbomb
+1 Grafdigger's Cage
+1 Inquisition of Kozilek
+1 Obsidian Charmaw
+1 Fatal Push
+2 Glistening Deluge
+2 Meltdown
+2 Ob Nixilis, the Adversary
+1 Steel Wrecking Ball
+
+@@ MTGO Challenge 32|2026-11-07|93409|2|Amulet Titan|RHNog|909623
+1 Otawara, Soaring City
+1 Dryad Arbor
+4 Primeval Titan
+1 Yavimaya, Cradle of Growth
+1 Tolaria West
+2 Forest
+4 Scapeshift
+1 Echoing Deeps
+4 Spelunking
+4 Simic Growth Chamber
+4 Urza's Saga
+3 Green Sun's Zenith
+1 Mirrorpool
+4 Malevolent Rumble
+4 Crumbling Vestige
+1 Hanweir Battlements
+2 Summoner's Pact
+4 Amulet of Vigor
+1 Cultivator Colossus
+3 Boseiju, Who Endures
+4 Arboreal Grazer
+2 Roiling Canopy
+4 Gruul Turf
+Sideboard
+1 Bojuka Bog
+1 Skyline Cascade
+3 Force of Vigor
+2 Sowing Mycospawn
+2 Ba Sing Se
+3 Dismember
+3 Trinisphere
+
+@@ MTGO Challenge 16|2026-11-07|93408|2|Hardened Scales|kePs|909602
+3 Agatha's Soul Cauldron
+4 Arcbound Ravager
+6 Forest
+4 Hardened Scales
+1 Haywire Mite
+1 The Ozolith
+1 Gemstone Caverns
+4 Zabaz, the Glimmerwasp
+3 Malevolent Rumble
+4 Walking Ballista
+3 Welding Jar
+2 Boseiju, Who Endures
+2 Tormod's Crypt
+4 Urza's Saga
+4 Mox Opal
+2 Ba Sing Se
+2 Terrasymbiosis
+1 Pithing Needle
+3 Hangarback Walker
+1 Skateboard
+4 Darksteel Citadel
+1 Loading Zone
+Sideboard
+1 Terrasymbiosis
+3 Damping Sphere
+2 Dismember
+1 Karn, Argent Defender
+2 Grafdigger's Cage
+1 Disruptor Flute
+2 Nature's Claim
+1 Force of Vigor
+2 Tamiyo's Safekeeping
+
+@@ MTGO Challenge 32|2026-11-06|93441|2|UW Control|Oscar_Franco|909858
+4 Day's Undoing
+4 Silence
+1 Force of Negation
+1 Geier Reach Sanitarium
+1 Sacred Foundry
+1 Hedge Maze
+4 Preordain
+2 Meticulous Archive
+1 Monumental Henge
+2 Plains
+4 Narset, Parter of Veils
+1 Otawara, Soaring City
+4 Orim's Chant
+1 Mystic Gate
+3 Prismatic Ending
+2 Island
+2 Sink into Stupor
+4 Solitude
+2 Hallowed Fountain
+4 Teferi, Time Raveler
+4 Flooded Strand
+3 Wrath of the Skies
+1 Spell Snare
+4 Windswept Heath
+Sideboard
+3 Consign to Memory
+1 Erode
+1 Kaheera, the Orphanguard
+3 Mystical Dispute
+3 Sanctifier en-Vec
+4 Sanctum Prelate
+
+@@ MTGO Challenge 32|2026-11-05|93268|2|Broodscale Bloodchief|Lightspirit|908740
+5 Forest
+1 Gemstone Caverns
+1 Springleaf Drum
+1 Pithing Needle
+2 Blade of the Bloodchief
+4 Ancient Stirrings
+2 Dismember
+4 Eldrazi Temple
+4 Emrakul, the Promised End
+4 Urza's Saga
+1 Yavimaya, Cradle of Growth
+2 Boseiju, Who Endures
+1 Haywire Mite
+1 Soul-Guide Lantern
+1 Cavern of Souls
+4 Basking Broodscale
+4 Malevolent Rumble
+4 Sowing Mycospawn
+1 Vexing Bauble
+1 Shifting Woodland
+4 Ugin's Labyrinth
+4 Kozilek's Command
+3 Devourer of Destiny
+1 Sire of Seven Deaths
+Sideboard
+1 Dismember
+1 Sire of Seven Deaths
+3 Chalice of the Void
+2 Trinisphere
+2 Nature's Claim
+1 Grafdigger's Cage
+2 Thought-Knot Seer
+2 Warping Wail
+1 Thief of Existence
+
+@@ MTGO Challenge 32|2026-11-07|93409|3-4|Grixis Aggro|manohito|909620
+2 Kaito, Bane of Nightmares
+4 Fatal Push
+4 Lightning Bolt
+4 Mishra's Bauble
+4 Thoughtseize
+2 Troll of Khazad-dum
+3 Detective's Phoenix
+4 Street Wraith
+4 Psychic Frog
+4 Nethergoyf
+4 Moonshadow
+4 Dark Matter Manipulator
+1 Raucous Theater
+1 Undercity Sewers
+2 Marsh Flats
+2 Swamp
+2 Blood Crypt
+2 Watery Grave
+2 Verdant Catacombs
+2 Polluted Delta
+3 Bloodstained Mire
+Sideboard
+1 End of the Hunt
+1 Liliana of the Veil
+2 Glistening Deluge
+2 Nihil Spellbomb
+4 Consign to Memory
+2 Inquisition of Kozilek
+2 Ob Nixilis, the Adversary
+1 Strategic Betrayal
+
+@@ MTGO Challenge 16|2026-11-07|93408|3-4|Golgari Necrodominance|Ghift|909607
+2 Fell the Profane
+2 Assassin's Trophy
+2 Witherbloom Charm
+2 Professor Dellian Fel
+3 March of Wretched Sorrow
+3 Force of Despair
+4 Fatal Push
+4 Necrodominance
+4 Soul Spike
+4 Thoughtseize
+2 Sheoldred, the Apocalypse
+3 Orcish Bowmasters
+3 Dauthi Voidwalker
+4 Boggart Trawler
+1 Marsh Flats
+2 Underground Mortuary
+2 Verdant Catacombs
+2 Blooming Marsh
+2 Polluted Delta
+2 Bloodstained Mire
+2 Overgrown Tomb
+5 Swamp
+Sideboard
+1 Damping Sphere
+1 Requiting Hex
+4 Break the Ice
+2 Culling Ritual
+1 Disruptor Flute
+1 Surgical Extraction
+2 Strategic Betrayal
+1 Necromentia
+1 Force of Despair
+1 Dauthi Voidwalker
+
+@@ MTGO Challenge 16|2026-11-07|93408|3-4|Jund|DB_BFG|909608
+1 Assassin's Trophy
+1 Blazemire Verge
+1 Blood Crypt
+3 Bloodstained Mire
+2 Boseiju, Who Endures
+2 Endurance
+2 Fatal Push
+1 Underground Mortuary
+2 Inquisition of Kozilek
+2 Kolaghan's Command
+4 Lightning Bolt
+1 Swamp
+3 Nethergoyf
+3 Orcish Bowmasters
+1 Overgrown Tomb
+4 Ragavan, Nimble Pilferer
+1 Raucous Theater
+1 Riveteers Charm
+3 Stingcaster Mage
+1 Stomping Ground
+1 Mountain
+3 Tarmogoyf
+3 Thoughtseize
+1 Forest
+4 Verdant Catacombs
+1 Vibrance
+1 Vraska's Final Mercy
+1 Witherbloom Charm
+3 Wooded Foothills
+3 Wrenn and Six
+Sideboard
+2 Break the Ice
+1 Brotherhood's End
+1 Crime/Punishment
+3 Dauthi Voidwalker
+1 Pick Your Poison
+2 Price of Freedom
+2 Pyroclasm
+1 Strategic Betrayal
+2 Vexing Bauble
+
+@@ MTGO Challenge 32|2026-11-06|93441|3-4|Dimir Control|ETBJezus|909862
+1 Preordain
+1 Sheoldred's Edict
+1 Kaito, Bane of Nightmares
+1 Cling to Dust
+2 Sink into Stupor
+2 Drown in the Loch
+2 Spell Snare
+2 Counterspell
+3 Thoughtseize
+3 Force of Negation
+4 Fatal Push
+1 Murktide Regent
+2 Harbinger of the Seas
+2 Tamiyo, Inquisitive Student
+3 Subtlety
+3 Orcish Bowmasters
+3 Quantum Riddler
+4 Psychic Frog
+1 Misty Rainforest
+1 Otawara, Soaring City
+1 Verdant Catacombs
+1 Theorist's Sanctum
+1 Darkslick Shores
+1 Swamp
+2 Island
+2 Undercity Sewers
+3 Watery Grave
+3 Bloodstained Mire
+4 Polluted Delta
+Sideboard
+4 Leyline of the Void
+1 Engineered Explosives
+2 Mystical Dispute
+4 Consign to Memory
+1 Toxic Deluge
+1 Requiting Hex
+2 Harbinger of the Seas
+
+@@ MTGO Challenge 32|2026-11-06|93441|3-4|Mono Black Aggro|Selfeisek|909856
+1 Shadowspear
+1 Nihil Spellbomb
+1 Pithing Needle
+2 Inquisition of Kozilek
+4 Mishra's Bauble
+4 Kozilek's Command
+4 Fatal Push
+4 Thoughtseize
+3 Orcish Bowmasters
+4 Thought-Knot Seer
+4 Nethergoyf
+4 Emperor of Bones
+1 Wastes
+1 Marsh Flats
+2 Urborg, Tomb of Yawgmoth
+4 Urza's Saga
+4 Ifnir Deadlands
+4 Swamp
+4 Prismatic Vista
+4 Eldrazi Temple
+Sideboard
+1 Force of Despair
+2 Break the Ice
+1 Surgical Extraction
+1 Shoot the Sheriff
+2 Damping Sphere
+1 Dreams of Steel and Oil
+1 Wasteland Strangler
+1 Ashiok, Dream Render
+1 Dismember
+2 Toxic Deluge
+2 Pithing Needle
+
+@@ Regional Championship - MIT Championship (Taipei)|2026-11-01|93105|3-4|Reanimator|Chin Yao Han|907301
+4 Archon of Cruelty
+4 Gran-Gran
+4 Psychic Frog
+2 Abhorrent Oculus
+2 Emperor of Bones
+2 Fallaji Archaeologist
+2 Seasoned Cryomancer
+4 Fatal Push
+4 Flare of Denial
+2 Bitter Triumph
+4 Persist
+2 Unearth
+4 Polluted Delta
+3 Undercity Sewers
+3 Watery Grave
+2 Bloodstained Mire
+2 Cephalid Coliseum
+2 Marsh Flats
+2 Swamp
+1 Island
+1 Otawara, Soaring City
+4 Thoughtseize
+Sideboard
+4 Consign to Memory
+3 Engineered Explosives
+2 Harbinger of the Seas
+2 Mystical Dispute
+2 Requiting Hex
+2 Surgical Extraction
+
+@@ MTGO Challenge 32|2026-11-08|93492|5-8|Creativity|mark_68|910189
+3 Archon of Cruelty
+3 High Noon
+3 Wooded Foothills
+1 Stomping Ground
+1 Commercial District
+3 Dwarven Mine
+1 Elegant Parlor
+4 Fable of the Mirror-Breaker
+3 Galvanic Discharge
+4 Indomitable Creativity
+1 Ketria Triome
+1 Steam Vents
+1 Sacred Foundry
+3 Prismatic Ending
+1 Raph & Mikey, Troublemakers
+4 Arid Mesa
+1 Plains
+1 Savai Triome
+1 Mountain
+4 Bloodstained Mire
+3 Teferi, Time Raveler
+1 Thundering Falls
+1 Blood Crypt
+4 Wrenn and Six
+3 Way of the Paradox
+4 Leyline Binding
+Sideboard
+1 Boseiju, Who Endures
+2 Surgical Extraction
+4 Consign to Memory
+1 Elesh Norn, Grand Cenobite
+2 Hidetsugu Consumes All
+2 Mystical Dispute
+1 Elesh Norn, Mother of Machines
+2 Wear/Tear
+
+@@ MTGO Challenge 32|2026-11-07|93409|5-8|UR Murktide|duke12|909609
+4 Cori-Steel Cutter
+4 Preordain
+4 Dragon's Rage Channeler
+4 Expressive Iteration
+2 Misty Rainforest
+2 Flow State
+3 Island
+4 Lightning Bolt
+4 Mishra's Bauble
+2 Murktide Regent
+2 Flooded Strand
+4 Ragavan, Nimble Pilferer
+2 Riverpyre Verge
+2 Polluted Delta
+3 Counterspell
+1 Thundering Falls
+4 Unholy Heat
+1 Scalding Tarn
+3 Spell Snare
+2 Spirebluff Canal
+3 Steam Vents
+Sideboard
+4 Consign to Memory
+1 Fire Magic
+2 Force of Negation
+2 Meltdown
+2 Mystical Dispute
+3 Obsidian Charmaw
+1 Soul-Guide Lantern
+
+@@ MTGO Challenge 16|2026-11-07|93408|5-8|Pinnacle Affinity|Walker735|909605
+4 Kappa Cannoneer
+4 Tormod's Crypt
+4 Fiery Islet
+4 Mishra's Bauble
+2 Claws of Gix
+4 Mox Opal
+2 Shivan Reef
+4 Pinnacle Emissary
+1 Pithing Needle
+1 Welding Jar
+1 Shadowspear
+4 Spirebluff Canal
+3 Emry, Lurker of the Loch
+1 Skateboard
+2 Island
+4 Weapons Manufacturing
+1 Steam Vents
+4 Urza's Saga
+2 Preordain
+4 Metallic Rebuke
+4 Engineered Explosives
+Sideboard
+2 Shattering Spree
+3 Consign to Memory
+2 Galvanic Blast
+1 Vexing Bauble
+2 Swan Song
+2 Mystical Dispute
+3 Obsidian Charmaw
+
+@@ MTGO Challenge 16|2026-11-07|93408|5-8|Urza|Sebastian0722|909606
+3 Darksteel Citadel
+1 Welding Jar
+1 Force of Negation
+1 Tormod's Crypt
+4 Thoughtcast
+2 Metallic Rebuke
+2 Seachrome Coast
+3 Moonsnare Prototype
+1 Pithing Needle
+3 Nettlecyst
+2 Otawara, Soaring City
+4 Mox Opal
+3 Portable Hole
+2 Razortide Bridge
+4 Mishra's Bauble
+1 Shadowspear
+1 Sink into Stupor
+1 Skateboard
+4 Tamiyo, Inquisitive Student
+3 Thought Monitor
+2 Island
+3 Hallowed Fountain
+4 Urza, Lord High Artificer
+4 Urza's Saga
+1 Flooded Strand
+Sideboard
+2 Force of Negation
+2 Tormod's Crypt
+3 Consign to Memory
+2 Damping Sphere
+2 Spell Pierce
+1 Grafdigger's Cage
+3 Dispatch
+
+@@ MTGO Challenge 32|2026-11-06|93441|5-8|UR Cutter Prowess|Adndmage|909865
+4 Slickshot Show-Off
+1 Bloodstained Mire
+3 Boomerang Basics
+4 Cori-Steel Cutter
+4 Dragon's Rage Channeler
+2 Fiery Islet
+3 Mountain
+4 Preordain
+4 Monastery Swiftspear
+4 Lightning Bolt
+3 Scalding Tarn
+3 Steam Vents
+2 Expressive Iteration
+1 Thundering Falls
+4 Lava Dart
+1 Wooded Foothills
+2 Mutagenic Growth
+2 Violent Urge
+1 Tormod's Crypt
+4 Arid Mesa
+4 Mishra's Bauble
+Sideboard
+1 Expressive Iteration
+1 Tormod's Crypt
+4 Consign to Memory
+1 Murktide Regent
+1 Spell Pierce
+2 Spell Snare
+4 Unholy Heat
+1 Obsidian Charmaw
+
+@@ MTGO Challenge 32|2026-11-05|93268|5-8|Boros Aggro|4FunNoWin|908741
+4 Ajani, Nacatl Pariah
+4 Arid Mesa
+1 Dalkovan Encampment
+3 Flooded Strand
+4 Ocelot Pride
+4 Galvanic Discharge
+4 Marsh Flats
+4 Guide of Souls
+1 Haliya, Guided by Light
+3 Sacred Foundry
+2 Plains
+4 Ragavan, Nimble Pilferer
+1 Ranger-Captain of Eos
+1 Mountain
+4 Seasoned Pyromancer
+2 Lightning Bolt
+4 Voice of Victory
+2 Thraben Charm
+1 Blood Moon
+2 Arena of Glory
+2 Elegant Parlor
+3 Goblin Bombardment
+Sideboard
+1 Blood Moon
+1 Meltdown
+4 Obsidian Charmaw
+1 The Legend of Roku
+2 Wear/Tear
+1 Wrath of the Skies
+2 Sanctifier en-Vec
+3 High Noon
+
+@@ MTGO Challenge 32|2026-11-05|93268|5-8|Chord Toolbox|NickBolas90|908734
+4 Cauldron Familiar
+4 Gilded Goose
+3 Young Wolf
+1 Godless Shrine
+2 Delighted Halfling
+1 Dryad Arbor
+2 Boseiju, Who Endures
+1 Explosive Prodigy
+1 Haywire Mite
+4 Verdant Catacombs
+4 Chord of Calling
+4 Birthing Ritual
+3 Goblin Bombardment
+4 Windswept Heath
+1 Yawgmoth, Thran Physician
+3 City of Brass
+2 Overgrown Tomb
+1 Lush Portico
+1 Misty Rainforest
+1 Stomping Ground
+3 Ajani, Nacatl Pariah
+3 Carrion Feeder
+4 Samwise Gamgee
+1 Forest
+1 Temple Garden
+1 Endurance
+Sideboard
+1 Endurance
+1 Grist, the Hunger Tide
+2 Vexing Bauble
+1 Gaddock Teeg
+2 Thoughtseize
+1 Masked Vandal
+1 Prismatic Ending
+1 Abrupt Decay
+1 Fatal Push
+2 Force of Vigor
+1 Sanctifier en-Vec
+1 Sanctum Prelate
+
+@@ Regional Championship - MIT Championship (Taipei)|2026-11-01|93105|5-8|Esper Control|Huang Yung-ming|907305
+1 Spell Snare
+1 No More Lies
+1 Consign to Memory
+1 Teferi, Time Raveler
+1 Inquisition of Kozilek
+1 Fatal Push
+2 Ephemerate
+2 Thoughtseize
+3 Prismatic Ending
+3 Force of Negation
+4 Relic of Progenitus
+1 Phelia, Exuberant Shepherd
+4 Psychic Frog
+4 Quantum Riddler
+4 Solitude
+4 Ketramose, the New Dawn
+1 Bleachbone Verge
+1 Gloomlake Verge
+1 Floodfarm Verge
+1 Godless Shrine
+1 Hallowed Fountain
+1 Watery Grave
+1 Undercity Sewers
+1 Swamp
+1 Shadowy Backstreet
+1 River of Tears
+1 Plains
+1 Island
+1 Meticulous Archive
+3 Polluted Delta
+3 Marsh Flats
+4 Flooded Strand
+Sideboard
+1 High Noon
+1 Temporary Lockdown
+1 Rest in Peace
+1 March of Otherworldly Light
+2 Wrath of the Skies
+2 Mystical Dispute
+1 Spell Snare
+3 Consign to Memory
+1 Teferi, Time Raveler
+1 Fatal Push
+1 Thoughtseize
+
+@@ MTGO Challenge 32|2026-11-08|93492|2|Rakdos Delirium|_Shikamaru_|910201
+1 Arid Mesa
+4 Mishra's Bauble
+4 Marsh Flats
+4 Dark Matter Manipulator
+4 Detective's Phoenix
+4 Fear of Missing Out
+4 Flare of Malice
+1 Troll of Khazad-dum
+4 Thoughtseize
+4 Moonshadow
+2 Swamp
+4 Nethergoyf
+1 Raucous Theater
+4 Stitcher's Supplier
+4 Street Wraith
+1 Mountain
+2 Lightning Bolt
+1 Verdant Catacombs
+3 Blood Crypt
+4 Bloodstained Mire
+Sideboard
+2 Inquisition of Kozilek
+2 Nihil Spellbomb
+2 Glistening Deluge
+1 Ingot Chewer
+2 Meltdown
+2 Fatal Push
+2 Ob Nixilis, the Adversary
+2 Blood Moon
+
+@@ MTGO Challenge 32|2026-11-08|93492|3-4|Amulet Titan|KizmaHusky|910195
+1 Vesuva
+1 Roiling Canopy
+3 Malevolent Rumble
+1 Echoing Deeps
+4 Spelunking
+2 Forest
+1 Otawara, Soaring City
+3 Boseiju, Who Endures
+1 Cultivator Colossus
+1 Yavimaya, Cradle of Growth
+4 Urza's Saga
+1 Dryad Arbor
+4 Arboreal Grazer
+1 Mirrorpool
+4 Gruul Turf
+2 Summoner's Pact
+1 Tolaria West
+4 Scapeshift
+1 Explore
+4 Amulet of Vigor
+3 Green Sun's Zenith
+4 Simic Growth Chamber
+4 Crumbling Vestige
+1 Hanweir Battlements
+4 Primeval Titan
+Sideboard
+1 Otawara, Soaring City
+1 Bojuka Bog
+1 Thrun, the Last Troll
+3 Trinisphere
+3 Dismember
+1 Endurance
+1 Force of Vigor
+2 Ba Sing Se
+2 Sowing Mycospawn
+
+@@ MTGO Challenge 32|2026-11-08|93492|3-4|Broodscale Bloodchief|Kollslaw|910200
+1 Soul-Guide Lantern
+1 Ba Sing Se
+1 Haywire Mite
+2 Boseiju, Who Endures
+3 Devourer of Destiny
+4 Emrakul, the Promised End
+4 Malevolent Rumble
+1 Gemstone Caverns
+1 Springleaf Drum
+4 Kozilek's Command
+6 Forest
+4 Basking Broodscale
+4 Ancient Stirrings
+4 Sowing Mycospawn
+1 Talisman of Resilience
+4 Ugin's Labyrinth
+4 Urza's Saga
+2 Blade of the Bloodchief
+3 Dismember
+4 Eldrazi Temple
+1 Vexing Bauble
+1 Sire of Seven Deaths
+Sideboard
+1 Haywire Mite
+1 Gemstone Caverns
+1 Forest
+1 Vexing Bauble
+1 Nature's Claim
+1 Engineered Explosives
+1 Six
+1 Endurance
+1 The Stone Brain
+1 Warping Wail
+2 Thief of Existence
+1 Chalice of the Void
+2 Mwonvuli Acid-Moss
+
+@@ MTGO Challenge 32|2026-11-07|93409|1|Scepter Chant|peter780108|909613
+1 Spell Snare
+3 Silence
+4 Day's Undoing
+2 Erode
+3 Preordain
+1 Geier Reach Sanitarium
+4 Orim's Chant
+2 Island
+2 Meticulous Archive
+1 Isochron Scepter
+1 Monumental Henge
+4 Narset, Parter of Veils
+1 Misty Rainforest
+1 Otawara, Soaring City
+1 Thundering Falls
+4 Flooded Strand
+2 Prismatic Ending
+1 Razorgrass Ambush
+1 Celestial Colonnade
+1 Sink into Stupor
+4 Solitude
+4 Teferi, Time Raveler
+1 Polluted Delta
+3 Wrath of the Skies
+1 The Mind Stone
+2 Plains
+2 Hallowed Fountain
+3 Arid Mesa
+Sideboard
+1 Wrath of the Skies
+3 Consign to Memory
+3 Mystical Dispute
+3 Sanctifier en-Vec
+3 High Noon
+2 The Wandering Emperor
+
+@@ MTGO Challenge 32|2026-11-07|93409|3-4|Rakdos Delirium|komattaman|909618
+2 Troll of Khazad-dum
+4 Detective's Phoenix
+4 Fear of Missing Out
+1 Blazemire Verge
+1 Nihil Spellbomb
+2 Marsh Flats
+4 Mishra's Bauble
+4 Moonshadow
+4 Nethergoyf
+4 Lightning Bolt
+4 Dark Matter Manipulator
+2 Raucous Theater
+2 Swamp
+4 Bloodstained Mire
+2 Verdant Catacombs
+4 Street Wraith
+4 Thoughtseize
+2 Unholy Heat
+1 Fatal Push
+1 Polluted Delta
+1 Ob Nixilis, the Adversary
+3 Blood Crypt
+Sideboard
+1 Nihil Spellbomb
+1 Fatal Push
+1 Ob Nixilis, the Adversary
+1 Ingot Chewer
+1 End of the Hunt
+2 Meltdown
+1 Strategic Betrayal
+2 Glistening Deluge
+1 Inquisition of Kozilek
+1 Grafdigger's Cage
+3 Obsidian Charmaw
+
+@@ MTGO Challenge 32|2026-11-05|93268|3-4|Broodscale Bloodchief|Fransadness|908737
+2 Blade of the Bloodchief
+4 Basking Broodscale
+2 Boseiju, Who Endures
+3 Dismember
+2 Devourer of Destiny
+4 Eldrazi Temple
+4 Emrakul, the Promised End
+6 Forest
+1 Gemstone Caverns
+1 Haywire Mite
+4 Kozilek's Command
+4 Malevolent Rumble
+1 Shifting Woodland
+2 Sire of Seven Deaths
+1 Soul-Guide Lantern
+4 Sowing Mycospawn
+1 Springleaf Drum
+1 Talisman of Resilience
+4 Ugin's Labyrinth
+4 Urza's Saga
+1 Vexing Bauble
+4 Ancient Stirrings
+Sideboard
+1 Vexing Bauble
+2 Nature's Claim
+1 Grafdigger's Cage
+2 Chalice of the Void
+1 Thief of Existence
+3 Thought-Knot Seer
+2 Trinisphere
+2 Warping Wail
+1 Pithing Needle
+
+@@ MTGO Challenge 32|2026-11-05|93268|3-4|Rakdos Delirium|komattaman|908733
+2 Troll of Khazad-dum
+4 Detective's Phoenix
+4 Fear of Missing Out
+1 Blazemire Verge
+1 Nihil Spellbomb
+2 Marsh Flats
+4 Mishra's Bauble
+4 Moonshadow
+4 Nethergoyf
+4 Lightning Bolt
+4 Dark Matter Manipulator
+2 Raucous Theater
+2 Swamp
+4 Bloodstained Mire
+2 Verdant Catacombs
+4 Street Wraith
+4 Thoughtseize
+2 Unholy Heat
+1 Fatal Push
+1 Polluted Delta
+1 Ob Nixilis, the Adversary
+3 Blood Crypt
+Sideboard
+1 Nihil Spellbomb
+1 Fatal Push
+1 Ob Nixilis, the Adversary
+1 Ingot Chewer
+1 End of the Hunt
+2 Meltdown
+1 Strategic Betrayal
+2 Glistening Deluge
+1 Inquisition of Kozilek
+1 Grafdigger's Cage
+3 Obsidian Charmaw
+
+@@ Regional Championship - MIT Championship (Taipei)|2026-11-01|93105|2|Scepter Chant|Cheng Yu Chang|907299
+4 Solitude
+1 Isochron Scepter
+1 The Mind Stone
+4 Orim's Chant
+3 Silence
+2 Erode
+1 Razorgrass Ambush
+1 Sink into Stupor
+1 Spell Snare
+2 Prismatic Ending
+4 Narset, Parter of Veils
+4 Teferi, Time Raveler
+4 Flooded Strand
+3 Arid Mesa
+2 Island
+2 Meticulous Archive
+2 Plains
+1 Geier Reach Sanitarium
+1 Misty Rainforest
+1 Otawara, Soaring City
+4 Day's Undoing
+3 Preordain
+2 Hallowed Fountain
+1 Celestial Colonnade
+1 Monumental Henge
+1 Polluted Delta
+1 Thundering Falls
+3 Wrath of the Skies
+Sideboard
+3 Consign to Memory
+3 High Noon
+3 Mystical Dispute
+3 Sanctifier en-Vec
+2 The Wandering Emperor
+1 Wrath of the Skies
+
+@@ Regional Championship - MIT Championship (Taipei)|2026-11-01|93105|3-4|Scepter Chant|Enki Hsu|907300
+4 Solitude
+1 Isochron Scepter
+1 The Mind Stone
+4 Orim's Chant
+3 Silence
+2 Consult the Star Charts
+2 Sink into Stupor
+1 Erode
+3 Day's Undoing
+3 Prismatic Ending
+3 Wrath of the Skies
+1 Supreme Verdict
+4 Teferi, Time Raveler
+2 The Wandering Emperor
+4 Flooded Strand
+3 Marsh Flats
+2 Hallowed Fountain
+2 Island
+2 Meticulous Archive
+2 Plains
+1 Floodfarm Verge
+1 Geier Reach Sanitarium
+1 Monumental Henge
+1 Mystic Gate
+1 Otawara, Soaring City
+1 Polluted Delta
+1 Undercity Sewers
+4 Narset, Parter of Veils
+Sideboard
+1 Supreme Verdict
+4 Consign to Memory
+4 Mystical Dispute
+3 Sanctum Prelate
+2 Sanctifier en-Vec
+1 Kaheera, the Orphanguard
+
 @@ Modern Challenge 32|2026-11-02|67764|8|Eldrazi Ramp|justFeather|8027623
 4 Basking Broodscale
 1 Ba Sing Se
@@ -725,1192 +1848,3 @@ Sideboard
 1 Shadowspear
 2 Blood Moon
 1 Metallic Rebuke
-
-@@ Modern Challenge 32|2026-10-25|67539|1|Eldrazi Ramp|Tetsubou|8015384
-6 Forest
-4 Basking Broodscale
-2 Boseiju, Who Endures
-2 Dismember
-4 Eldrazi Temple
-4 Emrakul, the Promised End
-1 Gemstone Caverns
-4 Sowing Mycospawn
-4 Kozilek's Command
-4 Malevolent Rumble
-1 Shifting Woodland
-2 Sire of Seven Deaths
-4 Ancient Stirrings
-1 Haywire Mite
-1 Springleaf Drum
-2 Talisman of Resilience
-4 Ugin's Labyrinth
-4 Urza's Saga
-1 Vexing Bauble
-1 Soul-Guide Lantern
-2 Blade of the Bloodchief
-1 Devourer of Destiny
-1 Cavern of Souls
-Sideboard
-1 Vexing Bauble
-2 Grafdigger's Cage
-2 Nature's Claim
-1 Pithing Needle
-3 Thought-Knot Seer
-3 Trinisphere
-2 Disruptor Flute
-1 Dismember
-
-@@ LDXPSAC26 10/24 3:30 PM Modern ReCQ|2026-10-24|67547|2|Domain Zoo|Vaughndietz|8015762
-4 Ragavan, Nimble Pilferer
-3 Phelia, Exuberant Shepherd
-4 Territorial Kavu
-4 Quantum Riddler
-4 Scion of Draco
-2 Consign to Memory
-4 Lightning Bolt
-3 Stubborn Denial
-1 Pest Control
-4 Leyline of the Guildpact
-4 Leyline Binding
-2 Arena of Glory
-4 Arid Mesa
-1 Blood Crypt
-4 Flooded Strand
-1 Indatha Triome
-1 Lush Portico
-1 Mountain
-1 Plains
-2 Steam Vents
-1 Temple Garden
-1 Thundering Falls
-4 Wooded Foothills
-Sideboard
-2 Consign to Memory
-1 High Noon
-1 Pest Control
-2 Rest in Peace
-2 Wrath of the Skies
-2 Mystical Dispute
-1 Teferi, Time Raveler
-1 Wear // Tear
-3 Obsidian Charmaw
-
-@@ Modern Challenge 32|2026-10-24|67508|1|Rakdos Midrange|gazmon48|8013851
-2 Troll of Khazad-dum
-4 Thoughtseize
-2 Swamp
-4 Dark Matter Manipulator
-4 Detective's Phoenix
-1 Fatal Push
-4 Fear of Missing Out
-4 Street Wraith
-2 Raucous Theater
-1 Polluted Delta
-1 Nihil Spellbomb
-4 Nethergoyf
-1 Mountain
-4 Moonshadow
-4 Mishra's Bauble
-1 Marsh Flats
-4 Lightning Bolt
-4 Bloodstained Mire
-1 Blood Moon
-3 Blood Crypt
-2 Unholy Heat
-1 Arid Mesa
-2 Verdant Catacombs
-Sideboard
-2 Ob Nixilis, the Adversary
-1 End of the Hunt
-1 Fatal Push
-2 Glistening Deluge
-1 Nihil Spellbomb
-2 Meltdown
-2 Inquisition of Kozilek
-1 Ingot Chewer
-1 Grafdigger's Cage
-1 Blood Moon
-1 Strategic Betrayal
-
-@@ Modern Challenge 16|2026-10-24|67509|1|Jeskai Energy|RespectTheCat|8013989
-1 Thundering Falls
-3 Day's Undoing
-4 Solitude
-2 Plains
-2 Hallowed Fountain
-4 Galvanic Discharge
-1 Isochron Scepter
-1 Otawara, Soaring City
-2 Meticulous Archive
-1 Monumental Henge
-2 Force of Negation
-4 Narset, Parter of Veils
-4 Orim's Chant
-1 March of Otherworldly Light
-2 Island
-1 Prismatic Ending
-3 Consult the Star Charts
-1 Sink into Stupor
-1 Spell Snare
-4 Flooded Strand
-4 Teferi, Time Raveler
-4 Arid Mesa
-1 Steam Vents
-3 Wrath of the Skies
-1 Silence
-1 Sacred Foundry
-1 Hall of Storm Giants
-1 Scalding Tarn
-Sideboard
-3 High Noon
-1 Wrath of the Skies
-4 Consign to Memory
-1 Surgical Extraction
-3 Mystical Dispute
-1 Spell Snare
-1 Supreme Verdict
-1 Kaheera, the Orphanguard
-
-@@ Modern Challenge 32|2026-10-25|67539|7|Boros Burn|DemianDesposito10|8015393
-4 Goblin Guide
-4 Monastery Swiftspear
-2 Sacred Foundry
-4 Lightning Bolt
-4 Skewer the Critics
-4 Rift Bolt
-4 Lava Spike
-4 Boros Charm
-3 Sunbaked Canyon
-3 Mountain
-2 Arid Mesa
-4 Boltwave
-3 Inspiring Vantage
-3 Barbarian Ring
-2 Searing Blaze
-2 Bloodstained Mire
-4 Lightning Helix
-1 Wooded Foothills
-2 Eidolon of the Great Revel
-1 Elegant Parlor
-1 Forked Bolt
-Sideboard
-1 Path to Exile
-1 Rest in Peace
-1 Obsidian Charmaw
-2 Damping Sphere
-1 Deflecting Palm
-2 Roiling Vortex
-2 Smash to Smithereens
-1 Orim's Chant
-2 Surgical Extraction
-1 Searing Blood
-1 Wear // Tear
-
-@@ Modern Challenge 32|2026-10-24|67508|2|Boros Energy|oinkmage22|8013862
-4 Ajani, Nacatl Pariah
-2 Arena of Glory
-4 Arid Mesa
-1 Dalkovan Encampment
-2 Elegant Parlor
-3 Flooded Strand
-4 Galvanic Discharge
-3 Goblin Bombardment
-4 Guide of Souls
-1 Haliya, Guided by Light
-2 Plains
-4 Lightning Bolt
-4 Marsh Flats
-1 Mountain
-4 Ocelot Pride
-4 Ragavan, Nimble Pilferer
-1 Ranger-Captain of Eos
-3 Sacred Foundry
-4 Seasoned Pyromancer
-1 Thraben Charm
-4 Voice of Victory
-Sideboard
-2 Blood Moon
-1 Celestial Purge
-3 High Noon
-1 Meltdown
-4 Obsidian Charmaw
-1 The Legend of Roku
-2 Wear // Tear
-1 Wrath of the Skies
-
-@@ Modern Challenge 32|2026-10-24|67508|3|Dimir Murktide|huyuCD|8013873
-4 Counterspell
-3 Theorix Charm
-4 Seasoned Cryomancer
-4 Dark Matter Manipulator
-4 Thoughtseize
-3 Watery Grave
-4 Darkslick Shores
-4 Psychic Frog
-3 Misty Rainforest
-3 Consider
-4 Unearth
-2 Spell Pierce
-2 Island
-2 Undercity Sewers
-4 Polluted Delta
-4 Abhorrent Oculus
-1 Swamp
-4 Fatal Push
-1 Force of Negation
-Sideboard
-1 Stern Scolding
-2 Subtlety
-2 Mystical Dispute
-3 Leyline of the Void
-4 Consign to Memory
-2 Harbinger of the Seas
-1 Toxic Deluge
-
-@@ Modern Challenge 32|2026-10-24|67508|4|Mono-Green Titan (G)|Zoza|8013868
-1 Arid Archway
-4 Badgermole Cub
-4 Primeval Titan
-1 Castle Garenbrig
-3 Misty Rainforest
-4 Kozilek's Command
-4 Green Sun's Zenith
-1 Endurance
-4 Forest
-1 Hall of the Bandit Lord
-1 Icetill Explorer
-4 Eldrazi Temple
-4 Malevolent Rumble
-1 Ouroboroid
-2 Dryad Arbor
-4 Delighted Halfling
-1 Shifting Woodland
-4 Sowing Mycospawn
-1 Boseiju, Who Endures
-1 Treetop Village
-3 Yavimaya, Cradle of Growth
-4 Roiling Canopy
-3 Summoner's Pact
-Sideboard
-1 Trinisphere
-1 Choke
-3 Chalice of the Void
-1 Chomping Changeling
-1 Collector Ouphe
-2 Disruptor Flute
-3 Endurance
-2 Fade from History
-1 Bojuka Bog
-
-@@ Modern Challenge 32 (1)|2026-10-24|67529|5|Living End|MeninooNey|8014994
-1 Stomping Ground
-4 Subtlety
-1 Colossal Skyturtle
-4 Street Wraith
-1 Waker of Waves
-4 Shardless Agent
-4 Misty Rainforest
-3 Generous Ent
-3 Living End
-1 Island
-1 Hedge Maze
-1 Steam Vents
-1 Temple Garden
-1 Forest
-4 Endurance
-1 Sink into Stupor
-1 Thundering Falls
-1 Breeding Pool
-4 Violent Outburst
-1 Commercial District
-4 Wistfulness
-4 Oliphaunt
-1 Sacred Foundry
-1 Valakut Awakening
-4 Force of Negation
-3 Striped Riverwinder
-1 Teferi, Time Raveler
-Sideboard
-2 Teferi, Time Raveler
-3 Mystical Dispute
-4 Clarion Conqueror
-2 Force of Vigor
-1 Faerie Macabre
-1 Ingot Chewer
-1 Obsidian Charmaw
-1 Commandeer
-
-@@ Modern Challenge 32|2026-10-24|67508|8|Azorius Control (WU)|peter780108|8013852
-3 Arid Mesa
-3 Wrath of the Skies
-4 Day's Undoing
-2 Erode
-3 Preordain
-1 Geier Reach Sanitarium
-4 Orim's Chant
-2 Island
-2 Meticulous Archive
-1 Isochron Scepter
-1 Monumental Henge
-4 Narset, Parter of Veils
-2 Polluted Delta
-1 Otawara, Soaring City
-2 Hallowed Fountain
-4 Flooded Strand
-2 Prismatic Ending
-1 Razorgrass Ambush
-1 Celestial Colonnade
-1 Sink into Stupor
-4 Solitude
-4 Teferi, Time Raveler
-1 Thundering Falls
-4 Silence
-1 The Mind Stone
-2 Plains
-Sideboard
-3 Consign to Memory
-3 Mystical Dispute
-3 Sanctifier en-Vec
-3 Sanctum Prelate
-2 The Wandering Emperor
-1 Kaheera, the Orphanguard
-
-@@ Modern Challenge 32 (1)|2026-10-24|67529|1|Mono-Green Broodscale|Urthstrype|8014970
-6 Forest
-3 Devourer of Destiny
-4 Kozilek's Command
-4 Ugin's Labyrinth
-1 Cavern of Souls
-1 Vexing Bauble
-4 Malevolent Rumble
-4 Basking Broodscale
-1 Haywire Mite
-4 Emrakul, the Promised End
-2 Talisman of Resilience
-4 Urza's Saga
-2 Boseiju, Who Endures
-1 Gemstone Caverns
-1 Springleaf Drum
-2 Blade of the Bloodchief
-4 Ancient Stirrings
-4 Eldrazi Temple
-1 Soul-Guide Lantern
-2 Dismember
-4 Sowing Mycospawn
-1 Shifting Woodland
-Sideboard
-1 Dismember
-3 Trinisphere
-3 Thought-Knot Seer
-2 Nature's Claim
-1 Vexing Bauble
-1 Pithing Needle
-2 Sire of Seven Deaths
-2 Grafdigger's Cage
-
-@@ Modern Challenge 32 (1)|2026-10-24|67529|2|Amulet Titan|Mistakenn|8014978
-2 Boseiju, Who Endures
-1 Echoing Deeps
-2 Forest
-3 Green Sun's Zenith
-1 Hanweir Battlements
-1 Mirrorpool
-1 Roiling Canopy
-1 Shifting Woodland
-4 Amulet of Vigor
-1 Vesuva
-1 Tolaria West
-4 Urza's Saga
-1 Otawara, Soaring City
-3 Summoner's Pact
-1 Yavimaya, Cradle of Growth
-4 Simic Growth Chamber
-3 Primeval Titan
-3 Gruul Turf
-1 Aftermath Analyst
-4 Scapeshift
-4 Spelunking
-1 Cultivator Colossus
-1 Azusa, Lost but Seeking
-1 Hedge Maze
-1 The Mycosynth Gardens
-2 Breeding Pool
-4 Arboreal Grazer
-4 Crumbling Vestige
-Sideboard
-2 Mystical Dispute
-1 Boseiju, Who Endures
-1 Cursed Totem
-2 Dismember
-1 Bojuka Bog
-1 Force of Vigor
-4 Consign to Memory
-1 Otawara, Soaring City
-2 Engineered Explosives
-
-@@ Modern Challenge 32 (1)|2026-10-24|67529|4|Esper Blink|BienTech|8014993
-1 Boggart Trawler
-3 Fatal Push
-2 Ephemerate
-3 Flickerwisp
-4 Overlord of the Balemurk
-4 Marsh Flats
-4 Phelia, Exuberant Shepherd
-1 Hallowed Fountain
-4 Solitude
-1 Meticulous Archive
-4 Quantum Riddler
-2 Pest Control
-1 Swamp
-1 Polluted Delta
-2 Plains
-1 Shadowy Backstreet
-4 Thoughtseize
-2 Teferi, Time Raveler
-1 Undercity Sewers
-1 Watery Grave
-4 Witch Enchanter
-3 Emperor of Bones
-1 Consign to Memory
-1 Godless Shrine
-1 Bleachbone Verge
-4 Flooded Strand
-Sideboard
-1 Pest Control
-3 Consign to Memory
-3 White Orchid Phantom
-2 Nihil Spellbomb
-3 High Noon
-1 Elesh Norn, Mother of Machines
-2 Clarion Conqueror
-
-@@ Modern Challenge 32 (1)|2026-10-24|67529|6|Mono-Black Midrange|almostomniscient|8014981
-4 Swamp
-4 Ifnir Deadlands
-4 Kozilek's Command
-1 Nihil Spellbomb
-4 Mishra's Bauble
-4 Nethergoyf
-1 Marsh Flats
-3 Orcish Bowmasters
-1 Pithing Needle
-4 Prismatic Vista
-1 Shadowspear
-2 Inquisition of Kozilek
-4 Thought-Knot Seer
-4 Fatal Push
-4 Emperor of Bones
-4 Urza's Saga
-4 Eldrazi Temple
-4 Thoughtseize
-2 Urborg, Tomb of Yawgmoth
-1 Wastes
-Sideboard
-1 Ashiok, Dream Render
-2 Break the Ice
-2 Damping Sphere
-1 Surgical Extraction
-1 Dreams of Steel and Oil
-1 Force of Despair
-2 Pithing Needle
-1 Shoot the Sheriff
-1 Dismember
-2 Toxic Deluge
-1 Wasteland Strangler
-
-@@ Modern Challenge 32 (1)|2026-10-24|67529|8|Selesnya Midrange|1sNabOs|8014983
-4 Flagstones of Trokair
-1 Clarion Conqueror
-4 Enlightened Confidant
-2 Haliya, Guided by Light
-2 Voice of Victory
-1 Raise the Past
-4 Ocelot Pride
-4 White Orchid Phantom
-2 Recruiter of the Guard
-2 Razorgrass Ambush
-3 Abandoned Air Temple
-1 Flickering Hound
-1 Temple Garden
-3 Ephemerate
-4 Ranger-Captain of Eos
-2 Skyclave Apparition
-4 Solitude
-1 Lush Portico
-4 Guide of Souls
-2 Witch Enchanter
-4 Windswept Heath
-5 Plains
-Sideboard
-2 Wrath of the Skies
-2 Boromir, Warden of the Tower
-2 Sanctum Prelate
-2 Containment Priest
-2 Sanctifier en-Vec
-1 Settle the Wreckage
-1 Haywire Mite
-2 Surgical Extraction
-1 Gaddock Teeg
-
-@@ Modern Challenge 16|2026-10-24|67509|5|Affinity|Zarathustra|8013977
-4 Darkslick Shores
-4 Tormod's Crypt
-2 Scalding Tarn
-1 Shadowspear
-4 Pinnacle Emissary
-1 Steam Vents
-4 Urza's Saga
-2 Island
-4 Kappa Cannoneer
-4 Mishra's Bauble
-4 Mox Opal
-4 Engineered Explosives
-1 Watery Grave
-4 Metallic Rebuke
-2 Welding Jar
-1 Pithing Needle
-1 Skateboard
-3 Polluted Delta
-2 Mox Amber
-2 Preordain
-2 Basim Ibn Ishaq
-4 Emry, Lurker of the Loch
-Sideboard
-1 Vexing Bauble
-4 Fatal Push
-3 Consign to Memory
-4 Thoughtseize
-1 Blood Moon
-1 Strix Serenade
-1 Grafdigger's Cage
-
-@@ Modern Challenge 16|2026-10-24|67509|7|Yawgmoth|WorstShuffler|8013992
-1 Lush Portico
-2 Goblin Bombardment
-1 Yawgmoth, Thran Physician
-3 City of Brass
-1 Forest
-1 Dryad Arbor
-1 Misty Rainforest
-1 Temple Garden
-1 Stomping Ground
-2 Overgrown Tomb
-2 Delighted Halfling
-3 Orcish Bowmasters
-4 Verdant Catacombs
-2 Young Wolf
-4 Cauldron Familiar
-3 Carrion Feeder
-1 Haywire Mite
-1 Explosive Prodigy
-2 Boseiju, Who Endures
-4 Gilded Goose
-4 Chord of Calling
-1 Godless Shrine
-2 Ajani, Nacatl Pariah
-4 Windswept Heath
-4 Birthing Ritual
-4 Samwise Gamgee
-1 Sylvan Safekeeper
-Sideboard
-1 Fatal Push
-1 High Noon
-1 Vexing Bauble
-2 Endurance
-1 Sanctum Prelate
-1 Prismatic Ending
-1 Abrupt Decay
-2 Thoughtseize
-1 Voice of Victory
-2 Force of Vigor
-1 Reclamation Sage
-1 Crystal Barricade
-
-@@ SCG CON Hartford ReCQ|2026-10-24|67550|1|Mono-Green Tron|Chase Santayana|8015829
-1 Abstergo Entertainment
-4 Devourer of Destiny
-2 Dismember
-4 Eldrazi Temple
-4 Expedition Map
-2 Forest
-3 Giant's Boulder
-4 Karn, the Great Creator
-4 Kozilek's Command
-2 Sire of Seven Deaths
-4 Sowing Mycospawn
-4 Talisman of Resilience
-2 Trinisphere
-3 Ugin, Eye of the Storms
-4 Ugin's Labyrinth
-1 Ulamog, the Ceaseless Hunger
-4 Urza's Mine
-4 Urza's Power Plant
-4 Urza's Tower
-Sideboard
-1 Chalice of the Void
-1 Cityscape Leveler
-2 Disruptor Flute
-1 Engineered Explosives
-1 Ensnaring Bridge
-1 Grafdigger's Cage
-1 Liquimetal Coating
-1 The Echoverse Fulcrum
-1 Tormod's Crypt
-2 Torpor Orb
-1 Trinisphere
-1 Vexing Bauble
-1 Walking Ballista
-
-@@ SCG CON Hartford ReCQ|2026-10-24|67550|2|Goryo's Vengeance|Edwin Caraballo|8015827
-1 Swamp
-4 Faithful Mending
-4 Goryo's Vengeance
-4 Flooded Strand
-3 Thoughtseize
-1 Griselbrand
-4 Ephemerate
-1 Hallowed Fountain
-1 Teferi, Time Raveler
-1 Breeding Pool
-2 Force of Negation
-1 Island
-1 March of Otherworldly Light
-4 Atraxa, Grand Unifier
-1 Undercity Sewers
-4 Psychic Frog
-1 Shadowy Backstreet
-1 Meticulous Archive
-4 Polluted Delta
-1 Watery Grave
-3 Prismatic Ending
-4 Solitude
-1 Plains
-1 Godless Shrine
-3 Marsh Flats
-4 Quantum Riddler
-Sideboard
-1 Ashiok, Dream Render
-1 Nihil Spellbomb
-3 Fatal Push
-2 Mystical Dispute
-4 Consign to Memory
-3 Wrath of the Skies
-1 Celestial Purge
-
-@@ SCG CON Hartford ReCQ|2026-10-24|67550|5|Ruby Storm|Elesh_N|8015832
-2 Artist's Talent
-2 Blood Crypt
-4 Bloodstained Mire
-1 Boseiju, Who Endures
-1 Commercial District
-4 Desperate Ritual
-1 Gemstone Caverns
-4 Hex Magic
-4 Manamorphose
-4 Mountain
-3 Past in Flames
-4 Pyretic Ritual
-4 Ral, Monsoon Mage
-1 Raucous Theater
-3 Reckless Impulse
-4 Ruby Medallion
-1 Stomping Ground
-3 Twinned Vision
-1 Valakut Awakening
-2 Wish
-4 Wooded Foothills
-3 Wrenn's Resolve
-Sideboard
-1 Empty the Warrens
-3 Fatal Push
-1 Grapeshot
-1 Inquisition of Kozilek
-3 Nature's Claim
-1 Past in Flames
-3 Thoughtseize
-2 Vexing Bauble
-
-@@ SCG CON Hartford ReCQ|2026-10-24|67550|6|Rakdos Aggro|Michael Rapp|8015831
-4 Mishra's Bauble
-4 Nethergoyf
-2 Troll of Khazad-dum
-4 Moonshadow
-4 Dark Matter Manipulator
-1 Fatal Push
-4 Thoughtseize
-4 Lightning Bolt
-2 Unholy Heat
-4 Detective's Phoenix
-4 Street Wraith
-2 Vampire Hexmage
-4 Overlord of the Balemurk
-3 Blood Crypt
-4 Bloodstained Mire
-4 Verdant Catacombs
-1 Scalding Tarn
-2 Raucous Theater
-1 Mountain
-2 Swamp
-Sideboard
-2 Damping Sphere
-2 Blood Moon
-2 Obsidian Charmaw
-2 Meltdown
-2 Nihil Spellbomb
-1 Fatal Push
-1 Grafdigger's Cage
-1 Surgical Extraction
-2 Kozilek's Return
-
-@@ SCG CON Hartford ReCQ|2026-10-24|67550|7|Dimir Mill|Chro8|8015837
-4 Hedron Crab
-4 Ruin Crab
-2 Mockingbird
-3 Surgical Extraction
-3 Visions of Beyond
-4 Fatal Push
-4 Glimpse the Unthinkable
-4 Drown in the Loch
-4 Fractured Sanity
-2 Tasha's Hideous Laughter
-4 Archive Trap
-4 Polluted Delta
-4 Flooded Strand
-3 Field of Ruin
-3 Watery Grave
-1 Oboro, Palace in the Clouds
-1 Cephalid Coliseum
-1 Otawara, Soaring City
-3 Island
-2 Swamp
-Sideboard
-2 Tasha's Hideous Laughter
-1 Extirpate
-1 Surgical Extraction
-2 Dismember
-1 Tale's End
-2 Crypt Incursion
-4 Leyline of the Void
-2 Hurkyl's Recall
-
-@@ LDXPSAC26 10/24 3:30 PM Modern ReCQ|2026-10-24|67547|3|Four-Color Omnath (WURG)|Mason Bakken|8015763
-1 Plains
-1 Mountain
-1 Forest
-1 Meticulous Archive
-1 Elegant Parlor
-1 Boseiju, Who Endures
-1 Savai Triome
-1 Hallowed Fountain
-1 Breeding Pool
-1 Steam Vents
-1 Sacred Foundry
-1 Temple Garden
-3 Scalding Tarn
-4 Flooded Strand
-4 Windswept Heath
-1 Nissa, Resurgent Animist
-4 Galvanic Discharge
-4 Teferi, Time Raveler
-4 Solitude
-3 Way of the Paradox
-2 Quantum Riddler
-2 Prismatic Ending
-3 Omnath, Locus of Creation
-3 Fable of the Mirror-Breaker
-3 Wrath of the Skies
-4 Wrenn and Six
-4 Leyline Binding
-Sideboard
-4 Mystical Dispute
-4 Consign to Memory
-2 High Noon
-2 Celestial Purge
-1 Wrath of the Skies
-2 Grafdigger's Cage
-
-@@ LDXPSAC26 10/24 3:30 PM Modern ReCQ|2026-10-24|67547|4|Azorius Blink|Roko2600|8015764
-4 Quantum Riddler
-4 Solitude
-4 Ephemerate
-4 Ocelot Pride
-4 Guide of Souls
-4 White Orchid Phantom
-3 Ranger-Captain of Eos
-2 Teferi, Time Raveler
-2 March of Otherworldly Light
-1 Prismatic Ending
-4 Phelia, Exuberant Shepherd
-1 Sacred Foundry
-1 Island
-3 Plains
-2 Meticulous Archive
-2 Abandoned Air Temple
-2 Witch Enchanter
-3 Windswept Heath
-3 Flooded Strand
-4 Hallowed Fountain
-3 Flagstones of Trokair
-Sideboard
-1 Thraben Charm
-2 Rest in Peace
-2 Voice of Victory
-3 Wrath of the Skies
-3 High Noon
-4 Consign to Memory
-
-@@ LDXPSAC26 10/24 3:30 PM Modern ReCQ|2026-10-24|67547|6|Boros Land Destruction|Christian Silva|8015768
-1 Arid Mesa
-2 Avengers Disassembled
-1 Castle Ardenvale
-4 Cleansing Wildfire
-4 Cori Mountain Monastery
-4 Demolition Field
-1 Elegant Parlor
-4 Erode
-4 Field of Ruin
-4 Galvanic Discharge
-2 Mountain
-4 Path to Exile
-4 Plains
-4 Price of Freedom
-2 Sacred Foundry
-4 Solitude
-3 Sunken Citadel
-3 The Stone Brain
-3 Wrath of God
-3 Wrath of the Skies
-Sideboard
-1 Avengers Disassembled
-1 Chandra, Awakened Inferno
-4 High Noon
-2 Rest in Peace
-3 Surgical Extraction
-2 Wear // Tear
-1 Wrath of the Skies
-1 Kaheera, the Orphanguard
-
-@@ Modern Challenge 32|2026-10-25|67539|2|Eldrazi Ramp|Redman1034|8015400
-4 Basking Broodscale
-3 Dismember
-1 Ba Sing Se
-2 Devourer of Destiny
-4 Eldrazi Temple
-4 Ancient Stirrings
-1 Gemstone Caverns
-1 Haywire Mite
-4 Kozilek's Command
-4 Malevolent Rumble
-1 Soul-Guide Lantern
-4 Sowing Mycospawn
-1 Springleaf Drum
-4 Ugin's Labyrinth
-4 Urza's Saga
-1 Vexing Bauble
-1 Talisman of Resilience
-2 Blade of the Bloodchief
-2 Boseiju, Who Endures
-6 Forest
-2 Sire of Seven Deaths
-4 Emrakul, the Promised End
-Sideboard
-1 Vexing Bauble
-3 Trinisphere
-2 Nature's Claim
-2 Thought-Knot Seer
-1 Cavern of Souls
-1 Grafdigger's Cage
-1 Gemstone Caverns
-2 The Stone Brain
-2 Engineered Explosives
-
-@@ Modern Challenge 32|2026-10-25|67539|3|Domain Zoo|kasa|8015385
-2 Blood Crypt
-1 Breeding Pool
-1 Emperor of Bones
-2 Fatal Push
-1 Hallowed Fountain
-4 Leyline Binding
-4 Leyline of the Guildpact
-2 Quantum Riddler
-1 Mountain
-1 Overgrown Tomb
-4 Polluted Delta
-3 Psychic Frog
-4 Ragavan, Nimble Pilferer
-1 Raucous Theater
-1 Sacred Foundry
-4 Scalding Tarn
-4 Scion of Draco
-1 Spara's Headquarters
-1 Steam Vents
-3 Stubborn Denial
-2 Lightning Bolt
-4 Territorial Kavu
-4 Wooded Foothills
-1 Teferi, Time Raveler
-4 Thoughtseize
-Sideboard
-1 Teferi, Time Raveler
-3 Consign to Memory
-1 Force of Despair
-3 Mystical Dispute
-3 Obsidian Charmaw
-2 Rest in Peace
-1 Celestial Purge
-1 Wear // Tear
-
-@@ Modern Challenge 32|2026-10-25|67539|4|Rakdos Midrange|fingers1991|8015376
-2 Troll of Khazad-dum
-4 Thoughtseize
-2 Swamp
-4 Dark Matter Manipulator
-4 Street Wraith
-1 Polluted Delta
-4 Fear of Missing Out
-1 Nihil Spellbomb
-1 Mountain
-4 Mishra's Bauble
-4 Moonshadow
-1 Marsh Flats
-4 Nethergoyf
-4 Lightning Bolt
-1 Fatal Push
-2 Raucous Theater
-4 Detective's Phoenix
-4 Bloodstained Mire
-1 Blood Moon
-3 Blood Crypt
-2 Unholy Heat
-1 Arid Mesa
-2 Verdant Catacombs
-Sideboard
-1 Nihil Spellbomb
-1 End of the Hunt
-2 Inquisition of Kozilek
-2 Glistening Deluge
-1 Ingot Chewer
-1 Grafdigger's Cage
-1 Fatal Push
-2 Meltdown
-1 Blood Moon
-2 Ob Nixilis, the Adversary
-1 Strategic Betrayal
-
-@@ Modern Challenge 16|2026-10-24|67509|2|Eldrazi Ramp|Venom01|8013998
-2 Blade of the Bloodchief
-4 Basking Broodscale
-2 Sire of Seven Deaths
-3 Dismember
-2 Devourer of Destiny
-4 Eldrazi Temple
-4 Emrakul, the Promised End
-6 Forest
-1 Gemstone Caverns
-1 Haywire Mite
-4 Kozilek's Command
-4 Malevolent Rumble
-1 Shifting Woodland
-1 Soul-Guide Lantern
-4 Sowing Mycospawn
-1 Springleaf Drum
-4 Ugin's Labyrinth
-4 Urza's Saga
-1 Vexing Bauble
-4 Ancient Stirrings
-1 Talisman of Resilience
-2 Boseiju, Who Endures
-Sideboard
-1 Cavern of Souls
-1 Chalice of the Void
-1 Grafdigger's Cage
-2 Nature's Claim
-3 Thought-Knot Seer
-2 The Stone Brain
-1 Thief of Existence
-1 Vexing Bauble
-1 Warping Wail
-2 Trinisphere
-
-@@ Modern Challenge 16|2026-10-24|67509|3|Eldrazi Ramp|HouseOfManaMTG|8013987
-2 Boseiju, Who Endures
-4 Basking Broodscale
-6 Forest
-2 Devourer of Destiny
-4 Emrakul, the Promised End
-4 Eldrazi Temple
-1 Haywire Mite
-4 Kozilek's Command
-4 Malevolent Rumble
-1 Shifting Woodland
-3 Dismember
-2 Blade of the Bloodchief
-4 Sowing Mycospawn
-4 Ancient Stirrings
-1 Talisman of Resilience
-4 Ugin's Labyrinth
-4 Urza's Saga
-1 Vexing Bauble
-1 Gemstone Caverns
-2 Sire of Seven Deaths
-1 Soul-Guide Lantern
-1 Springleaf Drum
-Sideboard
-1 Cavern of Souls
-2 Nature's Claim
-1 Grafdigger's Cage
-1 Gemstone Caverns
-1 Warping Wail
-1 Pithing Needle
-2 Thought-Knot Seer
-1 Forest
-1 Vexing Bauble
-2 Trinisphere
-2 Engineered Explosives
-
-@@ Modern Challenge 16|2026-10-24|67509|4|Eldrazi Ramp|Tetsubou|8013981
-6 Forest
-4 Basking Broodscale
-2 Boseiju, Who Endures
-3 Dismember
-4 Eldrazi Temple
-4 Emrakul, the Promised End
-1 Gemstone Caverns
-1 Haywire Mite
-4 Kozilek's Command
-4 Malevolent Rumble
-1 Ba Sing Se
-3 Sire of Seven Deaths
-4 Ancient Stirrings
-4 Sowing Mycospawn
-1 Springleaf Drum
-1 Talisman of Resilience
-4 Ugin's Labyrinth
-4 Urza's Saga
-1 Vexing Bauble
-1 Soul-Guide Lantern
-2 Blade of the Bloodchief
-1 Devourer of Destiny
-Sideboard
-1 Cavern of Souls
-1 Bojuka Bog
-2 Grafdigger's Cage
-2 Nature's Claim
-1 Pithing Needle
-3 Thought-Knot Seer
-2 Trinisphere
-2 Disruptor Flute
-1 Dismember
-
-@@ SCG CON Hartford ReCQ|2026-10-24|67550|3|Mono-Green Broodscale|Zachary DeRepentigny|8015828
-4 Basking Broodscale
-4 Emrakul, the Promised End
-4 Sowing Mycospawn
-4 Kozilek's Command
-4 Urza's Saga
-4 Malevolent Rumble
-3 Ugin's Labyrinth
-1 Yavimaya, Cradle of Growth
-5 Forest
-1 Shifting Woodland
-2 Dismember
-1 Haywire Mite
-4 Eldrazi Temple
-3 Blade of the Bloodchief
-3 Devourer of Destiny
-4 Ancient Stirrings
-1 The Mycosynth Gardens
-1 Cavern of Souls
-3 Vexing Bauble
-2 Boseiju, Who Endures
-1 Springleaf Drum
-1 Soul-Guide Lantern
-Sideboard
-2 Sire of Seven Deaths
-1 Pithing Needle
-2 Nature's Claim
-2 Thief of Existence
-1 Warping Wail
-1 Grafdigger's Cage
-2 Trinisphere
-1 Dismember
-2 Thought-Knot Seer
-1 Gemstone Caverns
-
-@@ SCG CON Hartford ReCQ|2026-10-24|67550|4|Goryo's Vengeance|Caleb Devany|8015830
-4 Psychic Frog
-1 Ketramose, the New Dawn
-4 Quantum Riddler
-4 Atraxa, Grand Unifier
-1 Griselbrand
-3 Solitude
-1 Teferi, Time Raveler
-3 Ephemerate
-2 Consign to Memory
-2 Spell Snare
-1 March of Otherworldly Light
-2 Prismatic Ending
-3 Faithful Mending
-2 Thoughtseize
-2 Force of Negation
-4 Goryo's Vengeance
-4 Polluted Delta
-4 Marsh Flats
-2 Flooded Strand
-1 Misty Rainforest
-1 Hallowed Fountain
-1 Breeding Pool
-1 Watery Grave
-1 Godless Shrine
-1 Undercity Sewers
-1 Shadowy Backstreet
-1 Meticulous Archive
-1 Swamp
-1 Plains
-1 Island
-Sideboard
-2 Mystical Dispute
-2 Fatal Push
-2 Consign to Memory
-3 Wrath of the Skies
-1 Teferi, Time Raveler
-2 Relic of Progenitus
-1 March of Otherworldly Light
-1 Ketramose, the New Dawn
-1 Elesh Norn, Mother of Machines
-
-@@ LDXPSAC26 10/24 3:30 PM Modern ReCQ|2026-10-24|67547|1|Mono-Green Broodscale|Miguel Ceballos|8015761
-4 Ancient Stirrings
-4 Basking Broodscale
-3 Blade of the Bloodchief
-2 Boseiju, Who Endures
-1 Cavern of Souls
-2 Devourer of Destiny
-2 Dismember
-4 Eldrazi Temple
-4 Emrakul, the Promised End
-6 Forest
-3 Glaring Fleshraker
-1 Haywire Mite
-4 Kozilek's Command
-4 Malevolent Rumble
-1 Shifting Woodland
-1 Sire of Seven Deaths
-1 Soul-Guide Lantern
-4 Sowing Mycospawn
-1 Springleaf Drum
-3 Ugin's Labyrinth
-4 Urza's Saga
-1 Vexing Bauble
-1 Yavimaya, Cradle of Growth
-Sideboard
-1 Dismember
-2 Disruptor Flute
-1 Grafdigger's Cage
-2 Nature's Claim
-1 Pithing Needle
-1 Sire of Seven Deaths
-2 Thought-Knot Seer
-2 Trinisphere
-1 Vexing Bauble
-2 Warping Wail
