@@ -238,6 +238,9 @@ body.t90r .pilT{margin:0 calc(var(--cw)*.16)}
 .tpad .h.h2{margin-top:6px}.tpad li.pv .nm{font-style:italic}.tpad li.gone .nm{text-decoration:line-through}.tpad li.gone{text-decoration-thickness:2px;opacity:0}
 .twrap{position:absolute;right:14px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:flex-start;gap:3px;z-index:6}
 .twrap .thint{font:600 10px var(--ui);color:var(--dim);letter-spacing:.04em;padding-left:6px}
+.lpt{position:absolute;left:14px;bottom:10px;display:flex;flex-direction:column;align-items:flex-start;gap:4px;z-index:6;pointer-events:auto}.lpt .lpl{font:600 9px var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}.lpt .lpr{display:flex;flex-wrap:wrap;gap:5px;max-width:132px}
+.lpc{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;border:2px solid var(--brass);box-sizing:border-box;font:700 11px/1 var(--ui);font-style:normal;color:#1a1408;transition:background .2s}.lpc.on{background:var(--brass)}.lpc.turn{border-style:dashed}.lpc.turn.on{border-style:solid}.lpc.over{border-color:#d9822b;background:#d9822b}.lpc.gone{opacity:.55}
+#myHand.haslpt{padding-left:150px}.handrow.opp.haslpt .hn{top:10px;transform:none}.handrow.opp .lpt{bottom:6px;left:10px}
 #myHand.hastrk{padding-right:calc(clamp(130px,calc(var(--cw)*1.45),170px) + 30px)}#myHand{position:relative}
 .tnote{position:absolute;right:12px;top:50%;transform:translateY(-50%) rotate(-4deg);width:34px;height:42px;border-radius:2px;background:repeating-linear-gradient(#fbfbf6 0 6px,#b9d3ea 6px 7px);box-shadow:0 3px 8px #000a;cursor:help;z-index:6;border-top:6px solid #5b6b78}
 .tnote::after{content:"";position:absolute;left:6px;right:5px;top:8px;height:20px;background:repeating-linear-gradient(transparent 0 4px,#1d2a3a88 4px 5px,transparent 5px 7px);clip-path:polygon(0 0,95% 0,80% 30%,100% 45%,70% 70%,90% 100%,0 100%)}
@@ -673,7 +676,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.107';
+const VERSION = 'v4.108';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -689,6 +692,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.108','Nov 9',"Land for turn: on each player's turn, circles in the bottom-left of their hand row show their land plays, filling as lands are played. Dryad of the Ilysian Grove, Azusa, Oracle of Mul Daya and Exploration add circles while they're out; Explore and each Way of the Paradox trigger add one for that turn. Fetched lands and lands put in by Arboreal Grazer don't count. Out of land plays? You're asked first, and 'Play additional land anyway' notes it in the log. Crucible of Worlds and Ramunap Excavator let you play a land for turn from the graveyard, Oracle of Mul Daya from the top of your library. Dragging a land from your hand onto the battlefield on your turn now plays it."],
   ['v4.107','Nov 9',"Cards exiled until something leaves the battlefield (Leyline Binding, Portable Hole, Temporary Lockdown) come back by themselves, Practice's included. Point at the exiled card and the permanent holding it lights up, and the other way round. Terrasymbiosis only counts counters you put; Tameshi sees any noncreature permanent returned to hand."],
   ['v4.106','Nov 9',"Eight more of this week's cards play themselves: Liliana of the Veil's −6 piles, Indomitable Creativity, Temporary Lockdown, Suppression Ray, Necromentia, Tameshi, Reality Architect, Gran-Gran and Hidetsugu Consumes All's Vessel (its 10-damage win included)."],
   ['v4.105','Nov 9',"Counter cards play themselves: Hardened Scales, Loading Zone (on +1/+1 counters), Terrasymbiosis, Zabaz, the Glimmerwasp and The Ozolith. Moonsnare Prototype and Urza, Lord High Artificer can tap artifacts for mana."],
@@ -1126,7 +1130,7 @@ const cname = c => c.fd ? 'a face-down card' : '[['+(cdata(c).n||'a card')+'|'+(
 function pub(){
   const m=G.me, p = c => c.fd ? Object.assign({}, c, {k:null, cu:null, note:''}) : c;
   return { name:m.name, lgs:m.lgs||'', deck:m.deck, life:m.life, ctr:m.ctr, libN:m.lib.length, handN:m.hand.length, sideN:m.side.length,
-    hand:(m.reveal || m.ctl) ? m.hand : null, noMax:!!m.noMax, ptest:m.ptest||'', comp:m.side.filter(c=>c.comp), compDone:!!m.compDone, deckReady:m.deckReady!==false, skipRoll:!!m.skipRoll, wonGame:m.wonGame||0, btm:m.btm||0, ctl:!!m.ctl, ctlNext:!!m.ctlNext, city:!!m.city, sbing:!!m.sbing, bf:m.bf.map(p), ph:(m.ph||[]).map(p), gy:m.gy, ex:m.ex.map(p), st:m.st.map(p), arrows:m.arrows, mull:m.mull, drn:m.drn||null, wins:m.wins||0, roll:m.roll||null, dealt:!!m.dealt, kept:!!m.kept, mana:m.mana||noMana(), smana:m.smana||[], energySeen:!!m.energySeen, monarch:!!m.monarch, mill:m.mill||null, nt:m.nt||null, hasteNext:m.hasteNext||0, poisonSeen:!!m.poisonSeen, poisonSrc:!!m.poisonSrc, cast:m.cast||{n:0,is:0}, cares:m.cares||null, emb:m.emb||[], gtg:m.gtg||[], baub:m.baub||[], trk:pubTrk(m.trk), mistT:m.mistT||0, mistBy:m.mistBy||'' };
+    hand:(m.reveal || m.ctl) ? m.hand : null, noMax:!!m.noMax, ptest:m.ptest||'', comp:m.side.filter(c=>c.comp), compDone:!!m.compDone, deckReady:m.deckReady!==false, skipRoll:!!m.skipRoll, wonGame:m.wonGame||0, btm:m.btm||0, ctl:!!m.ctl, ctlNext:!!m.ctlNext, city:!!m.city, sbing:!!m.sbing, bf:m.bf.map(p), ph:(m.ph||[]).map(p), gy:m.gy, ex:m.ex.map(p), st:m.st.map(p), arrows:m.arrows, mull:m.mull, drn:m.drn||null, wins:m.wins||0, roll:m.roll||null, dealt:!!m.dealt, kept:!!m.kept, mana:m.mana||noMana(), smana:m.smana||[], energySeen:!!m.energySeen, monarch:!!m.monarch, mill:m.mill||null, nt:m.nt||null, hasteNext:m.hasteNext||0, lp:m.lp||null, lpx:m.lpx||null, poisonSeen:!!m.poisonSeen, poisonSrc:!!m.poisonSrc, cast:m.cast||{n:0,is:0}, cares:m.cares||null, emb:m.emb||[], gtg:m.gtg||[], baub:m.baub||[], trk:pubTrk(m.trk), mistT:m.mistT||0, mistBy:m.mistBy||'' };
 }
 /* undo: a snapshot of my own side is kept before each change. Shuffles and anything that crosses to the other player close the history. */
 const UNDO=[]; let lastSnap=null, lastLogi=0;
@@ -1413,8 +1417,24 @@ function move(id, zone, o={}){
 function draw(n=1, quiet, step){ const m=G.me; let k=0; { const ns=((G.opp&&G.opp.bf)||[]).find(x=>!x.fd && (x.k||x.cu) && /Each opponent can(?:'|’)t draw more than one card each turn/i.test(frontText(x)||'')); if(ns){ if(!m.dn || m.dn.t!==G.turn.n) m.dn={t:G.turn.n, k:0}; const room=Math.max(0, 1-m.dn.k); if(n>room){ if(!quiet) log(`${cdata(ns).n.split(',')[0]}: ${m.name} can't draw more than one card this turn${room?'':', so they draw nothing'}.`); n=room; } m.dn.k+=n; if(!n) return 0; } } if(step && n===1 && !draw.noDredge && m.gy.some(x=>dredgeN(x) && m.lib.length>=dredgeN(x))){ setTimeout(dredgeAsk, 0); return 1; } if(n>0 && m.hand.length<=1){ const rq=m.bf.filter(x=>!x.fd && (x.k||x.cu) && /As long as you have one or fewer cards in hand, if you would draw one or more cards, you draw that many cards plus one instead/i.test(frontText(x)||'')); if(rq.length){ n+=rq.length; if(!quiet) log(`${rq.map(x=>cdata(x).n).join(', ')}: ${m.name} has one or fewer cards in hand, so they draw ${n} instead.`); } } const want=n; while(n-- > 0 && m.lib.length){ m.hand.push(m.lib.shift()); k++; } if(k<want && G.turn.n && m.kept){ if(m.dummy) m.emptyDraw=1; else { G.emptyDraw=true; lossCheck(); } } if(!quiet) log(`${m.name} draws ${k===1?'a card':k+' cards'}.`); if(k && G.turn.n) drawTrigs(k); if(!k && !quiet) toast('Your library is empty.'); if(k && !quiet && G.opp && G.turn.n) send({t:'drew', n:k, first:step?1:0}); return k; }
 function shuffleLib(quiet){ G.noUndo=true; shuffle(G.me.lib); if(!quiet) log(`${G.me.name} shuffles their library.`); }
 const ORDW=['','first','second','third','fourth','fifth','sixth','seventh','eighth','ninth','tenth'];
-function playFromHand(id){ const f=find(id); if(!f) return; if(f.z==='hand' && waitMull()) return; if(isLand(f.c)){ const m=G.me, n=G.turn.n||0, fz=f.z; if(!m.lp || m.lp.n!==n) m.lp={n, k:0}; m.lp.k++; const k=m.lp.k;
-    move(id,'bf',{silent:true, later:true}); log(`${m.name} plays ${cname(f.c)}${fz==='gy' ? ' from their graveyard' : ''}${k>1 ? ', '+(ORDW[k]||k+'th')+' land this turn' : ''}.`); entered(f.c); changed(); landEnters(id); } else castSpell(id); }
+function playFromHand(id, ov){ const f=find(id); if(!f) return; if(f.z==='hand' && waitMull()) return; if(isLand(f.c)){ if(ov===undefined) return landGate(id, cdata(f.c).n, a=>playFromHand(id, a)); const m=G.me, n=G.turn.n||0, fz=f.z; if(!m.lp || m.lp.n!==n) m.lp={n, k:0}; m.lp.k++; if(ov) m.lp.ov=(m.lp.ov||0)+1; const k=m.lp.k;
+    move(id,'bf',{silent:true, later:true}); log(`${m.name} plays ${cname(f.c)}${fz==='gy' ? ' from their graveyard' : fz==='lib' ? ' from the top of their library' : ''}${k>1 ? ', '+(ORDW[k]||k+'th')+' land this turn' : ''}${ov ? ' (an additional land for turn, played anyway)' : ''}.`); entered(f.c); changed(); landEnters(id); } else castSpell(id); }
+/* v4.108: land for turn. One land play a turn, plus one per "You may play an/two/three additional land(s) on each of your turns" on the battlefield (Dryad of the Ilysian Grove, Azusa, Oracle of Mul Daya, Exploration, Wayward Swordtooth), plus each "You may play an additional land this turn" that resolved this turn (Explore, Way of the Paradox's loyalty trigger: m.lpx = {n, s:[source names]}). m.lp = {n, k, ov}: lands played this turn and how many of them were played anyway past the limit. Only playing a land counts (playFromHand, playLandSide, a land dragged from the hand on my turn); lands put onto the battlefield (fetches, Arboreal Grazer, Shift-click) don't. Published as lp / lpx; the tracker (lpTrack) sits in the bottom-left of the active player's hand row on both screens. */
+const LP_NUM={an:1, one:1, two:2, three:3};
+function landSlots(m){ const n=G.turn.n||0, out=[{src:'', kind:'base'}];
+  for(const x of (m&&m.bf)||[]){ if(x.fd || !(x.k||x.cu)) continue; const r=(frontText(x)||'').match(/You may play (an|one|two|three) additional lands? on each of your turns/i); if(r) for(let i=0;i<LP_NUM[r[1].toLowerCase()];i++) out.push({src:cdata(x).n, kind:'each'}); }
+  if(m && m.lpx && m.lpx.n===n) for(const s of m.lpx.s||[]) out.push({src:s, kind:'turn'});
+  return out; }
+const landsPlayed = m => (m && m.lp && m.lp.n===(G.turn.n||0)) ? (m.lp.k||0) : 0;
+function landGrant(m, src){ const n=G.turn.n||0; if(!m.lpx || m.lpx.n!==n) m.lpx={n, s:[]}; m.lpx.s.push(src); }
+function landGate(id, nm, go){ const m=G.me; if(DSW || m.ctl || !G.turn.n || G.turn.active!==G.myId) return go(false); const sl=landSlots(m).length, k=landsPlayed(m); if(k<sl) return go(false);
+  modal('No land plays left', `<span class="hint">${esc(`${m.name} has played ${k===1 ? 'a land' : k+' lands'} this turn and has no land plays left. Play ${nm||'this land'} anyway? The log will note it as an additional land for turn.`)}</span>`, [['Cancel',()=>closeModal(),'ghost'],['Play additional land anyway',()=>{ closeModal(); go(true); },'go']]); }
+function lpTrack(m, opp){ if(!m || !G.turn.n || G.turn.active!==(opp ? oppId() : G.myId)) return ''; const sl=landSlots(m), k=landsPlayed(m), ov=Math.min((m.lp&&m.lp.n===G.turn.n&&m.lp.ov)||0, k), legal=k-ov;
+  const tip=s=> s.kind==='base' ? 'Land for turn' : s.kind==='each' ? `${s.src}: an additional land on each of ${opp?'their':'your'} turns` : `${s.src}: an additional land this turn`;
+  let h=sl.map((s,i)=>`<i class="lpc ${s.kind}${i<legal?' on':''}" title="${esc(tip(s)+(i<legal?' (played)':' (not played yet)'))}"></i>`).join('');
+  for(let i=sl.length;i<legal;i++) h+=`<i class="lpc gone on" title="Land played while a card allowing more land plays was out"></i>`;
+  for(let i=0;i<ov;i++) h+=`<i class="lpc over on" title="An additional land played anyway">+</i>`;
+  return `<div class="lpt${opp?' opp':''}"><span class="lpl">Land for turn</span><span class="lpr">${h}</span></div>`; }
 function resolve(id){ const f=find(id); if(!f) return; const c=f.c; if(!c.ab && !c.ch && c.x!=null) c.xc=c.x;
   if(c.pact){ pactPanel(id); return; }
   gyResolve(c); blinkResolve(c);
@@ -3189,7 +3209,7 @@ async function simpleEffects(c, text, srcId){
       if(/^you may exile this card from your graveyard\.?$/i.test(sen)){ const g=srcId && find(srcId); if(!g || g.z!=='gy'){ log(`${by}: the card is no longer in the graveyard.`); didIt=false; continue; } const yes=await yesNo(by, `Exile ${cdata(g.c).n} from your graveyard?`, 'Exile it', "Don't"); didIt=!!yes; if(yes){ move(g.c.id,'ex',{silent:true}); log(`${by}: ${m.name} exiles ${cname(g.c)} from their graveyard.`); } else log(`${by}: ${m.name} doesn't exile it.`); continue; }   // Kozilek's Return
       if(/^this card deals (\d+) damage to each creature\.?$/i.test(sen)) sen=sen.replace(/^this card/i, by.split(':')[0]);
       if((q=sen.match(/^(.+?) deals (\d+) damage to each opponent and each planeswalker you don(?:'|’)t control\.?$/i))){ const k=+q[2]; if(G.opp){ dealDamage(oppId(), k, by); for(const x of (G.opp.bf||[]).filter(x=>!x.fd && isPW(x))) dealDamage(x.id, k, by); } continue; }   // Omnath's third landfall
-      if(/^you may play an additional land this turn\.?$/i.test(sen)){ log(`${by}: ${m.name} may play an additional land this turn.`); continue; }
+      if(/^you may play an additional land this turn\.?$/i.test(sen)){ landGrant(m, String(by||'An effect').split(':')[0]); log(`${by}: ${m.name} may play an additional land this turn.`); changed(); continue; }   // v4.108: adds a circle to the land-for-turn tracker (Explore, Way of the Paradox)
     }
     if(/^gain control of target spell that targets only a single permanent or player\.?$/i.test(sen)){ skipS.push(/^copy it, then reselect the targets at random/i, /^the new targets can(?:'|’)t be you or a permanent you control/i);   // v4.18 Chef's Kiss
       const t=tgAll.find(x=>{ const a=findAny(x); return a && a.z==='st' && !a.c.ab && !a.c.ch; }); if(!t){ log(`${by}: no spell was targeted.`); continue; } waited=true;
@@ -5896,12 +5916,12 @@ function castAdventure(id){ const f=find(id); if(!f) return; const c=f.c, fs=spl
 /* v4.85: a modal double-faced card whose back is a land. Left-click opens a short menu (cast the front, or play the land side with its entry choice
    already made); Shift-click plays the land side tapped; the hand's right-click menu keeps its own items. */
 const mdfcLand = c => { const d=cdata(c); return !!d.back && d.lay!=='transform' && !/\bLand\b/.test(faceTypeOf(c,0)) && /\bLand\b/.test(faceTypeOf(c,1)); };
-function playLandSide(id, how){ const f=find(id); if(!f) return; if(f.z==='hand' && waitMull()) return; const c=f.c, m=G.me, n=G.turn.n||0, nm=faceName(c,1), le=landEntry(Object.assign({}, c, {flip:true}));
-  if(!m.lp || m.lp.n!==n) m.lp={n, k:0}; m.lp.k++; const k=m.lp.k; c.flip=true;
+function playLandSide(id, how, ov){ const f=find(id); if(!f) return; if(f.z==='hand' && waitMull()) return; if(ov===undefined) return landGate(id, faceName(f.c,1), a=>playLandSide(id, how, a)); const c=f.c, m=G.me, n=G.turn.n||0, nm=faceName(c,1), le=landEntry(Object.assign({}, c, {flip:true}));
+  if(!m.lp || m.lp.n!==n) m.lp={n, k:0}; m.lp.k++; if(ov) m.lp.ov=(m.lp.ov||0)+1; const k=m.lp.k; c.flip=true;
   const tap = how==='tapped' || (le && le.kind==='tapped');
   move(id,'bf',{silent:true, later:true, tap}); const g=find(id); if(!g) return;
   let how2=''; if(how==='pay' && le && le.kind==='shock'){ m.life-=le.life; how2=`, paying ${le.life} life (now ${m.life}) so it enters untapped`; } else if(tap) how2=' tapped';
-  log(`${m.name} plays ${nm} (the land side of ${faceName(c,0)})${how2}${k>1 ? ', '+(ORDW[k]||k+'th')+' land this turn' : ''}.`); entered(g.c); changed();
+  log(`${m.name} plays ${nm} (the land side of ${faceName(c,0)})${how2}${k>1 ? ', '+(ORDW[k]||k+'th')+' land this turn' : ''}${ov ? ' (an additional land for turn, played anyway)' : ''}.`); entered(g.c); changed();
   if(how==='auto' && !(le && le.kind==='tapped')) landEnters(id); else if(tap) enteredTapped(g.c); }
 function mdfcMenu(id, x, y){ const f=find(id); if(!f) return; const c=f.c, front=faceName(c,0), back=faceName(c,1), le=landEntry(Object.assign({}, c, {flip:true})), it=[[`Cast ${front}`, ()=>playFromHand(id)]];
   if(le && le.kind==='shock') it.push([`Play ${back} untapped (pay ${le.life} life)`, ()=>playLandSide(id,'pay')], [`Play ${back} tapped`, ()=>playLandSide(id,'tapped')]);
@@ -6412,7 +6432,7 @@ function gather(){
   const m=G.me; G.noUndo=true; for(const c of (m.ph||[]).splice(0)){ delete c.phz; m.bf.push(c); }
   for(const z of ['hand','bf','gy','ex','st']){ for(const c of m[z].splice(0)){ if(c.tok || c.made) continue; if(c.sideOrig && c.o===G.myId){ delete c.sideOrig; Object.assign(c,{tap:false,c:0,att:null,atk:false,fd:false,flip:false,note:'',row:null}); m.side.push(c); continue; } if(c.o!==G.myId){ send({t:'give', card:Object.assign(c,{tap:false,c:0,att:null,atk:false,fd:false,flip:false}), zone:'lib'}); continue; } Object.assign(c,{tap:false,c:0,att:null,atk:false,fd:false,flip:false,note:'',row:null}); m.lib.push(c); } }
   for(const c of m.lib.filter(x=>x.sideOrig)){ m.lib.splice(m.lib.indexOf(c),1); delete c.sideOrig; m.side.push(c); }
-  G.mullGo=false; delete m.btm; m.life=20; m.lastLife=20; delete m.para; delete m.paraT; delete m.noMax; delete m.coinCall; delete m.tmpRed; delete m.pauseAsk; delete m.pauseReq; delete m.emb; delete m.monarch; delete m.xturns; delete m.oppT; delete m.dsc; delete m.mayAlways; delete m.gain; delete m.city; delete m.wya; delete m.atkC; delete m.lock; m.ctr={poison:0,energy:0}; m.arrows=[]; m.reveal=false; m.mull=0; m.roll=null; m.compDone=false; m.skipRoll=false; m.dealt=false; m.kept=false; delete m.btm; G.mullGo=false; m.mana=noMana(); m.smana=[]; m.energySeen=false; m.poisonSeen=false; m.drew=0; m.ctl=false; m.ctlNext=false; m.cast={n:0,is:0}; m.pacts=[]; m.baub=[]; m.trk=null; for(const c of m.side) delete c.comp; for(const c of m.lib){ delete c.by; delete c.warp; delete c.wp; delete c.fl; delete c.bt; delete c.ent; delete c.offer; delete c.pl; delete c.kw; delete c.lt; delete c.sick; delete c.lft; delete c.cp; }
+  G.mullGo=false; delete m.btm; m.life=20; m.lastLife=20; delete m.para; delete m.paraT; delete m.noMax; delete m.coinCall; delete m.tmpRed; delete m.pauseAsk; delete m.pauseReq; delete m.emb; delete m.monarch; delete m.xturns; delete m.oppT; delete m.dsc; delete m.mayAlways; delete m.gain; delete m.city; delete m.wya; delete m.atkC; delete m.lock; delete m.lp; delete m.lpx; m.ctr={poison:0,energy:0}; m.arrows=[]; m.reveal=false; m.mull=0; m.roll=null; m.compDone=false; m.skipRoll=false; m.dealt=false; m.kept=false; delete m.btm; G.mullGo=false; m.mana=noMana(); m.smana=[]; m.energySeen=false; m.poisonSeen=false; m.drew=0; m.ctl=false; m.ctlNext=false; m.cast={n:0,is:0}; m.pacts=[]; m.baub=[]; m.trk=null; for(const c of m.side) delete c.comp; for(const c of m.lib){ delete c.by; delete c.warp; delete c.wp; delete c.fl; delete c.bt; delete c.ent; delete c.offer; delete c.pl; delete c.kw; delete c.lt; delete c.sick; delete c.lft; delete c.cp; }
 }
 function newGame(remote){
   gather(); dummyReset(true); G.turn={active:null, phase:2, n:0};
@@ -6935,7 +6955,7 @@ function render(){
   HELD={}; for(const c of [...m.ex, ...((o&&o.ex)||[])]) if(c.by) HELD[c.by.id]=(HELD[c.by.id]||0)+1;
   const warpHTML=(ex,mine)=>ex.filter(c=>c.warp).map(c=>cardHTML(c,'ex',mine,'warped')).join('');
   const mr=rowsHTML([...m.bf, ...(m.ph||[])],true); $('#myFront').innerHTML=mr.front + playBoxes(m.ex,true,['this']) + (m.hasteNext===G.turn.n ? '<div class="hnbox">YOUR NEXT CREATURE SPELL THIS TURN GAINS HASTE</div>' : ''); $('#myBack').innerHTML=mr.back + warpHTML(m.ex,true) + flBox(m.ex,true) + plotBox(m.ex,true) + playBoxes(m.ex,true,['next']) + compBox(m.side.filter(c=>c.comp), true) + markersHTML([(m.ctr.energy||0)>0 && markerHTML(m.ctr.energy, G.myId), (m.ctr.poison||0)>0 && poisonHTML(m.ctr.poison, G.myId), m.monarch && monarchHTML(G.myId)]);
-  $('#myHand').innerHTML = m.hand.map(c=>cardHTML(c,'hand',true)).join('') + (m.trk ? `<div class="twrap">${trackPad(m.trk, true)}<span class="thint">Click a name to cross it off</span></div>` : ''); $('#myHand').classList.toggle('hastrk', !!m.trk);
+  const myLp=lpTrack(m, false); $('#myHand').classList.toggle('haslpt', !!myLp); $('#myHand').innerHTML = m.hand.map(c=>cardHTML(c,'hand',true)).join('') + myLp + (m.trk ? `<div class="twrap">${trackPad(m.trk, true)}<span class="thint">Click a name to cross it off</span></div>` : ''); $('#myHand').classList.toggle('hastrk', !!m.trk);
   const back = '<div class="card">'+BACK+'</div>';
   $('#myPiles').innerHTML = '<div class="railh me"><b>You</b></div>' + pileHTML('ex','Exile',m.ex,m.ex.length,true, m.ex.length?cardHTML(m.ex[m.ex.length-1],'ex',true):'')
     + pileHTML('gy','Graveyard',m.gy,m.gy.length,true, m.gy.length?cardHTML(m.gy[m.gy.length-1],'gy',true):'')
@@ -6945,7 +6965,7 @@ function render(){
     const or=rowsHTML([...(o.bf||[]), ...(o.ph||[])],false); $('#oppFront').innerHTML=or.front + playBoxes(o.ex,false,['this']) + (o.hasteNext && o.hasteNext===G.turn.n ? '<div class="hnbox">THEIR NEXT CREATURE SPELL THIS TURN GAINS HASTE</div>' : ''); $('#oppBack').innerHTML=or.back + warpHTML(o.ex||[],false) + flBox(o.ex,false) + plotBox(o.ex,false) + playBoxes(o.ex,false,['next']) + compBox(o.comp||[], false) + markersHTML([((o.ctr||{}).energy||0)>0 && markerHTML(o.ctr.energy, oppId()), ((o.ctr||{}).poison||0)>0 && poisonHTML(o.ctr.poison, oppId()), o.monarch && monarchHTML(oppId())]);
     if(o.dummy) dummySync(); const oHand = o.dummy ? (o.reveal ? o.hand : null) : o.hand;
     const oh=$('#oppHand'); oh.classList.toggle('shown', !!oHand);
-    oh.innerHTML = (trkN(o.trk) ? `<span class="tnote" data-tnote title=""><b>${trkN(o.trk)}</b></span>` : '') + `<span class="hn">${esc(o.name||'Opponent')}'s hand <b>${o.handN}</b>${oHand && !o.dummy?' · revealed':''}${oHand && o.dummy?' · shown':''}</span>` + (oHand ? oHand.map(c=>cardHTML(c,'hand',false)).join('') : back.repeat(Math.min(o.handN||0,30)));
+    const oLp=lpTrack(o, true); oh.classList.toggle('haslpt', !!oLp); oh.innerHTML = oLp + (trkN(o.trk) ? `<span class="tnote" data-tnote title=""><b>${trkN(o.trk)}</b></span>` : '') + `<span class="hn">${esc(o.name||'Opponent')}'s hand <b>${o.handN}</b>${oHand && !o.dummy?' · revealed':''}${oHand && o.dummy?' · shown':''}</span>` + (oHand ? oHand.map(c=>cardHTML(c,'hand',false)).join('') : back.repeat(Math.min(o.handN||0,30)));
     $('#oppPiles').innerHTML = `<div class="railh"><b>${esc(o.name||'Opponent')}</b></div>` + pileHTML('hand','Hand',null,o.handN,false, o.handN?back:'') + pileHTML('lib','Library',null,o.libN,false, o.libN?back:'')
       + pileHTML('gy','Graveyard',o.gy,o.gy.length,false, o.gy.length?cardHTML(o.gy[o.gy.length-1],'gy',false):'')
       + pileHTML('ex','Exile',o.ex,o.ex.length,false, o.ex.length?cardHTML(o.ex[o.ex.length-1],'ex',false):'');
@@ -7288,7 +7308,7 @@ function cardMenu(id, x, y){
     if(cre && blockStep() && !c.tap) sh.push(['Block…',()=>startMode('block',id),'B']);
     const ab=(cre && !c.fd) ? ['Right now: '+aboutSum(c, true), ()=>aboutCard(id, x, y)] : null;
     menu(x, y, [...sh, sh.length&&'-', ab, ['Manual handling', items.filter(i=>!(i && i!=='-' && sh.includes(i)))]]); return; }
-  if(z==='gy' && isLand(c) && G.me.bf.some(x=>!x.fd && (x.k||x.cu) && /You may play lands from your graveyard/i.test(frontText(x)||''))) items=[[`Play this land (${cdata(G.me.bf.find(x=>!x.fd && (x.k||x.cu) && /You may play lands from your graveyard/i.test(frontText(x)||''))).n.split(',')[0]})`, ()=>{ closeModal(); playFromHand(id); }], '-', ...items];
+  if(z==='gy' && isLand(c) && G.me.bf.some(x=>!x.fd && (x.k||x.cu) && /You may play lands from your graveyard/i.test(frontText(x)||''))) items=[[`Play this land for turn (${cdata(G.me.bf.find(x=>!x.fd && (x.k||x.cu) && /You may play lands from your graveyard/i.test(frontText(x)||''))).n.split(',')[0]})`, ()=>{ closeModal(); playFromHand(id); }], '-', ...items];   // v4.108: uses a land play (landGate)
   if(z==='gy'){ const srcs=myStackSources(); if(srcs.length) items=[...srcs.map(sc=>[`Target this card with ${cdata(sc).n.replace(/: (ability|chapter [IVX]+)$/,'')}`, ()=>{ addGyTarget(sc.id, id, G.myId); modalRefresh&&modalRefresh(); }]), '-', ...items]; }
   if(z==='bf' && !c.fd && (isCreature(c)||c.anim)){ const k=items.indexOf('-'); if(k>0) items.splice(k, 0, '-', ['Right now: '+aboutSum(c, true), ()=>aboutCard(id, x, y)]); }   // v4.64: the full menu gets the state line too
   if(z==='ex' && c.warp && cmStyle()!=='full' && !unlearned(c)){ const cw=items.find(i=>i && i!=='-' && /^Cast from warp/.test(i[0]));   // v4.81: a warped card opens on Cast from warp, the rest under Manual handling
@@ -7298,7 +7318,9 @@ function cardMenu(id, x, y){
 }
 function pileMenu(z, x, y){
   const m=G.me, ch=()=>changed();
+  const topSrc = z==='lib' && m.lib[0] && isLand(m.lib[0]) && m.bf.find(x=>!x.fd && (x.k||x.cu) && /You may play lands from the top of your library/i.test(frontText(x)||''));   // v4.108: Oracle of Mul Daya
   if(z==='lib') menu(x,y,[
+    ...(topSrc ? [[`Play ${cdata(m.lib[0]).n} from the top for turn (${cdata(topSrc).n.split(',')[0]})`, ()=>playFromHand(m.lib[0].id)], '-'] : []),
     ['Draw a card',()=>{ draw(1); ch(); },'D'], ['Draw several…',async()=>{ const n=await askN('Draw cards',2); if(n>0){ draw(n); ch(); } }], '-',
     ['Look at the top cards… (scry, surveil)',async()=>{ const n=await askN('Look at the top cards',1); if(n>0) peek(n); }],
     ['Search library',()=>searchGate(()=>{ log(`${m.name} searches their library.`); zoneModal('Your library',()=>m.lib,'lib',true,[['Close and shuffle',()=>{ closeModal(); },'go']],()=>{ shuffleLib(); ch(); }); })],
@@ -7726,7 +7748,7 @@ document.addEventListener('pointerup', e=>{
     drag.on=false; drag.g.remove(); $$('.drop').forEach(x=>x.classList.remove('drop')); d.el.style.opacity=''; d.el.classList.remove('dragsrc'); handMark(false);
     const t=document.elementFromPoint(e.clientX,e.clientY), dz=t&&t.closest('[data-drop]');
     if(dz && dz.dataset.drop==='hand' && dz.id==='myHand'){ const f=find(d.id); if(f){ const slot=handSlot(e.clientX, d.id); if(f.z!=='hand'){ move(d.id, 'hand', {pos:'top'}); } handPlace(d.id, slot); changed(); } return; }
-    if(dz){ const zone=dz.dataset.drop; const f=find(d.id); if(f && f.z!==zone){ if(zone==='st') castSpell(d.id); else if(zone==='gy' && f.z==='hand') discard([d.id]); else { move(d.id, zone, {pos:'top'}); changed(); } } }
+    if(dz){ const zone=dz.dataset.drop; const f=find(d.id); if(f && f.z!==zone){ if(zone==='st') castSpell(d.id); else if(zone==='bf' && f.z==='hand' && isLand(f.c) && !mdfcLand(f.c) && G.turn.n && G.turn.active===G.myId && !G.me.ctl) playFromHand(d.id);   /* v4.108: dragging a land from the hand on my turn plays it (land for turn) */ else if(zone==='gy' && f.z==='hand') discard([d.id]); else { move(d.id, zone, {pos:'top'}); changed(); } } }
     return;
   }
   if(e.button!==0) return;
