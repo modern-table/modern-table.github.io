@@ -689,7 +689,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 </script>
 <script>
 "use strict";
-const VERSION = 'v4.111';
+const VERSION = 'v4.112';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -705,6 +705,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.112','Nov 9',"Spells with X targets keep asking: cast Indomitable Creativity for X = 3 and the table asks for all three targets one after another (2 of 3, 3 of 3) instead of stopping after the first. Esc when you want fewer."],
   ['v4.111','Nov 9',"With several triggers waiting for targets, the stack shows which one is asking: it glows and reads CHOOSE TARGET, and the ones still waiting have a dashed outline and a NEXT tag until it's their turn."],
   ['v4.110','Nov 9',"When several triggers that need a target go on the stack together (two Roiling Canopies, Archon of Cruelty entering alongside another trigger), each one now asks for its target in turn: target the first, and the next one's arrow starts right away. Esc still means no target for the one you're on."],
   ['v4.109','Nov 9',"The NEW! banner is gone from lands. Point at a land-for-turn circle instead: the land that used it lights up (or its pile, if it was fetched or bounced), and the tip says what gave you the land play, which land it was and where it is now, e.g. 'Dryad of the Ilysian Grove — Windswept Heath (graveyard)'. Point at a land you played this turn and its circle lights up."],
@@ -7666,18 +7667,18 @@ const TGT_NOUN='creatures?|players?|opponents?|planeswalkers?|permanents?|spells
    sentence uses only the targets of its own phrases (a sentence with none, like "It gains flying", keeps the previous one's). Abilities with
    one phrase, graveyard-card targets and arrows drawn by hand (no phrase number) work as before. */
 const tgtNoQuote = t => String(t||'').replace(/\([^)]*\)/g,'').replace(/"[^"]*"|“[^”]*”/g,'""');
-function tgtPhrases(txt){ const out=[], T=tgtNoQuote(txt); for(const m of T.matchAll(/\b(up to (?:one|two|three|four|five) |one or two |any number of |(?:two|three) )?(?:(?:an)?other )?(?<!\b(?:that|the|new|its|single) )targets?\b(?! of\b)/gi)){ if(/s$/i.test(m[0]) && !m[1]) continue;   // v4.36: plural only after a count (Forked Bolt's "one or two targets")
-    const w=(m[1]||'').trim().toLowerCase(); out.push({i:m.index, n:/any number/.test(w) ? 99 : /one or two/.test(w) ? 2 : (NUMW2[(w.match(/(one|two|three|four|five)$/)||[])[1]]||1), upto:/^(?:up to|any number|one or two)/.test(w)}); }
+function tgtPhrases(txt){ const out=[], T=tgtNoQuote(txt); for(const m of T.matchAll(/\b(up to (?:one|two|three|four|five|X) |one or two |any number of |(?:two|three|X) )?(?:(?:an)?other )?(?<!\b(?:that|the|new|its|single) )targets?\b(?! of\b)/gi)){ if(/s$/i.test(m[0]) && !m[1]) continue;   // v4.36: plural only after a count (Forked Bolt's "one or two targets")
+    const w=(m[1]||'').trim().toLowerCase(); out.push({i:m.index, n:/(?:^|\s)x$/.test(w) ? 'X' : /any number/.test(w) ? 99 : /one or two/.test(w) ? 2 : (NUMW2[(w.match(/(one|two|three|four|five)$/)||[])[1]]||1), upto:/^(?:up to|any number|one or two)/.test(w)}); }   // v4.112: "X target …" (Indomitable Creativity) counts as X, read from the spell in tgtSlots
   // a phrase in a sentence that says "instead" re-states an earlier target (Into the Flood Maw's gift), so it isn't a new one
   return out.filter((p,i)=>{ if(!i) return true; const st=T.lastIndexOf('.', p.i)+1, en=T.indexOf('.', p.i); return !/\binstead\b/i.test(T.slice(st, en<0 ? T.length : en)); }); }
 function tgtText(c){ let txt = c.ab || c.ch ? ((c.cu && c.cu.o) || '') : (stackText(c) || ''); txt=String(txt).replace(/\([^)]*\)/g,''); if(c.ab && c.cu && /Activated ability/.test(c.cu.t||'') && /:/.test(txt)) txt=txt.slice(txt.indexOf(':')+1); return txt; }
 function tgtSlots(c){ if(!c || c.fd || (isSplit(c) && c.half==null && !c.fuse)) return null; const txt=tgtText(c); if(/\btarget [^.]*?cards? (?:in|from) [^.]*?graveyard/i.test(txt) || /\btarget [^.]*?graveyard\b/i.test(txt)) return null;
-  const ph=tgtPhrases(txt); return ph.length>=2 || (ph.length===1 && ph[0].n>1 && ph[0].n<99) ? ph : null; }   // v4.36: one phrase with room for two targets keeps asking
+  const ph=tgtPhrases(txt).map(p=>p.n==='X' ? Object.assign({}, p, {n:Math.max(1, +(c.x ?? c.xc ?? 1) || 1), xv:1}) : p); return ph.length>=2 || (ph.length===1 && ph[0].n>1 && ph[0].n<99) ? ph : null; }   // v4.36: one phrase with room for two targets keeps asking
 const tgtSlotsOf = id => { const f=find(id); return f && f.z==='st' ? tgtSlots(f.c) : null; };
 /* after a target is clicked for phrase k: stay on k while it can take more ("up to two"), else go to the next phrase; false when done */
 function tgtNextSlot(md, skip){ const sl=md && md.type==='arrow' && tgtSlotsOf(md.from); if(!sl) return false; const k=md.slot||0, f=find(md.from);
   const have=G.me.arrows.filter(a=>a.a===md.from && a.s===k).length;
-  if(!skip && have<sl[k].n && sl[k].n<99){ G.mode={type:'arrow', from:md.from, slot:k}; const sp=tgtSpec(f.c, k); toast(`${srcName(f.c)}: click ${sp ? 'another '+sp.phrase.replace(/^(?:up to \w+ |one or two |two |three )/i,'') : 'another target'} (Esc when done).`); return true; }
+  if(!skip && have<sl[k].n && sl[k].n<99){ G.mode={type:'arrow', from:md.from, slot:k}; const sp=tgtSpec(f.c, k); toast(`${srcName(f.c)}: click ${sp && !sl[k].xv ? 'another '+sp.phrase.replace(/^(?:up to \w+ |one or two |two |three )/i,'') : 'another target'}${sl[k].xv ? ` (${have+1} of ${sl[k].n})` : ''} (Esc when done).`); return true; }
   for(let j=k+1;j<sl.length;j++){ G.mode={type:'arrow', from:md.from, slot:j}; const sp=tgtSpec(f.c, j); toast(`${srcName(f.c)}: now click ${sp ? sp.phrase : 'its next target'}${sp && sp.upto || sl[j].upto ? ' (Esc for none)' : ''}.`); return true; }
   return false; }
 function tgtSpec(c, slot){ if(!c) return null; let txt = c.ab || c.ch ? ((c.cu && c.cu.o) || '') : (stackText(c) || '');
