@@ -113,3 +113,18 @@ Sideboard
 1 Children of Korlis
 1 Plunge into Darkness
 1 Sorin of House Markov
+# Requested 2026-11-08 (legends)
+1 Plaza of Heroes
+1 Secluded Courtyard
+1 Unclaimed Territory
+1 Norin the Wary
+1 Arbaaz Mir
+1 Jirina, Dauntless General
+1 Satoru, the Infiltrator
+1 The Wondrous Wasp
+1 Reki, the History of Kamigawa
+1 Relic of Legends
+1 Meddling Mage
+1 Loran of the Third Path
+1 Mai, Scornful Striker
+1 Lavinia, Azorius Renegade
