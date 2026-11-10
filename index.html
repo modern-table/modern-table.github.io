@@ -316,7 +316,7 @@ body.nomo .kc.won{animation:none}
 :is(#pactPanel,#payPanel) .pcost{display:flex;gap:6px;align-items:center;flex-wrap:wrap}:is(#pactPanel,#payPanel) .pcost .ms{width:30px;height:30px;font-size:15px;filter:grayscale(1);opacity:.35;transition:opacity .15s}:is(#pactPanel,#payPanel) .pcost .ms.ok{filter:none;opacity:1;box-shadow:0 0 0 2px var(--good)}
 :is(#pactPanel,#payPanel) .pst{font-weight:800;color:var(--dim)}:is(#pactPanel,#payPanel) .pst.ok{color:var(--good)}:is(#pactPanel,#payPanel) .pbtns{display:flex;gap:8px;flex-wrap:wrap}:is(#pactPanel,#payPanel) .pbtns button{font-size:12.500px}
 .lkban{position:absolute;left:0;right:0;top:36%;text-align:center;font:800 calc(var(--cw)*.085)/1.1 var(--ui);letter-spacing:.06em;color:#eafcff;background:linear-gradient(#11606b,#0b3f47);border-top:1px solid #7fe3ee;border-bottom:1px solid #04252a;padding:calc(var(--cw)*.025) 2px;box-shadow:0 2px 6px #0009;pointer-events:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lkban small{display:block;font-size:.72em;letter-spacing:.12em;color:#a8eef5}
-.card.lk{box-shadow:0 0 0 1px #5fd4e099,0 0 8px 1px #5fd4e044}.card.lk.lkhot{box-shadow:0 0 0 2px #5fd4e0,0 0 18px 5px #5fd4e0aa}.card.hk.lkhot{box-shadow:0 0 0 2px var(--brass),0 0 18px 6px color-mix(in srgb,var(--brass) 70%,transparent)}.pile .card.hk.lkhot{box-shadow:inset 0 0 0 2px var(--brass),inset 0 0 16px 2px color-mix(in srgb,var(--brass) 70%,transparent)}
+.card.lk{box-shadow:0 0 0 1px #5fd4e099,0 0 8px 1px #5fd4e044}.card.lk.lkhot{box-shadow:0 0 0 2px #5fd4e0,0 0 18px 5px #5fd4e0aa}.card.hk.lkhot{box-shadow:0 0 0 2px var(--brass),0 0 18px 6px color-mix(in srgb,var(--brass) 70%,transparent)}.pkfan{position:fixed;z-index:60;width:var(--cw);height:var(--ch);pointer-events:none}.pkfan .pkc{position:absolute;left:0;top:0;width:var(--cw);transform-origin:50% 100%}.pkfan .pkc .card{width:var(--cw);box-shadow:0 0 0 2px var(--brass),0 6px 18px #000c;transition:none;pointer-events:none}.pkfan .pktag{position:absolute;left:0;right:0;bottom:12%;text-align:left;padding-left:calc(var(--cw)*.07) !important;font:800 calc(var(--cw)*.075)/1 var(--ui);letter-spacing:.12em;color:var(--brass);background:#000e;border-top:1px solid color-mix(in srgb,var(--brass) 60%,transparent);border-bottom:1px solid color-mix(in srgb,var(--brass) 60%,transparent);padding:calc(var(--cw)*.03) 0}.pile .card.hk.lkhot{box-shadow:inset 0 0 0 2px var(--brass),inset 0 0 16px 2px color-mix(in srgb,var(--brass) 70%,transparent)}
 .cpban{position:absolute;left:0;right:0;top:20%;text-align:center;font:800 calc(var(--cw)*.095)/1.1 var(--ui);letter-spacing:.1em;color:#fff;background:linear-gradient(#3b2a66,#24183f);border-top:1px solid #b9a7ff;border-bottom:1px solid #120c22;padding:calc(var(--cw)*.025) 2px;box-shadow:0 2px 6px #0009;pointer-events:none;text-transform:uppercase}
 .card.gtg{box-shadow:0 0 0 2px var(--bad),0 0 14px 4px #e2574caa}
 .tgban{position:absolute;left:0;right:0;top:56%;text-align:center;font:800 calc(var(--cw)*.085)/1.15 var(--ui);letter-spacing:.06em;color:#fff;background:#8f1f17e6;border-top:1px solid #ffb3ab;border-bottom:1px solid #3a0b08;padding:2px 2px;pointer-events:none;text-transform:uppercase}
@@ -689,7 +689,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 </script>
 <script>
 "use strict";
-const VERSION = 'v4.113';
+const VERSION = 'v4.114';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -705,6 +705,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.114','Nov 10',"Point at Isochron Scepter, Portable Hole, Temporary Lockdown or anything holding exiled cards and those cards fan out of the exile pile while you point. Pointing at a land-for-turn circle does the same for a land that went to the graveyard or exile, like a cracked fetch."],
   ['v4.113','Nov 10',"Isochron Scepter (and Ugin's Labyrinth, Dermotaxi) shows the name of the card it has imprinted on a banner, and pointing at either lights the other."],
   ['v4.112','Nov 9',"Spells with X targets keep asking: cast Indomitable Creativity for X = 3 and the table asks for all three targets one after another (2 of 3, 3 of 3) instead of stopping after the first. Esc when you want fewer."],
   ['v4.111','Nov 9',"With several triggers waiting for targets, the stack shows which one is asking: it glows and reads CHOOSE TARGET, and the ones still waiting have a dashed outline and a NEXT tag until it's their turn."],
@@ -6797,6 +6798,35 @@ const impHolder = id => [...G.me.bf, ...((G.opp&&G.opp.bf)||[])].find(x=>impIdOf
 function lkHot(cd){ for(const x of document.querySelectorAll('.card.lkhot')) x.classList.remove('lkhot'); if(!cd || !cd.dataset.lk) return;
   const ids=cd.dataset.lk.split(' '); for(const x of document.querySelectorAll('.card[data-lk]')) if(x.dataset.lk.split(' ').some(i=>ids.includes(i))) x.classList.add('lkhot'); }
 document.addEventListener('mouseover', e=>{ const cd=e.target && e.target.closest ? e.target.closest('.card[data-lk]') : null; if(cd || document.querySelector('.card.lkhot')) lkHot(cd); });
+/* v4.114: pile peek. Pointing at a permanent that holds exiled cards (Portable Hole, Temporary Lockdown) or has an imprinted card (Isochron Scepter),
+   or at a land-for-turn circle whose land is in a graveyard or exile, fans those cards out of their pile for as long as the pointer stays.
+   The fan is a fixed overlay (#pkFan…, pointer-events none) drawn over the pile, so the pile itself and the game state never change. */
+let PKK='';
+function pkClear(){ PKK=''; for(const x of document.querySelectorAll('.pkfan')) x.remove(); }
+function pkFan(pz, side, cards, tag){
+  const pile=document.querySelector(`.pile[data-pile="${pz}"][data-o="${side}"]`); if(!pile || !cards.length) return;
+  const r=pile.getBoundingClientRect(), cw=r.width, ch=cw*680/488, step=cw*.62, n=cards.length;
+  const top=Math.max(6, Math.min(r.top, innerHeight-ch-6)), left=Math.max(6, Math.min(r.left, innerWidth-cw-step*(n-1)-6));
+  const f=document.createElement('div'); f.className='pkfan'; f.style.cssText=`left:${left}px;top:${top}px;--cw:${cw}px;--ch:${ch}px`;
+  f.innerHTML=cards.map((c,i)=>`<div class="pkc" style="z-index:${i+1}">${cardHTML(c, pz, side==='me')}<span class="pktag">${esc(tag(c))}</span></div>`).join('');
+  document.body.appendChild(f);
+  const els=[...f.children], dx0=r.left-left, dy0=r.top-top;
+  els.forEach((el,i)=>{ const rot=n>1 ? (i-(n-1)/2)*4 : 0, end=`translate(${i*step}px,0) rotate(${rot}deg)`; el.style.transform=end;
+    if(!noMotion()) el.animate([{transform:`translate(${dx0}px,${dy0}px) rotate(0deg) scale(.94)`, opacity:.35}, {transform:end, opacity:1}], {duration:220, delay:i*55, easing:'cubic-bezier(.2,.8,.3,1.1)', fill:'backwards'}); }); }
+function pkGroups(list, tag){ const g={}; for(const [c,side] of list){ (g[side]=g[side]||[]).push(c); } for(const side in g) pkFan('ex', side, g[side], tag); }
+function pkHolder(id){ const out=[]; const add=(arr, side)=>{ for(const x of arr||[]) if(x.by && x.by.mode==='hold' && !x.by.mon && x.by.id===id) out.push([x, side]); };
+  add(G.me.ex, 'me'); add(G.opp && G.opp.ex, 'opp');
+  const h=[...G.me.bf, ...((G.opp&&G.opp.bf)||[])].find(x=>x.id===id), im=h && impOf(h);
+  if(im && !out.some(([x])=>x.id===im.id)) out.push([im, G.me.ex.includes(im) ? 'me' : 'opp']);
+  return {list:out, im:im ? im.id : null}; }
+function pkShow(el){
+  const circ=el && el.closest('.lpc[data-lpk]'), card=!circ && el && el.closest('.card[data-z="bf"]');
+  const key = circ ? 'lp:'+circ.dataset.lpk : card ? 'bf:'+card.dataset.id : '';
+  if(key===PKK) return; pkClear(); if(!key) return; PKK=key;
+  if(circ){ const id=circ.dataset.lpk, a=findAny(id); if(!a || (a.z!=='gy' && a.z!=='ex')) return; pkFan(a.z, a.mine?'me':'opp', [a.c], ()=>'LAND FOR TURN'); return; }
+  const {list, im}=pkHolder(card.dataset.id); if(list.length) pkGroups(list, c=> c.id===im ? 'IMPRINTED' : 'HELD'); }
+document.addEventListener('mouseover', e=>{ const t=e.target && e.target.closest ? e.target : null; if(!t){ if(PKK) pkClear(); return; } if(t.closest('.pkfan')) return; pkShow(t); });
+document.addEventListener('mousedown', ()=>{ if(PKK) pkClear(); }, true);
 function cardHTML(c, z, mine, cls=''){
   const d=cdata(c), hidden = !c.k && !c.cu, backUp = hidden || (c.fd && !mine);
   let inner;
