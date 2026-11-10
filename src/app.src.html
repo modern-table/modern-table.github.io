@@ -681,7 +681,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 <script>/*__PEERJS__*/</script>
 <script>
 "use strict";
-const VERSION = 'v4.116';
+const VERSION = 'v4.117';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -697,6 +697,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.117','Nov 10',"When several triggers on the stack need targets, the one on top (the one that resolves first) now asks for its target first, then the next one down. The stack also scrolls to show whichever trigger is asking."],
   ['v4.116','Nov 10',"Cultivator Colossus's box now stays open the whole time over your opponent's side of the table: triggers wait along the top at full size, the rest of your hand sits bottom left (the card you just drew says DRAWN) and the lands you can put down bottom right. When you're done, drag the triggers along the row like cards in your hand to order them: right is the top of the stack."],
   ['v4.115','Nov 10',"Cultivator Colossus: triggers from the lands it puts down now wait at the top of its land box instead of jumping onto the stack; when you're done you drag them into the order you want and add them to the stack together. Cards that hold exiled cards (Portable Hole, Leyline Binding, Temporary Lockdown) now say HOLDING and the card's name instead of a 'holds' badge, and the Exiled by cards box only lists cards someone can still play, one short row each. To return a held card by hand, click it in your exile."],
   ['v4.114','Nov 10',"Point at Isochron Scepter, Portable Hole, Temporary Lockdown or anything holding exiled cards and those cards fan out of the exile pile while you point. Pointing at a land-for-turn circle does the same for a land that went to the graveyard or exile, like a cracked fetch."],
@@ -2944,7 +2945,7 @@ async function colossusLoop(by, tapped){ const m=G.me; G.trigHold={by, before:ne
       putLandNow(p, by, tapped); n++; CO.n=n; await holdIdle(); const had=new Set(m.hand.map(x=>x.id)); draw(1); const nw=m.hand.find(x=>!had.has(x.id)); CO.drawn=nw?nw.id:null; changed(); coPaint(true); }
     await holdIdle(); let hd=heldTrigs();
     if(hd.length>1){ CO.ph='order'; CO.ord=hd.slice(); coPaint(true); await coWait(); hd=CO.ord; }
-    const base=Date.now(); hd.forEach((x,i)=>{ x.ts=base+i; });
+    const base=Date.now(); hd.forEach((x,i)=>{ x.ts=base+i; }); { const set=new Set(hd.map(x=>x.id)); const rest=m.st.filter(x=>!set.has(x.id)); m.st.length=0; m.st.push(...rest, ...hd); }
     if(hd.length) log(`${by}: ${m.name} puts ${hd.length} trigger${hd.length>1?'s':''} on the stack${hd.length>1?' (top: '+String(cdata(hd[hd.length-1]).n).replace(/: (?:trigger|landfall)$/,'')+')':''}.`);
   } finally { coClose(); G.trigHold=null; changed(); }
   return n; }
@@ -5115,8 +5116,10 @@ function blinkAuto(src, b){ const d=cdata(src), sn=srcName(src);
 const autoWait = () => G.me.st.find(x=>x.ab && x.ab.auto && !x.ab.nt && !(x.bt && x.bt.length));
 /* v4.110: every trigger on my stack whose text targets waits for its arrow, one after another, whichever path put it there (enter, attack, dies, landfall, "Whenever a Forest you control enters": Archon of Cruelty, Roiling Canopy). Before, only triggers marked ab.tq re-armed, so a second targeted trigger, or one whose arrow mode another trigger took over, was left without an arrow. */
 const trigTq = x => !!(x && x.ab && !x.ab.nt && !x.ab.auto && (x.ab.tq || ((x.ab.tr || (x.cu && x.cu.t==='Triggered ability')) && (()=>{ const t=(x.cu&&x.cu.o)||''; return needsTarget(t) || /\btarget opponent\b/i.test(t); })())));
-function autoArm(){ if(G.trigHold || G.mode || G.atkSel || PAY || !$('#modal').hidden || (G.turn && G.turn.cs==='blk' && pblockStep())) return; { const q=G.me.st.find(x=>trigTq(x) && !G.me.arrows.some(a=>a.a===x.id)); if(q){ const fresh=!q.ab.tq; q.ab.tq=1; G.mode={type:'arrow', from:q.id, tq:1}; if(fresh || G.tqLast!==q.id) toast(`${String(srcName(q)).replace(/: (?:trigger|attack trigger|landfall)$/,'')}: click its target (Esc for none).`); G.tqLast=q.id; return; } }
-  { const q=G.me.st.find(x=>x.tq && !x.nt && !G.me.arrows.some(a=>a.a===x.id)); if(q){ G.mode={type:'arrow', from:q.id, tq:1}; toast(`${cdata(q).n} (copy): click its target (Esc for none).`); return; } }   // v4.95: copies cast onto the stack (copyTq). v4.44: the next trigger still waiting for its target (two Hedron Crabs)
+/* v4.117 (Ben): the trigger that resolves first asks for its target first: the top of the stack (highest ts, later in the list on a tie), not the oldest. */
+function stTop(pred){ let best=null, bt=-Infinity; G.me.st.forEach((x,i)=>{ if(!pred(x)) return; const t=(x.ts||0)*1000+i; if(t>=bt){ bt=t; best=x; } }); return best; }
+function autoArm(){ if(G.trigHold || G.mode || G.atkSel || PAY || !$('#modal').hidden || (G.turn && G.turn.cs==='blk' && pblockStep())) return; { const q=stTop(x=>trigTq(x) && !G.me.arrows.some(a=>a.a===x.id)); if(q){ const fresh=!q.ab.tq; q.ab.tq=1; G.mode={type:'arrow', from:q.id, tq:1}; if(fresh || G.tqLast!==q.id) toast(`${String(srcName(q)).replace(/: (?:trigger|attack trigger|landfall)$/,'')}: click its target (Esc for none).`); G.tqLast=q.id; return; } }
+  { const q=stTop(x=>x.tq && !x.nt && !G.me.arrows.some(a=>a.a===x.id)); if(q){ G.mode={type:'arrow', from:q.id, tq:1}; toast(`${cdata(q).n} (copy): click its target (Esc for none).`); return; } }   // v4.95: copies cast onto the stack (copyTq). v4.44: the next trigger still waiting for its target (two Hedron Crabs)
   const w=autoWait(); if(w) G.mode={type:'arrow', from:w.id, auto:1}; }
 function autoNone(id){ const f=find(id); if(f && f.c.ab){ f.c.ab.nt=1; log(`${srcName(f.c)}'s trigger has no target.`); } if(G.mode && G.mode.from===id) G.mode=null; changed(); }
 const blinkTrig = c => { const b=blinkOf(frontText(c)); return b && (b.when==='enters' || b.when==='attacks') ? b : null; };
@@ -7106,7 +7109,8 @@ function render(){
   $('#myAv').className = 'avatar me'+(G.turn.n&&G.turn.active===G.myId?' active':'')+(G.mode?' tgt':'')+((TGS && !tgtCheck(TGS, G.myId).ok) || (G.mode && G.mode.type==='atktgt') ? ' ntg' : ''); $('#myAv').dataset.pl=G.myId;
   const st = [...m.st.filter(c=>!isHeldTrig(c)).map(c=>[c,true]), ...((o&&o.st)||[]).map(c=>[c,false])].sort((a,b)=>(a[0].ts||0)-(b[0].ts||0));
   { const se=$('#stack'), keep=se.scrollLeft; se.innerHTML = st.map(([c,mine])=>cardHTML(c,'st',mine)).join(''); $('#stackN').textContent = st.length>1 ? '· '+st.length : '';
-    if(st.length>(render.stN||0)) se.scrollLeft=se.scrollWidth; else se.scrollLeft=keep; render.stN=st.length; }   // something new on the stack: show the top
+    if(st.length>(render.stN||0)) se.scrollLeft=se.scrollWidth; else se.scrollLeft=keep; render.stN=st.length;
+    { const nw=se.querySelector('.tqnow'); if(nw){ const r=nw.getBoundingClientRect(), R=se.getBoundingClientRect(); if(r.left<R.left || r.right>R.right) se.scrollLeft += (r.left-R.left) - (R.width-r.width)/2; } } }   // v4.117: the trigger asking for its target is scrolled into view   // something new on the stack: show the top
   const myOff=m.ex.filter(offerLive), opOff=((o&&o.ex)||[]).filter(offerLive), on=o?o.name:'Opponent';
   /* v4.115: the box lists only cards someone can still play, plus monarch holds (no permanent to label), one compact row each. Cards held until a permanent
      leaves are shown on the battlefield instead (HOLDING band, hover fan), and "Return it now" is on the exiled card's own menu (cardMenu, z==="ex"). */
