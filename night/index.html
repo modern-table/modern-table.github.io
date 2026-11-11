@@ -347,7 +347,7 @@ function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(se
 const VERSION = 'v0.28';
 /* What's new on the front page (v0.19, like the Modern Table's NEWS): newest first, written for players. Add a line with every version bump. */
 const DNEWS = [
-  ['v0.28','Nov 11',"Cube Table: an Archetypes guide for DF07's Legacy Cube (29 archetypes with their key cards, filtered by color), open from the front page or the top bar at any point in the event. Sealed events are prereleases only for Reality Fracture, the one set whose kit and promo we know; other sets open six packs. The Draft Table now hosts drafts only."],
+  ['v0.28','Nov 11',"Cube Table: an Archetypes guide for DF07's Legacy Cube, from its maker DackFayden07 (29 archetypes with their key cards, filtered by color), open from the front page or the top bar at any point in the event. Sealed events are prereleases only for Reality Fracture, the one set whose kit and promo we know; other sets open six packs. The Draft Table now hosts drafts only."],
   ['v0.27','Nov 11',"Game Night: at time, the host's Yes enforces the end-of-round turns at every table still playing; No means no time limit, so those matches play out."],
   ['v0.26','Nov 11',"Game Night: a navy page (the Game Night link on the Modern Table) hosts Modern Night Magic for up to eight, and Draft, Sealed and Cube each open straight to their own table's setup. Every event ends in the same matchmaking room: chat, a 3-minute break before each round, tables with their voice channel, one round clock, results confirmed by both players, pairings by standings, and decks revealed in the final standings."],
   ['v0.25','Nov 10',"The Draft Table now keeps an anonymous count of visits and of drafts and sealed events started. No cookies and no names."],
@@ -382,6 +382,7 @@ const BACK_IMG = 'https://backs.scryfall.io/large/0/a/0aeebaf5-8c7d-4636-9e82-8c
 const KIT_PACKS = 6;                // a prerelease kit: six Play Boosters and one foil promo
 const PRE_SETS = ['fra'];           // v0.28: sets whose prerelease kit we know (Reality Fracture: six Play Boosters and a foil promo from the rare slot). Other sets' sealed events open six packs, no promo.
 const isPre = code => PRE_SETS.includes(code);
+const CUBE_BY = {df07:'DackFayden07'};   // who made each cube (list and guide): credited on the Cube Table's front page, at setup and in the guide
 const GUIDES = ["df07"];    // v0.28: cubes with an archetype guide in draft/cubes/<code>-archetypes.json (build.py lists them)
 const $ = (s, el=document) => el.querySelector(s), $$ = (s, el=document) => [...el.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -818,7 +819,7 @@ function render(){
     const groups=[...new Set(SETS.map(s=>s.group))];
     const sealed=V.mode==='sealed';
     h+=`<div class="bar"><h3>${host ? (sealed ? 'Set up the sealed event' : isCubeSet(V.set) ? 'Set up the cube draft' : 'Set up the draft') : 'Waiting for the host to start'}</h3></div>
-      <p class="hint" style="max-width:62ch;margin:0">Send your friends the code <b style="color:var(--ink);letter-spacing:.15em">${esc(CODE)}</b>. They open this page and choose Join with a code. ${sealed ? (isPre(V.set) ? `Each player opens a prerelease kit: six packs of ${esc(setName(V.set))} and a foil promo, then builds a 40-card deck from them.` : `Each player opens six packs of ${esc(setName(V.set))}, then builds a 40-card deck from them.`) : `Each player gets three packs of ${esc(setName(V.set))}; you pick one card and pass the rest.`}</p>`;
+      <p class="hint" style="max-width:62ch;margin:0">Send your friends the code <b style="color:var(--ink);letter-spacing:.15em">${esc(CODE)}</b>. They open this page and choose Join with a code. ${sealed ? (isPre(V.set) ? `Each player opens a prerelease kit: six packs of ${esc(setName(V.set))} and a foil promo, then builds a 40-card deck from them.` : `Each player opens six packs of ${esc(setName(V.set))}, then builds a 40-card deck from them.`) : `Each player gets three packs of ${esc(setName(V.set))}; you pick one card and pass the rest.${CUBE_BY[V.set] ? ` Cube list by ${esc(CUBE_BY[V.set])}.` : ''}`}</p>`;
     if(host) h+=`<div class="setrow">
         <div class="field"><label for="setSel">Set</label><select id="setSel">${groups.map(g=>`<optgroup label="${esc(g)}">${SETS.filter(s=>s.group===g).map(s=>`<option value="${s.code}"${s.code===V.set?' selected':''}>${esc(s.name)}</option>`).join('')}</optgroup>`).join('')}</select></div>
         ${sealed ? '' : `<div class="field"><label for="podSel">Seats</label><select id="podSel">${[2,3,4,5,6,7,8].map(n=>`<option${n===V.pod?' selected':''}>${n}</option>`).join('')}</select></div>
@@ -1402,7 +1403,8 @@ function frontPage(){
   const h1=$('.lhead h1'), lede=$('.lhead p'), corner=$('#lobby .corner'), host=$('#hostBtn'), sealedB=$('#sealedBtn');
   const setH1 = t => { h1.firstChild.nodeValue = t+' '; };
   const sw = (k, b, why, to, href, id) => `<${href?'a':'button'} class="choice sw${k==='gn'?' feature':''}"${href?` href="${href}"`:''}${id?` id="${id}"`:''}><span class="felt sw-${k}"><i></i><i></i></span><span><b>${b}</b><span>${why}</span>${to?`<span class="to ${k}">${to}</span>`:''}</span><span>→</span></${href?'a':'button'}>`;
-  { const lg=$('.lobbybox p.legal'), nm={gn:'Game Night', st:'The Sealed Table', ct:'The Cube Table'}[VARIANT]; if(lg && nm) lg.innerHTML=lg.innerHTML.replace('The Draft Table', nm); }
+  { const lg=$('.lobbybox p.legal'), nm={gn:'Game Night', st:'The Sealed Table', ct:'The Cube Table'}[VARIANT]; if(lg && nm) lg.innerHTML=lg.innerHTML.replace('The Draft Table', nm);
+    if(lg && VARIANT==='ct'){ const by=SETS.filter(x=>CUBE_BY[x.code]).map(x=>`${esc(x.name)}: cube list and archetype descriptions by ${esc(CUBE_BY[x.code])}.`).join(' '); if(by) lg.insertAdjacentHTML('beforeend', '<br>'+by); } }
   if(VARIANT==='gn'){
     document.title='Game Night'; setH1('Game Night');
     lede.textContent='Host an evening for up to eight friends: three Swiss rounds of Modern, or a draft, a sealed event or a cube. Everyone locks in a deck, then the matchmaking room pairs each round, runs the clock and keeps the standings.';

@@ -1,35 +1,250 @@
 {
   "name": "DF07's Legacy Cube",
-  "credit": "Adapted from DF07's own guide to the cube's archetypes.",
+  "credit": "Cube list and archetype descriptions by DackFayden07 (DF07), shortened here.",
   "list": [
-    {"n": "Artifacts", "c": "UR", "d": "The most flexible archetype in the cube, and the one that took longest to balance. Go fast with cheap artifact threats, add control pieces for longer midrange games, or assemble the Thopter combo: Thopter Foundry with Sword of the Meek (and Urza, Lord High Artificer) makes endless tokens and life. Most of the cards are blue and red; the combo needs a white or black splash.", "k": ["Thopter Foundry", "Sword of the Meek", "Urza, Lord High Artificer"]},
-    {"n": "White Aggro", "c": "W", "d": "Cheap aggressive creatures and hatebears that pressure the board early, with a little interaction. It can splash any color, or run three (Mardu, Naya, Abzan), but it stays mostly white.", "k": []},
-    {"n": "Red Aggro", "c": "R", "d": "A lower curve than Big Red: cheap creatures, burn and removal pointed at the opponent's face, cantrips, and mana held up for interaction. It sits between Izzet Tempo and Big Red.", "k": []},
-    {"n": "Big Red / Gruul", "c": "RG", "d": "Red creatures that hit hard, some burn and sometimes a little ramp. It often splashes green for mana creatures and stronger mid-cost threats, or white or black for extra removal.", "k": []},
-    {"n": "Mono Green Ramp", "c": "G", "d": "The usual win is Natural Order for Craterhoof Behemoth with a few mana creatures out, or an early Rofellos that buries the opponent in mana. Plenty of artifact and colorless payoffs fit as well.", "k": ["Natural Order", "Craterhoof Behemoth", "Rofellos, Llanowar Emissary"]},
-    {"n": "Azorius Blink", "c": "WU", "d": "Creatures with strong enter-the-battlefield effects take over the board, and blink effects use them again and again. Built to win long games.", "k": ["Phelia, Exuberant Shepherd", "Soulherder", "Ephemerate"]},
-    {"n": "Azorius Tempo", "c": "WU", "d": "Equal parts white and blue: less aggressive than White Aggro and more about interaction, without Blink's need for particular enter-the-battlefield pieces. Geist of Saint Traft is the model, a fast threat that ends the game when it's protected.", "k": ["Geist of Saint Traft"]},
-    {"n": "Boros Aggro", "c": "WR", "d": "White and red aggressive creatures, with white's strong removal and red's burn for reach. It can lean into a two-spells-a-turn theme.", "k": ["Cori-Steel Cutter", "Cosmogrand Zenith"]},
-    {"n": "Dimir Tempo", "c": "UB", "d": "A cube classic: strong removal, efficient tempo or value creatures, lots of counterspells and some card advantage.", "k": []},
-    {"n": "Golgari Creature Combo", "c": "BG", "d": "Creature decks that play a normal midrange game and can also win out of nowhere. The Warren Soultrader combo uses Warren Soultrader, Gravecrawler and Marionette Apprentice or Blood Artist; Aluren with Acererak the Archlich wins with two cards. Every piece is good on its own.", "k": ["Warren Soultrader", "Gravecrawler", "Marionette Apprentice", "Blood Artist", "Aluren", "Acererak the Archlich"]},
-    {"n": "Gruul Landfall", "c": "RG", "d": "Some of the best landfall creatures are in the cube; with good red-green staples around them they turn into fast beatdowns.", "k": []},
-    {"n": "Izzet Twin", "c": "UR", "d": "A control or tempo game plan with a two-card finish: Pestermite or Deceiver Exarch with Splinter Twin makes endless hasty creatures.", "k": ["Pestermite", "Deceiver Exarch", "Splinter Twin"]},
-    {"n": "Izzet Tempo", "c": "UR", "d": "Cantrips, cheap aggressive creatures, a few counterspells, and burn to clear blockers and finish early, with plenty left for a long game. It plays nothing like Izzet Artifacts or Izzet Twin.", "k": []},
-    {"n": "Orzhov Aggro", "c": "WB", "d": "White and black have most of the cube's removal. Build it aggressive with cheap creatures, or as midrange around Ketramose or a Lurrus engine. A small reanimation package fits well.", "k": ["Ketramose, the New Dawn", "Lurrus of the Dream-Den"]},
-    {"n": "Rakdos Sacrifice", "c": "BR", "d": "Aggressive and recursive creatures, ways to sacrifice them, and drain effects to finish the opponent, backed by discard and strong removal. The Warren Soultrader combo fits here too.", "k": ["Warren Soultrader", "Gravecrawler", "Blood Artist"]},
-    {"n": "Selesnya Aggro", "c": "WG", "d": "Often an Armageddon deck: mana creatures, hatebears and value creatures, then Armageddon or Cataclysm to lock in the win, or Balance when you're behind.", "k": ["Armageddon", "Cataclysm", "Balance"]},
-    {"n": "Naya Aggro", "c": "WRG", "d": "Plays much like Zoo, with an easier mana base and without the five-color payoffs.", "k": []},
-    {"n": "Zoo", "c": "WURG", "d": "A hidden archetype to move into when core cards like Territorial Kavu come early. Cheap aggressive creatures with burn, counterspells or hatebears. Take a lot of lands: the mana is the hard part.", "k": ["Territorial Kavu"]},
-    {"n": "Jund, Mardu and Abzan Midrange", "c": "WBRG", "d": "Close to the four-color midrange decks but more aggressive: creatures, removal and discard rather than planeswalkers, counterspells and blue card advantage.", "k": []},
-    {"n": "Three- to five-color Good Stuff", "c": "WUBRG", "d": "Usually starts with strong multicolor picks early, such as Omnath, Locus of Creation, or Leovold with Wheel of Fortune. Drafts are unpredictable, so these decks sometimes end up closer to control.", "k": ["Omnath, Locus of Creation", "Leovold, Emissary of Trest", "Wheel of Fortune"]},
-    {"n": "Control", "c": "", "d": "More spells than creatures. Kill or counter the opponent's best threats, then pull ahead on card advantage and find a win condition in time.", "k": []},
-    {"n": "Jeskai Saheeli Combo", "c": "WUR", "d": "Like Izzet Twin, a two-card win: Saheeli Rai and Felidar Guardian make endless hasty creatures. The white usually makes it more controlling.", "k": ["Saheeli Rai", "Felidar Guardian"]},
-    {"n": "Storm", "c": "", "d": "Can play out like a Vintage storm deck, minus the fast mana: it takes careful sequencing and some interaction to survive into the midgame, then it goes off.", "k": []},
-    {"n": "Aerith Combo", "c": "W", "d": "New from Final Fantasy: Aerith Gainsborough, Agatha's Soul Cauldron and Walking Ballista deal endless damage. Stay mono-white, or splash for more uses of the Cauldron.", "k": ["Aerith Gainsborough", "Agatha's Soul Cauldron", "Walking Ballista"]},
-    {"n": "Nadu Combo", "c": "UG", "d": "Nadu, Winged Wisdom with Lightning Greaves and Springheart Nantuko gives endless value, and with Endurance you can draw your whole deck. There's no Thassa's Oracle, so it wins by out-valuing the opponent rather than on the spot.", "k": ["Nadu, Winged Wisdom", "Lightning Greaves", "Springheart Nantuko", "Endurance"]},
-    {"n": "Reanimator", "c": "", "d": "Fill the graveyard with big threats as fast as possible, then bring them back. Possible in several colors; the cube has graveyard hate to keep it in check.", "k": []},
-    {"n": "Show and Tell", "c": "UR", "d": "Cheat big creatures into play. Emrakul, the Aeons Torn is the cleanest win, but other big payoffs work too.", "k": ["Show and Tell", "Sneak Attack", "Through the Breach", "Flash", "Emrakul, the Aeons Torn"]},
-    {"n": "Strip Mine", "c": "G", "d": "A land that makes its own archetype, usually with green: a mana creature on turn one, Strip Mine on turn two, then Wrenn and Six to return it and do it again.", "k": ["Strip Mine", "Wrenn and Six"]},
-    {"n": "Tinker", "c": "U", "d": "An early Tinker for Blightsteel Colossus steals games. Daretti, Scrap Savant can also bring big artifacts back from the graveyard, so mono-blue and Izzet builds both work.", "k": ["Tinker", "Blightsteel Colossus", "Daretti, Scrap Savant"]}
+    {
+      "n": "Artifacts",
+      "c": "UR",
+      "d": "The most flexible archetype in the cube, and the one that took longest to balance. Go fast with cheap artifact threats, add control pieces for longer midrange games, or assemble the Thopter combo: Thopter Foundry with Sword of the Meek (and Urza, Lord High Artificer) makes endless tokens and life. Most of the cards are blue and red; the combo needs a white or black splash.",
+      "k": [
+        "Thopter Foundry",
+        "Sword of the Meek",
+        "Urza, Lord High Artificer"
+      ]
+    },
+    {
+      "n": "White Aggro",
+      "c": "W",
+      "d": "Cheap aggressive creatures and hatebears that pressure the board early, with a little interaction. It can splash any color, or run three (Mardu, Naya, Abzan), but it stays mostly white.",
+      "k": []
+    },
+    {
+      "n": "Red Aggro",
+      "c": "R",
+      "d": "A lower curve than Big Red: cheap creatures, burn and removal pointed at the opponent's face, cantrips, and mana held up for interaction. It sits between Izzet Tempo and Big Red.",
+      "k": []
+    },
+    {
+      "n": "Big Red / Gruul",
+      "c": "RG",
+      "d": "Red creatures that hit hard, some burn and sometimes a little ramp. It often splashes green for mana creatures and stronger mid-cost threats, or white or black for extra removal.",
+      "k": []
+    },
+    {
+      "n": "Mono Green Ramp",
+      "c": "G",
+      "d": "The usual win is Natural Order for Craterhoof Behemoth with a few mana creatures out, or an early Rofellos that buries the opponent in mana. Plenty of artifact and colorless payoffs fit as well.",
+      "k": [
+        "Natural Order",
+        "Craterhoof Behemoth",
+        "Rofellos, Llanowar Emissary"
+      ]
+    },
+    {
+      "n": "Azorius Blink",
+      "c": "WU",
+      "d": "Creatures with strong enter-the-battlefield effects take over the board, and blink effects use them again and again. Built to win long games.",
+      "k": [
+        "Phelia, Exuberant Shepherd",
+        "Soulherder",
+        "Ephemerate"
+      ]
+    },
+    {
+      "n": "Azorius Tempo",
+      "c": "WU",
+      "d": "Equal parts white and blue: less aggressive than White Aggro and more about interaction, without Blink's need for particular enter-the-battlefield pieces. Geist of Saint Traft is the model, a fast threat that ends the game when it's protected.",
+      "k": [
+        "Geist of Saint Traft"
+      ]
+    },
+    {
+      "n": "Boros Aggro",
+      "c": "WR",
+      "d": "White and red aggressive creatures, with white's strong removal and red's burn for reach. It can lean into a two-spells-a-turn theme.",
+      "k": [
+        "Cori-Steel Cutter",
+        "Cosmogrand Zenith"
+      ]
+    },
+    {
+      "n": "Dimir Tempo",
+      "c": "UB",
+      "d": "A cube classic: strong removal, efficient tempo or value creatures, lots of counterspells and some card advantage.",
+      "k": []
+    },
+    {
+      "n": "Golgari Creature Combo",
+      "c": "BG",
+      "d": "Creature decks that play a normal midrange game and can also win out of nowhere. The Warren Soultrader combo uses Warren Soultrader, Gravecrawler and Marionette Apprentice or Blood Artist; Aluren with Acererak the Archlich wins with two cards. Every piece is good on its own.",
+      "k": [
+        "Warren Soultrader",
+        "Gravecrawler",
+        "Marionette Apprentice",
+        "Blood Artist",
+        "Aluren",
+        "Acererak the Archlich"
+      ]
+    },
+    {
+      "n": "Gruul Landfall",
+      "c": "RG",
+      "d": "Some of the best landfall creatures are in the cube; with good red-green staples around them they turn into fast beatdowns.",
+      "k": []
+    },
+    {
+      "n": "Izzet Twin",
+      "c": "UR",
+      "d": "A control or tempo game plan with a two-card finish: Pestermite or Deceiver Exarch with Splinter Twin makes endless hasty creatures.",
+      "k": [
+        "Pestermite",
+        "Deceiver Exarch",
+        "Splinter Twin"
+      ]
+    },
+    {
+      "n": "Izzet Tempo",
+      "c": "UR",
+      "d": "Cantrips, cheap aggressive creatures, a few counterspells, and burn to clear blockers and finish early, with plenty left for a long game. It plays nothing like Izzet Artifacts or Izzet Twin.",
+      "k": []
+    },
+    {
+      "n": "Orzhov Aggro",
+      "c": "WB",
+      "d": "White and black have most of the cube's removal. Build it aggressive with cheap creatures, or as midrange around Ketramose or a Lurrus engine. A small reanimation package fits well.",
+      "k": [
+        "Ketramose, the New Dawn",
+        "Lurrus of the Dream-Den"
+      ]
+    },
+    {
+      "n": "Rakdos Sacrifice",
+      "c": "BR",
+      "d": "Aggressive and recursive creatures, ways to sacrifice them, and drain effects to finish the opponent, backed by discard and strong removal. The Warren Soultrader combo fits here too.",
+      "k": [
+        "Warren Soultrader",
+        "Gravecrawler",
+        "Blood Artist"
+      ]
+    },
+    {
+      "n": "Selesnya Aggro",
+      "c": "WG",
+      "d": "Often an Armageddon deck: mana creatures, hatebears and value creatures, then Armageddon or Cataclysm to lock in the win, or Balance when you're behind.",
+      "k": [
+        "Armageddon",
+        "Cataclysm",
+        "Balance"
+      ]
+    },
+    {
+      "n": "Naya Aggro",
+      "c": "WRG",
+      "d": "Plays much like Zoo, with an easier mana base and without the five-color payoffs.",
+      "k": []
+    },
+    {
+      "n": "Zoo",
+      "c": "WURG",
+      "d": "A hidden archetype to move into when core cards like Territorial Kavu come early. Cheap aggressive creatures with burn, counterspells or hatebears. Take a lot of lands: the mana is the hard part.",
+      "k": [
+        "Territorial Kavu"
+      ]
+    },
+    {
+      "n": "Jund, Mardu and Abzan Midrange",
+      "c": "WBRG",
+      "d": "Close to the four-color midrange decks but more aggressive: creatures, removal and discard rather than planeswalkers, counterspells and blue card advantage.",
+      "k": []
+    },
+    {
+      "n": "Three- to five-color Good Stuff",
+      "c": "WUBRG",
+      "d": "Usually starts with strong multicolor picks early, such as Omnath, Locus of Creation, or Leovold with Wheel of Fortune. Drafts are unpredictable, so these decks sometimes end up closer to control.",
+      "k": [
+        "Omnath, Locus of Creation",
+        "Leovold, Emissary of Trest",
+        "Wheel of Fortune"
+      ]
+    },
+    {
+      "n": "Control",
+      "c": "",
+      "d": "More spells than creatures. Kill or counter the opponent's best threats, then pull ahead on card advantage and find a win condition in time.",
+      "k": []
+    },
+    {
+      "n": "Jeskai Saheeli Combo",
+      "c": "WUR",
+      "d": "Like Izzet Twin, a two-card win: Saheeli Rai and Felidar Guardian make endless hasty creatures. The white usually makes it more controlling.",
+      "k": [
+        "Saheeli Rai",
+        "Felidar Guardian"
+      ]
+    },
+    {
+      "n": "Storm",
+      "c": "",
+      "d": "Can play out like a Vintage storm deck, minus the fast mana: it takes careful sequencing and some interaction to survive into the midgame, then it goes off.",
+      "k": []
+    },
+    {
+      "n": "Aerith Combo",
+      "c": "W",
+      "d": "New from Final Fantasy: Aerith Gainsborough, Agatha's Soul Cauldron and Walking Ballista deal endless damage. Stay mono-white, or splash for more uses of the Cauldron.",
+      "k": [
+        "Aerith Gainsborough",
+        "Agatha's Soul Cauldron",
+        "Walking Ballista"
+      ]
+    },
+    {
+      "n": "Nadu Combo",
+      "c": "UG",
+      "d": "Nadu, Winged Wisdom with Lightning Greaves and Springheart Nantuko gives endless value, and with Endurance you can draw your whole deck. There's no Thassa's Oracle, so it wins by out-valuing the opponent rather than on the spot.",
+      "k": [
+        "Nadu, Winged Wisdom",
+        "Lightning Greaves",
+        "Springheart Nantuko",
+        "Endurance"
+      ]
+    },
+    {
+      "n": "Reanimator",
+      "c": "",
+      "d": "Fill the graveyard with big threats as fast as possible, then bring them back. Possible in several colors; the cube has graveyard hate to keep it in check.",
+      "k": []
+    },
+    {
+      "n": "Show and Tell",
+      "c": "UR",
+      "d": "Cheat big creatures into play. Emrakul, the Aeons Torn is the cleanest win, but other big payoffs work too.",
+      "k": [
+        "Show and Tell",
+        "Sneak Attack",
+        "Through the Breach",
+        "Flash",
+        "Emrakul, the Aeons Torn"
+      ]
+    },
+    {
+      "n": "Strip Mine",
+      "c": "G",
+      "d": "A land that makes its own archetype, usually with green: a mana creature on turn one, Strip Mine on turn two, then Wrenn and Six to return it and do it again.",
+      "k": [
+        "Strip Mine",
+        "Wrenn and Six"
+      ]
+    },
+    {
+      "n": "Tinker",
+      "c": "U",
+      "d": "An early Tinker for Blightsteel Colossus steals games. Daretti, Scrap Savant can also bring big artifacts back from the graveyard, so mono-blue and Izzet builds both work.",
+      "k": [
+        "Tinker",
+        "Blightsteel Colossus",
+        "Daretti, Scrap Savant"
+      ]
+    }
   ]
 }
