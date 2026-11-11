@@ -285,6 +285,26 @@ a.btnlink{text-decoration:none}
 .dialog .cap{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);font-weight:800}
 .res{display:grid;grid-template-columns:1fr 1fr;gap:8px}.res button{padding:10px}.res .wide{grid-column:1/-1}
 .drow{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+/* cube archetype guide (v0.28) */
+#guide{position:fixed;inset:0;z-index:75;background:#000a;display:grid;place-items:center;padding:16px}
+.gpanel{width:min(1180px,100%);height:min(100%,900px);display:flex;flex-direction:column;background:var(--felt);border:1px solid var(--brass);border-radius:12px;box-shadow:0 20px 50px #000b;overflow:hidden}
+.ghead{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid var(--line);background:var(--deepa)}
+.ghead h2{margin:0;font:600 20px var(--display,var(--ui));color:var(--ink)}
+.gfilt{display:flex;align-items:center;gap:4px;margin-left:auto;flex-wrap:wrap}.gfilt .hint{margin-right:4px}
+.gscroll{flex:1;overflow:auto;padding:14px 18px 20px;min-height:0;user-select:text;-webkit-user-select:text}
+.gnote{margin:0 0 12px}
+.ggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.garch{background:var(--chip);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.gtop{display:flex;align-items:flex-start;gap:10px;justify-content:space-between}
+.garch h3{margin:0;font-size:15px;color:var(--ink);text-wrap:balance}
+.garch p{margin:0;font-size:13px;line-height:1.5;color:var(--ink);opacity:.9}
+.gpips{display:flex;gap:3px;flex:none}
+.gany{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);white-space:nowrap}
+.gkeys{display:flex;flex-wrap:wrap;gap:5px;margin-top:auto}
+.gk{font-size:12px;padding:3px 8px;border-radius:999px;background:var(--well);border:1px solid var(--line);color:var(--ink);cursor:default}
+.gk:hover{border-color:var(--brass)}
+.gk.mine{border-color:var(--good);color:var(--good)}
+@media (max-width:760px){ .ghead{position:relative;padding-right:56px} #guideX{position:absolute;top:14px;right:14px} .gfilt{margin-left:0} .gfilt .hint{flex-basis:100%} .ggrid{grid-template-columns:1fr} }
 </style>
 </head>
 <body>
@@ -292,12 +312,12 @@ a.btnlink{text-decoration:none}
   <a class="corner" href="../">Modern Table →</a>
   <div class="lobbybox">
     <div class="lhead"><h1>Draft Table <small id="verTag" style="font:600 13px var(--ui);color:var(--dim);letter-spacing:.08em"></small></h1>
-    <p>Booster draft or a prerelease for up to eight, with packs built to each set's real odds. Build a 40-card deck, then play your matches on the <a href="../">Modern Table</a>.</p></div>
+    <p>Booster draft for up to eight, with packs built to each set's real odds. Build a 40-card deck, then play your matches on the <a href="../">Modern Table</a>.</p></div>
     <div class="lmain">
     <div class="field"><label for="nameIn">Your name</label><input id="nameIn" maxlength="20" placeholder="Planeswalker"></div>
     <div class="choices">
       <button class="choice" id="hostBtn"><div><b>Host a draft</b><span>Pick the set, get a six-letter code for your friends. Bots fill empty seats.</span></div><span>→</span></button>
-      <button class="choice" id="sealedBtn"><div><b>Host a prerelease</b><span>Sealed: everyone opens a prerelease kit of six packs and a foil promo, builds 40 cards, then plays three rounds.</span></div><span>→</span></button>
+      <button class="choice" id="sealedBtn"><div><b>Host a sealed event</b><span>Everyone opens six packs (for Reality Fracture, a prerelease kit with a foil promo), builds 40 cards, then plays three rounds.</span></div><span>→</span></button>
       <div class="choice" style="border:1px solid var(--line);border-radius:6px">
         <div style="flex:1;min-width:0"><b>Join with a code</b><div class="joinrow" style="margin-top:6px"><input id="codeIn" maxlength="6" placeholder="CODE" aria-label="Draft code"><button id="joinBtn" class="go">Join</button></div></div>
       </div>
@@ -311,9 +331,10 @@ a.btnlink{text-decoration:none}
 </div>
 
 <div id="room" class="screen" hidden>
-  <div class="topbar"><h2>Draft Table</h2><span class="pill" id="setPill"></span><span class="pill" id="codePill" title="Click to copy"></span><span class="pill" id="netPill"></span><button id="leaveBtn" class="ghost sm">Leave</button></div>
+  <div class="topbar"><h2>Draft Table</h2><span class="pill" id="setPill"></span><span class="pill" id="codePill" title="Click to copy"></span><span class="pill" id="netPill"></span><button id="guideBtn" class="ghost sm" hidden>Archetypes</button><button id="leaveBtn" class="ghost sm">Leave</button></div>
   <div class="body" id="roomBody"><div id="rail"></div><div id="main"></div><aside id="chatCol" hidden aria-label="Chat"><h3>Chat</h3><div id="msgs"></div><form class="chatform" id="chatForm"><input id="chatIn" maxlength="300" placeholder="Say something to everyone" aria-label="Chat message" autocomplete="off"><button class="go" type="submit">Send</button></form></aside></div>
 </div>
+<div id="guide" hidden></div>
 <div id="zoom" hidden></div>
 <div id="veil" hidden></div>
 <div id="toast"></div>
@@ -323,9 +344,10 @@ a.btnlink{text-decoration:none}
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v0.27';
+const VERSION = 'v0.28';
 /* What's new on the front page (v0.19, like the Modern Table's NEWS): newest first, written for players. Add a line with every version bump. */
 const DNEWS = [
+  ['v0.28','Nov 11',"Cube Table: an Archetypes guide for DF07's Legacy Cube (29 archetypes with their key cards, filtered by color), open from the front page or the top bar at any point in the event. Sealed events are prereleases only for Reality Fracture, the one set whose kit and promo we know; other sets open six packs. The Draft Table now hosts drafts only."],
   ['v0.27','Nov 11',"Game Night: at time, the host's Yes enforces the end-of-round turns at every table still playing; No means no time limit, so those matches play out."],
   ['v0.26','Nov 11',"Game Night: a navy page (the Game Night link on the Modern Table) hosts Modern Night Magic for up to eight, and Draft, Sealed and Cube each open straight to their own table's setup. Every event ends in the same matchmaking room: chat, a 3-minute break before each round, tables with their voice channel, one round clock, results confirmed by both players, pairings by standings, and decks revealed in the final standings."],
   ['v0.25','Nov 10',"The Draft Table now keeps an anonymous count of visits and of drafts and sealed events started. No cookies and no names."],
@@ -358,6 +380,9 @@ const SETS = SETS_ALL.filter(s=>READY.includes(s.code) && (VARIANT==='ct' ? s.gr
 const PREFIX = 'draft-table-v1-';
 const BACK_IMG = 'https://backs.scryfall.io/large/0/a/0aeebaf5-8c7d-4636-9e82-8c27447861f7.jpg';   // the card back the Modern Table uses
 const KIT_PACKS = 6;                // a prerelease kit: six Play Boosters and one foil promo
+const PRE_SETS = ['fra'];           // v0.28: sets whose prerelease kit we know (Reality Fracture: six Play Boosters and a foil promo from the rare slot). Other sets' sealed events open six packs, no promo.
+const isPre = code => PRE_SETS.includes(code);
+const GUIDES = /*__GUIDES__*/[];    // v0.28: cubes with an archetype guide in draft/cubes/<code>-archetypes.json (build.py lists them)
 const $ = (s, el=document) => el.querySelector(s), $$ = (s, el=document) => [...el.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -479,9 +504,9 @@ function genPack(set, nextUid){
 }
 
 /* The prerelease promo: one traditional foil card from the booster's rare slot (its "rare…" sheet, at that sheet's odds),
-   counting each card once at its lowest collector number so the promo is the plain printing. None for cubes. */
+   counting each card once at its lowest collector number so the promo is the plain printing. Only for PRE_SETS (v0.28); none for cubes. */
 function promoFor(set, nextUid){
-  if(set.cube) return null;
+  if(set.cube || !isPre(set.code)) return null;
   const name=Object.keys(set.sheets).find(k=>/^rare/.test(k)); if(!name) return null;
   const sh=set.sheets[name], best=new Map(), num=id=>parseInt(id.split(':')[1],10)||9999;
   for(let i=0;i<sh.c.length;i+=2){ const id=baseId(set.ids[sh.c[i]]), d=CARDS[id], key=d ? d.n : id, w=sh.c[i+1], b=best.get(key);
@@ -753,6 +778,7 @@ function drawTop(){
   const rs = V && V.tour && V.tour.total ? roomState() : null;
   $('#setPill').textContent = rs ? (rs.stage==='final' ? 'Final standings' : rs.stage==='break' ? `Break before round ${rs.R+1} of ${V.tour.total}` : `Round ${rs.R+1} of ${V.tour.total}`) : V && V.mode==='modern' ? 'Locking in decks' : V ? setName(V.set) : '';
   $('#setPill').hidden = !$('#setPill').textContent;
+  $('#guideBtn').hidden = !(V && GUIDES.includes(V.set));
   $('#codePill').innerHTML = 'Code <b>'+esc(CODE)+'</b>';
   const map={ opening:['Opening…','warn'], open:['Hosting','ok'], retry:['Reclaiming code…','warn'], error:['Connection problem, retrying','warn'], offline:['Offline','warn'], joining:['Connecting…','warn'], connected:['Connected','ok'], nohost:['Host not found yet, retrying','warn'] };
   const m=map[NET]||['','']; const el=$('#netPill'); el.textContent=m[0]; el.className='pill '+m[1]; el.hidden=!m[0];
@@ -782,7 +808,7 @@ function render(){
     r+=`<div class="seat ${i===V.me?'me ':''}${!s.on?'off':busy2?'busy':'on'}"><span class="dot"></span><span class="nm">${esc(s.name)}${i===V.me?' (you)':''}${s.host?' · host':''}<small>${esc(note)}${!s.on?' · disconnected':''}</small></span><span>${host && !s.bot && i!==V.me && V.phase==='draft' ? `<button class="sm" data-force="${i}" title="Pick for this player now"${busy?'':' disabled'}>Pick</button>` : rec ? `<span class="rec">${rec}</span>` : ''}</span></div>`;
     if(dir && i<V.seats.length-1) r+=`<div class="arrow">${dir[0]}</div>`;
   });
-  if(V.phase==='lobby'){ const open=V.pod-V.seats.length; if(open>0) r+= V.mode==='sealed' ? `<p class="hint">Room for ${open} more. Everyone who has joined when you start gets a kit.</p>` : `<p class="hint">${open} open seat${open>1?'s':''}. Bots take any that are still empty when the draft starts.</p>`; }
+  if(V.phase==='lobby'){ const open=V.pod-V.seats.length; if(open>0) r+= V.mode==='sealed' ? `<p class="hint">Room for ${open} more. Everyone who has joined when you start gets ${isPre(V.set) ? 'a kit' : 'six packs'}.</p>` : `<p class="hint">${open} open seat${open>1?'s':''}. Bots take any that are still empty when the draft starts.</p>`; }
   if(dir) r+=`<p class="hint">${V.round===2 ? 'Pack 2 passes right (up this list).' : `Pack ${V.round} passes left (down this list).`}</p>`;
   setHTML($('#rail'), r);
 
@@ -792,14 +818,13 @@ function render(){
     const groups=[...new Set(SETS.map(s=>s.group))];
     const sealed=V.mode==='sealed';
     h+=`<div class="bar"><h3>${host ? (sealed ? 'Set up the sealed event' : isCubeSet(V.set) ? 'Set up the cube draft' : 'Set up the draft') : 'Waiting for the host to start'}</h3></div>
-      <p class="hint" style="max-width:62ch;margin:0">Send your friends the code <b style="color:var(--ink);letter-spacing:.15em">${esc(CODE)}</b>. They open this page and choose Join with a code. ${sealed ? `Each player opens a prerelease kit: six packs of ${esc(setName(V.set))} and a foil promo, then builds a 40-card deck from them.` : `Each player gets three packs of ${esc(setName(V.set))}; you pick one card and pass the rest.`}</p>`;
+      <p class="hint" style="max-width:62ch;margin:0">Send your friends the code <b style="color:var(--ink);letter-spacing:.15em">${esc(CODE)}</b>. They open this page and choose Join with a code. ${sealed ? (isPre(V.set) ? `Each player opens a prerelease kit: six packs of ${esc(setName(V.set))} and a foil promo, then builds a 40-card deck from them.` : `Each player opens six packs of ${esc(setName(V.set))}, then builds a 40-card deck from them.`) : `Each player gets three packs of ${esc(setName(V.set))}; you pick one card and pass the rest.`}</p>`;
     if(host) h+=`<div class="setrow">
-        ${VARIANT==='dt' ? `<div class="field"><label for="fmtSel">Format</label><select id="fmtSel"><option value="draft"${sealed?'':' selected'}>Booster draft</option><option value="sealed"${sealed?' selected':''}>Prerelease (sealed)</option></select></div>` : ''}
         <div class="field"><label for="setSel">Set</label><select id="setSel">${groups.map(g=>`<optgroup label="${esc(g)}">${SETS.filter(s=>s.group===g).map(s=>`<option value="${s.code}"${s.code===V.set?' selected':''}>${esc(s.name)}</option>`).join('')}</optgroup>`).join('')}</select></div>
         ${sealed ? '' : `<div class="field"><label for="podSel">Seats</label><select id="podSel">${[2,3,4,5,6,7,8].map(n=>`<option${n===V.pod?' selected':''}>${n}</option>`).join('')}</select></div>
         <div class="field"><label for="timeSel">Pick timer</label><select id="timeSel">${[[0,'Off'],[45,'45 seconds'],[75,'75 seconds'],[120,'2 minutes']].map(([n,l])=>`<option value="${n}"${n===V.timer?' selected':''}>${l}</option>`).join('')}</select></div>`}
-        <button class="go" id="startBtn"${V.busy?' disabled':''}>${sealed ? 'Start the prerelease' : 'Start the draft'}</button></div><p class="hint" id="busyMsg" style="margin:0">${esc(V.busy)}</p>`;
-    else h+=`<p class="hint" style="margin:0">${esc(V.busy || (sealed ? `Prerelease · ${setName(V.set)} · up to ${V.pod} players` : `${setName(V.set)} · ${V.pod} seats · ${V.timer ? V.timer+' second pick timer' : 'no pick timer'}`))}</p>`;
+        <button class="go" id="startBtn"${V.busy?' disabled':''}>${sealed ? (isPre(V.set) ? 'Start the prerelease' : 'Start the event') : 'Start the draft'}</button></div><p class="hint" id="busyMsg" style="margin:0">${esc(V.busy)}</p>`;
+    else h+=`<p class="hint" style="margin:0">${esc(V.busy || (sealed ? `${isPre(V.set) ? 'Prerelease' : 'Sealed'} · ${setName(V.set)} · up to ${V.pod} players` : `${setName(V.set)} · ${V.pod} seats · ${V.timer ? V.timer+' second pick timer' : 'no pick timer'}`))}</p>`;
   }
   else if(V.phase==='draft'){
     const n=V.seats.length, from=V.seats[(V.me-dirOf(V.round)+n)%n];
@@ -900,7 +925,7 @@ function buildHTML(host, me){
   loadBuild(); { const k=basicPref(); if(k!=='std' && k!=='rnd' && !BART[k]) setTimeout(()=>basicArtLoad(k), 0); }
   const sealed=V.mode==='sealed', opening = sealed && !(B.op && B.op.built);
   const T=V.tour, deck=V.pool.filter(inMain).sort(byColour), side=V.pool.filter(c=>!inMain(c)).sort(byColour), lt=landTotal(), total=deck.length+lt;
-  let h=`<div class="bar"><button class="${tabNow==='deck'?'on':''}" data-tab="deck">${opening ? 'Your kit' : 'Your deck'}</button><button class="${tabNow==='tour'?'on':''}" data-tab="tour">Matchmaking</button><span style="margin-left:auto"></span>${V.phase==='build' && !opening ? `<button class="${me.ready?'on':'go'}" id="readyBtn">${me.ready?'Ready ✓ (click to keep building)':'My deck is ready'}</button>` : ''}</div>`;
+  let h=`<div class="bar"><button class="${tabNow==='deck'?'on':''}" data-tab="deck">${opening ? (isPre(V.set) ? 'Your kit' : 'Your packs') : 'Your deck'}</button><button class="${tabNow==='tour'?'on':''}" data-tab="tour">Matchmaking</button><span style="margin-left:auto"></span>${V.phase==='build' && !opening ? `<button class="${me.ready?'on':'go'}" id="readyBtn">${me.ready?'Ready ✓ (click to keep building)':'My deck is ready'}</button>` : ''}</div>`;
   if(tabNow==='deck' && opening) h+=kitHTML();
   else if(tabNow==='deck'){
     h+=`<div class="bar"><h3>${total} cards</h3><span class="hint">${deck.length} from your picks + ${lt} basic land${lt===1?'':'s'}${total<40?' · a draft deck needs at least 40':''}</span><span style="margin-left:auto"></span><button id="saveBtn">Save to my Modern Table decks</button><button id="copyBtn">Copy list</button></div>
@@ -1064,8 +1089,7 @@ $('#main').addEventListener('click', e=>{
 $('#main').addEventListener('input', e=>{ if(e.target && e.target.id==='lkQ'){ LK.q=e.target.value; LK.pick=null; LK.confirm=false; render(); const q=$('#lkQ'); if(q){ q.focus(); q.setSelectionRange(q.value.length, q.value.length); } } });
 $('#main').addEventListener('change', e=>{
   if(ROLE!=='host' || !H || H.phase!=='lobby') return;
-  if(e.target.id==='fmtSel'){ H.mode=e.target.value==='sealed'?'sealed':'draft'; H.pod = H.mode==='sealed' ? 8 : Math.max(Math.min(H.pod, 8), H.seats.length); }
-  else if(e.target.id==='setSel') H.set=e.target.value; else if(e.target.id==='podSel') H.pod=Math.max(+e.target.value, H.seats.length); else if(e.target.id==='timeSel') H.timer=+e.target.value; else return;
+  if(e.target.id==='setSel') H.set=e.target.value; else if(e.target.id==='podSel') H.pod=Math.max(+e.target.value, H.seats.length); else if(e.target.id==='timeSel') H.timer=+e.target.value; else return;
   sync();
 });
 const DRAG={on:null, end:0};
@@ -1093,13 +1117,53 @@ $('#leaveBtn').onclick=()=>{ if(!confirm(ROLE==='host' ? 'Leave? You are the hos
 /* hover: a readable copy of the card */
 function hideZoom(){ $('#zoom').hidden=true; }
 document.addEventListener('mouseover', e=>{
-  const c=e.target.closest && e.target.closest('.c'); if(!c){ hideZoom(); return; }
-  const d=CARDS[c.dataset.id]; if(!d || !d.img){ hideZoom(); return; }
+  const c=e.target.closest && e.target.closest('.c,[data-zid]'); if(!c){ hideZoom(); return; }
+  const d=CARDS[c.dataset.id || c.dataset.zid]; if(!d || !d.img){ hideZoom(); return; }
   const z=$('#zoom'), r=c.getBoundingClientRect(), w=d.back?612:300, h=420;
   z.innerHTML=`<img src="${esc(d.img)}" alt="">${d.back?`<img src="${esc(d.back)}" alt="">`:''}`;
   let x=r.right+10; if(x+w>innerWidth) x=r.left-w-10; if(x<4) x=4;
   z.style.left=x+'px'; z.style.top=Math.max(4, Math.min(innerHeight-h-4, r.top+r.height/2-h/2))+'px'; z.hidden=false;
 });
+
+/* ================= cube archetype guides (v0.28) =================
+   draft/cubes/<code>-archetypes.json ({name, credit, list:[{n, c: colors 'WU…' ('' = any), d, k: key card names}]}), listed in GUIDES by
+   build.py, which also warns about key cards missing from the cube's list. Opened from the Cube Table's front page and from the top bar
+   (#guideBtn) whenever the event's set has one, so every player can read it during the draft. Key cards are looked up like cube cards
+   (ids n|Name) so the hover enlargement shows them; ones already in your picks get a check. Color buttons filter (all selected colors). */
+const GUIDE_DATA = {};
+let GUIDE = null;   // {code, sel: colors chosen in the filter}
+async function openGuide(code){
+  GUIDE={code, sel:(GUIDE && GUIDE.code===code) ? GUIDE.sel : ''}; paintGuide();
+  if(!GUIDE_DATA[code]){ try{ const r=await fetch(DBASE+'cubes/'+code+'-archetypes.json'); if(!r.ok) throw new Error(r.status); GUIDE_DATA[code]=await r.json(); }
+    catch(e){ if(GUIDE && GUIDE.code===code){ closeGuide(); toast('Could not load the archetypes. Check your connection and try again.'); } return; } }
+  if(!GUIDE || GUIDE.code!==code) return;
+  paintGuide();
+  if(!V || V.set===code){ useCache(code); ensure(GUIDE_DATA[code].list.flatMap(a=>a.k).map(n=>'n|'+n)).then(()=>{ if(GUIDE) paintGuide(); }); }
+}
+function closeGuide(){ GUIDE=null; const g=$('#guide'); g.hidden=true; g.innerHTML=''; hideZoom(); }
+function paintGuide(){
+  const g=$('#guide'); if(!GUIDE){ closeGuide(); return; }
+  const G=GUIDE_DATA[GUIDE.code], sel=GUIDE.sel, mine=new Set(V && V.set===GUIDE.code ? (V.pool||[]).map(c=>c.id) : []);
+  const scroll=$('.gscroll', g) ? $('.gscroll', g).scrollTop : 0;
+  const pips=c => c ? `<span class="gpips">${[...c].map(manaSym).join('')}</span>` : '<span class="gany">Any colors</span>';
+  const shown=G ? G.list.filter(a=>!a.c || [...sel].every(k=>a.c.includes(k))) : [];
+  g.innerHTML=`<div class="gpanel" role="dialog" aria-label="Archetypes">
+    <div class="ghead"><div style="min-width:0"><h2>Archetypes</h2><p class="hint" style="margin:0">${esc(G ? G.name : setName(GUIDE.code))}${G ? ` · ${G.list.length} archetypes` : ''}</p></div>
+      <div class="gfilt"><span class="hint">Show decks with</span>${[...'WUBRG'].map(k=>`<button class="pipbtn${sel.includes(k)?' on':''}" data-gc="${k}" aria-pressed="${sel.includes(k)}" title="${{W:'White',U:'Blue',B:'Black',R:'Red',G:'Green'}[k]}">${manaSym(k)}</button>`).join('')}<button class="ghost sm" data-gc=""${sel?'':' disabled'}>All</button></div>
+      <button class="ghost sm" id="guideX" aria-label="Close">✕</button></div>
+    <div class="gscroll">${!G ? '<p class="hint">Loading…</p>' : `<p class="hint gnote">${esc(G.credit)} Point at a card name to see the card${mine.size ? '; ✓ marks key cards already in your picks' : ''}.</p>
+      <div class="ggrid">${shown.map(a=>`<article class="garch"><div class="gtop"><h3>${esc(a.n)}</h3>${pips(a.c)}</div><p>${esc(a.d)}</p>${a.k.length ? `<div class="gkeys">${a.k.map(n=>`<span class="gk${mine.has('n|'+n)?' mine':''}" data-zid="${esc('n|'+n)}">${mine.has('n|'+n)?'✓ ':''}${esc(n)}</span>`).join('')}</div>` : ''}</article>`).join('')}</div>
+      ${shown.length ? '' : '<p class="hint">No archetype uses all of those colors.</p>'}`}</div></div>`;
+  g.hidden=false; const sc=$('.gscroll', g); if(sc) sc.scrollTop=scroll;
+}
+document.addEventListener('click', e=>{
+  const o=e.target.closest('[data-guide]'); if(o){ openGuide(o.dataset.guide); return; }
+  if(!GUIDE) return;
+  if(e.target.id==='guide' || e.target.closest('#guideX')){ closeGuide(); return; }
+  const b=e.target.closest('#guide [data-gc]'); if(b){ const k=b.dataset.gc; GUIDE.sel = !k ? '' : GUIDE.sel.includes(k) ? GUIDE.sel.replace(k,'') : GUIDE.sel+k; paintGuide(); }
+});
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && GUIDE){ e.stopImmediatePropagation(); closeGuide(); } }, true);
+$('#guideBtn').onclick=()=>{ if(V && GUIDES.includes(V.set)) openGuide(V.set); };
 
 /* ================= Game Night (v0.26) =================
    Ben's design: a navy Game Night page (night/) hosts Modern {day} Night Magic for up to 8; Draft, Sealed and Cube open straight to their
@@ -1113,7 +1177,7 @@ const themeFor = v => !v ? VARIANT : v.mode==='modern' ? 'gn' : v.mode==='sealed
 function applyTheme(k){ const b=document.body.classList; b.remove('th-gn','th-st','th-ct'); if(k && k!=='dt') b.add('th-'+k); }
 const DAYNAME = () => new Date().toLocaleDateString('en-US', {weekday:'long'});
 const nightTitle = () => `Modern ${DAYNAME()} Night Magic`;
-const eventTitle = v => v.mode==='modern' ? nightTitle() : v.mode==='sealed' ? `Sealed: ${setName(v.set)}` : isCubeSet(v.set) ? `Cube: ${setName(v.set)}` : `Draft: ${setName(v.set)}`;
+const eventTitle = v => v.mode==='modern' ? nightTitle() : v.mode==='sealed' ? `${isPre(v.set) ? 'Prerelease' : 'Sealed'}: ${setName(v.set)}` : isCubeSet(v.set) ? `Cube: ${setName(v.set)}` : `Draft: ${setName(v.set)}`;
 const hostNow = () => Date.now() + ((V && V._skew) || 0);
 const mmss = ms => { const s=Math.max(0, Math.ceil(ms/1000)); return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; };
 const HEADSET = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="14" width="4" height="6" rx="1.5" fill="currentColor"/><rect x="17" y="14" width="4" height="6" rx="1.5" fill="currentColor"/></svg>';
@@ -1346,15 +1410,17 @@ function frontPage(){
     host.hidden=true; sealedB.hidden=true;
     host.insertAdjacentHTML('beforebegin', sw('gn', esc(nightTitle()), 'Up to 8 players, three Swiss rounds. Lock in any tournament deck or one of your own; matches are played on the Modern Table.', 'Hosted here', '', 'nightBtn')
       + sw('dt', 'Host a draft', 'Booster draft from real pack odds. Bots fill empty seats.', 'Draft Table: straight to setup', '../draft/?host=1')
-      + sw('st', 'Host a sealed event', 'Six packs each, or a prerelease kit; build 40 cards, three rounds.', 'Sealed Table: straight to setup', '../sealed/?host=1')
+      + sw('st', 'Host a sealed event', 'Six packs each (a prerelease kit for Reality Fracture); build 40 cards, three rounds.', 'Sealed Table: straight to setup', '../sealed/?host=1')
       + sw('ct', 'Host a cube draft', 'Draft a curated cube of singletons.', 'Cube Table: straight to setup', '../cube/?host=1'));
     $('#nightBtn').onclick=()=>beginHost(null, 'modern');
     $('#codeIn').closest('.choice').querySelector('b').textContent='Join a Game Night';
     $('#news').innerHTML=`<h4>How a night runs</h4><ol class="steps"><li><span>The host picks the event and shares a six-letter code in the Discord.</span></li><li><span>Everyone locks in a deck. Decks stay secret until the final standings.</span></li><li><span>Each round names your table and its voice channel. A 3-minute break runs before every round, then 50 minutes on the clock.</span></li><li><span>The Modern Table sends your result here; you both confirm it, and the next round is paired by standings.</span></li></ol>`;
   } else {
     corner.textContent='← Game Night'; corner.href='../night/'; corner.classList.add('to-gn');
-    if(VARIANT==='st'){ document.title='Sealed Table'; setH1('Sealed Table'); lede.textContent='Everyone opens six packs (a prerelease kit for Reality Fracture), builds 40 cards from what they opened, then plays three rounds on the Modern Table.'; host.hidden=true; sealedB.querySelector('b').textContent='Host a sealed event'; }
-    if(VARIANT==='ct'){ document.title='Cube Table'; setH1('Cube Table'); lede.textContent='Draft a curated cube: every card a singleton, packs of fifteen dealt with no repeats. Build 40 cards, then play three rounds on the Modern Table.'; sealedB.hidden=true; host.querySelector('b').textContent='Host a cube draft'; host.querySelector('span').textContent='Pick the cube, get a six-letter code for your friends. Bots fill empty seats.'; }
+    if(VARIANT==='st'){ document.title='Sealed Table'; setH1('Sealed Table'); lede.textContent='Everyone opens six packs (for Reality Fracture, a prerelease kit with a foil promo), builds 40 cards from what they opened, then plays three rounds on the Modern Table.'; host.hidden=true; }
+    if(VARIANT==='ct'){ document.title='Cube Table'; setH1('Cube Table'); lede.textContent='Draft a curated cube: every card a singleton, packs of fifteen dealt with no repeats. Build 40 cards, then play three rounds on the Modern Table.'; sealedB.hidden=true; host.querySelector('b').textContent='Host a cube draft'; host.querySelector('span').textContent='Pick the cube, get a six-letter code for your friends. Bots fill empty seats.'; 
+      for(const g of GUIDES){ const nm=setName(g); host.insertAdjacentHTML('afterend', `<button class="choice" data-guide="${esc(g)}"><div><b>Archetypes in ${esc(nm)}</b><span>The ways this cube is built to be drafted, with their key cards. Also in the top bar during an event.</span></div><span>→</span></button>`); } }
+    if(VARIANT==='dt') sealedB.hidden=true;   // v0.28: sealed has its own table (sealed/)
   }
   /* straight to setup: night/ sends Draft, Sealed and Cube here with ?host=1 */
   const q=new URLSearchParams(location.search);

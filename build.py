@@ -71,6 +71,18 @@ print(f'built index.html: {len(html)//1024} KB, {len(out)} decks, {bad} dropped,
 dsrc=open('src/draft.src.html', encoding='utf-8').read()
 sets=json.load(open('draft/sets/index.json', encoding='utf-8'))
 assert '/*__SETS__*/[]' in dsrc and sets
+# cube archetype guides (Draft v0.28): draft/cubes/<code>-archetypes.json; warn about key cards that aren't in the cube's list
+guides=[]
+for s_ in sets:
+    gp=f"draft/cubes/{s_['code']}-archetypes.json"
+    if not os.path.exists(gp): continue
+    g_=json.load(open(gp, encoding='utf-8')); guides.append(s_['code'])
+    cube_names={l.strip().lower() for l in open(f"draft/cubes/{s_['code']}.txt", encoding='utf-8') if l.strip() and not l.startswith('#')} if os.path.exists(f"draft/cubes/{s_['code']}.txt") else set()
+    for a in g_['list']:
+        for k in a['k']:
+            if k.lower() not in cube_names: print(f"WARNING: {gp}: key card {k!r} ({a['n']}) is not in the cube's list")
+assert '/*__GUIDES__*/[]' in dsrc
+dsrc=dsrc.replace('/*__GUIDES__*/[]', json.dumps(guides))
 dhtml=dsrc.replace('/*__SETS__*/[]', json.dumps(sets,separators=(',',':'),ensure_ascii=False))
 open('draft/index.html','w', encoding='utf-8').write(dhtml)
 dver=re.search(r"const VERSION = '([^']+)'", dsrc).group(1)
