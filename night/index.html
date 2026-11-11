@@ -323,9 +323,10 @@ a.btnlink{text-decoration:none}
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v0.26';
+const VERSION = 'v0.27';
 /* What's new on the front page (v0.19, like the Modern Table's NEWS): newest first, written for players. Add a line with every version bump. */
 const DNEWS = [
+  ['v0.27','Nov 11',"Game Night: at time, the host's Yes enforces the end-of-round turns at every table still playing; No means no time limit, so those matches play out."],
   ['v0.26','Nov 11',"Game Night: a navy page (the Game Night link on the Modern Table) hosts Modern Night Magic for up to eight, and Draft, Sealed and Cube each open straight to their own table's setup. Every event ends in the same matchmaking room: chat, a 3-minute break before each round, tables with their voice channel, one round clock, results confirmed by both players, pairings by standings, and decks revealed in the final standings."],
   ['v0.25','Nov 10',"The Draft Table now keeps an anonymous count of visits and of drafts and sealed events started. No cookies and no names."],
   ['v0.24','Nov 4',"Prerelease kits now show all three Reality Fracture pack covers (Jace, Chandra and Liliana), two of each, in a different order for every player."],
@@ -657,7 +658,7 @@ function handle(i, m){
     if(va && vb && va[0]===vb[0] && va[1]===vb[1]){ t.res=va; t.pend=null; t.disp=false; sysMsg(`Table ${m.k+1}: ${resLine(t, va)}.`); roomTick(); }
     sync(); }
   else if(m.t==='turns' && H.tour && H.seats[i].pid===PID){ const r=H.tour.rounds[H.tour.rounds.length-1]; if(!r || !r.called || r.turns) return; r.turns = m.v==='yes' ? 'yes' : 'no';
-    sysMsg(r.turns==='yes' ? 'Host: end-of-round turns are on. Tables still playing finish this turn, then five more; then say who won.' : 'Host: no end-of-round turns. Tables still playing finish the game in progress; then the match ends on the score.'); sync(); }
+    sysMsg(r.turns==='yes' ? 'Host: time is enforced. Tables mid-game play this turn as turn 0, then five more; then say who won. Tables between games end on the score.' : 'Host: no end-of-round turns and no time limit. Tables still playing play their matches out.'); sync(); }
 }
 function act(m){ if(ROLE==='host') handle(H.seats.findIndex(s=>s.pid===PID), m); else if(conn && conn.open){ try{ conn.send(m); }catch(e){} } }
 setInterval(()=>{                    // host: pick for anyone whose clock ran out
@@ -1225,7 +1226,7 @@ function roomHTML(host){
       sub = `${mine ? `Waiting for ${esc(st.opp)} to confirm.` : 'Confirm it or correct it.'} You both have <b data-until="${t.pend.at+CONFIRM_MS}" data-short="1">${mmss(left)}</b> to agree; after that the host reports it.`;
       act += mine ? '' : `<button class="go sm" id="confirmBtn">Confirm the result</button>`; }
     else if(st.rd.called && !st.rd.turns){ b='Time in the round.'; sub='Waiting for the host to decide on end-of-round turns.'; act+=`<span id="matchBtns">${matchBtns(st)}</span>`; }
-    else if(st.rd.called){ b= st.rd.turns==='yes' ? `End-of-round turns at Table ${st.k+1}.` : 'Time in the round: no extra turns.'; sub = st.rd.turns==='yes' ? 'Finish this turn, then five more; then the table asks who won. Confirm the result here.' : 'Play on until the game ends, then confirm the result here.'; act+=`<span id="matchBtns">${matchBtns(st)}</span><button class="sm" id="reportBtn">Report result</button>`; }
+    else if(st.rd.called){ b= st.rd.turns==='yes' ? `Time in round: end-of-round turns at Table ${st.k+1}.` : 'Time in round: no enforcement.'; sub = st.rd.turns==='yes' ? 'This turn is turn 0, then five more; then the table asks who won. Confirm the result here.' : 'No time limit: play your match out, then confirm the result here.'; act+=`<span id="matchBtns">${matchBtns(st)}</span><button class="sm" id="reportBtn">Report result</button>`; }
     else { b=`You’re at Table ${st.k+1} with ${esc(st.opp)}.`; sub=`Join the Table ${st.k+1} voice channel. When the match ends, the Modern Table sends the result here for you both to confirm.`; act+=`<span id="matchBtns">${matchBtns(st)}</span><button class="sm" id="reportBtn">Report result</button>`; }
   }
   let h=`<div class="announce"><div class="rd">${rdNo}<small>${top}</small></div><b>${b}</b><span class="sub">${sub}</span><div class="act">${act}</div></div>`;
@@ -1240,7 +1241,7 @@ function roomHTML(host){
       else if(st.stage==='break') sx=`<span class="st">${mine?'Your next match':'Next match'}</span>`;
       else if(t.disp) sx=`<span class="st bad">No agreed result: host to report</span>`;
       else if(t.pend) sx=`<span class="st warn">Confirming the result · <span data-until="${t.pend.at+CONFIRM_MS}" data-short="1">${mmss(t.pend.at+CONFIRM_MS-now)}</span></span>`;
-      else if(st.rd.called) sx=`<span class="st warn">${st.rd.turns==='yes' ? 'End-of-round turns' : st.rd.turns==='no' ? 'Time: playing on' : 'Time: waiting for the host'}</span>`;
+      else if(st.rd.called) sx=`<span class="st warn">${st.rd.turns==='yes' ? 'End-of-round turns' : st.rd.turns==='no' ? 'Time: no limit, playing on' : 'Time: waiting for the host'}</span>`;
       else sx=`<span class="st live">${mine?'Your match':'Playing'}</span>`;
       const sub=x=>{ const s=recs[x]; return s ? `${recOf(s)} tonight` : ''; };
       const acts = r ? '' : [voiceBtn(k), host && (t.disp || (st.stage==='play' && st.rd.called)) ? `<button class="sm ${t.disp?'go':''}" data-settle="${k}">Report for this table (host)</button>` : ''].join('');
@@ -1296,8 +1297,8 @@ function openSettle(k){
 function openTurns(){
   const st=roomState(); if(!st.rd) return; const open=st.rd.tables.map((t,k)=>t.res?null:k+1).filter(Boolean);
   const v=dlg('turns', `<h3>Time in round ${st.R+1}</h3><p>${open.length===1?'Table':'Tables'} ${open.join(', ')} ${open.length===1?'is':'are'} still playing. Your call applies to every table.</p>
-    <div class="res"><button class="go wide" id="tYes">Yes: finish this turn, then five more turns</button><button class="wide" id="tNo">No: finish the game in progress, no turn limit</button></div>
-    <p>With the extra turns, the table asks who won after turn 5; either way, players confirm their result here.</p>`);
+    <div class="res"><button class="go wide" id="tYes">Yes: finish this turn, then five more turns</button><button class="wide" id="tNo">No: no enforcement, matches play out</button></div>
+    <p>Yes: the active player's turn is turn 0, five more follow, then the table asks who won (a table between games ends on the score). Either way, players confirm their result here.</p>`);
   $('#tYes',v).onclick=()=>{ closeDlg(); act({t:'turns', v:'yes'}); }; $('#tNo',v).onclick=()=>{ closeDlg(); act({t:'turns', v:'no'}); };
 }
 /* after each view: windows that should open by themselves */

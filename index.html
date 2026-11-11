@@ -700,7 +700,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v4.120';
+const VERSION = 'v4.121';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -716,6 +716,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.121','Nov 11',"Game Night: when the round clock runs out, the host decides for every table. Yes enforces the end-of-round turns (this turn is turn 0, then five more); No means no time limit, so matches play out. Both players see a Time in round notice either way."],
   ['v4.120','Nov 11',"Game Night: the Game Night link (top right) opens a night of Modern, draft, sealed or cube for up to eight players. Your matches open here with your locked-in deck, follow the night's round clock, and send the result back to the room for both of you to confirm."],
   ['v4.119','Nov 10',"The built-in decks now credit MTGTop8, where the weekly lists come from, and each deck's link opens its page there (it pointed at MTGGoldfish)."],
   ['v4.118','Nov 10',"Modern Table now keeps an anonymous count of visits, tables opened, two-player games, practice games and finished matches, so we can see how much it's played. No cookies and no names; it's in the credits on the front page."],
@@ -6496,15 +6497,18 @@ function mtTick(){
     if(!ng && !t.end && !t.over && deckReady(G.me) && deckReady(G.opp)){ t.end=Date.now()+ROUND_MS; log('The round clock starts: 50:00 for the match.'); mtSend(); }
     if(t.end && t.frozen==null && matchDone()){ t.frozen=Math.max(0, t.end-Date.now()); mtSend(); }
     if(t.end && t.frozen==null && !t.called && Date.now()>=t.end){ t.called=true;
-      if(!G.turn.n){ t.over=matchResult(); log(`Time is called between games, so the match ends on the score: ${t.over}.`); }
-      else if(ng){ t.hostq=true; log('Time in the round. The Game Night host decides on the end-of-round turns for every table.'); }
+      if(ng){ t.hostq=true; log('Time in the round. The Game Night host decides whether to enforce the end-of-round turns.'); }
+      else if(!G.turn.n){ t.over=matchResult(); log(`Time is called between games, so the match ends on the score: ${t.over}.`); }
       else { t.ask={}; log('Time is called on the round clock.'); }
       mtSend(); mtPrompts(); render(); }
-    /* Game Night: the host's call for every table. Yes: this turn is turn 0 and five more follow. No: this game is the last; the match ends on the score when it does. */
+    /* Game Night: the host's call for every table (Ben). Yes: time is enforced; mid-game, the active player's turn is turn 0 and five more follow;
+       between games, the match ends on the score. No: no enforcement; the match plays on as if untimed. Both players see a notice either way. */
     if(ng && t.hostq && NIGHT.turns && !t.over){ t.hostq=false;
-      if(NIGHT.turns==='yes'){ t.ext={start:G.turn.n||0}; const an=G.turn.active===G.myId ? G.me.name : (G.opp?G.opp.name:'Opponent'); log(`The host called end-of-round turns: this is turn 0 (${an}'s turn). Five more turns follow; then the game ends.`); }
-      else log('The host called no end-of-round turns: play on until this game ends, then the match ends on the score.');
-      mtSend(); render(); }
+      if(NIGHT.turns==='yes'){
+        if(G.turn.n){ t.ext={start:G.turn.n}; const an=G.turn.active===G.myId ? G.me.name : (G.opp?G.opp.name:'Opponent'); t.note=`This is turn 0 (${an}'s turn). Five more turns follow; then the game ends and you say who won.`; log(`Time in the round: the host enforces the end-of-round turns. ${t.note}`); }
+        else { t.over=matchResult(); t.frozen=mtRem(); t.note=`Time was called between games, so the match ends on the score: ${t.over}.`; log(t.note); } }
+      else { t.untimed=true; t.note='The host chose no end-of-round turns: play the match out, no time limit.'; log(t.note); }
+      mtSend(); mtPrompts(); render(); }
     if(t.ext && !t.winq && !t.over){ const k=(G.turn.n||0)-t.ext.start; if(k>5 || (k===5 && G.turn.passed)){ t.winq=true; log('The five end-of-round turns are over.'); mtSend(); mtPrompts(); render(); } }
     mtTick.k=(mtTick.k||0)+1; if(mtTick.k%15===0) mtSend(); }
   paintClock(); sbTick();
@@ -6514,7 +6518,7 @@ function paintClock(){ const el=$('#clockBox'); if(!el) return; const t=G.mt, re
   if(!timedTable() || !t || rem==null){ el.hidden=true; return; } el.hidden=false;
   const k = t.ext && G.turn.n ? Math.min(5, Math.max(0, G.turn.n-t.ext.start)) : null;
   el.className = t.over ? 'over' : t.called ? 'out' : rem<5*60000 ? 'low' : '';
-  el.innerHTML = `<span>ROUND</span><b>${t.called && !t.over ? 'TIME' : fmtMS(rem)}</b>${t.over ? '<i>match over</i>' : k!=null && !t.winq ? `<i>turn ${k} of 5</i>` : t.hostq ? '<i>host deciding</i>' : t.untimed ? '<i>untimed</i>' : t.called && t.gn ? '<i>last game</i>' : ''}`; }
+  el.innerHTML = `<span>ROUND</span><b>${t.called && !t.over ? 'TIME' : fmtMS(rem)}</b>${t.over ? '<i>match over</i>' : k!=null && !t.winq ? `<i>turn ${k} of 5</i>` : t.hostq ? '<i>host deciding</i>' : t.untimed ? '<i>no time limit</i>' : ''}`; }
 /* the host applies a choice (its own, or the guest's 'mtreq') and sends the new state */
 function mtApply(op, pid, v){ const t=G.mt; if(!t) return; const who = pid===G.myId ? G.me.name : (G.opp?G.opp.name:'Opponent');
   if(op==='ans' && t.ask && !t.ext){ t.ask[pid]=v?'y':'n'; log(`${who} ${v?'wants to play':"doesn't want"} the end-of-round turns.`);
@@ -6529,6 +6533,7 @@ function mtApply(op, pid, v){ const t=G.mt; if(!t) return; const who = pid===G.m
 function mtAsk(op, v){ if(isHostSide()) mtApply(op, G.myId, v); else send({t:'mtreq', op, v}); }
 const whenFree = (fn, tries=0) => { if($('#modal').hidden || tries>40) fn(); else setTimeout(()=>whenFree(fn, tries+1), 400); };
 function mtPrompts(){ const t=G.mt; if(!t || !timedTable()) return;
+  if(t.gn && t.note && G.mtNoteShown!==t.note){ G.mtNoteShown=t.note; whenFree(()=>notice('Time in round', t.note)); }
   if(t.ask && !t.ask[G.myId] && !G.mtAskOpen){ G.mtAskOpen=true; whenFree(()=>{ const t2=G.mt; if(!t2 || !t2.ask || t2.ask[G.myId]){ G.mtAskOpen=false; return; }
       modal('Time', `<p><b>The round clock has run out.</b></p><span class="hint">Enforce the end-of-round rules? The active player's turn becomes turn 0, then five more turns are played, and after that you say who won. If either of you says yes, the extra turns are played.</span>`,
         [["No, keep playing",()=>{ closeModal(); G.mtAskOpen=false; mtAsk('ans', false); },'ghost'], ['Yes, play the extra turns',()=>{ closeModal(); G.mtAskOpen=false; mtAsk('ans', true); },'go']], {noClose:true}); }); }
