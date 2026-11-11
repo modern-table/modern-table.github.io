@@ -345,9 +345,10 @@ a.btnlink{text-decoration:none}
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v0.29';
+const VERSION = 'v0.30';
 /* What's new on the front page (v0.19, like the Modern Table's NEWS): newest first, written for players. Add a line with every version bump. */
 const DNEWS = [
+  ['v0.30','Nov 11',"Event rooms: tables 1 to 4 now have a Join Table voice button that opens that table's voice channel on our Discord."],
   ['v0.29','Nov 11',"Cube drafts: the cube's archetypes are laid out right on the setup screen, so everyone who has joined can read them while waiting for the draft to start."],
   ['v0.28','Nov 11',"Cube Table: an Archetypes guide for DF07's Legacy Cube, from its maker DackFayden07 (29 archetypes with their key cards, filtered by color), open from the front page or the top bar at any point in the event. Sealed events are prereleases only for Reality Fracture, the one set whose kit and promo we know; other sets open six packs. The Draft Table now hosts drafts only."],
   ['v0.27','Nov 11',"Game Night: at time, the host's Yes enforces the end-of-round turns at every table still playing; No means no time limit, so those matches play out."],
@@ -1192,7 +1193,12 @@ $('#guideBtn').onclick=()=>{ if(V && GUIDES.includes(V.set)) openGuide(V.set); }
    own table's setup (draft/, sealed/, cube/, each in its own felt). Every event ends in the same matchmaking room: chat, a 3-minute break
    before each round, tables named with their voice channel, one 50-minute clock, results sent by the Modern Table and confirmed by both
    players within 30 seconds (else the host reports them), automatic pairing by standings, and decks kept secret until the final standings. */
-const VOICE = ['', '', '', '', '', '', '', ''];   // Discord voice channel links for Table 1, 2, … (empty: no button)
+const VOICE = [   // Discord voice channel links for Table 1, 2, … (empty: no button). Tables 1–4 added 2026-11-11; 5–8 exist on the server but aren't linked yet
+  'https://discord.com/channels/1556850379377872936/1556851123476766741',
+  'https://discord.com/channels/1556850379377872936/1556851300765929482',
+  'https://discord.com/channels/1556850379377872936/1556851458891321434',
+  'https://discord.com/channels/1556850379377872936/1556851714919768164',
+  '', '', '', ''];
 const NIGHT_DECKS = '../night/decks.json';          // the Modern Table's tournament decks, written by build.py
 const isCubeSet = c => (SETS_ALL.find(s=>s.code===c)||{}).group==='Cubes';
 const themeFor = v => !v ? VARIANT : v.mode==='modern' ? 'gn' : v.mode==='sealed' ? 'st' : isCubeSet(v.set) ? 'ct' : 'dt';
