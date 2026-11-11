@@ -620,7 +620,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
     </div>
     <p id="lobbyMsg" style="color:var(--go)"></p>
     <p><a href="#" id="fbLink" style="color:var(--brass)">Send feedback</a> <span style="color:var(--dim)">· report a bug or suggest a change</span></p>
-    <p class="legal"><span class="lgl">Modern Table is unofficial Fan Content permitted under the <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Fan Content Policy</a>. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.</span><span class="lgl">Card images and card data from <a href="https://scryfall.com/" target="_blank" rel="noopener">Scryfall</a>. Tournament decklists from <a href="https://www.mtggoldfish.com/" target="_blank" rel="noopener">MTGGoldfish</a>. Free to use, with no ads, and not affiliated with any of these sites. Visits and games are counted anonymously with <a href="https://www.goatcounter.com/" target="_blank" rel="noopener">GoatCounter</a>: no cookies, no names.</span><span class="lgl" id="lglStore" hidden>Store names and logos belong to their stores. Players pick one to show where they play; Modern Table isn't affiliated with or endorsed by any of them.</span></p>
+    <p class="legal"><span class="lgl">Modern Table is unofficial Fan Content permitted under the <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Fan Content Policy</a>. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.</span><span class="lgl">Card images and card data from <a href="https://scryfall.com/" target="_blank" rel="noopener">Scryfall</a>. Tournament decklists from <a href="https://www.mtgtop8.com/" target="_blank" rel="noopener">MTGTop8</a>; the live event check reads <a href="https://www.mtggoldfish.com/" target="_blank" rel="noopener">MTGGoldfish</a>. Free to use, with no ads, and not affiliated with any of these sites. Visits and games are counted anonymously with <a href="https://www.goatcounter.com/" target="_blank" rel="noopener">GoatCounter</a>: no cookies, no names.</span><span class="lgl" id="lglStore" hidden>Store names and logos belong to their stores. Players pick one to show where they play; Modern Table isn't affiliated with or endorsed by any of them.</span></p>
     </div>
     <aside class="news" id="news" aria-label="What's new"></aside>
   </div>
@@ -694,7 +694,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v4.118';
+const VERSION = 'v4.119';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -710,6 +710,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.119','Nov 10',"The built-in decks now credit MTGTop8, where the weekly lists come from, and each deck's link opens its page there (it pointed at MTGGoldfish)."],
   ['v4.118','Nov 10',"Modern Table now keeps an anonymous count of visits, tables opened, two-player games, practice games and finished matches, so we can see how much it's played. No cookies and no names; it's in the credits on the front page."],
   ['v4.117','Nov 10',"When several triggers on the stack need targets, the one on top (the one that resolves first) now asks for its target first, then the next one down. The stack also scrolls to show whichever trigger is asking."],
   ['v4.116','Nov 10',"Cultivator Colossus's box now stays open the whole time over your opponent's side of the table: triggers wait along the top at full size, the rest of your hand sits bottom left (the card you just drew says DRAWN) and the lands you can put down bottom right. When you're done, drag the triggers along the row like cards in your hand to order them: right is the top of the stack."],
@@ -8063,7 +8064,7 @@ function renderTab(){
     el.onclick=async e=>{
       if(e.target.id==='liveRe'){ e.preventDefault(); loadTours(); return; }
       if(e.target.id==='liveBack'){ e.preventDefault(); LIVE.state='idle'; picked=null; paintTour(); return; }
-      const b=e.target.closest('[data-d]'); if(b){ picked=+b.dataset.d; paintTour(); const d=DECKS[picked]; viewDeck({main:d.main, side:d.side}, d.arch, `${d.place} · ${d.pilot} · ${d.ev}, ${d.date}`, d.id ? GF+'/deck/'+d.id : null); return; }
+      const b=e.target.closest('[data-d]'); if(b){ picked=+b.dataset.d; paintTour(); const d=DECKS[picked]; viewDeck({main:d.main, side:d.side}, d.arch, `${d.place} · ${d.pilot} · ${d.ev}, ${d.date}`, deckLink(d)); return; }
       const t=e.target.closest('[data-t]'); if(t){ const id=t.dataset.t; LIVE.open = LIVE.open===id ? null : id; paintTour(); if(LIVE.open && !LIVE.decks[id]) loadTourDecks(id); return; }
       const l=e.target.closest('[data-ld]'); if(l) openLiveDeck(l.dataset.ld, l.dataset.t2);
     };
@@ -8093,7 +8094,7 @@ function viewDeck(d, name, sub, link, canSave, savedIdx){
   const art=d.art||{}, kk=n=>art[keyOf(n)]||keyOf(n), limited=Object.keys(art).length>0;
   const line=([n,c])=>`<div data-kk="${esc(kk(n))}"><span class="n">${c}</span>${esc(n)}</div>`;
   v.innerHTML = `<div><h3>${esc(name)}</h3><span class="hint">${esc(sub)} · ${nm} main, ${ns} sideboard${nm<60 && !limited?' · fewer than 60 cards':''}</span></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="go" id="useDeck">Play this deck</button>${savedIdx==null?'<button id="saveDeck">Save to my decks</button>':'<button id="delDeck">Delete</button>'}<button id="modDeck">Modify this deck</button>${link?`<a href="${link}" target="_blank" rel="noopener" style="color:var(--brass)">View on MTGGoldfish</a>`:''}<span class="hint" id="deckMsg"></span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="go" id="useDeck">Play this deck</button>${savedIdx==null?'<button id="saveDeck">Save to my decks</button>':'<button id="delDeck">Delete</button>'}<button id="modDeck">Modify this deck</button>${link?`<a href="${link}" target="_blank" rel="noopener" style="color:var(--brass)">View on ${/mtgtop8\.com/.test(link)?'MTGTop8':'MTGGoldfish'}</a>`:''}<span class="hint" id="deckMsg"></span></div>
     <div class="dvtabs"><button data-dv="cards" class="${dvMode()==='cards'?'on':''}">Cards</button><button data-dv="list" class="${dvMode()==='list'?'on':''}">List</button><span class="hint" id="dvMsg"></span></div><div id="dvBody"></div>`;
   const listHTML=`<div class="cols"><div class="sec">Main deck</div>${d.main.map(line).join('')}<div class="sec">Sideboard</div>${d.side.map(line).join('')||'<div class="hint">None</div>'}</div>`;
   const pseudo=list=>list.flatMap(([n,c])=>Array.from({length:c}, ()=>({id:'s:'+kk(n), k:kk(n)})));
@@ -8230,6 +8231,8 @@ window.addEventListener('resize', ()=>{ if(ED) edFit(); });
 
 /* ---------- live tournament decks from MTGGoldfish, read through a public relay ---------- */
 const GF='https://www.mtggoldfish.com';
+/* A built-in deck's page: MTGTop8 since the 2026-11-09 refresh (event ids in the 90,000s, six-digit deck ids), MTGGoldfish before (tournament ids in the 60,000s). */
+function deckLink(d){ if(!d || !d.id) return null; return (+d.tid||0) >= 80000 ? `https://www.mtgtop8.com/event?e=${encodeURIComponent(d.tid)}&d=${encodeURIComponent(d.id)}&f=MO` : GF+'/deck/'+encodeURIComponent(d.id); }
 const RELAYS=[u=>'https://corsproxy.io/?url='+encodeURIComponent(u), u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u), u=>'https://api.codetabs.com/v1/proxy/?quest='+encodeURIComponent(u)];
 { const own=new URLSearchParams(location.search).get('relay'); if(own) RELAYS.unshift(u=>own+encodeURIComponent(u)); }
 const today=()=>{ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
