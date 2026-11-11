@@ -7,6 +7,9 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="icon" href="icon-32.png" type="image/png" sizes="32x32">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<!-- Anonymous visit and game counts (GoatCounter: no cookies, no personal data). The path drops ?t= table codes. -->
+<script>window.goatcounter={path:function(p){return String(p).split('?')[0];}};</script>
+<script data-goatcounter="https://modern-table.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,800&display=swap">
 <style>
@@ -199,7 +202,7 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
       <button class="choice" id="resumeBtn" hidden><div><b>Return to your event</b><span id="resumeTxt"></span></div><span>→</span></button>
     </div>
     <p id="lobbyMsg" style="color:var(--go)"></p>
-    <p class="legal">The Draft Table is unofficial Fan Content permitted under the <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Fan Content Policy</a>. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.<br>Card images and card data from <a href="https://scryfall.com/" target="_blank" rel="noopener">Scryfall</a>. Pack odds from <a href="https://github.com/taw/magic-sealed-data" target="_blank" rel="noopener">magic-sealed-data</a>. Free to use, with no ads, and not affiliated with any of these sites.</p>
+    <p class="legal">The Draft Table is unofficial Fan Content permitted under the <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Fan Content Policy</a>. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.<br>Card images and card data from <a href="https://scryfall.com/" target="_blank" rel="noopener">Scryfall</a>. Pack odds from <a href="https://github.com/taw/magic-sealed-data" target="_blank" rel="noopener">magic-sealed-data</a>. Free to use, with no ads, and not affiliated with any of these sites. Visits and drafts are counted anonymously with <a href="https://www.goatcounter.com/" target="_blank" rel="noopener">GoatCounter</a>: no cookies, no names.</p>
     </div>
     <aside class="news" id="news" aria-label="What's new"></aside>
   </div>
@@ -215,9 +218,12 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 <script src="../src/peerjs.min.js"></script>
 <script>
 "use strict";
-const VERSION = 'v0.24';
+/* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
+function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
+const VERSION = 'v0.25';
 /* What's new on the front page (v0.19, like the Modern Table's NEWS): newest first, written for players. Add a line with every version bump. */
 const DNEWS = [
+  ['v0.25','Nov 10',"The Draft Table now keeps an anonymous count of visits and of drafts and sealed events started. No cookies and no names."],
   ['v0.24','Nov 4',"Prerelease kits now show all three Reality Fracture pack covers (Jace, Chandra and Liliana), two of each, in a different order for every player."],
   ['v0.23','Nov 4',"Color dive: the row labels (Creatures, Non-creature spells, Lands) start at the top of their rows."],
   ['v0.22','Nov 4',"The color dive buttons sit a little lower, with more room under the Sort by menu."],
@@ -462,6 +468,7 @@ async function startDraft(){
   useCache(H.set);
   await ensure(allIds(set), (a,t)=>{ H.busy=`Loading cards ${a}/${t}…`; sync(); });
   if(set.cube){ const miss=set.ids.filter(i=>!CARDS[i]); if(miss.length){ const nm=miss.map(x=>x.slice(2)); console.warn('Cube cards not found on Scryfall:', nm); setTimeout(()=>toast(`${nm.length} cube card${nm.length>1?'s were':' was'} not found on Scryfall and left out: ${nm.slice(0,8).join(', ')}${nm.length>8?'…':''}`, 12000), 400); } if(set.ids.length-miss.length < set.size*3){ H.busy=''; sync(); toast('Could not load the cube cards. Check your connection and try again.'); return; } }
+  { const hum=H.seats.filter(s=>!s.bot).length; gcEvent(H.mode==='sealed' ? 'sealed-started' : 'draft-started', `${H.mode==='sealed'?'Sealed':'Draft'} started: ${String(H.set).toUpperCase()}, ${hum} player${hum===1?'':'s'}`); }
   if(H.mode==='sealed'){ startSealed(set); return; }
   while(H.seats.length<H.pod) H.seats.push({pid:'bot'+H.seats.length, name:BOTS[H.seats.length%BOTS.length], bot:1, pool:[], queue:[]});
   shuffle(H.seats);

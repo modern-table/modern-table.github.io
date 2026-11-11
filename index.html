@@ -7,6 +7,9 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="icon" href="icon-32.png" type="image/png" sizes="32x32">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<!-- Anonymous visit and game counts (GoatCounter: no cookies, no personal data). The path drops ?t= table codes. -->
+<script>window.goatcounter={path:function(p){return String(p).split('?')[0];}};</script>
+<script data-goatcounter="https://modern-table.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Patrick+Hand&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,800&display=swap">
 <style>
@@ -617,7 +620,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
     </div>
     <p id="lobbyMsg" style="color:var(--go)"></p>
     <p><a href="#" id="fbLink" style="color:var(--brass)">Send feedback</a> <span style="color:var(--dim)">· report a bug or suggest a change</span></p>
-    <p class="legal"><span class="lgl">Modern Table is unofficial Fan Content permitted under the <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Fan Content Policy</a>. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.</span><span class="lgl">Card images and card data from <a href="https://scryfall.com/" target="_blank" rel="noopener">Scryfall</a>. Tournament decklists from <a href="https://www.mtggoldfish.com/" target="_blank" rel="noopener">MTGGoldfish</a>. Free to use, with no ads, and not affiliated with any of these sites.</span><span class="lgl" id="lglStore" hidden>Store names and logos belong to their stores. Players pick one to show where they play; Modern Table isn't affiliated with or endorsed by any of them.</span></p>
+    <p class="legal"><span class="lgl">Modern Table is unofficial Fan Content permitted under the <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Fan Content Policy</a>. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.</span><span class="lgl">Card images and card data from <a href="https://scryfall.com/" target="_blank" rel="noopener">Scryfall</a>. Tournament decklists from <a href="https://www.mtggoldfish.com/" target="_blank" rel="noopener">MTGGoldfish</a>. Free to use, with no ads, and not affiliated with any of these sites. Visits and games are counted anonymously with <a href="https://www.goatcounter.com/" target="_blank" rel="noopener">GoatCounter</a>: no cookies, no names.</span><span class="lgl" id="lglStore" hidden>Store names and logos belong to their stores. Players pick one to show where they play; Modern Table isn't affiliated with or endorsed by any of them.</span></p>
     </div>
     <aside class="news" id="news" aria-label="What's new"></aside>
   </div>
@@ -689,7 +692,9 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 </script>
 <script>
 "use strict";
-const VERSION = 'v4.117';
+/* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
+function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
+const VERSION = 'v4.118';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -705,6 +710,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.118','Nov 10',"Modern Table now keeps an anonymous count of visits, tables opened, two-player games, practice games and finished matches, so we can see how much it's played. No cookies and no names; it's in the credits on the front page."],
   ['v4.117','Nov 10',"When several triggers on the stack need targets, the one on top (the one that resolves first) now asks for its target first, then the next one down. The stack also scrolls to show whichever trigger is asking."],
   ['v4.116','Nov 10',"Cultivator Colossus's box now stays open the whole time over your opponent's side of the table: triggers wait along the top at full size, the rest of your hand sits bottom left (the card you just drew says DRAWN) and the lands you can put down bottom right. When you're done, drag the triggers along the row like cards in your hand to order them: right is the top of the stack."],
   ['v4.115','Nov 10',"Cultivator Colossus: triggers from the lands it puts down now wait at the top of its land box instead of jumping onto the stack; when you're done you drag them into the order you want and add them to the stack together. Cards that hold exiled cards (Portable Hole, Leyline Binding, Temporary Lockdown) now say HOLDING and the card's name instead of a 'holds' badge, and the Exiled by cards box only lists cards someone can still play, one short row each. To return a held card by hand, click it in your exile."],
@@ -1222,7 +1228,7 @@ function connect(){
   });
   function dial(){ if(peer.destroyed || peer.disconnected) return; wire(peer.connect(PREFIX+G.code, {reliable:true, serialization:'json'})); }
   function wire(c){
-    c.on('open', () => { G.conn=c; setNet('connected'); send({t:'hello', n:G.turn.n}); send({t:'state', s:pub()}); if(host || G.turn.n>0) send({t:'turn', turn:G.turn, hello:true}); if(host) setTimeout(mtSend, 600); });
+    c.on('open', () => { G.conn=c; setNet('connected'); if(host) gcEvent('friend-joined', 'Friend joined a table (two-player game)', 'fj_'+G.code); send({t:'hello', n:G.turn.n}); send({t:'state', s:pub()}); if(host || G.turn.n>0) send({t:'turn', turn:G.turn, hello:true}); if(host) setTimeout(mtSend, 600); });
     c.on('data', onMsg);
     c.on('close', () => { if(G.conn===c){ G.conn=null; setNet(host ? 'waiting' : 'joining'); if(!host) setTimeout(()=>{ if(peer===G.peer && !G.conn) dial(); }, 2000); } });
     c.on('error', e => console.warn('conn error', e));
@@ -6515,6 +6521,7 @@ function goReady(){ const g=G.go; if(!g) return; if(!vsReal()){ G.go=null; G.goO
   g.ready[G.myId]=1; send({t:'goready'}); log(`${G.me.name} is ready to ${g.ends?'finish the match':'go on to sideboarding'}.`); if(g.ready[oppId()]) goFinish(); else goShow(); }
 function goFinish(){ const g=G.go; if(!g) return; G.go=null; G.goOpen=false; closeModal(); G.lossSeen={life:false, poison:false};
   if(g.win===G.myId) applyWin(1);
+  if(isHostSide() && (g.ends || (G.mt && G.mt.called && !G.mt.untimed))) gcEvent('match-finished', 'Match finished');
   if(G.mt && G.mt.called && !G.mt.untimed){ if(isHostSide()){ G.mt.over=matchResult(0, g.win===G.myId ? 0 : 1); G.mt.frozen=mtRem(); log(`${G.mt.over}.`); mtSend(); mtPrompts(); } changed(); return; }
   if(!g.ends) newGame(true); else changed(); }
 function goBack(local){ if(!G.go) return; G.go=null; if(G.goOpen){ G.goOpen=false; closeModal(); } if(local){ send({t:'goback'}); log(`${G.me.name} goes back to the game; no win is recorded.`); } }
@@ -8315,6 +8322,7 @@ function begin(role, code){
   S.name=(nameIn.value.trim()||'Player').slice(0,20); S.lgs = lgsOf($('#lgsIn').value) ? $('#lgsIn').value : ''; store.set('mt_settings',S);
   G.solo = role==='solo'; G.myId = role==='guest' ? 'p2' : 'p1'; G.code=code||''; G.me=newPlayer(); G.opp = G.solo ? newDummy() : null; G.turn={active:null,phase:2,n:0}; G.idc=0;
   connect(); save(); showDecks();
+  if(role==='solo') gcEvent('practice-started', 'Practice game started'); else if(role==='host') gcEvent('table-opened', 'Table opened');
 }
 $('#hostBtn').onclick=()=>{ const A='ABCDEFGHJKLMNPQRSTUVWXYZ'; let c=''; for(let i=0;i<6;i++) c+=A[Math.floor(Math.random()*A.length)]; begin('host', c); };
 $('#joinBtn').onclick=()=>{ const c=$('#codeIn').value.trim().toUpperCase(); if(c.length<4){ $('#lobbyMsg').textContent='Type the code your friend sent you.'; return; } begin('guest', c); };
