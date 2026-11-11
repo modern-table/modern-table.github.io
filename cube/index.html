@@ -304,7 +304,8 @@ a.btnlink{text-decoration:none}
 .gk{font-size:12px;padding:3px 8px;border-radius:999px;background:var(--well);border:1px solid var(--line);color:var(--ink);cursor:default}
 .gk:hover{border-color:var(--brass)}
 .gk.mine{border-color:var(--good);color:var(--good)}
-@media (max-width:760px){ .ghead{position:relative;padding-right:56px} #guideX{position:absolute;top:14px;right:14px} .gfilt{margin-left:0} .gfilt .hint{flex-basis:100%} .ggrid{grid-template-columns:1fr} }
+.lguide{margin-top:18px;display:flex;flex-direction:column;gap:10px}.lguide .bar{flex-wrap:wrap;gap:10px}.lguide .gfilt{margin-left:auto}.lguide .gnote{margin:0}
+@media (max-width:760px){ .lguide .gfilt{margin-left:0} .ghead{position:relative;padding-right:56px} #guideX{position:absolute;top:14px;right:14px} .gfilt{margin-left:0} .gfilt .hint{flex-basis:100%} .ggrid{grid-template-columns:1fr} }
 </style>
 </head>
 <body>
@@ -344,9 +345,10 @@ a.btnlink{text-decoration:none}
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v0.28';
+const VERSION = 'v0.29';
 /* What's new on the front page (v0.19, like the Modern Table's NEWS): newest first, written for players. Add a line with every version bump. */
 const DNEWS = [
+  ['v0.29','Nov 11',"Cube drafts: the cube's archetypes are laid out right on the setup screen, so everyone who has joined can read them while waiting for the draft to start."],
   ['v0.28','Nov 11',"Cube Table: an Archetypes guide for DF07's Legacy Cube, from its maker DackFayden07 (29 archetypes with their key cards, filtered by color), open from the front page or the top bar at any point in the event. Sealed events are prereleases only for Reality Fracture, the one set whose kit and promo we know; other sets open six packs. The Draft Table now hosts drafts only."],
   ['v0.27','Nov 11',"Game Night: at time, the host's Yes enforces the end-of-round turns at every table still playing; No means no time limit, so those matches play out."],
   ['v0.26','Nov 11',"Game Night: a navy page (the Game Night link on the Modern Table) hosts Modern Night Magic for up to eight, and Draft, Sealed and Cube each open straight to their own table's setup. Every event ends in the same matchmaking room: chat, a 3-minute break before each round, tables with their voice channel, one round clock, results confirmed by both players, pairings by standings, and decks revealed in the final standings."],
@@ -826,6 +828,7 @@ function render(){
         <div class="field"><label for="timeSel">Pick timer</label><select id="timeSel">${[[0,'Off'],[45,'45 seconds'],[75,'75 seconds'],[120,'2 minutes']].map(([n,l])=>`<option value="${n}"${n===V.timer?' selected':''}>${l}</option>`).join('')}</select></div>`}
         <button class="go" id="startBtn"${V.busy?' disabled':''}>${sealed ? (isPre(V.set) ? 'Start the prerelease' : 'Start the event') : 'Start the draft'}</button></div><p class="hint" id="busyMsg" style="margin:0">${esc(V.busy)}</p>`;
     else h+=`<p class="hint" style="margin:0">${esc(V.busy || (sealed ? `${isPre(V.set) ? 'Prerelease' : 'Sealed'} · ${setName(V.set)} · up to ${V.pod} players` : `${setName(V.set)} · ${V.pod} seats · ${V.timer ? V.timer+' second pick timer' : 'no pick timer'}`))}</p>`;
+    h+=lobbyGuideHTML();
   }
   else if(V.phase==='draft'){
     const n=V.seats.length, from=V.seats[(V.me-dirOf(V.round)+n)%n];
@@ -1133,32 +1136,50 @@ document.addEventListener('mouseover', e=>{
    (ids n|Name) so the hover enlargement shows them; ones already in your picks get a check. Color buttons filter (all selected colors). */
 const GUIDE_DATA = {};
 let GUIDE = null;   // {code, sel: colors chosen in the filter}
+let LSEL = '';      // v0.29: the color filter of the guide shown in the lobby while players wait
+const GLOAD = {};
+/* loads a cube's guide once (shared by the window and the lobby), then looks up its key cards so the hover enlargement works */
+function loadGuide(code){
+  if(GUIDE_DATA[code]) return Promise.resolve(GUIDE_DATA[code]);
+  return GLOAD[code] || (GLOAD[code] = fetch(DBASE+'cubes/'+code+'-archetypes.json').then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); })
+    .then(d=>{ GUIDE_DATA[code]=d; if(!V || V.set===code){ useCache(code); ensure(d.list.flatMap(a=>a.k).map(n=>'n|'+n)).then(()=>{ if(GUIDE) paintGuide(); if(V && V.phase==='lobby') render(); }); } return d; })
+    .catch(e=>{ delete GLOAD[code]; throw e; }));
+}
+const gPips = c => c ? `<span class="gpips">${[...c].map(manaSym).join('')}</span>` : '<span class="gany">Any colors</span>';
+function guideFilt(sel, attr){ return `<div class="gfilt"><span class="hint">Show decks with</span>${[...'WUBRG'].map(k=>`<button class="pipbtn${sel.includes(k)?' on':''}" data-${attr}="${k}" aria-pressed="${sel.includes(k)}" title="${{W:'White',U:'Blue',B:'Black',R:'Red',G:'Green'}[k]}">${manaSym(k)}</button>`).join('')}<button class="ghost sm" data-${attr}=""${sel?'':' disabled'}>All</button></div>`; }
+function guideGrid(code, sel){
+  const G=GUIDE_DATA[code]; if(!G) return '<p class="hint">Loading the archetypes…</p>';
+  const mine=new Set(V && V.set===code ? (V.pool||[]).map(c=>c.id) : []), shown=G.list.filter(a=>!a.c || [...sel].every(k=>a.c.includes(k)));
+  return `<p class="hint gnote">${esc(G.credit)} Point at a card name to see the card${mine.size ? '; ✓ marks key cards already in your picks' : ''}.</p>
+    <div class="ggrid">${shown.map(a=>`<article class="garch"><div class="gtop"><h3>${esc(a.n)}</h3>${gPips(a.c)}</div><p>${esc(a.d)}</p>${a.k.length ? `<div class="gkeys">${a.k.map(n=>`<span class="gk${mine.has('n|'+n)?' mine':''}" data-zid="${esc('n|'+n)}">${mine.has('n|'+n)?'✓ ':''}${esc(n)}</span>`).join('')}</div>` : ''}</article>`).join('')}</div>
+    ${shown.length ? '' : '<p class="hint">No archetype uses all of those colors.</p>'}`;
+}
+/* v0.29: the guide inline in the lobby (setup or waiting for the host), so players who have joined can read it while they wait */
+function lobbyGuideHTML(){
+  if(!V || !GUIDES.includes(V.set)) return '';
+  const G=GUIDE_DATA[V.set]; if(!G) loadGuide(V.set).then(()=>render()).catch(()=>{});
+  return `<section class="lguide"><div class="bar"><h3>Archetypes in this cube${G ? ` <b style="color:var(--brass)">${G.list.length}</b>` : ''}</h3><span class="hint">look them over while everyone joins</span>${guideFilt(LSEL, 'lgc')}<button class="ghost sm" data-guide="${esc(V.set)}">Open larger</button></div>${guideGrid(V.set, LSEL)}</section>`;
+}
 async function openGuide(code){
-  GUIDE={code, sel:(GUIDE && GUIDE.code===code) ? GUIDE.sel : ''}; paintGuide();
-  if(!GUIDE_DATA[code]){ try{ const r=await fetch(DBASE+'cubes/'+code+'-archetypes.json'); if(!r.ok) throw new Error(r.status); GUIDE_DATA[code]=await r.json(); }
-    catch(e){ if(GUIDE && GUIDE.code===code){ closeGuide(); toast('Could not load the archetypes. Check your connection and try again.'); } return; } }
-  if(!GUIDE || GUIDE.code!==code) return;
-  paintGuide();
-  if(!V || V.set===code){ useCache(code); ensure(GUIDE_DATA[code].list.flatMap(a=>a.k).map(n=>'n|'+n)).then(()=>{ if(GUIDE) paintGuide(); }); }
+  GUIDE={code, sel:(GUIDE && GUIDE.code===code) ? GUIDE.sel : (V && V.phase==='lobby' ? LSEL : '')}; paintGuide();
+  try{ await loadGuide(code); }catch(e){ if(GUIDE && GUIDE.code===code){ closeGuide(); toast('Could not load the archetypes. Check your connection and try again.'); } return; }
+  if(GUIDE && GUIDE.code===code) paintGuide();
 }
 function closeGuide(){ GUIDE=null; const g=$('#guide'); g.hidden=true; g.innerHTML=''; hideZoom(); }
 function paintGuide(){
   const g=$('#guide'); if(!GUIDE){ closeGuide(); return; }
-  const G=GUIDE_DATA[GUIDE.code], sel=GUIDE.sel, mine=new Set(V && V.set===GUIDE.code ? (V.pool||[]).map(c=>c.id) : []);
+  const G=GUIDE_DATA[GUIDE.code], sel=GUIDE.sel;
   const scroll=$('.gscroll', g) ? $('.gscroll', g).scrollTop : 0;
-  const pips=c => c ? `<span class="gpips">${[...c].map(manaSym).join('')}</span>` : '<span class="gany">Any colors</span>';
-  const shown=G ? G.list.filter(a=>!a.c || [...sel].every(k=>a.c.includes(k))) : [];
   g.innerHTML=`<div class="gpanel" role="dialog" aria-label="Archetypes">
     <div class="ghead"><div style="min-width:0"><h2>Archetypes</h2><p class="hint" style="margin:0">${esc(G ? G.name : setName(GUIDE.code))}${G ? ` · ${G.list.length} archetypes` : ''}</p></div>
-      <div class="gfilt"><span class="hint">Show decks with</span>${[...'WUBRG'].map(k=>`<button class="pipbtn${sel.includes(k)?' on':''}" data-gc="${k}" aria-pressed="${sel.includes(k)}" title="${{W:'White',U:'Blue',B:'Black',R:'Red',G:'Green'}[k]}">${manaSym(k)}</button>`).join('')}<button class="ghost sm" data-gc=""${sel?'':' disabled'}>All</button></div>
+      ${guideFilt(sel, 'gc')}
       <button class="ghost sm" id="guideX" aria-label="Close">✕</button></div>
-    <div class="gscroll">${!G ? '<p class="hint">Loading…</p>' : `<p class="hint gnote">${esc(G.credit)} Point at a card name to see the card${mine.size ? '; ✓ marks key cards already in your picks' : ''}.</p>
-      <div class="ggrid">${shown.map(a=>`<article class="garch"><div class="gtop"><h3>${esc(a.n)}</h3>${pips(a.c)}</div><p>${esc(a.d)}</p>${a.k.length ? `<div class="gkeys">${a.k.map(n=>`<span class="gk${mine.has('n|'+n)?' mine':''}" data-zid="${esc('n|'+n)}">${mine.has('n|'+n)?'✓ ':''}${esc(n)}</span>`).join('')}</div>` : ''}</article>`).join('')}</div>
-      ${shown.length ? '' : '<p class="hint">No archetype uses all of those colors.</p>'}`}</div></div>`;
+    <div class="gscroll">${guideGrid(GUIDE.code, sel)}</div></div>`;
   g.hidden=false; const sc=$('.gscroll', g); if(sc) sc.scrollTop=scroll;
 }
 document.addEventListener('click', e=>{
   const o=e.target.closest('[data-guide]'); if(o){ openGuide(o.dataset.guide); return; }
+  const l=e.target.closest('#main [data-lgc]'); if(l){ const k=l.dataset.lgc; LSEL = !k ? '' : LSEL.includes(k) ? LSEL.replace(k,'') : LSEL+k; render(); return; }
   if(!GUIDE) return;
   if(e.target.id==='guide' || e.target.closest('#guideX')){ closeGuide(); return; }
   const b=e.target.closest('#guide [data-gc]'); if(b){ const k=b.dataset.gc; GUIDE.sel = !k ? '' : GUIDE.sel.includes(k) ? GUIDE.sel.replace(k,'') : GUIDE.sel+k; paintGuide(); }
