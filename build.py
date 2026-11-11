@@ -75,3 +75,25 @@ dhtml=dsrc.replace('/*__SETS__*/[]', json.dumps(sets,separators=(',',':'),ensure
 open('draft/index.html','w', encoding='utf-8').write(dhtml)
 dver=re.search(r"const VERSION = '([^']+)'", dsrc).group(1)
 print(f'built draft/index.html: {len(dhtml)//1024} KB, {len(sets)} sets, version {dver}')
+
+# Game Night (Draft v0.26): the same page, copied to night/ (Game Night, navy), sealed/ (plum) and cube/ (olive). Each copy knows which
+# front page it is (VARIANT) and reads the set and pack files from draft/ (DBASE). night/decks.json is the Modern Table's tournament
+# decks, for locking in a deck before a Modern night.
+FELTS = {'gn': ('#2c4476', '#1b2a4a', '#f2d58f', '#c99a3e', 'Game Night'),
+         'st': ('#704076', '#4a2a4e', '#f3c9ec', '#b0709f', 'Sealed Table'),
+         'ct': ('#5c6840', '#3c4428', '#ece8a0', '#a39f4c', 'Cube Table')}
+dicon = open('draft/icon.svg', encoding='utf-8').read()
+for var, folder in (('gn', 'night'), ('st', 'sealed'), ('ct', 'cube')):
+    os.makedirs(folder, exist_ok=True)
+    glow, felt, b1, b2, title = FELTS[var]
+    icon = dicon.replace('#7a4b3a', glow).replace('#5e3a2e', felt).replace('#f3c995', b1).replace('#b07440', b2)
+    open(f'{folder}/icon.svg', 'w', encoding='utf-8').write(icon)
+    v = dhtml.replace("/*__VARIANT__*/'dt'", f"/*__VARIANT__*/'{var}'").replace("/*__DBASE__*/''", "/*__DBASE__*/'../draft/'")
+    v = v.replace('<title>Draft Table</title>', f'<title>{title}</title>', 1)
+    v = v.replace('href="icon-32.png"', 'href="../draft/icon-32.png"', 1).replace('href="apple-touch-icon.png"', 'href="../draft/apple-touch-icon.png"', 1)
+    open(f'{folder}/index.html', 'w', encoding='utf-8').write(v)
+    print(f'built {folder}/index.html ({title})')
+nd = [dict(arch=d['arch'], pilot=d['pilot'], ev=d['ev'], date=d['date'], place=d['place'], main=d['main'], side=d['side']) for d in out]
+os.makedirs('night', exist_ok=True)
+open('night/decks.json', 'w', encoding='utf-8').write(json.dumps(nd, separators=(',', ':'), ensure_ascii=False))
+print(f'built night/decks.json: {len(nd)} decks')

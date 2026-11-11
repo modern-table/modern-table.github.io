@@ -59,8 +59,14 @@ h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
 .choice{display:flex;gap:12px;align-items:center;justify-content:space-between;text-align:left;padding:14px 16px;background:#12262b}
 .choice b{display:block;font-size:16px}.choice span{color:var(--dim);font-size:13px}
 /* the way to the Draft Table wears the Draft Table's colours */
-.corner{position:absolute;top:16px;right:20px;border:1px solid #e0a66a;border-radius:99px;padding:6px 14px;text-decoration:none;font-weight:800;color:#e0a66a;background:#5e3a2e;box-shadow:0 2px 8px #0006}
-.corner:hover{background:#71483a;color:#f3c48e}
+.corner{position:absolute;top:16px;right:20px;border:1px solid #e2bd6a;border-radius:99px;padding:6px 14px;text-decoration:none;font-weight:800;color:#e2bd6a;background:#1b2a4a;box-shadow:0 2px 8px #0006}
+.corner:hover{background:#273d6b;color:#f2d58f}
+#nightWait{position:fixed;inset:0;z-index:300;display:grid;place-items:center;background:#0b1324ee;padding:16px}
+#nightWait>div{max-width:520px;display:flex;flex-direction:column;gap:10px;align-items:center;text-align:center;border:1px solid #e2bd6a;border-radius:12px;padding:24px 28px;background:#1b2a4a;box-shadow:0 20px 50px #000b}
+#nightWait span{font:800 11px var(--ui);letter-spacing:.14em;text-transform:uppercase;color:#a3b0cc}
+#nightWait h2{font:400 26px var(--display);margin:0;color:#edf1fa}
+#nightWait b{font:800 44px var(--ui);font-variant-numeric:tabular-nums;color:#e2bd6a;line-height:1}
+#nightWait p{margin:0;color:#c9d2e6;font-size:14px}#nightWait a{color:#e2bd6a}#nightWait i{color:#a3b0cc;font-size:13px}
 .joinrow{display:flex;gap:8px}.joinrow input{flex:1;text-transform:uppercase;letter-spacing:.2em;font-weight:800;min-width:0}
 
 .news{display:flex;flex-direction:column;gap:9px}
@@ -602,7 +608,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 </script>
 
 <div id="lobby" class="screen">
-  <a class="corner" href="draft/" title="Booster draft for up to eight, then play your deck here">Draft Table →</a>
+  <a class="corner" href="night/" title="A night of Modern, draft, sealed or cube for up to eight, with pairings, a round clock and standings">Game Night →</a>
   <div class="lobbybox">
     <div class="lhead"><h1>Modern Table <small id="verTag" style="font:600 13px var(--ui);color:var(--dim);letter-spacing:.08em"></small></h1>
     <p>A Magic table for two, in the browser. <b>Automatic first, by hand always:</b> the table plays your cards for you (triggers, targets, searches, combat damage), and anything it doesn't do, you can still do yourself, like paper.</p>
@@ -694,7 +700,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v4.119';
+const VERSION = 'v4.120';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -710,6 +716,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.120','Nov 11',"Game Night: the Game Night link (top right) opens a night of Modern, draft, sealed or cube for up to eight players. Your matches open here with your locked-in deck, follow the night's round clock, and send the result back to the room for both of you to confirm."],
   ['v4.119','Nov 10',"The built-in decks now credit MTGTop8, where the weekly lists come from, and each deck's link opens its page there (it pointed at MTGGoldfish)."],
   ['v4.118','Nov 10',"Modern Table now keeps an anonymous count of visits, tables opened, two-player games, practice games and finished matches, so we can see how much it's played. No cookies and no names; it's in the credits on the front page."],
   ['v4.117','Nov 10',"When several triggers on the stack need targets, the one on top (the one that resolves first) now asks for its target first, then the next one down. The stack also scrolls to show whichever trigger is asking."],
@@ -6441,6 +6448,31 @@ function markWin(pl, d){ if(pl===G.myId) applyWin(d); else if(G.opp) send({t:'ad
    player's turn is turn 0 and five more follow (a TURN N sign on the active player's side); then both are asked who won, and the match ends.
    At 0 between games the match ends on the score. Sideboarding has 3:00 (G.sbEnd): at 0 the deck goes in as it stands. Two-player tables only. */
 const ROUND_MS=50*60*1000, SB_MS=3*60*1000;
+/* ===== Game Night (v4.120) =====
+   A match tab opened from the Game Night room (?gn=1) is the player's tab for the whole night. NIGHT is the seat the room wrote to
+   localStorage (gn_seat: event code, table code, role, round, table number, opponent, start and end times, the host's end-of-round call,
+   the locked deck); it is kept in sessionStorage (mt_night) so a reload of this tab keeps it. The room and this tab talk over the
+   'mt-night' BroadcastChannel: pings, the seat for the next round (this tab moves itself to the new table without a click), and the
+   result, which this tab sends when the match ends so both players can confirm it in the room. Before the round starts, a cover
+   (#nightWait) counts down the break. The clock is the event's: no 50:00 of its own, and at time the host decides on the turns. */
+let NIGHT = (()=>{ try{ return JSON.parse(sessionStorage.getItem('mt_night')||'null'); }catch(e){ return null; } })();
+function nightSave(){ try{ if(NIGHT) sessionStorage.setItem('mt_night', JSON.stringify(NIGHT)); else sessionStorage.removeItem('mt_night'); }catch(e){} }
+const nightSeat = () => !!NIGHT && !!G.code && NIGHT.code===G.code;      // a Game Night match: decks stay secret until the final standings
+const nightOn = () => nightSeat() && vsReal();
+const NBC = ('BroadcastChannel' in window) ? new BroadcastChannel('mt-night') : null;
+if(NBC) NBC.onmessage = e => { const m=e.data||{}; if(!NIGHT) return;
+  if(m.t==='ping' && m.ev===NIGHT.ev) NBC.postMessage({t:'pong', ev:NIGHT.ev, code:G.code||''});
+  else if(m.t==='seat' && m.seat && m.seat.ev===NIGHT.ev){ const s=m.seat; if(s.code!==NIGHT.code) nightMove(s); else { NIGHT=s; nightSave(); } } };
+function nightMove(s){ save(); store.set('gn_seat', s); NIGHT=s; nightSave(); const q=new URLSearchParams(location.search); q.set('t', s.code); q.set('r', s.role); q.set('gn', '1'); location.replace(location.pathname+'?'+q.toString()); }
+function nightResult(){ if(!nightOn() || !NBC) return; if(!matchDone() || G.go){ G.nightDone=0; return; } if(G.nightSent===G.code) return;
+  if(!G.nightDone){ G.nightDone=Date.now(); return; } if(Date.now()-G.nightDone<2000) return;      // let both win counts arrive first
+  G.nightSent=G.code; const mw=G.me.wins||0, ow=(G.opp&&G.opp.wins)||0;
+  NBC.postMessage({t:'res', ev:NIGHT.ev, code:G.code, res: G.myId==='p1' ? [mw,ow] : [ow,mw]});
+  toast('The result went to the Game Night room. Confirm it there.'); }
+function nightWait(){ let el=$('#nightWait'); const on = NIGHT && G.code && NIGHT.code===G.code && Date.now() < NIGHT.start;
+  if(!on){ if(el) el.remove(); return; }
+  if(!el){ el=document.createElement('div'); el.id='nightWait'; document.body.appendChild(el); }
+  el.innerHTML = `<div><span>${esc(NIGHT.title||'Game Night')} · Round ${NIGHT.round}</span><h2>Table ${NIGHT.table}: you play ${esc(NIGHT.opp||'your opponent')}</h2><b>${fmtMS(NIGHT.start-Date.now())}</b><p>The round starts when the break ends. Join the Table ${NIGHT.table} voice channel on the Discord in the meantime.${NIGHT.voice ? ` <a href="${esc(NIGHT.voice)}" target="_blank" rel="noopener">Open Table ${NIGHT.table} voice</a>` : ''}</p>${NIGHT.deckName ? `<i>Your deck: ${esc(NIGHT.deckName)}</i>` : ''}</div>`; }
 const timedTable = () => vsReal();
 const isHostSide = () => G.myId==='p1';
 const mtFresh = () => ({end:null, frozen:null, called:false, ask:null, ext:null, draws:0, over:null, winq:false, untimed:false});
@@ -6455,14 +6487,24 @@ const matchDone = () => (G.me.wins||0)>=2 || ((G.opp&&G.opp.wins)||0)>=2 || !!(G
 function matchResult(da, db){ const m=G.me, o=G.opp||{}, a=(m.wins||0)+(da||0), b=(o.wins||0)+(db||0), d=(G.mt&&G.mt.draws)||0, on=o.name||'Opponent';
   return a===b ? `Match drawn ${a}–${b}–${d}` : `${a>b?m.name:on} wins the match ${Math.max(a,b)}–${Math.min(a,b)}–${d}`; }
 function mtTick(){
+  nightWait();
   if(!timedTable() || $('#table').hidden){ paintClock(); return; }
+  nightResult();
+  const ng=nightOn();
   if(isHostSide()){ if(!G.mt) G.mt=mtFresh(); const t=G.mt;
-    if(!t.end && !t.over && deckReady(G.me) && deckReady(G.opp)){ t.end=Date.now()+ROUND_MS; log('The round clock starts: 50:00 for the match.'); mtSend(); }
+    if(ng && !t.over && t.frozen==null && t.end!==NIGHT.end){ t.end=NIGHT.end; t.gn=1; if(!t.gnLog){ t.gnLog=1; log(`Game Night, round ${NIGHT.round}: one clock for every table, ending at ${new Date(NIGHT.end).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}.`); } mtSend(); }
+    if(!ng && !t.end && !t.over && deckReady(G.me) && deckReady(G.opp)){ t.end=Date.now()+ROUND_MS; log('The round clock starts: 50:00 for the match.'); mtSend(); }
     if(t.end && t.frozen==null && matchDone()){ t.frozen=Math.max(0, t.end-Date.now()); mtSend(); }
     if(t.end && t.frozen==null && !t.called && Date.now()>=t.end){ t.called=true;
       if(!G.turn.n){ t.over=matchResult(); log(`Time is called between games, so the match ends on the score: ${t.over}.`); }
+      else if(ng){ t.hostq=true; log('Time in the round. The Game Night host decides on the end-of-round turns for every table.'); }
       else { t.ask={}; log('Time is called on the round clock.'); }
       mtSend(); mtPrompts(); render(); }
+    /* Game Night: the host's call for every table. Yes: this turn is turn 0 and five more follow. No: this game is the last; the match ends on the score when it does. */
+    if(ng && t.hostq && NIGHT.turns && !t.over){ t.hostq=false;
+      if(NIGHT.turns==='yes'){ t.ext={start:G.turn.n||0}; const an=G.turn.active===G.myId ? G.me.name : (G.opp?G.opp.name:'Opponent'); log(`The host called end-of-round turns: this is turn 0 (${an}'s turn). Five more turns follow; then the game ends.`); }
+      else log('The host called no end-of-round turns: play on until this game ends, then the match ends on the score.');
+      mtSend(); render(); }
     if(t.ext && !t.winq && !t.over){ const k=(G.turn.n||0)-t.ext.start; if(k>5 || (k===5 && G.turn.passed)){ t.winq=true; log('The five end-of-round turns are over.'); mtSend(); mtPrompts(); render(); } }
     mtTick.k=(mtTick.k||0)+1; if(mtTick.k%15===0) mtSend(); }
   paintClock(); sbTick();
@@ -6472,7 +6514,7 @@ function paintClock(){ const el=$('#clockBox'); if(!el) return; const t=G.mt, re
   if(!timedTable() || !t || rem==null){ el.hidden=true; return; } el.hidden=false;
   const k = t.ext && G.turn.n ? Math.min(5, Math.max(0, G.turn.n-t.ext.start)) : null;
   el.className = t.over ? 'over' : t.called ? 'out' : rem<5*60000 ? 'low' : '';
-  el.innerHTML = `<span>ROUND</span><b>${t.called && !t.over ? 'TIME' : fmtMS(rem)}</b>${t.over ? '<i>match over</i>' : k!=null && !t.winq ? `<i>turn ${k} of 5</i>` : t.untimed ? '<i>untimed</i>' : ''}`; }
+  el.innerHTML = `<span>ROUND</span><b>${t.called && !t.over ? 'TIME' : fmtMS(rem)}</b>${t.over ? '<i>match over</i>' : k!=null && !t.winq ? `<i>turn ${k} of 5</i>` : t.hostq ? '<i>host deciding</i>' : t.untimed ? '<i>untimed</i>' : t.called && t.gn ? '<i>last game</i>' : ''}`; }
 /* the host applies a choice (its own, or the guest's 'mtreq') and sends the new state */
 function mtApply(op, pid, v){ const t=G.mt; if(!t) return; const who = pid===G.myId ? G.me.name : (G.opp?G.opp.name:'Opponent');
   if(op==='ans' && t.ask && !t.ext){ t.ask[pid]=v?'y':'n'; log(`${who} ${v?'wants to play':"doesn't want"} the end-of-round turns.`);
@@ -6847,7 +6889,7 @@ async function loadDeck(d, name, onProgress){
   m.deck=name; m.life=20; m.ctr={poison:0,energy:0}; m.mull=0; m.arrows=[]; m.roll=null; m.compDone=false; m.skipRoll=false; m.dealt=false; m.kept=false; delete m.btm; G.mullGo=false; m.mana=noMana(); m.smana=[]; m.energySeen=false; m.poisonSeen=false; m.drew=0; m.cast={n:0,is:0}; m.pacts=[]; m.baub=[]; m.trk=null; setCares();
   m.poisonSrc=[...m.lib, ...m.side].some(x=>{ try{ return POISONRE.test(cdata(x).o||''); }catch(e){ return false; } });   // v4.05: show the poison marker from the start
   m.deckSpec={d:{main:d.main, side:d.side, art:d.art||{}}, name}; m.deckReady=true;   // for a new match with the same deck (kept with my side, not shared)
-  log(`${m.name} brought ${name}.`); shuffleUp();
+  log(nightSeat() ? `${m.name} brought their locked-in deck.` : `${m.name} brought ${name}.`); shuffleUp();
 }
 
 /* ================= rendering ================= */
@@ -7020,7 +7062,7 @@ function avatarHTML(p, pid, mine){
   const chips = Object.entries(p.ctr||{}).map(([k,v])=>`<span class="chip ${v?'nz':''}" data-ctr="${k}" data-pl="${pid}" title="Click to add, right-click to remove">${ICON_OF(k)}${k} ${v}</span>`).join('') + (p.monarch ? `<span class="chip nz" data-mon="${pid}" title="${pid===G.myId ? 'You are the monarch: draw a card at the beginning of your end step.' : 'Click to take the monarch (when you deal combat damage to them).'}">${ICO.monarch} monarch</span>` : '');
   return `<div class="nm">${lgsImg(p.lgs,'lgsl')}<span class="nmt">${esc(p.name||'Opponent')}${act?' ●':''}</span></div>
     <div class="life"><button data-life="-1" data-pl="${pid}" aria-label="Lose 1 life">−</button><b>${p.life}</b><button data-life="1" data-pl="${pid}" aria-label="Gain 1 life">+</button></div>
-    <div class="dk">${esc(p.deck||'No deck yet')}${p.mull?` · ${p.mull} mulligan${p.mull>1?'s':''}`:''}</div>${p.ptest?`<div class="ptnote" title="${mine?'You chose to play this deck for testing even though it is not tournament legal.':'Your opponent is playtesting with a deck that is not tournament legal.'}">Playtesting: ${esc(p.ptest)}</div>`:''}<div class="mana">${MANA.map(k=>{ const n=(p.mana||{})[k]||0; return `<span class="mp ${n?'on':''} ${mine?'mine':''}" ${mine?`data-mana="${k}"`:''} title="${MNAME[k]} mana${mine?': click to spend one, Shift-click or right-click to add one':''}">${n>1?`<b>${n}</b>`:''}<i class="ms ms-${k}">${k}<img src="https://svgs.scryfall.io/card-symbols/${k}.svg" alt="" draggable="false" onerror="this.remove()"></i></span>`; }).join('')}</div>${smanaHTML(p, mine)}<div class="chips">${chips}<span class="winmark ${p.wins?'on':''}" data-win="${pid}" title="Click to mark a game win. Right-click to take one back."><i></i>${p.wins>=2?'Match won':p.wins?'1 game won':'Game win'}</span></div>`;
+    <div class="dk">${esc(!mine && nightSeat() && p.deck ? 'Deck locked in' : p.deck||'No deck yet')}${p.mull?` · ${p.mull} mulligan${p.mull>1?'s':''}`:''}</div>${p.ptest?`<div class="ptnote" title="${mine?'You chose to play this deck for testing even though it is not tournament legal.':'Your opponent is playtesting with a deck that is not tournament legal.'}">Playtesting: ${esc(p.ptest)}</div>`:''}<div class="mana">${MANA.map(k=>{ const n=(p.mana||{})[k]||0; return `<span class="mp ${n?'on':''} ${mine?'mine':''}" ${mine?`data-mana="${k}"`:''} title="${MNAME[k]} mana${mine?': click to spend one, Shift-click or right-click to add one':''}">${n>1?`<b>${n}</b>`:''}<i class="ms ms-${k}">${k}<img src="https://svgs.scryfall.io/card-symbols/${k}.svg" alt="" draggable="false" onerror="this.remove()"></i></span>`; }).join('')}</div>${smanaHTML(p, mine)}<div class="chips">${chips}<span class="winmark ${p.wins?'on':''}" data-win="${pid}" title="Click to mark a game win. Right-click to take one back."><i></i>${p.wins>=2?'Match won':p.wins?'1 game won':'Game win'}</span></div>`;
 }
 /* smooth taps (v4.23, Ben): render() rebuilds the rows, so CSS transitions never play on a tap. tapSnap notes where each battlefield card is
    and how it is turned just before a render; tapAnim then animates every card that moved or turned from that pose to its new one (FLIP),
@@ -7563,7 +7605,7 @@ const TOUR_STEPS = {
     {sel:'#hostBtn', t:'Open a table', p:['You get a <b>six-letter code</b>. Send it to your friend (text, Discord, anything) and they join with it. The code stays on your screen until they arrive.']},
     {sel:'#codeIn', up:2, t:'Join a table', p:['Got a code from a friend? Type it here and press Join.']},
     {sel:'#soloBtn', t:'Practice alone', p:['Try a deck by yourself. You get an opponent called <b>Practice</b> to attack, and it can bring a deck of its own and take turns.','We\'ll open a practice game now so you can see the table.']},
-    {sel:'.corner', t:'Draft Table', p:['Booster drafts for up to eight players. The deck you draft comes back here to play.']},
+    {sel:'.corner', t:'Game Night', p:['A night for up to eight players: three rounds of Modern, or a draft, sealed event or cube. Game Night pairs the rounds, runs the clock and keeps the standings; your matches are played here.']},
     {sel:'#news', t:"What's new", p:['Every change to the table is listed here, newest first.']} ],
   decks: [
     {sel:'.decklist', t:'Choose your deck', p:['<b>Tournament decks</b> are this week\'s top finishers, refreshed every Monday. <b>Paste or upload</b> takes any decklist (Arena, MTGO or plain text). <b>Saved</b> keeps your own decks, including the ones you draft.']},
@@ -8339,12 +8381,14 @@ if(sess && sess.me && Date.now()-sess.at < 864e5){
     if(G.me.deck) showTable(); else showDecks(); };
 }
 /* Links from the Draft Table: ?t=CODE&r=h|g opens or joins that table, ?r=s is practice, &d=1 shows the newest saved deck. */
-{ const q=new URLSearchParams(location.search), t=(q.get('t')||'').toUpperCase().replace(/[^A-Z]/g,'').slice(0,6), r=q.get('r'), d=q.get('d');
+{ const q=new URLSearchParams(location.search), t=(q.get('t')||'').toUpperCase().replace(/[^A-Z]/g,'').slice(0,6), r=q.get('r'), d=q.get('d'), gn=q.get('gn');
   if(r==='s' || (t.length>=4 && (r==='h' || r==='g'))){
-    ['t','r','d'].forEach(k=>q.delete(k)); history.replaceState(null, '', location.pathname+(q.toString() ? '?'+q : ''));
+    ['t','r','d','gn'].forEach(k=>q.delete(k)); history.replaceState(null, '', location.pathname+(q.toString() ? '?'+q : ''));
+    if(gn){ const st=store.get('gn_seat', null); NIGHT = st && st.code===t ? st : null; nightSave(); }
     begin(r==='s' ? 'solo' : r==='h' ? 'host' : 'guest', t);
-    const sv=store.get('mt_decks',[]);
-    if(d && sv.length){ tab='saved'; $$('.tabs button').forEach(x=>x.classList.toggle('on', x.dataset.tab==='saved')); renderTab(); viewDeck(parseDeck(sv[0].text), sv[0].name, 'Saved deck', null, false, 0); }
+    if(NIGHT && NIGHT.deckText){ (async()=>{ const dk=parseDeck(NIGHT.deckText); await loadDeck(dk, NIGHT.deckName||'My deck'); showTable(); changed(); })(); }
+    else { const sv=store.get('mt_decks',[]);
+      if(d && sv.length){ tab='saved'; $$('.tabs button').forEach(x=>x.classList.toggle('on', x.dataset.tab==='saved')); renderTab(); viewDeck(parseDeck(sv[0].text), sv[0].name, 'Saved deck', null, false, 0); } }
   } }
 window.addEventListener('beforeunload', ()=>save());
 window.__G = G;

@@ -1,0 +1,1371 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sealed Table</title>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="icon" href="../draft/icon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="../draft/apple-touch-icon.png">
+<!-- Anonymous visit and game counts (GoatCounter: no cookies, no personal data). The path drops ?t= table codes. -->
+<script>window.goatcounter={path:function(p){return String(p).split('?')[0];}};</script>
+<script data-goatcounter="https://modern-table.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,800&display=swap">
+<style>
+/* Same type and layout as the Modern Table, in mahogany instead of green felt so you can tell the two apart at a glance. */
+:root{
+  --felt:#5e3a2e; --felt2:#4e3026; --rail:#3c231b; --line:#8a5d4c; --ink:#fbf4ef; --dim:#dcc6ba;
+  --brass:#e0a66a; --go:#d9683c; --bad:#e2574c; --good:#5fc98d; --opp:#7fb3ff;
+  --well:#391f17; --chip:#5d382b; --chip2:#6e4334; --glow:#7d4c3b; --deep:#2a1712; --deepa:#2a1712d9; --btn:#71483a; --cardbg:#7a5445; --voice:#5865f2;
+  --display:"Marcellus",Georgia,serif; --ui:"Nunito Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--rail);color:var(--ink);font:14px/1.4 var(--ui);overflow:hidden;user-select:none;-webkit-user-select:none}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;background:var(--btn);border:1px solid var(--line);border-radius:6px;padding:7px 12px}
+button:hover{border-color:var(--brass)}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--brass);outline-offset:1px}
+button.go{background:var(--go);border-color:var(--go);color:#1c0c05;font-weight:800}
+button.ghost{background:transparent}
+button.sm{font-size:12px;padding:3px 8px}
+button.on{border-color:var(--brass);color:var(--brass)}
+button:disabled{opacity:.45;cursor:default}button:disabled:hover{border-color:var(--line)}
+input,select{background:var(--well);border:1px solid var(--line);border-radius:6px;padding:8px 10px}
+input{user-select:text;-webkit-user-select:text}
+a{color:var(--brass)}
+h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
+[hidden]{display:none!important}
+.screen{height:100%}
+.hint{color:var(--dim)}
+
+#lobby{position:relative;display:grid;place-items:center;background:radial-gradient(120% 90% at 50% 0%,var(--glow),var(--rail) 70%);overflow:auto;padding:24px 16px}
+.lobbybox{width:min(940px,100%);display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:18px 44px;align-items:start}
+.lhead,.lmain{display:flex;flex-direction:column;gap:18px;min-width:0}.lhead{grid-column:1/-1}
+@media (max-width:920px){.lobbybox{grid-template-columns:minmax(0,1fr);width:min(560px,100%)}}
+.news{display:flex;flex-direction:column;gap:9px;background:var(--deepa);border:1px solid var(--line);border-radius:10px;padding:14px 16px 16px;box-shadow:0 8px 24px #0006}
+.news h4{margin:0;font:600 11px var(--ui);letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.newsrow{display:grid;grid-template-columns:52px 1fr;gap:8px;font-size:13px;color:var(--ink);line-height:1.4}
+.newsrow b{color:var(--brass);font-variant-numeric:tabular-nums}.newsrow b small{display:block;color:var(--dim);font-weight:400;font-size:11px}
+.news a{color:var(--brass);font-size:13px}
+.lobbybox h1{font-size:44px;letter-spacing:.02em}
+.lobbybox p{margin:0;color:var(--dim);max-width:60ch}
+.lobbybox p.legal{max-width:none;font:12px/1.55 var(--ui);color:var(--dim);border-top:1px solid var(--line);padding-top:12px;margin-top:4px}.lobbybox p.legal a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.choices{display:grid;gap:10px}
+.choice{display:flex;gap:12px;align-items:center;justify-content:space-between;text-align:left;padding:14px 16px;background:var(--chip)}
+.choice b{display:block;font-size:16px}.choice span{color:var(--dim);font-size:13px}
+/* the way back to the Modern Table wears the Modern Table's colours */
+.corner{position:absolute;top:16px;right:20px;border:1px solid #d9b25f;border-radius:99px;padding:6px 14px;text-decoration:none;font-weight:800;color:#d9b25f;background:#16272b;box-shadow:0 2px 8px #0006}
+.corner:hover{background:#1c3238;color:#f0cf85}
+.joinrow{display:flex;gap:8px}.joinrow input{flex:1;text-transform:uppercase;letter-spacing:.2em;font-weight:800;min-width:0}
+
+#room{display:flex;flex-direction:column;background:var(--felt2)}
+.topbar{display:flex;gap:10px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--rail);flex-wrap:wrap}
+.topbar h2{font-size:22px;margin-right:auto}
+.pill{font-size:12px;padding:3px 9px;border-radius:99px;border:1px solid var(--line);color:var(--dim);white-space:nowrap}
+.pill.ok{color:var(--good);border-color:var(--good)}.pill.warn{color:var(--go);border-color:var(--go)}
+.pill b{color:var(--ink);letter-spacing:.15em;user-select:text;-webkit-user-select:text}
+.body{flex:1;min-height:0;display:grid;grid-template-columns:230px 1fr}
+#rail{border-right:1px solid var(--line);background:var(--rail);overflow:auto;padding:12px;display:flex;flex-direction:column;gap:6px}
+#rail h3{font-size:12px;font-family:var(--ui);font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin:4px 0}
+.seat{display:grid;grid-template-columns:18px 1fr auto;gap:6px;align-items:center;padding:6px 8px;border:1px solid transparent;border-radius:6px}
+.seat.me{border-color:var(--brass);background:var(--chip)}
+.seat .dot{width:9px;height:9px;border-radius:50%;background:var(--line)}
+.seat.on .dot{background:var(--good)}.seat.busy .dot{background:var(--go)}.seat.off .dot{background:var(--bad)}
+.seat small{color:var(--dim);display:block}
+.seat .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.arrow{color:var(--dim);font-size:12px;text-align:center}
+#main{overflow:auto;padding:16px 20px;display:flex;flex-direction:column;gap:14px;min-width:0}
+#main>*{flex:none}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.bar h3{font-size:22px}
+.clock{font:800 18px var(--ui);font-variant-numeric:tabular-nums;color:var(--brass);min-width:3ch}
+.clock.low{color:var(--bad)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.grid.sm{grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px}
+.grid.xs{grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:4px}
+.c{position:relative;aspect-ratio:488/680;border-radius:4.6%/3.3%;background:var(--cardbg);box-shadow:0 2px 6px #0008;cursor:pointer;overflow:hidden;transition:transform .12s,box-shadow .12s}
+.c:hover{transform:translateY(-3px)}
+.c img{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+.c .txt{position:absolute;inset:0;padding:7%;display:flex;flex-direction:column;gap:3px;font-size:11px;line-height:1.15;border:1px solid var(--line);border-radius:inherit;pointer-events:none;overflow:hidden}
+.c .txt i{color:var(--dim);font-style:normal}
+.c.sel{box-shadow:0 0 0 3px var(--go),0 6px 16px #000a;transform:translateY(-6px)}
+.c.foil::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 20%,#7fd4ff33 38%,#ffd87a40 50%,#ff8ad033 62%,transparent 80%);mix-blend-mode:screen}
+.c .tag{position:absolute;left:4%;bottom:3%;font-size:9px;font-weight:800;letter-spacing:.1em;background:#000c;color:var(--brass);padding:1px 5px;border-radius:3px;pointer-events:none}
+.sec{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin:6px 0 2px}
+.panes{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+.pane .bar h3{font-size:18px}
+.sec b{color:var(--brass);font-size:13px;margin-left:4px}.sec span{text-transform:none;letter-spacing:0}
+.regions{--w:clamp(76px,6.6vw,124px);display:flex;flex-wrap:wrap;gap:4px 26px;align-items:flex-start}
+.cols{display:flex;gap:6px;align-items:flex-start;padding:4px 2px 8px}
+.col{width:var(--w);flex:none;display:flex;flex-direction:column}
+.col .c + .c{margin-top:calc(var(--w) * -1.2)}
+.col .c:hover{transform:none;box-shadow:0 0 0 2px var(--brass)}
+.colh{font-size:11px;font-weight:800;color:var(--ink);text-align:center;margin-bottom:4px}.colh span{color:var(--dim);font-weight:600}
+.pane{background:var(--well);border:1px solid var(--line);border-radius:8px;padding:12px;min-height:120px}
+.lands{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.land{display:flex;gap:4px;align-items:center;border:1px solid var(--line);border-radius:6px;padding:3px 6px}
+.land .lart{width:30px;height:42px;border-radius:3px;background:var(--deep) center/cover no-repeat;flex:none;box-shadow:0 1px 3px #0008}
+.bart{display:flex;flex-direction:column;gap:3px;font:700 10px var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}.bart select{font:600 12px var(--ui);letter-spacing:0;text-transform:none;background:var(--deep);color:var(--ink);border:1px solid var(--line);border-radius:5px;padding:3px 5px}
+.land b{min-width:2ch;text-align:center;font-variant-numeric:tabular-nums}
+.land button{padding:1px 8px}
+table{border-collapse:collapse;width:100%;max-width:640px}
+th,td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--line)}
+th{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);font-weight:800}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.match{border:1px solid var(--line);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px;max-width:640px;background:var(--well)}
+.match.mine{border-color:var(--brass)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.setrow{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
+#zoom{position:fixed;z-index:80;pointer-events:none;display:flex;gap:6px}
+#zoom img{width:300px;border-radius:14px;box-shadow:0 10px 30px #000c}
+#toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#000d;border:1px solid var(--brass);padding:8px 16px;border-radius:99px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:90}
+/* sealed (v0.16): the prerelease kit, opened one pack at a time */
+.c.promo .tag{color:#ffe7b0;background:#7a1d16e6;border:1px solid #f3cf8a}
+.kit{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;padding:14px 16px;border-radius:10px;background:radial-gradient(120% 100% at 50% 0%,var(--glow),var(--felt) 75%);border:1px solid var(--line)}
+.kitbox{height:150px;width:auto;display:block;filter:drop-shadow(0 6px 10px #0009)}
+.packs{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.pk{position:relative;width:84px;height:150px;padding:0;border:0;background:none;border-radius:4px;transition:transform .15s ease,opacity .2s}
+.pk img{width:100%;height:100%;object-fit:contain;display:block;filter:drop-shadow(0 6px 8px #0009);pointer-events:none}
+.pk.drawn{background:linear-gradient(160deg,#3b1f52,#1d2a4a 55%,#0f1730);box-shadow:0 6px 14px #0008;color:#fff}
+.pk.drawn::before,.pk.drawn::after{content:"";position:absolute;left:0;right:0;height:7px;background:repeating-linear-gradient(90deg,#c9d7ea 0 4px,#8ea2c2 4px 8px);opacity:.85}
+.pk.drawn::before{top:0}.pk.drawn::after{bottom:0}
+.pk .pt{position:absolute;left:0;right:0;bottom:14px;font:11px/1.15 var(--display);text-align:center;letter-spacing:.06em;text-transform:uppercase;padding:0 4px}
+.pk .pn{position:absolute;top:-8px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--rail);border:1px solid var(--line);font:800 11px/18px var(--ui);color:var(--dim);text-align:center}
+.pk:hover:not(:disabled){transform:translateY(-6px) rotate(-1.5deg);border-color:transparent}
+.pk:disabled{opacity:.22;cursor:default;transform:none}
+.pk:disabled:hover{border-color:transparent}
+.promo{display:flex;flex-direction:column;gap:6px;align-items:center}
+.promo .c{width:96px}
+.cardback{position:relative;width:96px;aspect-ratio:488/680;padding:0;border:0;border-radius:4.6%/3.3%;overflow:hidden;background:var(--deep);box-shadow:0 4px 10px #0009;transition:transform .15s}
+.cardback img{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+.cardback:hover{transform:translateY(-6px) rotate(1.5deg)}
+.cardback.ready{animation:glow 1.6s ease-in-out infinite}
+@keyframes glow{50%{box-shadow:0 0 0 3px #e0a66a99,0 0 22px #e0a66a99}}
+.kitside{margin-left:auto;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.kitside .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.reveal{background:var(--well);border:1px solid var(--line);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.fan{display:flex;gap:8px;flex-wrap:wrap}
+.fan .c{width:clamp(96px,8.6vw,136px);animation:flipin .38s ease both}
+.fan .c.hit{box-shadow:0 0 0 2px var(--brass),0 0 18px #e0a66a99}
+@keyframes flipin{from{transform:perspective(600px) rotateY(90deg);opacity:0}to{transform:none;opacity:1}}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:-1px;margin-right:5px;box-shadow:inset 0 0 0 1px #0007}
+.pane.over{border-color:var(--brass);box-shadow:inset 0 0 0 2px #e0a66a66}
+#ghost{position:fixed;z-index:85;pointer-events:none;width:var(--gw,110px);transform:translate(-50%,-30%) rotate(-3deg);opacity:.92}
+#ghost .c{width:100%}
+/* Colour dive (v0.17, Ben): a rail of colour buttons beside the pool; a colour opens a window with every card of that colour
+   (hybrid and multicolour included) and the lands that make it, by mana value across and type down, with Bulk add. */
+.poolwrap{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:16px;align-items:start}
+.diverail{display:flex;flex-direction:column;gap:6px;border-left:1px solid var(--line);padding-left:14px;position:sticky;top:8px;margin-top:22px}
+.diverail .sec{margin:0 0 2px}
+.divebtn{display:flex;align-items:center;gap:8px;text-align:left;padding:6px 8px;background:var(--chip)}
+.divebtn b{flex:1;font-weight:700}.divebtn small{color:var(--dim);font-variant-numeric:tabular-nums}
+.divebtn.on{border-color:var(--brass);background:var(--chip2)}
+.pip{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;font:800 10px/1 var(--ui);color:#1b120e;box-shadow:inset 0 0 0 1px #0007;flex:none}
+#dive{position:fixed;z-index:70;top:calc(64px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));width:min(1120px,calc(100vw - 260px));max-height:calc(100vh - 88px);display:flex;flex-direction:column;background:var(--felt2);border:1px solid var(--brass);border-radius:10px;box-shadow:0 18px 50px #000b}
+#dive header{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--rail);border-radius:10px 10px 0 0}
+#dive header h3{font-size:22px;display:flex;gap:8px;align-items:center}
+#dive .dvbody{overflow:auto;padding:12px 14px 16px;--w:clamp(76px,6.2vw,112px)}
+.dvgrid{display:grid;grid-template-columns:min-content repeat(7,var(--w));justify-content:start;gap:8px 10px;align-items:start}
+.dvgrid .rowh{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);writing-mode:vertical-rl;transform:rotate(180deg);text-align:end;align-self:stretch;padding:4px 0;border-right:1px solid var(--line);padding-right:4px}
+.dvgrid .colh{margin:0}
+.dvgrid .cell{min-height:20px}
+.dvgrid .lands{grid-column:2 / -1;display:flex;flex-wrap:wrap;gap:8px}
+.dvgrid .lands .c{width:var(--w)}
+.c.indk{box-shadow:0 0 0 2px var(--good),0 2px 6px #0008}
+.dvsw{display:flex;gap:4px}.pipbtn{padding:3px;border-radius:50%;background:transparent;border:1px solid transparent;line-height:0}.pipbtn.on{border-color:var(--brass)}.pipbtn .pip{width:26px;height:26px;font-size:11px}.pip.ms{position:relative;overflow:hidden}.pip.ms img{position:absolute;inset:0;width:100%;height:100%;display:block}
+.pipbtn:not(.on){opacity:.55}.pipbtn:not(.on):hover{opacity:1}
+.c.indk .tag,.c.promo.indk .tag{color:var(--good);background:#000c;border:0}
+#dive .empty{color:var(--dim);padding:6px 0}
+@media (max-width:760px){ .poolwrap{grid-template-columns:1fr} .diverail{border-left:0;padding-left:0;position:static;flex-direction:row;flex-wrap:wrap} #dive{left:8px;right:8px;width:auto;top:8px;max-height:calc(100vh - 16px)} .dvgrid{grid-template-columns:min-content repeat(7,72px)} }
+@media (prefers-reduced-motion:reduce){ .fan .c{animation:none} .cardback.ready{animation:none} .pk{transition:none} }
+@media (max-width:760px){ .regions{--w:76px} .pk{width:58px;height:104px} .kitbox{height:104px} .promo .c,.cardback{width:70px} .kitside{margin-left:0;align-items:flex-start} .body{grid-template-columns:1fr} #rail{border-right:0;border-bottom:1px solid var(--line);max-height:26vh} .panes{grid-template-columns:1fr} .grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))} }
+
+/* ===== Game Night (v0.26) =====
+   One engine, four felts: Game Night (navy), Draft Table (mahogany, the default above), Sealed Table (plum), Cube Table (olive).
+   The page's own felt comes from VARIANT; inside an event the felt follows the event (themeFor). */
+body.th-gn{--felt:#1b2a4a;--felt2:#142039;--rail:#0b1324;--line:#34497a;--ink:#edf1fa;--dim:#a3b0cc;--brass:#e2bd6a;--go:#e2bd6a;--well:#101a33;--chip:#17254a;--chip2:#21325a;--glow:#273d6b;--deep:#0a1020;--deepa:#0a1020d9;--btn:#21325a;--cardbg:#2c3d63}
+body.th-st{--felt:#4a2a4e;--felt2:#3c2140;--rail:#2a1630;--line:#7a5480;--ink:#f8f0f8;--dim:#d6c2d8;--brass:#e9b3df;--go:#d67fc4;--well:#311a35;--chip:#4f2c54;--chip2:#5f3565;--glow:#6b3c71;--deep:#22102a;--deepa:#22102ad9;--btn:#5a3460;--cardbg:#6a4870}
+body.th-ct{--felt:#3c4428;--felt2:#313822;--rail:#20261a;--line:#69744b;--ink:#f3f4ea;--dim:#c7ccb0;--brass:#d9d47c;--go:#b5c450;--well:#272d1c;--chip:#3d4529;--chip2:#4a5432;--glow:#56613a;--deep:#171b11;--deepa:#171b11d9;--btn:#4a5432;--cardbg:#5d6743}
+button.go{color:#16100a}
+.corner.to-gn{border-color:#e2bd6a;color:#e2bd6a;background:#1b2a4a}.corner.to-gn:hover{background:#273d6b;color:#f2d58f}
+/* front-page choices with a felt swatch of the table they open */
+.choice.sw{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:14px;align-items:center;text-decoration:none;color:var(--ink);border:1px solid var(--line);border-radius:6px}
+.choice.sw:hover{border-color:var(--brass)}
+.choice.sw > span:nth-child(2) > span{display:block}
+.choice .to{display:inline-block;margin-top:5px;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.choice.feature{border-color:var(--brass);background:linear-gradient(180deg,var(--glow),var(--chip))}
+.choice.feature b{font-family:var(--display);font-weight:400;font-size:21px;letter-spacing:.01em}
+.felt{width:44px;height:44px;border-radius:8px;position:relative;background:radial-gradient(circle at 50% 35%,var(--sw-glow),var(--sw-felt) 75%);border:1px solid var(--sw-line);box-shadow:inset 0 1px 0 #ffffff14}
+.felt i{position:absolute;width:13px;height:18px;border-radius:2px;top:13px;background:var(--sw-card);box-shadow:0 1px 3px #0009}
+.felt i:first-child{left:9px;transform:rotate(-9deg)}.felt i:last-child{right:9px;transform:rotate(7deg);background:var(--sw-card2)}
+.sw-gn{--sw-felt:#1b2a4a;--sw-glow:#2c4476;--sw-line:#34497a;--sw-card:#e2bd6a;--sw-card2:#edf1fa}
+.sw-dt{--sw-felt:#5e3a2e;--sw-glow:#875240;--sw-line:#8a5d4c;--sw-card:#e0a66a;--sw-card2:#fbf4ef}
+.sw-st{--sw-felt:#4a2a4e;--sw-glow:#704076;--sw-line:#7a5480;--sw-card:#e9b3df;--sw-card2:#f8f0f8}
+.sw-ct{--sw-felt:#3c4428;--sw-glow:#5c6840;--sw-line:#69744b;--sw-card:#d9d47c;--sw-card2:#f3f4ea}
+.to.gn{color:#e2bd6a}.to.dt{color:#e0a66a}.to.st{color:#e9b3df}.to.ct{color:#d9d47c}
+.steps{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;counter-reset:s}
+.steps li{display:grid;grid-template-columns:24px 1fr;gap:8px;font-size:13px;color:var(--ink)}
+.steps li::before{counter-increment:s;content:counter(s);width:22px;height:22px;border-radius:50%;border:1px solid var(--brass);color:var(--brass);display:grid;place-items:center;font-weight:800;font-size:12px}
+/* the room: chat column beside the main area */
+.body.chatty{grid-template-columns:230px minmax(0,1fr) 300px}
+#chatCol{display:flex;flex-direction:column;border-left:1px solid var(--line);background:var(--rail);min-height:0;min-width:0}
+#chatCol h3{font:800 12px var(--ui);letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin:0;padding:12px 14px 8px}
+#msgs{flex:1;overflow:auto;padding:0 14px 10px;display:flex;flex-direction:column;gap:7px;min-height:0;user-select:text;-webkit-user-select:text}
+.msg{font-size:13px;line-height:1.4;overflow-wrap:anywhere}
+.msg b{margin-right:6px}.msg time{color:var(--dim);font-size:11px;margin-right:6px;font-variant-numeric:tabular-nums}
+.msg.sys{color:var(--dim);font-style:italic}
+.chatform{display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--line)}
+.chatform input{flex:1;min-width:0}
+@media (max-width:1150px){.body.chatty{grid-template-columns:210px minmax(0,1fr)} .body.chatty #chatCol{grid-column:1/-1;border-left:0;border-top:1px solid var(--line);max-height:300px}}
+@media (max-width:760px){.body.chatty{grid-template-columns:1fr} .body.chatty #chatCol{grid-column:auto}}
+.seat .rec{font-variant-numeric:tabular-nums;font-size:12px;color:var(--dim)}
+.announce{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 14px;align-items:center;padding:14px 16px;border-radius:10px;border:1px solid var(--brass);background:linear-gradient(180deg,var(--glow),var(--felt));max-width:1000px}
+.announce .rd{grid-row:1/3;font-family:var(--display);font-size:30px;color:var(--brass);line-height:1;text-align:center;min-width:52px}
+.announce .rd small{display:block;font:800 10px var(--ui);letter-spacing:.14em;color:var(--dim);margin-top:2px}
+.announce b{font-size:16px;grid-column:2}.announce .sub{color:var(--dim);font-size:13px;grid-column:2}
+.announce .act{grid-column:3;grid-row:1/3;display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+@media (max-width:640px){.announce{grid-template-columns:auto minmax(0,1fr)}.announce .act{grid-column:1/-1;grid-row:auto;justify-content:flex-start}}
+.bigclock{font:800 22px var(--ui);font-variant-numeric:tabular-nums;color:var(--brass);text-align:right;line-height:1}
+.bigclock small{display:block;font:800 10px var(--ui);letter-spacing:.14em;color:var(--dim);margin-top:4px}
+.bigclock.low{color:var(--bad)}
+.tables{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;max-width:1000px}
+@media (max-width:900px){.tables{grid-template-columns:minmax(0,1fr)}}
+.tbl{display:flex;flex-direction:column;gap:10px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--felt)}
+.tbl.mine{border-color:var(--brass);box-shadow:0 0 0 1px var(--brass),0 6px 18px #0007}
+.tbl.done{opacity:.72}
+.tbl .th{display:flex;align-items:baseline;gap:8px}.tbl .th h3{font-size:20px}
+.tbl .st{margin-left:auto;font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums;text-align:right}
+.tbl .st.live{color:var(--good)}.tbl .st.fin{color:var(--brass)}.tbl .st.warn{color:var(--go)}.tbl .st.bad{color:var(--bad)}
+.ttop{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px;padding:14px 12px;border-radius:999px/60px;background:radial-gradient(ellipse at 50% 40%,var(--glow),var(--felt2) 80%);border:1px solid var(--line)}
+.tpl{min-width:0}.tpl.r{text-align:right}
+.tpl .n{font-weight:800;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tpl .d{font-size:12px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tpl.win .n{color:var(--brass)}
+.tvs{display:flex;gap:4px;align-items:center}
+.tpip{width:10px;height:10px;border-radius:50%;border:1px solid var(--brass)}.tpip.w{background:var(--brass)}
+.tvs .x{font-family:var(--display);color:var(--dim);margin:0 4px}
+.tacts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.vbtn{display:inline-flex;gap:7px;align-items:center;font-weight:700;border-color:#5865f2aa;background:#5865f222;text-decoration:none;color:var(--ink);border:1px solid #5865f2aa;border-radius:6px;padding:3px 8px;font-size:12px}
+.vbtn:hover{border-color:var(--voice);background:#5865f244}
+.vbtn svg{width:15px;height:15px;flex:none}
+a.btnlink{text-decoration:none}
+.sect{display:flex;flex-direction:column;gap:8px;max-width:1000px}
+.secthead{display:flex;align-items:baseline;gap:10px}
+.secthead .cap{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);font-weight:800}
+.secthead small{color:var(--dim);font-size:12px}
+.stand{max-width:none}
+.stand td small{display:block;color:var(--dim);font-size:11px;font-weight:600}
+.stand tr.me td{color:var(--brass);font-weight:800}
+.empty{border:1px dashed var(--line);border-radius:10px;padding:22px;text-align:center;color:var(--dim);max-width:1000px}
+/* lock in a deck (Modern night) */
+.deckgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,340px);gap:16px;align-items:start;max-width:1100px}
+@media (max-width:1000px){.deckgrid{grid-template-columns:minmax(0,1fr)}}
+.dtabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+.dtabs input{flex:1;min-width:140px;padding:5px 9px}
+.dlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.dk{text-align:left;display:flex;flex-direction:column;gap:2px;padding:9px 12px;background:var(--chip)}
+.dk b{font-size:14px}.dk span{font-size:12px;color:var(--dim)}
+.dk.sel{border-color:var(--brass);box-shadow:0 0 0 1px var(--brass)}
+.lockcard{position:sticky;top:0;display:flex;flex-direction:column;gap:12px;padding:16px;border:1px solid var(--line);border-radius:10px;background:var(--felt)}
+.lockcard h3{font-size:24px}
+.lockcard .keys{font-size:13px;color:var(--dim)}.lockcard .keys b{color:var(--ink);font-weight:600}
+.confirm{border:1px solid var(--brass);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--chip)}
+.confirm p{margin:0;font-size:13px}
+.lockedbox{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:8px;border:1px solid var(--brass);color:var(--brass);font-weight:800}
+.lockedbox svg{width:18px;height:18px;flex:none}
+/* a small window of our own (the page never uses confirm() for event choices) */
+#veil{position:fixed;inset:0;background:#0009;display:grid;place-items:center;z-index:95;padding:16px}
+.dialog{width:min(440px,100%);background:var(--felt);border:1px solid var(--brass);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:12px;box-shadow:0 20px 50px #000b}
+.dialog h3{font-size:22px}.dialog p{margin:0;color:var(--dim);font-size:13px}
+.dialog .cap{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);font-weight:800}
+.res{display:grid;grid-template-columns:1fr 1fr;gap:8px}.res button{padding:10px}.res .wide{grid-column:1/-1}
+.drow{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div id="lobby" class="screen">
+  <a class="corner" href="../">Modern Table →</a>
+  <div class="lobbybox">
+    <div class="lhead"><h1>Draft Table <small id="verTag" style="font:600 13px var(--ui);color:var(--dim);letter-spacing:.08em"></small></h1>
+    <p>Booster draft or a prerelease for up to eight, with packs built to each set's real odds. Build a 40-card deck, then play your matches on the <a href="../">Modern Table</a>.</p></div>
+    <div class="lmain">
+    <div class="field"><label for="nameIn">Your name</label><input id="nameIn" maxlength="20" placeholder="Planeswalker"></div>
+    <div class="choices">
+      <button class="choice" id="hostBtn"><div><b>Host a draft</b><span>Pick the set, get a six-letter code for your friends. Bots fill empty seats.</span></div><span>→</span></button>
+      <button class="choice" id="sealedBtn"><div><b>Host a prerelease</b><span>Sealed: everyone opens a prerelease kit of six packs and a foil promo, builds 40 cards, then plays three rounds.</span></div><span>→</span></button>
+      <div class="choice" style="border:1px solid var(--line);border-radius:6px">
+        <div style="flex:1;min-width:0"><b>Join with a code</b><div class="joinrow" style="margin-top:6px"><input id="codeIn" maxlength="6" placeholder="CODE" aria-label="Draft code"><button id="joinBtn" class="go">Join</button></div></div>
+      </div>
+      <button class="choice" id="resumeBtn" hidden><div><b>Return to your event</b><span id="resumeTxt"></span></div><span>→</span></button>
+    </div>
+    <p id="lobbyMsg" style="color:var(--go)"></p>
+    <p class="legal">The Draft Table is unofficial Fan Content permitted under the <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Fan Content Policy</a>. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.<br>Card images and card data from <a href="https://scryfall.com/" target="_blank" rel="noopener">Scryfall</a>. Pack odds from <a href="https://github.com/taw/magic-sealed-data" target="_blank" rel="noopener">magic-sealed-data</a>. Free to use, with no ads, and not affiliated with any of these sites. Visits and drafts are counted anonymously with <a href="https://www.goatcounter.com/" target="_blank" rel="noopener">GoatCounter</a>: no cookies, no names.</p>
+    </div>
+    <aside class="news" id="news" aria-label="What's new"></aside>
+  </div>
+</div>
+
+<div id="room" class="screen" hidden>
+  <div class="topbar"><h2>Draft Table</h2><span class="pill" id="setPill"></span><span class="pill" id="codePill" title="Click to copy"></span><span class="pill" id="netPill"></span><button id="leaveBtn" class="ghost sm">Leave</button></div>
+  <div class="body" id="roomBody"><div id="rail"></div><div id="main"></div><aside id="chatCol" hidden aria-label="Chat"><h3>Chat</h3><div id="msgs"></div><form class="chatform" id="chatForm"><input id="chatIn" maxlength="300" placeholder="Say something to everyone" aria-label="Chat message" autocomplete="off"><button class="go" type="submit">Send</button></form></aside></div>
+</div>
+<div id="zoom" hidden></div>
+<div id="veil" hidden></div>
+<div id="toast"></div>
+
+<script src="../src/peerjs.min.js"></script>
+<script>
+"use strict";
+/* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
+function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
+const VERSION = 'v0.26';
+/* What's new on the front page (v0.19, like the Modern Table's NEWS): newest first, written for players. Add a line with every version bump. */
+const DNEWS = [
+  ['v0.26','Nov 11',"Game Night: a navy page (the Game Night link on the Modern Table) hosts Modern Night Magic for up to eight, and Draft, Sealed and Cube each open straight to their own table's setup. Every event ends in the same matchmaking room: chat, a 3-minute break before each round, tables with their voice channel, one round clock, results confirmed by both players, pairings by standings, and decks revealed in the final standings."],
+  ['v0.25','Nov 10',"The Draft Table now keeps an anonymous count of visits and of drafts and sealed events started. No cookies and no names."],
+  ['v0.24','Nov 4',"Prerelease kits now show all three Reality Fracture pack covers (Jace, Chandra and Liliana), two of each, in a different order for every player."],
+  ['v0.23','Nov 4',"Color dive: the row labels (Creatures, Non-creature spells, Lands) start at the top of their rows."],
+  ['v0.22','Nov 4',"The color dive buttons sit a little lower, with more room under the Sort by menu."],
+  ['v0.21','Nov 4',"Color dive: the color buttons beside your pool are mana symbols too, and the Draft Table now spells color the American way."],
+  ['v0.20','Nov 4',"Color dive: the cards line up from the left edge of the window, and the color buttons in the window are mana symbols."],
+  ['v0.19','Nov 4',"A What's new column on the front page, like the Modern Table's."],
+  ['v0.18','Nov 4',"Color dive: artifacts and other colorless cards now show in every color's window, and the window has color buttons to switch without closing it."],
+  ['v0.17','Nov 4',"Color dive on the deck-building screen: pick a color beside your pool to see all its cards (gold and hybrid included) and the lands that make it, by mana value and type, with Bulk add to put them all in your deck."],
+  ['v0.16','Nov 4',"Prereleases: host a sealed event for up to eight. Everyone opens a kit of six packs and a foil promo, one pack at a time, builds 40 cards, then plays three rounds. Cards can also be dragged between deck and pool."],
+  ['v0.15','Oct 31',"Choose the art for your basic lands while building. It's the same setting as on the Modern Table, and your deck uses it there."],
+  ['v0.13','Oct 23',"The set list shows only the sets whose cards the Modern Table plays fully: Reality Fracture, Final Fantasy, Modern Horizons 1 and 2, Khans of Tarkir and DF07's Legacy Cube."],
+  ['v0.12','Oct 17',"Card lookups keep to Scryfall's pace, so card images stop getting stuck."],
+  ['v0.11','Oct 17',"If Scryfall doesn't answer, the page says so instead of waiting forever."],
+  ['v0.10','Oct 17',"Fan Content notice and credits on the front page."],
+  ['v0.9','Oct 17',"New address: modern-table.github.io/draft. Old links forward here and bring your saved decks."],
+  ['v0.8','Oct 9',"Cube drafts, starting with DF07's Legacy Cube."],
+  ['v0.7','Oct 8',"Your picks are sorted like the deck builder while you draft, and you can move cards to the sideboard as you go."],
+  ['v0.3','Oct 6',"The deck builder sorts your cards into creatures, other spells and lands by mana value."],
+  ['v0.1','Oct 6',"The Draft Table opens: booster drafts for up to eight with bots filling seats, deck building, and three rounds played on the Modern Table."],
+];
+// Only the sets and cube whose cards the Modern Table plays fully (2026-10-23); the other set files stay in draft/sets for later.
+const READY = ['fra','fin','mh2','mh1','ktk','df07'];
+const SETS_ALL = [{"code":"fra","name":"Reality Fracture","size":14,"group":"Recent"},{"code":"hob","name":"The Hobbit","size":14,"group":"Recent"},{"code":"msh","name":"Marvel Super Heroes","size":14,"group":"Recent"},{"code":"sos","name":"Secrets of Strixhaven","size":14,"group":"Recent"},{"code":"tmt","name":"Teenage Mutant Ninja Turtles","size":14,"group":"Recent"},{"code":"ecl","name":"Lorwyn Eclipsed","size":14,"group":"Recent"},{"code":"tla","name":"Avatar: The Last Airbender","size":14,"group":"Recent"},{"code":"spm","name":"Marvel's Spider-Man","size":14,"group":"Recent"},{"code":"eoe","name":"Edge of Eternities","size":14,"group":"Recent"},{"code":"fin","name":"Final Fantasy","size":14,"group":"Recent"},{"code":"tdm","name":"Tarkir: Dragonstorm","size":14,"group":"Favourites"},{"code":"fdn","name":"Foundations","size":14,"group":"Favourites"},{"code":"dsk","name":"Duskmourn: House of Horror","size":14,"group":"Favourites"},{"code":"blb","name":"Bloomburrow","size":14,"group":"Favourites"},{"code":"mh3","name":"Modern Horizons 3","size":14,"group":"Favourites"},{"code":"mom","name":"March of the Machine","size":15,"group":"Favourites"},{"code":"neo","name":"Kamigawa: Neon Dynasty","size":15,"group":"Favourites"},{"code":"mh2","name":"Modern Horizons 2","size":15,"group":"Favourites"},{"code":"eld","name":"Throne of Eldraine","size":15,"group":"Favourites"},{"code":"mh1","name":"Modern Horizons","size":15,"group":"Favourites"},{"code":"war","name":"War of the Spark","size":15,"group":"Favourites"},{"code":"dom","name":"Dominaria","size":15,"group":"Favourites"},{"code":"ktk","name":"Khans of Tarkir","size":15,"group":"Favourites"},{"code":"isd","name":"Innistrad","size":15,"group":"Favourites"},{"code":"roe","name":"Rise of the Eldrazi","size":15,"group":"Favourites"},{"code":"df07","name":"DF07's Legacy Cube","size":15,"group":"Cubes"},{"code":"mtgo-vintage","name":"MTGO Vintage Cube (Oct 2026)","size":15,"group":"Cubes"}];
+const VARIANT = /*__VARIANT__*/'st';   // which copy of the page this is (build.py): gn Game Night (night/), dt Draft Table (draft/), st Sealed Table (sealed/), ct Cube Table (cube/)
+const DBASE = /*__DBASE__*/'../draft/';          // where the set and pack files live, relative to this page (draft/ holds them)
+const SETS = SETS_ALL.filter(s=>READY.includes(s.code) && (VARIANT==='ct' ? s.group==='Cubes' : VARIANT==='gn' || s.group!=='Cubes'));
+const PREFIX = 'draft-table-v1-';
+const BACK_IMG = 'https://backs.scryfall.io/large/0/a/0aeebaf5-8c7d-4636-9e82-8c27447861f7.jpg';   // the card back the Modern Table uses
+const KIT_PACKS = 6;                // a prerelease kit: six Play Boosters and one foil promo
+const $ = (s, el=document) => el.querySelector(s), $$ = (s, el=document) => [...el.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const store = { get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } }, set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }, del(k){ try{ localStorage.removeItem(k); }catch(e){} } };
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function toast(t, ms=2600){ const el=$('#toast'); el.textContent=t; el.style.opacity=1; clearTimeout(toast.t); toast.t=setTimeout(()=>el.style.opacity=0, ms); }
+
+/* Saved data brought over from the old address (used before 2026-10-17).
+   The forwarding page there sends #import=<base64url JSON of mt_decks, mt_settings, mt_dview>. */
+const IMPORTED = (()=>{ const m = location.hash.match(/^#import=([A-Za-z0-9_-]+)$/); if(!m) return null;
+  try{ history.replaceState(null, '', location.pathname + location.search); }catch(e){}
+  try{
+    const b = atob(m[1].replace(/-/g,'+').replace(/_/g,'/')), d = JSON.parse(new TextDecoder().decode(Uint8Array.from(b, ch => ch.charCodeAt(0))));
+    let n = 0;
+    if(Array.isArray(d.mt_decks)){ const have = store.get('mt_decks', []), seen = new Set(have.map(x => x && x.name + '\n' + x.text));
+      for(const x of d.mt_decks){ if(x && typeof x.name === 'string' && typeof x.text === 'string' && !seen.has(x.name + '\n' + x.text)){ have.push({name:x.name, text:x.text}); seen.add(x.name + '\n' + x.text); n++; } }
+      store.set('mt_decks', have); }
+    for(const k of ['mt_settings','mt_dview']) if(d[k] != null && store.get(k, null) == null) store.set(k, d[k]);
+    return {n};
+  }catch(e){ return {err:1}; } })();
+if(IMPORTED) setTimeout(() => toast(IMPORTED.err ? 'Welcome to the new address. Your saved decks could not be brought over.' : IMPORTED.n ? `Welcome to the new address. ${IMPORTED.n} saved deck${IMPORTED.n === 1 ? '' : 's'} brought over.` : 'Welcome to the new address.'), 900);
+function setHTML(el, h){ if(el._h!==h){ el._h=h; el.innerHTML=h; } }
+const randCode = () => { const A='ABCDEFGHJKLMNPQRSTUVWXYZ'; let c=''; for(let i=0;i<6;i++) c+=A[Math.floor(Math.random()*A.length)]; return c; };
+const SETTINGS = store.get('mt_settings', {});            // shared with the Modern Table, so your name carries over
+let PID = store.get('dt_pid', null); if(!PID){ PID = Math.random().toString(36).slice(2,12); store.set('dt_pid', PID); }
+const setName = code => (SETS_ALL.find(s=>s.code===code)||{}).name || code;
+
+/* ================= card data (Scryfall), cached for the set being drafted ================= */
+let CARDS = {}, cardSet = '';
+const pendingIds = new Set(), missed = {};
+function useCache(set){ if(cardSet===set) return; const c=store.get('dt_cards', null); CARDS = c && c.set===set ? c.cards : {}; cardSet=set; }
+function toCard(c){
+  const f=c.card_faces, im=c.image_uris || (f && f[0].image_uris) || {};
+  return { n:c.name, mc:c.mana_cost || (f ? f.map(x=>x.mana_cost).filter(Boolean).join(' // ') : ''), t:c.type_line||'',
+    o:(c.oracle_text || (f ? f.map(x=>x.oracle_text||'').join('\n') : '')).slice(0,600),
+    pt:c.power!=null ? c.power+'/'+c.toughness : (f && f[0].power!=null ? f[0].power+'/'+f[0].toughness : ''),
+    img:im.normal||'', back:(!c.image_uris && f && f[1] && f[1].image_uris) ? f[1].image_uris.normal : '',
+    sid:c.id, r:c.rarity||'', c:(c.colors || (f && f[0].colors) || []).join(''), cmc:c.cmc||0 };
+}
+/* Cube cards are listed by name ("n|Force of Will"). Scryfall answers with the full name, so two-faced and split cards are matched on either face. */
+const nameKey = n => String(n).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s*\/\/?\s*/g,' // ').trim();
+/* Every request to Scryfall goes through one queue: at most one every 0.55 s (Scryfall allows 2 a second for card lookups),
+   each gives up after 15 s, and if Scryfall says "too many requests" (or the request fails outright, which is how a refusal
+   without the right headers looks to the page) the queue pauses for 31 s, as Scryfall asks, and then tries that request once more. */
+let SF_NEXT=0, SF_HOLD=0, sfBusy=false; const SF_Q=[];
+function sfetch(u, o={}, ms=15000){ return new Promise((res, rej)=>{ SF_Q.push({u, o, ms, res, rej, tries:0}); sfPump(); }); }
+async function sfPump(){ if(sfBusy) return; sfBusy=true;
+  try{ while(SF_Q.length){ const wait=Math.max(SF_NEXT, SF_HOLD)-Date.now(); if(wait>0){ await sleep(wait); continue; }
+    const j=SF_Q.shift(); SF_NEXT=Date.now()+550; const ac=new AbortController(), tm=setTimeout(()=>ac.abort(), j.ms);
+    let r=null, err=null; try{ r=await fetch(j.u, Object.assign({}, j.o, {signal:ac.signal})); }catch(e){ err=e; } clearTimeout(tm);
+    const refused = (r && r.status===429) || (err && err.name!=='AbortError');
+    if(refused){ SF_HOLD=Date.now()+31000; if(j.tries++ < 1){ SF_Q.unshift(j); continue; } }
+    if(r) j.res(r); else j.rej(err || new Error('Scryfall did not answer')); } }
+  finally{ sfBusy=false; } }
+async function ensureNames(chunk){
+  try{
+    const r=await sfetch('https://api.scryfall.com/cards/collection', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ identifiers:chunk.map(x=>({name:x.slice(2)})) }) });
+    if(!r.ok) throw new Error(r.status);
+    const j=await r.json(), want=new Map(chunk.map(x=>[nameKey(x.slice(2)), x]));
+    for(const c of j.data||[]){ const keys=[c.name, ...(c.card_faces||[]).map(f=>f.name), (c.name||'').split(' // ')[0]].map(nameKey); for(const k of keys){ const x=want.get(k); if(x && !CARDS[x]){ CARDS[x]=toCard(c); break; } } }
+  }catch(e){ console.warn('Scryfall lookup failed', e); }
+}
+async function ensure(ids, onProgress){
+  const now=Date.now(), want=[...new Set(ids)].filter(i => !CARDS[i] && !pendingIds.has(i) && !(missed[i] > now-30000));
+  if(!want.length) return;
+  want.forEach(i=>pendingIds.add(i));
+  let done=0;
+  for(let i=0;i<want.length;i+=75){
+    const chunk=want.slice(i,i+75);
+    if(chunk[0].startsWith('n|')){ await ensureNames(chunk); for(const x of chunk){ pendingIds.delete(x); if(!CARDS[x]) missed[x]=Date.now(); } done+=chunk.length; onProgress && onProgress(done, want.length); if(i+75<want.length) await sleep(110); continue; }
+    /* The odds data numbers two-faced, adventure and split cards "151a"; Scryfall calls the same card "151". Ask for the plain number first, then the number as written. */
+    for(const strip of [true, false]){
+      const ask={}; for(const x of chunk){ if(CARDS[x]) continue; const p=x.split(':'), n=strip ? p[1].replace(/^(\d+)a$/, '$1') : p[1]; if(!strip && n===p[1].replace(/^(\d+)a$/, '$1')) continue; ask[p[0]+':'+n]=x; }
+      const keys=Object.keys(ask); if(!keys.length) continue;
+      try{
+        const r=await sfetch('https://api.scryfall.com/cards/collection', { method:'POST', headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({ identifiers:keys.map(k=>{ const p=k.split(':'); return {set:p[0], collector_number:p[1]}; }) }) });
+        if(!r.ok) throw new Error(r.status);
+        const j=await r.json();
+        for(const c of j.data||[]){ const x=ask[c.set+':'+c.collector_number]; if(x) CARDS[x]=toCard(c); }
+      }catch(e){ console.warn('Scryfall lookup failed', e); }
+    }
+    for(const x of chunk){ pendingIds.delete(x); if(!CARDS[x]) missed[x]=Date.now(); }
+    done+=chunk.length; onProgress && onProgress(done, want.length);
+    if(i+75<want.length) await sleep(110);
+  }
+  store.set('dt_cards', {set:cardSet, cards:CARDS});
+}
+let SET = null;
+async function loadSet(code){ if(SET && SET.code===code) return SET; const r=await fetch(DBASE+'sets/'+code+'.json'); if(!r.ok) throw new Error('set file '+r.status); SET=await r.json(); if(SET.cube) SET.ids=SET.names.map(n=>'n|'+n); return SET; }
+const baseId = id => id.replace(/:(foil|etched)$/,'');
+const allIds = set => [...new Set(set.ids.map(baseId))];
+
+/* ================= pack generation (host only) ================= */
+function weighted(flat, skip){
+  let tot=0; for(let i=0;i<flat.length;i+=2) if(!skip(flat[i])) tot+=flat[i+1];
+  if(tot<=0) return -1;
+  let r=Math.random()*tot;
+  for(let i=0;i<flat.length;i+=2){ if(skip(flat[i])) continue; r-=flat[i+1]; if(r<0) return flat[i]; }
+  return -1;
+}
+/* Take n cards from one sheet. No two cards with the same name come from the same sheet, as on a real print sheet. */
+function fromSheet(set, sh, n){
+  const out=[];
+  if(sh.f){ for(let i=0;i<sh.c.length;i+=2) for(let k=0;k<sh.c[i+1];k++) out.push(sh.c[i]); return out; }
+  const names=new Set(), nameOf=ix=>{ const b=baseId(set.ids[ix]); return (CARDS[b]||{}).n || b; };
+  const take=ok=>{ const ix=weighted(sh.c, i=>names.has(nameOf(i)) || (ok && !ok(i))); if(ix<0) return false; names.add(nameOf(ix)); out.push(ix); return true; };
+  if(sh.b && n>=5) for(const col of 'WUBRG') take(i=>{ const d=CARDS[baseId(set.ids[i])]; return d && d.c===col; });   // one of each colour first
+  while(out.length<n && take());
+  return sh.b ? shuffle(out) : out;
+}
+function genPack(set, nextUid){
+  let tot=0; for(const b of set.boosters) tot+=b[0];
+  let r=Math.random()*tot, lay=set.boosters[0];
+  for(const b of set.boosters){ r-=b[0]; if(r<0){ lay=b; break; } }
+  const out=[];
+  for(const [name,n] of Object.entries(lay[1])) for(const ix of fromSheet(set, set.sheets[name], n)){ const id=set.ids[ix]; out.push({u:nextUid(), id:baseId(id), f:id!==baseId(id)?1:0}); }
+  return out;
+}
+
+/* The prerelease promo: one traditional foil card from the booster's rare slot (its "rare…" sheet, at that sheet's odds),
+   counting each card once at its lowest collector number so the promo is the plain printing. None for cubes. */
+function promoFor(set, nextUid){
+  if(set.cube) return null;
+  const name=Object.keys(set.sheets).find(k=>/^rare/.test(k)); if(!name) return null;
+  const sh=set.sheets[name], best=new Map(), num=id=>parseInt(id.split(':')[1],10)||9999;
+  for(let i=0;i<sh.c.length;i+=2){ const id=baseId(set.ids[sh.c[i]]), d=CARDS[id], key=d ? d.n : id, w=sh.c[i+1], b=best.get(key);
+    if(!b || num(id)<num(b.id)) best.set(key, {id, w:Math.max(w, b?b.w:0)}); else b.w=Math.max(b.w, w); }
+  const flat=[]; for(const {id,w} of best.values()) flat.push(id, w);
+  const pick=weighted(flat, ()=>false); return pick===-1 ? null : {u:nextUid(), id:pick, f:1, promo:1};
+}
+function cubeDealer(set){ let pile=[]; return n=>{ const out=[]; while(out.length<n){ if(!pile.length) pile=shuffle(set.ids.filter(id=>CARDS[id])); if(!pile.length) break; out.push({u:++H.uid, id:pile.pop(), f:0}); } return out; }; }
+/* Sealed: no bots and no passing. Each player gets a kit; the cards are their pool from the start, opening the packs happens on their own screen. */
+function startSealed(set){
+  H.seats=H.seats.filter(s=>!s.bot);
+  H.uid=0; H.size=set.size; H.gen=(H.gen||0)+1;
+  const deal = set.cube ? cubeDealer(set) : null;
+  for(const s of H.seats){
+    const packs=Array.from({length:KIT_PACKS}, ()=>deal ? deal(set.size) : genPack(set, ()=>++H.uid)), promo=promoFor(set, ()=>++H.uid);
+    s.kit={packs:packs.map(p=>p.map(c=>c.u)), promo:promo?promo.u:0};
+    s.pool=[...packs.flat(), ...(promo?[promo]:[])]; s.queue=[]; s.ready=false; s.due=0;
+  }
+  H.phase='build'; H.round=0; H.busy=''; H.tour=null; H.packs=null;
+  sync();
+}
+
+/* ================= bot picks (also used when a player's clock runs out) ================= */
+const isLandCard = d => /\bLand\b/.test((d.t||'').split(' // ')[0]);
+function mainColors(pool){
+  if(pool.length<4) return null;
+  const n={W:0,U:0,B:0,R:0,G:0};
+  for(const c of pool){ const d=CARDS[c.id]; if(d) for(const x of d.c) n[x]+=1; }
+  return Object.keys(n).sort((a,b)=>n[b]-n[a]).slice(0,2);
+}
+function rate(c, cols){
+  const d=CARDS[c.id]; if(!d) return Math.random();
+  let s=(SET && SET.cube) ? 3 : ({mythic:4.3, rare:3.9, uncommon:2.6, common:1.9})[d.r] || 3;   // rarity means nothing in a cube
+  if(isLandCard(d)) s = /\bBasic\b/.test(d.t) ? .1 : 1.2;
+  else {
+    if(/Creature/.test(d.t)) s+=.25;
+    if(/(destroy|exile) target|damage to (any target|target creature)|target creature gets -/i.test(d.o)) s+=.9;
+    if(cols){ const cc=[...d.c]; if(!cc.length) s+=.3; else if(cc.every(x=>cols.includes(x))) s+=1.6; else if(cc.some(x=>cols.includes(x))) s+=.3; else s-=.4; }
+  }
+  return s+Math.random()*.7;
+}
+function choice(seat){ const cols=mainColors(seat.pool); let best=null, bs=-1e9; for(const c of seat.queue[0]){ const s=rate(c, cols); if(s>bs){ bs=s; best=c; } } return best; }
+
+/* ================= host: the draft itself ================= */
+let H = null;                       // full draft state; only the host has it
+let ROLE = '', CODE = '', V = null; // V is this player's own view; the only thing the screen is drawn from
+const conns = new Map();            // pid -> open connection (host)
+const BOTS = ['Bolas (bot)','Urza (bot)','Karn (bot)','Teferi (bot)','Liliana (bot)','Ajani (bot)','Nissa (bot)','Tezzeret (bot)'];
+const isOn = s => !!s.bot || s.pid===PID || (conns.get(s.pid) && conns.get(s.pid).open);
+const dirOf = round => round===2 ? -1 : 1;
+function setDue(s){ s.due = (H.timer && !s.bot && s.queue.length) ? Date.now()+H.timer*1000 : 0; }
+function view(i){
+  const s=H.seats[i], p=s.queue[0]||null;
+  const fin = !!(H.tour && H.tour.done);
+  return { t:'v', mode:H.mode||'draft', kit:s.kit||null, code:H.code, gen:H.gen||0, set:H.set, pod:H.pod, timer:H.timer, phase:H.phase, round:H.round, me:i, size:H.size||0, busy:H.busy||'',
+    seats:H.seats.map((x,j)=>({name:x.name, bot:x.bot?1:0, on:isOn(x)?1:0, q:x.queue.length, n:x.pool.length, ready:x.ready?1:0, host:x.pid===PID?1:0, deck: fin || j===i ? (x.deck||'') : ''})),
+    pack:p, pool:s.pool, left:s.due ? Math.max(0, s.due-Date.now()) : 0, tour:H.tour||null, chat:(H.chat||[]).slice(-120), now:Date.now() };
+}
+function sync(){
+  if(ROLE!=='host') return;
+  store.set('dt_host', H);
+  H.seats.forEach((s,i)=>{ const c=conns.get(s.pid); if(!s.bot && c && c.open){ try{ c.send(view(i)); }catch(e){} } });
+  const me=H.seats.findIndex(s=>s.pid===PID); gotView(view(me<0?0:me));
+}
+function nextRound(){
+  H.round++;
+  if(H.round>3){ H.phase='build'; H.packs=null; H.seats.forEach(s=>{ s.queue=[]; s.due=0; s.ready=!!s.bot; }); return; }
+  H.seats.forEach((s,i)=>{ s.queue=[H.packs[H.round-1][i]]; setDue(s); });
+  H.packs[H.round-1]=null;
+}
+function doPick(i, u){
+  const s=H.seats[i], p=s.queue[0]; if(H.phase!=='draft' || !p) return false;
+  const k=p.findIndex(c=>c.u===u); if(k<0) return false;
+  s.pool.push(p.splice(k,1)[0]); s.queue.shift();
+  if(p.length){ const n=H.seats.length, t=H.seats[(i+dirOf(H.round)+n)%n]; t.queue.push(p); if(t.queue.length===1) setDue(t); }
+  setDue(s);
+  return true;
+}
+function pump(){
+  while(H.phase==='draft'){
+    let did=false;
+    H.seats.forEach((s,i)=>{ while(s.bot && s.queue.length){ doPick(i, choice(s).u); did=true; } });
+    if(H.seats.every(s=>!s.queue.length)){ nextRound(); did=true; }
+    if(!did) return;
+  }
+}
+async function startDraft(){
+  if(H.phase!=='lobby' || H.busy) return;
+  H.busy='Loading the set…'; sync();
+  let set;
+  try{ set=await loadSet(H.set); }catch(e){ H.busy=''; sync(); toast('Could not load that set. Check your connection and try again.'); return; }
+  useCache(H.set);
+  await ensure(allIds(set), (a,t)=>{ H.busy=`Loading cards ${a}/${t}…`; sync(); });
+  if(set.cube){ const miss=set.ids.filter(i=>!CARDS[i]); if(miss.length){ const nm=miss.map(x=>x.slice(2)); console.warn('Cube cards not found on Scryfall:', nm); setTimeout(()=>toast(`${nm.length} cube card${nm.length>1?'s were':' was'} not found on Scryfall and left out: ${nm.slice(0,8).join(', ')}${nm.length>8?'…':''}`, 12000), 400); } if(set.ids.length-miss.length < set.size*3){ H.busy=''; sync(); toast('Could not load the cube cards. Check your connection and try again.'); return; } }
+  { const hum=H.seats.filter(s=>!s.bot).length; gcEvent(H.mode==='sealed' ? 'sealed-started' : 'draft-started', `${H.mode==='sealed'?'Sealed':'Draft'} started: ${String(H.set).toUpperCase()}, ${hum} player${hum===1?'':'s'}`); }
+  if(H.mode==='sealed'){ startSealed(set); return; }
+  while(H.seats.length<H.pod) H.seats.push({pid:'bot'+H.seats.length, name:BOTS[H.seats.length%BOTS.length], bot:1, pool:[], queue:[]});
+  shuffle(H.seats);
+  H.uid=0; H.size=set.size; H.gen=(H.gen||0)+1;
+  if(set.cube){ const deal=cubeDealer(set); H.packs=[0,1,2].map(()=>H.seats.map(()=>deal(set.size))); }
+  else H.packs=[0,1,2].map(()=>H.seats.map(()=>genPack(set, ()=>++H.uid)));
+  H.seats.forEach(s=>{ s.pool=[]; s.queue=[]; s.ready=false; });
+  H.phase='draft'; H.round=0; H.busy=''; H.tour=null;
+  nextRound(); pump(); sync();
+}
+/* --- tournament: Swiss, three rounds, humans only --- */
+function standings(tour, seats){
+  const st={}; for(const p of tour.players) st[p]={p, name:seats[p].name, pts:0, w:0, l:0, d:0, gw:0, gl:0};
+  for(const r of tour.rounds){
+    if(r.bye!=null && st[r.bye]){ st[r.bye].pts+=3; st[r.bye].w++; st[r.bye].gw+=2; }
+    for(const t of r.tables){ if(!t.res) continue; const [x,y]=t.res, A=st[t.a], B=st[t.b];
+      A.gw+=x; A.gl+=y; B.gw+=y; B.gl+=x;
+      if(x>y){ A.pts+=3; A.w++; B.l++; } else if(y>x){ B.pts+=3; B.w++; A.l++; } else { A.pts++; B.pts++; A.d++; B.d++; } }
+  }
+  const pct=s=>s.gw+s.gl ? s.gw/(s.gw+s.gl) : 0;
+  return Object.values(st).sort((a,b)=>b.pts-a.pts || pct(b)-pct(a) || a.name.localeCompare(b.name));
+}
+function pairRound(){
+  const T=H.tour, played=new Set(), hadBye=new Set();
+  for(const r of T.rounds){ if(r.bye!=null) hadBye.add(r.bye); for(const t of r.tables) played.add(t.a+'-'+t.b).add(t.b+'-'+t.a); }
+  let order = T.rounds.length ? standings(T, H.seats).map(s=>s.p) : shuffle(T.players.slice());
+  let bye=null;
+  if(order.length%2){ bye=[...order].reverse().find(p=>!hadBye.has(p)); if(bye==null) bye=order[order.length-1]; order=order.filter(p=>p!==bye); }
+  const solve=(left, strict)=>{ if(!left.length) return []; const a=left[0];
+    for(let k=1;k<left.length;k++){ const b=left[k]; if(strict && played.has(a+'-'+b)) continue; const rest=solve(left.filter((_,j)=>j!==0&&j!==k), strict); if(rest) return [[a,b],...rest]; }
+    return null; };
+  const pairs=solve(order,true) || solve(order,false) || [];
+  return { bye, tables:pairs.map(([a,b])=>({a, b, code:randCode(), res:null})) };
+}
+/* Game Night (v0.26): each round is paired, then BREAK_MS counts down (voice channels, a breather), then ROUND_MS on one clock for every table.
+   When the last result is in, the next round is paired by standings and its break starts at once. */
+const GNFAST = /[?&]gnfast=1/.test(location.search);   // tests only: a 6-second break, 90-second rounds, 8 seconds to confirm
+const BREAK_MS = GNFAST ? 6000 : 3*60*1000, ROUND_MS = GNFAST ? 90*1000 : 50*60*1000, CONFIRM_MS = GNFAST ? 8000 : 30*1000;
+function newRound(){ const r=pairRound(), now=Date.now(); r.brkEnd=now+BREAK_MS; r.end=r.brkEnd+ROUND_MS; r.called=false; r.turns=null; return r; }
+const seatName = i => (H.seats[i]||{}).name || 'Player';
+function sysMsg(t){ if(!H) return; (H.chat||(H.chat=[])).push({sys:1, t, at:Date.now()}); if(H.chat.length>300) H.chat.splice(0, H.chat.length-300); }
+function roundNote(r){ const T=H.tour, rd=T.rounds[r];
+  sysMsg(`Round ${r+1} pairings are up: ${rd.tables.map((t,k)=>`Table ${k+1} ${seatName(t.a)} vs ${seatName(t.b)}`).join(' · ')}${rd.bye!=null?` · ${seatName(rd.bye)} has the bye`:''}. Matches start in 3 minutes.`); }
+function startRound(){
+  const T=H.tour || (H.tour={ players:H.seats.map((s,i)=>s.bot?-1:i).filter(i=>i>=0), rounds:[], total:0, done:false });
+  if(!T.rounds.length) T.total = T.players.length<2 ? 0 : T.players.length===2 ? 1 : 3;
+  H.phase='play';
+  if(T.rounds.length>=T.total) T.done=true; else { T.rounds.push(newRound()); roundNote(T.rounds.length-1); }
+  sync();
+}
+const resLine = (t, res) => res[0]>res[1] ? `${seatName(t.a)} won ${res[0]}–${res[1]} against ${seatName(t.b)}` : res[1]>res[0] ? `${seatName(t.b)} won ${res[1]}–${res[0]} against ${seatName(t.a)}` : `${seatName(t.a)} and ${seatName(t.b)} drew ${res[0]}–${res[1]}`;
+const goodRes = x => Array.isArray(x) && x.length===2 && x.every(n=>n===0||n===1||n===2) ? [x[0],x[1]] : null;
+/* host, every second: results that weren't agreed within 30 seconds go to the host; time in the round; the next round once every result is in */
+function roomTick(){
+  if(ROLE!=='host' || !H || !H.tour || H.tour.done) return;
+  const T=H.tour, R=T.rounds.length-1, rd=T.rounds[R], now=Date.now(); if(!rd) return; let ch=false;
+  rd.tables.forEach((t,k)=>{ if(t.pend && !t.res && now-t.pend.at > CONFIRM_MS){ t.pend=null; t.disp=true; ch=true;
+    sysMsg(`Table ${k+1}: no agreed result after 30 seconds. ${seatName(t.a)} and ${seatName(t.b)}, talk it over here; the host reports the result.`);
+    toast(`Table ${k+1} needs a result from you.`, 6000); } });
+  if(rd.end && !rd.called && now>=rd.end && rd.tables.some(t=>!t.res)){ rd.called=true; ch=true; sysMsg(`Time in round ${R+1}.`); }
+  if(rd.tables.every(t=>t.res)){ ch=true;
+    if(T.rounds.length>=T.total){ T.done=true; const st=standings(T, H.seats); sysMsg(`All ${T.total} rounds are done. ${st[0] ? st[0].name+' wins the night.' : ''} Final standings are posted, with every deck.`); }
+    else { T.rounds.push(newRound()); roundNote(T.rounds.length-1); } }
+  if(ch) sync();
+}
+/* --- things players ask the host to do --- */
+function handle(i, m){
+  if(!m || typeof m!=='object' || i<0) return;
+  if(m.t==='pick'){ if(doPick(i, m.u)){ pump(); sync(); } }
+  else if(m.t==='ready'){ if(H.tour) return; H.seats[i].ready=!!m.v; if(typeof m.deck==='string') H.seats[i].deck=m.deck.slice(0,60); sync(); }
+  else if(m.t==='chat'){ const tx=String(m.text||'').replace(/\s+/g,' ').trim().slice(0,300); if(!tx) return; (H.chat||(H.chat=[])).push({n:H.seats[i].name, t:tx, at:Date.now()}); if(H.chat.length>300) H.chat.splice(0, H.chat.length-300); sync(); }
+  else if(m.t==='lock'){ const s=H.seats[i]; if(H.mode!=='modern' || H.tour || s.ready) return; const nm=String(m.name||'').trim().slice(0,60); if(!nm) return; s.deck=nm; s.ready=true; sysMsg(`${s.name} locked in a deck.`); sync(); }
+  else if((m.t==='confirm' || m.t==='settle') && H.tour && !H.tour.done){ const R=H.tour.rounds.length-1, r=H.tour.rounds[R], t=r && r.tables[m.k], res=goodRes(m.res);
+    if(m.r!==R || !t || !res || t.res) return;
+    if(m.t==='settle'){ if(H.seats[i].pid!==PID) return; t.res=res; t.pend=null; t.disp=false; sysMsg(`Host reported Table ${m.k+1}: ${resLine(t, res)}.`); roomTick(); sync(); return; }
+    if(i!==t.a && i!==t.b) return;
+    t.pend = t.pend || {at:Date.now(), v:{}}; t.pend.v[i===t.a?'a':'b']=res;
+    const va=t.pend.v.a, vb=t.pend.v.b;
+    if(va && vb && va[0]===vb[0] && va[1]===vb[1]){ t.res=va; t.pend=null; t.disp=false; sysMsg(`Table ${m.k+1}: ${resLine(t, va)}.`); roomTick(); }
+    sync(); }
+  else if(m.t==='turns' && H.tour && H.seats[i].pid===PID){ const r=H.tour.rounds[H.tour.rounds.length-1]; if(!r || !r.called || r.turns) return; r.turns = m.v==='yes' ? 'yes' : 'no';
+    sysMsg(r.turns==='yes' ? 'Host: end-of-round turns are on. Tables still playing finish this turn, then five more; then say who won.' : 'Host: no end-of-round turns. Tables still playing finish the game in progress; then the match ends on the score.'); sync(); }
+}
+function act(m){ if(ROLE==='host') handle(H.seats.findIndex(s=>s.pid===PID), m); else if(conn && conn.open){ try{ conn.send(m); }catch(e){} } }
+setInterval(()=>{                    // host: pick for anyone whose clock ran out
+  if(ROLE==='host' && H && H.phase==='draft' && H.timer){ let did=false; const now=Date.now();
+    H.seats.forEach((s,i)=>{ if(!s.bot && s.queue.length && s.due && now>s.due){ doPick(i, choice(s).u); did=true; } });
+    if(did){ pump(); sync(); } }
+  roomTick(); tickClock(); roomClock();
+}, 1000);
+
+/* ================= networking: the host's browser is the hub ================= */
+let peer=null, conn=null, NET='';
+function peerOpts(){
+  const q=new URLSearchParams(location.search), h=q.get('peerhost'); if(!h) return {};
+  const [host, port]=h.split(':'); return { host, port:+port||443, path:q.get('peerpath')||'/', secure:q.get('peersecure')!=='0' };
+}
+function setNet(s){ NET=s; drawTop(); }
+function hostPeer(){
+  if(typeof Peer==='undefined'){ setNet('offline'); return; }
+  if(peer){ try{ peer.destroy(); }catch(e){} }
+  const p=peer=new Peer(PREFIX+CODE, peerOpts()); setNet('opening');
+  p.on('open', ()=>setNet('open'));
+  p.on('connection', c=>{
+    c.on('data', m=>{
+      if(!m || typeof m!=='object') return;
+      if(m.t==='join'){
+        const pid=String(m.pid||'').slice(0,24), name=String(m.name||'Player').slice(0,20); if(!pid) return;
+        let s=H.seats.find(x=>x.pid===pid && !x.bot);
+        if(!s){
+          const open = H.phase==='lobby' || (H.mode==='modern' && H.phase==='build' && !H.tour);
+          if(!open || H.seats.length>=H.pod){ try{ c.send({t:'no', why:open?'full':'started'}); }catch(e){} setTimeout(()=>c.close(), 400); return; }
+          s={pid, name, bot:0, pool:[], queue:[]}; H.seats.push(s); sysMsg(`${name} joined.`);
+        } else if(H.phase==='lobby' || (H.mode==='modern' && !H.tour)) s.name=name;
+        const old=conns.get(pid); if(old && old!==c){ try{ old.close(); }catch(e){} }
+        c._pid=pid; conns.set(pid, c); sync();
+      } else if(c._pid) handle(H.seats.findIndex(x=>x.pid===c._pid && !x.bot), m);
+    });
+    c.on('close', ()=>{ if(c._pid && conns.get(c._pid)===c){ conns.delete(c._pid); sync(); } });
+    c.on('error', e=>console.warn('conn error', e));
+  });
+  p.on('disconnected', ()=>{ if(!p.destroyed) setTimeout(()=>{ try{ p.reconnect(); }catch(e){} }, 1500); });
+  p.on('error', e=>{ if(p!==peer) return;
+    if(e.type==='unavailable-id'){ setNet('retry'); setTimeout(()=>{ if(p===peer) hostPeer(); }, 3000); }
+    else if(['network','server-error','socket-error','socket-closed'].includes(e.type)){ setNet('error'); setTimeout(()=>{ if(p===peer) hostPeer(); }, 5000); }
+    else console.warn('peer error', e.type, e); });
+}
+function guestPeer(){
+  if(typeof Peer==='undefined'){ setNet('offline'); return; }
+  if(peer){ try{ peer.destroy(); }catch(e){} }
+  const p=peer=new Peer(peerOpts()); setNet('joining');
+  const dial=()=>{ if(p!==peer || p.destroyed || p.disconnected) return;
+    const c=p.connect(PREFIX+CODE, {reliable:true, serialization:'json'});
+    c.on('open', ()=>{ conn=c; setNet('connected'); c.send({t:'join', pid:PID, name:SETTINGS.name||'Player'}); });
+    c.on('data', m=>{ if(!m || typeof m!=='object') return;
+      if(m.t==='v') gotView(m);
+      else if(m.t==='no'){ store.del('dt_guest'); try{ p.destroy(); }catch(e){} peer=null; showLobby(m.why==='full' ? 'That event is full.' : 'That event has already started.'); } });
+    c.on('close', ()=>{ if(conn===c){ conn=null; setNet('joining'); setTimeout(dial, 2000); } });
+    c.on('error', e=>console.warn('conn error', e)); };
+  p.on('open', dial);
+  p.on('disconnected', ()=>{ if(!p.destroyed) setTimeout(()=>{ try{ p.reconnect(); }catch(e){} }, 1500); });
+  p.on('error', e=>{ if(p!==peer) return;
+    if(e.type==='peer-unavailable'){ setNet('nohost'); setTimeout(()=>{ if(p===peer && !(conn&&conn.open)) dial(); }, 3000); }
+    else if(['network','server-error','socket-error','socket-closed'].includes(e.type)){ setNet('error'); setTimeout(()=>{ if(p===peer && !(conn&&conn.open)) guestPeer(); }, 5000); }
+    else console.warn('peer error', e.type, e); });
+}
+
+/* ================= this player's screen ================= */
+let sel=null, tabNow='deck', B=null, lastRound=0, preloaded='', lastStage='';
+const LANDS=[['W','Plains'],['U','Island'],['B','Swamp'],['R','Mountain'],['G','Forest']];
+function gotView(v){
+  v._at=Date.now(); v._skew = v.now ? v.now-Date.now() : 0; V=v; if(v.set) useCache(v.set);
+  if(v.phase==='draft' && preloaded!==v.set){ preloaded=v.set; if(ROLE!=='host') loadSet(v.set).then(s=>ensure(allIds(s))).then(render).catch(()=>{}); }
+  const need=[...(v.pack||[]), ...v.pool].map(c=>c.id).filter(id=>!CARDS[id]);
+  if(need.length) ensure(need).then(render);
+  if(v.phase==='draft' && v.round!==lastRound){ lastRound=v.round; if(v.round>1) toast(`Pack ${v.round}: passing ${v.round===2?'right':'left'}`); }
+  if(v.phase!=='draft') lastRound=0;
+  const stage=v.phase+':'+(v.tour ? v.tour.rounds.length+(v.tour.done?'d':'') : '');
+  if(stage!==lastStage){ if(v.phase==='play' && (lastStage || v.mode==='modern')) tabNow='tour'; if(v.phase==='build' && (lastStage.startsWith('draft') || lastStage.startsWith('lobby'))) tabNow='deck'; lastStage=stage; }
+  if(sel!=null && !(v.pack||[]).some(c=>c.u===sel)) sel=null;
+  render();
+}
+function cardHTML(c, cls=''){
+  const d=CARDS[c.id];
+  return `<div class="c ${cls}${c.f?' foil':''}${c.promo?' promo':''}" data-u="${c.u}" data-id="${esc(c.id)}">${d && d.img ? `<img src="${esc(d.img)}" alt="${esc(d.n)}" loading="lazy" draggable="false">` : `<div class="txt"><b>${esc(d?d.n:c.id)}</b><i>${esc(d?d.t:missed[c.id]?'No card data yet':'Loading…')}</i><span>${esc(d?d.o:'')}</span></div>`}${c.promo?'<span class="tag">PROMO</span>':c.f?'<span class="tag">FOIL</span>':''}</div>`;
+}
+const RANK={mythic:0, rare:1, uncommon:2, common:3};
+const colourKey = d => !d ? 9 : isLandCard(d) ? 7 : d.c.length>1 ? 5 : d.c.length===0 ? 6 : 'WUBRG'.indexOf(d.c);
+const byColour = (a,b) => { const x=CARDS[a.id], y=CARDS[b.id]; return colourKey(x)-colourKey(y) || ((x&&x.cmc)||0)-((y&&y.cmc)||0) || String(x&&x.n).localeCompare(String(y&&y.n)); };
+const byRarity = (a,b) => { const x=CARDS[a.id], y=CARDS[b.id]; return ((x&&RANK[x.r])??1)-((y&&RANK[y.r])??1) || byColour(a,b); };
+function drawTop(){
+  if(!V && !CODE) return;
+  $('#room .topbar h2').textContent = V ? eventTitle(V) : VARIANT==='gn' ? 'Game Night' : 'Draft Table';
+  const rs = V && V.tour && V.tour.total ? roomState() : null;
+  $('#setPill').textContent = rs ? (rs.stage==='final' ? 'Final standings' : rs.stage==='break' ? `Break before round ${rs.R+1} of ${V.tour.total}` : `Round ${rs.R+1} of ${V.tour.total}`) : V && V.mode==='modern' ? 'Locking in decks' : V ? setName(V.set) : '';
+  $('#setPill').hidden = !$('#setPill').textContent;
+  $('#codePill').innerHTML = 'Code <b>'+esc(CODE)+'</b>';
+  const map={ opening:['Opening…','warn'], open:['Hosting','ok'], retry:['Reclaiming code…','warn'], error:['Connection problem, retrying','warn'], offline:['Offline','warn'], joining:['Connecting…','warn'], connected:['Connected','ok'], nohost:['Host not found yet, retrying','warn'] };
+  const m=map[NET]||['','']; const el=$('#netPill'); el.textContent=m[0]; el.className='pill '+m[1]; el.hidden=!m[0];
+}
+function tickClock(){
+  const el=$('#clock'); if(!el || !V) return;
+  if(!V.left){ el.textContent=''; return; }
+  const s=Math.max(0, Math.ceil((V.left-(Date.now()-V._at))/1000)); el.textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); el.classList.toggle('low', s<=10);
+}
+function render(){
+  if(!V) return;
+  applyTheme(themeFor(V));
+  drawTop();
+  const host=ROLE==='host', me=V.seats[V.me];
+  /* ---- left rail: the pod ---- */
+  let r=`<h3>${V.phase==='draft' ? 'The pod' : 'Players'}</h3>`;
+  const dir = V.phase==='draft' ? (V.round===2 ? '↑ passing' : '↓ passing') : '';
+  V.seats.forEach((s,i)=>{
+    const busy=V.phase==='draft' && s.q>0;
+    const st=V.tour ? roomState() : null, at = st && st.rd && st.stage!=='final' ? st.rd.tables.findIndex(t=>(t.a===i||t.b===i)) : -1, tb = at>=0 ? st.rd.tables[at] : null;
+    const note = V.phase==='draft' ? `${s.n} picked${s.q>1?` · ${s.q} packs waiting`:''}`
+      : V.tour && V.tour.total ? (st.stage==='final' ? (s.deck||'finished') : st.rd && st.rd.bye===i ? 'bye this round' : !tb ? '' : tb.res ? 'in the room' : st.stage==='break' ? `Table ${at+1} next` : tb.disp ? `Table ${at+1}: host to report` : `playing at Table ${at+1}`)
+      : V.mode==='modern' ? (s.ready ? (i===V.me && s.deck ? s.deck : 'deck locked in') : 'choosing a deck')
+      : V.phase==='build' ? (s.bot?'bot':s.ready?'deck ready':V.mode==='sealed'?'opening and building':'building') : s.bot?'bot':s.host?'host':'';
+    const rec = V.tour && V.tour.total && !s.bot ? (()=>{ const x=standings(V.tour, V.seats).find(y=>y.p===i); return x ? recOf(x) : ''; })() : '';
+    const busy2 = busy || (tb && !tb.res && st.stage==='play') || (V.mode==='modern' && !V.tour && !s.ready);
+    r+=`<div class="seat ${i===V.me?'me ':''}${!s.on?'off':busy2?'busy':'on'}"><span class="dot"></span><span class="nm">${esc(s.name)}${i===V.me?' (you)':''}${s.host?' · host':''}<small>${esc(note)}${!s.on?' · disconnected':''}</small></span><span>${host && !s.bot && i!==V.me && V.phase==='draft' ? `<button class="sm" data-force="${i}" title="Pick for this player now"${busy?'':' disabled'}>Pick</button>` : rec ? `<span class="rec">${rec}</span>` : ''}</span></div>`;
+    if(dir && i<V.seats.length-1) r+=`<div class="arrow">${dir[0]}</div>`;
+  });
+  if(V.phase==='lobby'){ const open=V.pod-V.seats.length; if(open>0) r+= V.mode==='sealed' ? `<p class="hint">Room for ${open} more. Everyone who has joined when you start gets a kit.</p>` : `<p class="hint">${open} open seat${open>1?'s':''}. Bots take any that are still empty when the draft starts.</p>`; }
+  if(dir) r+=`<p class="hint">${V.round===2 ? 'Pack 2 passes right (up this list).' : `Pack ${V.round} passes left (down this list).`}</p>`;
+  setHTML($('#rail'), r);
+
+  /* ---- main ---- */
+  let h='';
+  if(V.phase==='lobby'){
+    const groups=[...new Set(SETS.map(s=>s.group))];
+    const sealed=V.mode==='sealed';
+    h+=`<div class="bar"><h3>${host ? (sealed ? 'Set up the sealed event' : isCubeSet(V.set) ? 'Set up the cube draft' : 'Set up the draft') : 'Waiting for the host to start'}</h3></div>
+      <p class="hint" style="max-width:62ch;margin:0">Send your friends the code <b style="color:var(--ink);letter-spacing:.15em">${esc(CODE)}</b>. They open this page and choose Join with a code. ${sealed ? `Each player opens a prerelease kit: six packs of ${esc(setName(V.set))} and a foil promo, then builds a 40-card deck from them.` : `Each player gets three packs of ${esc(setName(V.set))}; you pick one card and pass the rest.`}</p>`;
+    if(host) h+=`<div class="setrow">
+        ${VARIANT==='dt' ? `<div class="field"><label for="fmtSel">Format</label><select id="fmtSel"><option value="draft"${sealed?'':' selected'}>Booster draft</option><option value="sealed"${sealed?' selected':''}>Prerelease (sealed)</option></select></div>` : ''}
+        <div class="field"><label for="setSel">Set</label><select id="setSel">${groups.map(g=>`<optgroup label="${esc(g)}">${SETS.filter(s=>s.group===g).map(s=>`<option value="${s.code}"${s.code===V.set?' selected':''}>${esc(s.name)}</option>`).join('')}</optgroup>`).join('')}</select></div>
+        ${sealed ? '' : `<div class="field"><label for="podSel">Seats</label><select id="podSel">${[2,3,4,5,6,7,8].map(n=>`<option${n===V.pod?' selected':''}>${n}</option>`).join('')}</select></div>
+        <div class="field"><label for="timeSel">Pick timer</label><select id="timeSel">${[[0,'Off'],[45,'45 seconds'],[75,'75 seconds'],[120,'2 minutes']].map(([n,l])=>`<option value="${n}"${n===V.timer?' selected':''}>${l}</option>`).join('')}</select></div>`}
+        <button class="go" id="startBtn"${V.busy?' disabled':''}>${sealed ? 'Start the prerelease' : 'Start the draft'}</button></div><p class="hint" id="busyMsg" style="margin:0">${esc(V.busy)}</p>`;
+    else h+=`<p class="hint" style="margin:0">${esc(V.busy || (sealed ? `Prerelease · ${setName(V.set)} · up to ${V.pod} players` : `${setName(V.set)} · ${V.pod} seats · ${V.timer ? V.timer+' second pick timer' : 'no pick timer'}`))}</p>`;
+  }
+  else if(V.phase==='draft'){
+    const n=V.seats.length, from=V.seats[(V.me-dirOf(V.round)+n)%n];
+    if(V.pack){
+      const pk=V.pack.slice().sort(byRarity), s=V.pack.find(c=>c.u===sel), sd=s && CARDS[s.id];
+      h+=`<div class="bar"><h3>Pack ${V.round}, pick ${V.size-V.pack.length+1}</h3><span class="clock" id="clock"></span><span style="margin-left:auto"></span><button class="go" id="takeBtn"${s?'':' disabled'}>${s ? 'Take '+esc(sd?sd.n:'this card') : 'Choose a card'}</button></div>
+        <div class="grid" id="pack">${pk.map(c=>cardHTML(c, c.u===sel?'sel':'')).join('')}</div><p class="hint" style="margin:0">Click a card, then Take. Double-click takes it straight away.</p>`;
+    } else h+=`<div class="bar"><h3>Pack ${V.round}</h3></div><p class="hint" style="margin:0">Waiting for ${esc(from.name)} to pass you a pack.</p>`;
+    loadBuild(); const deck=V.pool.filter(inMain), side=V.pool.filter(c=>!inMain(c));
+    h+=`<div class="pane" data-zone="deck"><div class="bar"><h3>Your picks: deck <b style="color:var(--brass)">${deck.length}</b></h3><span class="hint">new picks land here · click a card to move it to the sideboard</span></div>${regionsHTML(deck, 0) || '<p class="hint">Your picks will show up here, sorted by type and mana value.</p>'}</div>
+      ${side.length ? `<div class="pane" data-zone="side"><div class="bar"><h3>Sideboard <b style="color:var(--brass)">${side.length}</b></h3><span class="hint">click a card to put it back in your deck</span></div>${regionsHTML(side, 0)}</div>` : ''}`;
+  }
+  else if(V.mode==='modern') h+= V.tour ? roomHTML(host) : lockHTML(host);
+  else h+=buildHTML(host, me);
+  setHTML($('#main'), h);
+  /* chat sits beside everything except the draft itself and the deck builder */
+  const chatOn = V.phase!=='draft' && !(V.mode!=='modern' && V.phase!=='lobby' && tabNow==='deck');
+  $('#chatCol').hidden=!chatOn; $('#roomBody').classList.toggle('chatty', chatOn); if(chatOn) paintChat();
+  if(V.tour){ pushSeat(); roomPrompts(host); }
+  tickClock();
+}
+/* ---------- after the draft: deck building and the tournament ---------- */
+function loadBuild(){ const key=V.code+':'+V.gen; if(B && B.code===key) return; B=store.get('dt_build', null);
+  if(!B || B.code!==key) B={code:key, side: V.mode==='sealed' ? (V.pool||[]).map(c=>c.u) : [], lands:{Plains:0,Island:0,Swamp:0,Mountain:0,Forest:0}};   // sealed: everything starts in the pool
+  if(V.mode==='sealed' && !B.op) B.op={opened:Array(KIT_PACKS).fill(0), promo:0, showing:-1, built:0}; if(!B.grp) B.grp='colour';
+  if(!B.side){ const d=B.deck||[]; B.side=d.length ? (V.pool||[]).filter(c=>!d.includes(c.u)).map(c=>c.u) : []; delete B.deck; } }   // builds saved before v0.7 listed the deck instead
+const inMain = c => !B.side.includes(c.u);
+const saveBuild = () => store.set('dt_build', B);
+const landTotal = () => LANDS.reduce((a,[,n])=>a+(B.lands[n]||0), 0);
+function suggestLands(){
+  const deck=V.pool.filter(inMain), n={W:0,U:0,B:0,R:0,G:0}; let tot=0;
+  for(const c of deck){ const d=CARDS[c.id]; if(d) for(const m of d.mc.matchAll(/\{([^}]+)\}/g)) for(const k of 'WUBRG') if(m[1].includes(k)){ n[k]++; tot++; } }
+  const want=Math.max(0, 40-deck.length); let given=0; const parts=LANDS.map(([k,name])=>{ const x=tot ? want*n[k]/tot : 0, f=Math.floor(x); given+=f; return {name, f, rem:x-f}; });
+  parts.sort((a,b)=>b.rem-a.rem); for(let i=0; given<want && tot && i<parts.length; i++){ parts[i].f++; given++; }
+  for(const p of parts) B.lands[p.name]=p.f;
+  saveBuild(); render(); if(!tot) toast('Add some spells first, then ask again.');
+}
+/* a drafted deck's colours, shown under the player's name in the final standings (decks stay secret until then) */
+function deckColours(){ loadBuild(); const n={W:0,U:0,B:0,R:0,G:0}; let tot=0; for(const c of V.pool.filter(inMain)){ const d=CARDS[c.id]; if(d) for(const m of (d.mc||'').matchAll(/\{([^}]+)\}/g)) for(const k of 'WUBRG') if(m[1].includes(k)){ n[k]++; tot++; } }
+  const nm={W:'White',U:'Blue',B:'Black',R:'Red',G:'Green'}, ks='WUBRG'.split('').filter(k=>tot && n[k]/tot>=0.12); return ks.length ? ks.map(k=>nm[k]).join('-') : 'Colorless'; }
+function deckText(){
+  const lines=list=>{ const m=new Map(); for(const c of list){ const d=CARDS[c.id]; if(!d) continue; const k=d.n+' [id:'+d.sid+']'; m.set(k, (m.get(k)||0)+1); } return [...m].map(([k,n])=>n+' '+k); };
+  const deck=V.pool.filter(inMain), side=V.pool.filter(c=>!inMain(c));
+  const basics=LANDS.filter(([,n])=>B.lands[n]>0).map(([,n])=>B.lands[n]+' '+n);
+  return [...lines(deck), ...basics].join('\n') + '\n\nSideboard\n' + lines(side).join('\n');
+}
+const deckName = () => `${V.mode==='sealed' ? 'Sealed' : 'Draft'}: ${setName(V.set)} (${V.code})`;
+function saveDeck(quiet){
+  const name=deckName(), sv=store.get('mt_decks', []).filter(d=>d.name!==name);
+  sv.unshift({name, text:deckText()}); store.set('mt_decks', sv);
+  if(!quiet) toast('Saved to your Modern Table decks');
+}
+function playLink(role, code){
+  const q=new URLSearchParams(location.search), o=new URLSearchParams();
+  for(const k of ['peerhost','peerpath','peersecure']) if(q.get(k)!=null) o.set(k, q.get(k));
+  if(code) o.set('t', code); o.set('r', role); o.set('d', '1');
+  return '../?'+o.toString();
+}
+/* Cards laid out the way players sort a draft deck: creatures, other spells, lands; each in columns by mana value, cheapest on the left. */
+function regionsHTML(cards, basics){
+  const kind=c=>{ const d=CARDS[c.id]; return !d ? 1 : isLandCard(d) ? 2 : /\bCreature\b/.test(d.t.split(' // ')[0]) ? 0 : 1; };
+  const groups=[[],[],[]]; for(const c of cards) groups[kind(c)].push(c);
+  const cols=list=>{ const m=new Map(); for(const c of list){ const d=CARDS[c.id], v=Math.min(7, Math.floor((d&&d.cmc)||0)); if(!m.has(v)) m.set(v, []); m.get(v).push(c); }
+    return [...m].sort((x,y)=>x[0]-y[0]).map(([v,l])=>`<div class="col"><div class="colh">${v>=7?'7+':v} <span>· ${l.length}</span></div>${l.sort(byColour).map(c=>cardHTML(c)).join('')}</div>`).join(''); };
+  let h='';
+  [['Creatures',0],['Non-creature spells',1],['Lands',2]].forEach(([label,k])=>{
+    const g=groups[k], n=g.length+(k===2?basics:0); if(!n) return;
+    h+=`<div class="region"><div class="sec">${label} <b>${n}</b></div>`;
+    if(g.length) h+= k===2 ? `<div class="cols"><div class="col"><div class="colh">${basics ? `<span>${g.length} picked</span>` : '&nbsp;'}</div>${g.sort(byColour).map(c=>cardHTML(c)).join('')}</div></div>` : `<div class="cols">${cols(g)}</div>`;
+    if(k===2 && basics) h+=`<div class="hint" style="font-size:12px">+ ${basics} basic</div>`;
+    h+='</div>';
+  });
+  return h ? `<div class="regions">${h}</div>` : '';
+}
+/* Basic land art (v0.15, Ben): the same choice as the Modern Table's Basic lands box. It is one setting for both pages (mt_settings.basics,
+   the pages share browser storage), and the Modern Table applies it when the drafted deck is brought to a table, so here it only
+   needs to be chosen and shown. The pictures are looked up once (dt_basicart) the same way the Modern Table does. */
+const BASIC_ART=[
+  {k:'std', n:'Usual basics'},
+  {k:'ugl', n:'Unglued', q:'e:ugl t:basic -t:snow'},
+  {k:'unh', n:'Unhinged', q:'e:unh t:basic -t:snow'},
+  {k:'ust', n:'Unstable', q:'e:ust t:basic -t:snow'},
+  {k:'und', n:'Unsanctioned', ids:[['und','88'],['und','90'],['und','92'],['und','94'],['und','96']]},
+  {k:'neo', n:'Kamigawa: Neon Dynasty', q:'e:neo t:basic -t:snow is:fullart'},
+  {k:'dmu', n:'Dominaria United (stained glass)', q:'e:dmu t:basic -t:snow is:fullart'},
+  {k:'sld', n:'Secret Lair (full-text lands)', ids:[['sld','254'],['sld','255'],['sld','256'],['sld','257'],['sld','258']]},
+  {k:'rnd', n:'Random (a different set each match)'}];
+const BART=store.get('dt_basicart', {});
+const basicPref = () => { const v=(store.get('mt_settings', {})||{}).basics; return BASIC_ART.some(x=>x.k===v) ? v : 'std'; };
+function setBasicPref(v){ const st=store.get('mt_settings', {})||{}; st.basics=v; store.set('mt_settings', st); }
+async function basicArtLoad(k){ const s=BASIC_ART.find(x=>x.k===k); if(!s || !(s.q || s.ids) || BART[k]) return;
+  try{ const r = s.ids ? await sfetch('https://api.scryfall.com/cards/collection', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({identifiers:s.ids.map(([set, collector_number])=>({set, collector_number}))})})
+                       : await sfetch('https://api.scryfall.com/cards/search?unique=prints&include_extras=true&order=set&q='+encodeURIComponent(s.q));
+       if(!r.ok) return; const out={}; for(const c of ((await r.json()).data||[])){ const im=(c.image_uris||{}).normal || ((c.card_faces||[])[0]||{}).image_uris?.normal; if(im && LANDS.some(([,n])=>n===c.name) && !out[c.name]) out[c.name]=im; }
+       if(LANDS.every(([,n])=>out[n])){ BART[k]=out; store.set('dt_basicart', BART); render(); } }catch(e){ console.warn('basic land art', e); } }
+const landArtImg = n => { const k=basicPref(); return (BART[k]||{})[n] || ''; };
+function buildHTML(host, me){
+  loadBuild(); { const k=basicPref(); if(k!=='std' && k!=='rnd' && !BART[k]) setTimeout(()=>basicArtLoad(k), 0); }
+  const sealed=V.mode==='sealed', opening = sealed && !(B.op && B.op.built);
+  const T=V.tour, deck=V.pool.filter(inMain).sort(byColour), side=V.pool.filter(c=>!inMain(c)).sort(byColour), lt=landTotal(), total=deck.length+lt;
+  let h=`<div class="bar"><button class="${tabNow==='deck'?'on':''}" data-tab="deck">${opening ? 'Your kit' : 'Your deck'}</button><button class="${tabNow==='tour'?'on':''}" data-tab="tour">Matchmaking</button><span style="margin-left:auto"></span>${V.phase==='build' && !opening ? `<button class="${me.ready?'on':'go'}" id="readyBtn">${me.ready?'Ready ✓ (click to keep building)':'My deck is ready'}</button>` : ''}</div>`;
+  if(tabNow==='deck' && opening) h+=kitHTML();
+  else if(tabNow==='deck'){
+    h+=`<div class="bar"><h3>${total} cards</h3><span class="hint">${deck.length} from your picks + ${lt} basic land${lt===1?'':'s'}${total<40?' · a draft deck needs at least 40':''}</span><span style="margin-left:auto"></span><button id="saveBtn">Save to my Modern Table decks</button><button id="copyBtn">Copy list</button></div>
+      <div class="lands"><label class="bart" title="The art your basic lands use on the Modern Table. It's the same setting as the Basic lands box on the Modern Table's deck screen.">Basic land art<select id="bartSel">${BASIC_ART.map(x=>`<option value="${x.k}"${x.k===basicPref()?' selected':''}>${esc(x.n)}</option>`).join('')}</select></label>${LANDS.map(([k,n])=>`<span class="land">${landArtImg(n)?`<span class="lart" style="background-image:url('${landArtImg(n)}')"></span>`:''}${n}<button class="sm" data-land="${n}" data-d="-1" aria-label="Remove a ${n}">−</button><b>${B.lands[n]||0}</b><button class="sm" data-land="${n}" data-d="1" aria-label="Add a ${n}">+</button></span>`).join('')}<button id="sugBtn">Suggest lands</button></div>
+      <div class="pane" data-zone="deck"><div class="bar"><h3>Deck</h3><span class="hint">${sealed ? 'drag cards up from your pool, or click them · click a card here to take it out' : 'click a card to take it out'}</span></div>${regionsHTML(deck, lt) || (sealed ? '<p class="hint">Your deck is empty. Drag cards up from your pool, or click them.</p>' : '<p class="hint">Everything is in the sideboard. Click cards below to put them back in your deck.</p>')}</div>
+      ${sealed ? `<div class="pane" data-zone="side"><div class="bar"><h3>Pool</h3><span class="hint">${side.length} card${side.length===1?'':'s'} · drag or click a card to add it to your deck</span><span style="margin-left:auto"></span>${grpSelHTML()}</div><div class="poolwrap"><div>${pilesHTML(side, B.grp) || '<p class="hint">Every card is in your deck.</p>'}</div>${diveRailHTML()}</div></div>`
+      : `<div class="pane" data-zone="side"><div class="bar"><h3>Sideboard</h3><span class="hint">${side.length} card${side.length===1?'':'s'} · click a card to add it to your deck</span></div><div class="poolwrap"><div>${regionsHTML(side, 0) || '<p class="hint">Empty. Click a card in your deck to move it here.</p>'}</div>${diveRailHTML()}</div></div>`}${diveHTML()}`;
+  } else {
+    if(!T){ const wait=V.seats.filter(s=>!s.bot && !s.ready).map(s=>s.name);
+      h+=`<div class="announce"><div class="rd">0<small>ROUND</small></div><b>${wait.length ? 'Still building: '+esc(wait.join(', '))+'.' : 'Everyone is ready.'}</b><span class="sub">${host ? 'Pair round 1 when everyone is ready. A 3-minute countdown runs before the matches start; your deck locks in when round 1 is paired.' : 'The host pairs round 1 when everyone is ready. Clicking My deck is ready locks your deck in once round 1 is paired.'}</span>${host ? `<div class="act"><button class="${wait.length?'':'go'}" id="roundBtn">Pair round 1</button></div>` : ''}</div>`;
+    } else h+=roomHTML(host);
+  }
+  return h;
+}
+/* ---------- sealed: the kit, opened one pack at a time (v0.16) ----------
+   Ben's prerelease mode: the kit's sealed packs (Wizards' wrapper art from draft/packs/<set>/, drawn wrappers otherwise) and the
+   promo face down as a card back; a pack fans out in pack order, then its cards are sorted into piles below. All of this is on
+   the player's own screen (B.op): the host already dealt the cards as the pool. */
+const PACKIMG={};
+async function packImgs(set){ if(set in PACKIMG) return; PACKIMG[set]=null;
+  try{ const r=await fetch(DBASE+'packs/'+set+'/index.json'); if(r.ok){ const j=await r.json(); if(j && Array.isArray(j.boosters)){ PACKIMG[set]=j; render(); } } }catch(e){} }
+const coverOf = (u, n) => { let h=(u*0x9E3779B1)>>>0; h^=h>>>15; h=Math.imul(h, 0x85EBCA6B)>>>0; h^=h>>>13; return (h>>>0)%n; };
+/* v0.24: a kit's wrappers are dealt evenly (six packs, three covers: two of each), in an order shuffled by the kit's first card, so every seat sees every cover and a reload keeps the same order */
+const kitCovers = (K, n) => { const k=K.packs.length, out=[]; for(let i=0;i<k;i++) out.push(i%n); let seed=K.packs[0][0]||1; for(let i=k-1;i>0;i--){ seed++; const j=coverOf(seed*7919, i+1); [out[i], out[j]]=[out[j], out[i]]; } return out; };
+const byU = () => new Map((V.pool||[]).map(c=>[c.u, c]));
+const opAll = () => B.op.opened.every(Boolean) && (B.op.promo || !V.kit.promo);
+function opSortIn(){ if(B.op.showing>=0) B.op.showing=-1; }
+function opOpen(i){ if(B.op.opened[i]) return; opSortIn(); B.op.opened[i]=1; B.op.showing=i; saveBuild(); render(); }
+function opOpenAll(){ B.op.opened=B.op.opened.map(()=>1); B.op.promo=1; B.op.showing=-1; saveBuild(); render(); }
+const COLNAME={W:'White',U:'Blue',B:'Black',R:'Red',G:'Green',M:'Multicolor',C:'Colorless',L:'Lands'};
+const COLDOT={W:'#efe7cf',U:'#8fc1ea',B:'#7d7372',R:'#ec8c6a',G:'#7fbf73',M:'#e2c46c',C:'#c9c3c0',L:'#b59a80'};
+const GROUPS={
+  colour:{ label:'Color', order:['W','U','B','R','G','M','C','L'], key:d=>isLandCard(d)?'L':d.c.length>1?'M':d.c.length?d.c:'C', name:k=>COLNAME[k], dot:k=>COLDOT[k] },
+  mv:    { label:'Mana value', order:['0','1','2','3','4','5','6','7+','L'], key:d=>isLandCard(d)?'L':((d.cmc||0)>=7?'7+':String(Math.floor(d.cmc||0))), name:k=>k==='L'?'Lands':k+' mana' },
+  type:  { label:'Card type', order:['Creature','Planeswalker','Instant','Sorcery','Artifact','Enchantment','Battle','Land'], key:d=>{ const t=d.t.split(' // ')[0]; return ['Land','Creature','Planeswalker','Battle','Instant','Sorcery','Artifact','Enchantment'].find(x=>t.includes(x))||'Artifact'; }, name:k=>k },
+  rarity:{ label:'Rarity', order:['mythic','rare','special','uncommon','common'], key:d=>['mythic','rare','special','uncommon'].includes(d.r)?d.r:'common', name:k=>({mythic:'Mythic rare',rare:'Rare',special:'Special',uncommon:'Uncommon',common:'Common'})[k] }};
+/* ---------- Colour dive (v0.17) ---------- */
+const PIPC={W:'#f8f3d8',U:'#8fc1ea',B:'#a39a98',R:'#ec8c6a',G:'#7fbf73'};
+const BASICT={W:'Plains',U:'Island',B:'Swamp',R:'Mountain',G:'Forest'};
+const manaSym = k => `<span class="pip ms" style="background:${PIPC[k]}">${k}<img src="https://svgs.scryfall.io/card-symbols/${k}.svg" alt="" draggable="false" onerror="this.remove()"></span>`;
+/* What colours a land can make: basic land types, "Add {…}" (hybrid and choices included) and "any color". */
+function landMakes(d){
+  const out=new Set(), t=d.t||'', o=d.o||'';
+  for(const k of 'WUBRG') if(new RegExp('\\b'+BASICT[k]+'\\b').test(t.split(' // ').pop())) out.add(k);
+  if(/mana of any (one )?colou?r|any colou?r/i.test(o)) for(const k of 'WUBRG') out.add(k);
+  for(const m of o.matchAll(/\badd ([^.\n]*)/gi)) for(const sym of m[1].matchAll(/\{([^}]+)\}/g)) for(const k of 'WUBRG') if(sym[1].includes(k)) out.add(k);
+  return out;
+}
+/* A card belongs to a colour if it is that colour (hybrid and gold cards count for each of theirs), is colourless (artifacts and
+   other colourless spells fit any deck, so they show in every colour: Ben, v0.18), or is a land that makes it. */
+function inColour(d, k){ if(!d) return false; if(isLandCard(d)) return landMakes(d).has(k); return !d.c.length || d.c.includes(k); }
+function diveRailHTML(){
+  const all=V.pool||[];
+  return `<div class="diverail"><div class="sec">Color dive</div>${[...'WUBRG'].map(k=>{ const cs=all.filter(c=>inColour(CARDS[c.id], k)), left=cs.filter(c=>!inMain(c)).length;
+    return `<button class="divebtn${B.dive===k?' on':''}" data-dive="${k}" title="All ${COLNAME[k].toLowerCase()} and colorless cards and the lands that make ${COLNAME[k].toLowerCase()}, by mana value and type">${manaSym(k)}<b>${COLNAME[k]}</b><small>${left}/${cs.length}</small></button>`; }).join('')}
+    <span class="hint" style="font-size:11px">Cards still in the pool / all of that color.</span></div>`;
+}
+function diveHTML(){
+  const k=B.dive; if(!k || !'WUBRG'.includes(k)) return '';
+  const cs=(V.pool||[]).filter(c=>inColour(CARDS[c.id], k)), left=cs.filter(c=>!inMain(c)), inD=cs.length-left.length;
+  const kind=c=>{ const d=CARDS[c.id]; return !d ? 1 : isLandCard(d) ? 2 : /\bCreature\b/.test(d.t.split(' // ')[0]) ? 0 : 1; };
+  const mvk=c=>{ const v=Math.floor((CARDS[c.id]||{}).cmc||0); return v<=1 ? 0 : Math.min(v,7)-1; };
+  const MV=['0–1','2','3','4','5','6','7+'];
+  const tagged=c=>{ const h=cardHTML(c, inMain(c)?'indk':''); return inMain(c) ? h.replace(/<span class="tag">[^<]*<\/span>/, '').replace(/<\/div>$/, '<span class="tag">IN DECK</span></div>') : h; };
+  let g=`<div class="dvgrid"><span></span>${MV.map(m=>`<div class="colh">${m}</div>`).join('')}`;
+  for(const [label,kk] of [['Creatures',0],['Non-creature spells',1]]){
+    const row=cs.filter(c=>kind(c)===kk); if(!row.length) continue;
+    g+=`<div class="rowh">${label} · ${row.length}</div>`;
+    for(let i=0;i<7;i++){ const cell=row.filter(c=>mvk(c)===i).sort(byColour); g+=`<div class="cell"><div class="col">${cell.map(tagged).join('')}</div></div>`; }
+  }
+  const lands=cs.filter(c=>kind(c)===2).sort(byColour);
+  if(lands.length) g+=`<div class="rowh">Lands · ${lands.length}</div><div class="lands">${lands.map(tagged).join('')}</div>`;
+  g+='</div>';
+  return `<div id="dive" role="dialog" aria-label="${COLNAME[k]} cards"><header><h3>${manaSym(k)}${COLNAME[k]} <span class="hint" style="font:600 13px var(--ui)">${cs.length} cards · ${inD} in your deck</span></h3>
+    <span class="dvsw" role="group" aria-label="Switch color">${[...'WUBRG'].map(x=>`<button class="pipbtn${x===k?' on':''}" data-dive-to="${x}" aria-label="${COLNAME[x]}" title="${COLNAME[x]}">${manaSym(x)}</button>`).join('')}</span>
+    <span style="margin-left:auto"></span><button class="go" id="diveAdd"${left.length?'':' disabled'}>Bulk add ${left.length} to deck</button><button id="diveOut"${inD?'':' disabled'} title="Take every ${COLNAME[k].toLowerCase()} card shown here out of the deck">Take all out</button><button class="ghost" id="diveClose" aria-label="Close">Close ✕</button></header>
+    <div class="dvbody">${cs.length ? g : `<p class="empty">No ${COLNAME[k].toLowerCase()} cards or lands that make ${COLNAME[k].toLowerCase()} in this pool.</p>`}<p class="hint" style="margin:10px 0 0;font-size:12px">Hybrid and multicolor cards count for each of their colors; colorless cards show in every color. Click a card to move it in or out of the deck; green edge = in your deck.</p></div></div>`;
+}
+function diveBulk(add){ const k=B.dive; for(const c of (V.pool||[])){ if(!inColour(CARDS[c.id], k)) continue; const i=B.side.indexOf(c.u); if(add && i>=0) B.side.splice(i,1); else if(!add && i<0) B.side.push(c.u); } saveBuild(); render();
+  toast(add ? `Every ${COLNAME[k].toLowerCase()} card is in your deck. Cull from there.` : `${COLNAME[k]} cards taken out of your deck.`); }
+const grpSelHTML = () => `<label class="bart" for="grpSel">Sort by<select id="grpSel">${Object.entries(GROUPS).map(([k,g])=>`<option value="${k}"${k===B.grp?' selected':''}>${g.label}</option>`).join('')}</select></label>`;
+/* A sealed pool sorted the way players lay one out at a prerelease: a pile per colour (or mana value, type, rarity), cheapest first, creatures first. */
+function pilesHTML(cards, grp){
+  const g=GROUPS[grp]||GROUPS.colour, b={};
+  for(const c of cards){ const d=CARDS[c.id], k=d ? g.key(d) : g.order[g.order.length-1]; (b[k]=b[k]||[]).push(c); }
+  const keys=g.order.filter(k=>b[k]); if(!keys.length) return '';
+  const cre=c=>{ const d=CARDS[c.id]; return d && /\bCreature\b/.test(d.t.split(' // ')[0]) ? 0 : 1; };
+  const sortP=l=>l.sort((x,y)=>{ const a=CARDS[x.id], z=CARDS[y.id]; return ((a&&a.cmc)||0)-((z&&z.cmc)||0) || cre(x)-cre(y) || String(a&&a.n).localeCompare(String(z&&z.n)); });
+  return `<div class="regions">${keys.map(k=>{ const l=sortP(b[k]), cols=[]; for(let i=0;i<l.length;i+=12) cols.push(l.slice(i,i+12));
+    return `<div class="region"><div class="sec">${g.dot?`<span class="dot" style="background:${g.dot(k)}"></span>`:''}${esc(g.name(k))} <b>${l.length}</b></div><div class="cols">${cols.map(cl=>`<div class="col">${cl.map(c=>cardHTML(c)).join('')}</div>`).join('')}</div></div>`; }).join('')}</div>`;
+}
+function kitHTML(){
+  const K=V.kit, op=B.op, U=byU(), img=PACKIMG[V.set]; if(!(V.set in PACKIMG)) setTimeout(()=>packImgs(V.set), 0);
+  const n=op.opened.filter(Boolean).length, covers=img && img.boosters.length ? img.boosters : null;
+  const promo=K.promo ? U.get(K.promo) : null, all=opAll();
+  let h=`<div class="kit">${img && img.kit ? `<img class="kitbox" src="${DBASE}packs/${esc(V.set)}/${esc(img.kit)}" alt="${esc(setName(V.set))} Prerelease Pack">` : ''}
+    <div class="packs">${(kc=>K.packs.map((p,i)=>{ const cv=covers ? covers[kc[i]] : '';
+      return `<button class="pk${cv?'':' drawn'}" data-pack="${i}"${op.opened[i]?' disabled':''} aria-label="Pack ${i+1}${op.opened[i]?', opened':''}">${cv ? `<img src="${DBASE}packs/${esc(V.set)}/${esc(cv)}" alt="">` : `<span class="pt">${esc(setName(V.set))}</span>`}<span class="pn">${i+1}</span></button>`; }).join(''))(covers ? kitCovers(K, covers.length) : [])}</div>
+    ${K.promo ? `<div class="promo">${op.promo && promo ? cardHTML(promo) : `<button class="cardback${op.opened.every(Boolean)?' ready':''}" id="promoBtn" aria-label="Turn over the promo card"><img src="${BACK_IMG}" alt=""></button>`}<span class="sec" style="margin:0">Foil promo</span></div>` : ''}
+    <div class="kitside"><div class="row"><button class="go" id="openNext"${n===KIT_PACKS?' disabled':''}>Open next pack</button><button id="openAll"${all?' disabled':''}>Open everything</button></div>
+      <span class="hint">${n} of ${KIT_PACKS} packs opened${K.promo ? (op.promo ? ' · promo revealed' : ' · promo face down') : ''}</span></div></div>`;
+  if(op.showing>=0){ const cards=K.packs[op.showing].map(u=>U.get(u)).filter(Boolean);
+    h+=`<div class="reveal"><div class="bar"><h3>Pack ${op.showing+1} of ${KIT_PACKS}</h3><span style="margin-left:auto"></span><button class="go" id="sortIn">Sort into my pool</button></div>
+      <div class="fan">${cards.map((c,j)=>{ const d=CARDS[c.id], hit=d && ['rare','mythic','special'].includes(d.r); return cardHTML(c, hit?'hit':'').replace('class="c ', `style="animation-delay:${j*70}ms" class="c `); }).join('')}</div></div>`; }
+  const pool=[]; K.packs.forEach((p,i)=>{ if(op.opened[i] && i!==op.showing) for(const u of p){ const c=U.get(u); if(c) pool.push(c); } });
+  if(promo && op.promo) pool.push(promo);
+  h+=`<div class="pane"><div class="bar"><h3>Your pool <b style="color:var(--brass)">${pool.length}</b></h3><span style="margin-left:auto"></span>${grpSelHTML()}<button class="go" id="buildGo"${all && op.showing<0?'':' disabled'} title="${all && op.showing<0?'':'Open every pack and the promo first'}">Build your deck</button></div>
+    ${pilesHTML(pool, B.grp) || '<p class="hint">Open a pack to start your pool.</p>'}</div>`;
+  return h;
+}
+
+/* ================= clicks ================= */
+function toggleSide(u){ loadBuild(); const i=B.side.indexOf(u); if(i>=0) B.side.splice(i,1); else B.side.push(u); saveBuild(); hideZoom(); render(); }
+$('#main').addEventListener('change', e=>{ if(e.target && e.target.id==='grpSel' && B){ B.grp=e.target.value; saveBuild(); render(); return; } if(e.target && e.target.id==='bartSel'){ setBasicPref(e.target.value); render(); toast(e.target.value==='std' ? 'Your basic lands will use the usual art.' : e.target.value==='rnd' ? 'Your basic lands will use a different set each match.' : 'Your basic lands will use this art on the Modern Table.'); } });
+$('#main').addEventListener('click', e=>{
+  if(!V) return;
+  const t=e.target, card=t.closest('.c'), id=t.closest('button') && t.closest('button').id;
+  if(V.phase==='draft'){
+    if(card && card.closest('#pack')){ const u=+card.dataset.u; if(sel===u && e.detail>1){ act({t:'pick', u}); sel=null; } else { sel=u; render(); } return; }
+    if(id==='takeBtn' && sel!=null){ act({t:'pick', u:sel}); sel=null; return; }
+    if(card && card.closest('[data-zone]') && Date.now()-DRAG.end >= 250) toggleSide(+card.dataset.u);
+    return;
+  }
+  if(id==='startBtn'){ startDraft(); return; }
+  /* Game Night: locking in a deck, results, the host's table reports */
+  const lkb=t.closest('[data-lk]'); if(lkb){ LK.tab=lkb.dataset.lk; LK.pick=null; LK.confirm=false; render(); return; }
+  const dkb=t.closest('[data-dk]'); if(dkb){ LK.pick=+dkb.dataset.dk; LK.confirm=false; render(); return; }
+  if(id==='lockBtn'){ LK.confirm=true; render(); return; }
+  if(id==='lockNo'){ LK.confirm=false; render(); return; }
+  if(id==='lockYes'){ const d=(LK.tab==='t' ? tourList() : savedList())[LK.pick]; if(!d) return; store.set('gn_deck', {ev:CODE, name:d.name, text:d.text}); LK.confirm=false; act({t:'lock', name:d.name}); return; }
+  if(id==='confirmBtn'){ openConfirm(true); return; }
+  if(id==='reportBtn'){ openConfirm(false); return; }
+  const stb=t.closest('[data-settle]'); if(stb && ROLE==='host'){ openSettle(+stb.dataset.settle); return; }
+  if(V.mode==='sealed' && B && B.op && !B.op.built){
+    const pk=t.closest('[data-pack]'); if(pk && !pk.disabled){ opOpen(+pk.dataset.pack); return; }
+    if(id==='openNext'){ const i=B.op.opened.indexOf(0); if(i>=0) opOpen(i); return; }
+    if(id==='openAll'){ opOpenAll(); return; }
+    if(id==='promoBtn'){ B.op.promo=1; saveBuild(); render(); return; }
+    if(id==='sortIn'){ opSortIn(); saveBuild(); render(); return; }
+    if(id==='buildGo'){ B.op.built=1; saveBuild(); render(); window.scrollTo(0,0); $('#main').scrollTop=0; return; }
+    if(card && !t.closest('[data-tab]')) return;
+  }
+  const tb=t.closest('[data-tab]'); if(tb){ tabNow=tb.dataset.tab; render(); return; }
+  const dt=t.closest('[data-dive-to]'); if(dt){ B.dive=dt.dataset.diveTo; saveBuild(); hideZoom(); render(); return; }
+  const dv=t.closest('[data-dive]'); if(dv){ B.dive = B.dive===dv.dataset.dive ? null : dv.dataset.dive; saveBuild(); hideZoom(); render(); return; }
+  if(id==='diveClose'){ B.dive=null; saveBuild(); hideZoom(); render(); return; }
+  if(id==='diveAdd'){ diveBulk(true); return; }
+  if(id==='diveOut'){ diveBulk(false); return; }
+  if(card && card.closest('#dive')){ toggleSide(+card.dataset.u); return; }
+  if(card && card.closest('[data-zone]')){ if(Date.now()-DRAG.end < 250) return; toggleSide(+card.dataset.u); return; }
+  const lb=t.closest('[data-land]'); if(lb){ const n=lb.dataset.land; B.lands[n]=Math.max(0, (B.lands[n]||0)+(+lb.dataset.d)); saveBuild(); render(); return; }
+  if(id==='sugBtn'){ suggestLands(); return; }
+  if(id==='saveBtn'){ saveDeck(); return; }
+  if(id==='copyBtn'){ const tx=deckText().replace(/ \[id:[^\]]+\]/g,''); (navigator.clipboard ? navigator.clipboard.writeText(tx) : Promise.reject()).then(()=>toast('Decklist copied'), ()=>toast('Could not copy; save it to your decks instead.')); return; }
+  if(id==='readyBtn'){ const me=V.seats[V.me]; if(V.tour){ toast('Your deck is locked in for this event.'); return; } if(!me.ready) saveDeck(true); act({t:'ready', v:!me.ready, deck:deckColours()}); return; }
+  if(id==='roundBtn' && ROLE==='host'){ startRound(); tabNow='tour'; render(); return; }
+  if(id==='againBtn' && ROLE==='host'){ if(confirm('Start a new event with these players? The current one ends.')){ H.seats=H.seats.filter(s=>!s.bot); H.seats.forEach(s=>{ s.pool=[]; s.queue=[]; s.ready=false; s.deck=''; }); H.phase = H.mode==='modern' ? 'build' : 'lobby'; H.round=0; H.tour=null; H.packs=null; tabNow='deck'; sysMsg('A new event starts with the same players.'); sync(); } return; }
+  const rb=t.closest('[data-res]'); if(rb){ act({t:'result', r:V.tour.rounds.length-1, k:+rb.dataset.res, res:[+rb.dataset.x, +rb.dataset.y]}); return; }
+  if(t.closest('[data-play]') || t.closest('#soloLink')) saveDeck(true);     // the Modern Table opens the newest saved deck
+});
+$('#main').addEventListener('input', e=>{ if(e.target && e.target.id==='lkQ'){ LK.q=e.target.value; LK.pick=null; LK.confirm=false; render(); const q=$('#lkQ'); if(q){ q.focus(); q.setSelectionRange(q.value.length, q.value.length); } } });
+$('#main').addEventListener('change', e=>{
+  if(ROLE!=='host' || !H || H.phase!=='lobby') return;
+  if(e.target.id==='fmtSel'){ H.mode=e.target.value==='sealed'?'sealed':'draft'; H.pod = H.mode==='sealed' ? 8 : Math.max(Math.min(H.pod, 8), H.seats.length); }
+  else if(e.target.id==='setSel') H.set=e.target.value; else if(e.target.id==='podSel') H.pod=Math.max(+e.target.value, H.seats.length); else if(e.target.id==='timeSel') H.timer=+e.target.value; else return;
+  sync();
+});
+const DRAG={on:null, end:0};
+$('#main').addEventListener('pointerdown', e=>{
+  if(e.pointerType==='touch' || e.button>0) return;
+  const el=e.target.closest('.c'), z=el && el.closest('[data-zone]'); if(!z) return;
+  DRAG.on={u:+el.dataset.u, from:z.dataset.zone, x:e.clientX, y:e.clientY, el, g:null};
+});
+function dragZone(x, y){ const el=document.elementFromPoint(x, y); return el && el.closest('#main [data-zone]'); }
+document.addEventListener('pointermove', e=>{ const d=DRAG.on; if(!d) return;
+  if(!d.g){ if(Math.hypot(e.clientX-d.x, e.clientY-d.y) < 7) return;
+    d.g=document.createElement('div'); d.g.id='ghost'; d.g.style.setProperty('--gw', d.el.offsetWidth+'px'); d.g.innerHTML=d.el.outerHTML; document.body.appendChild(d.g); d.el.style.opacity=.3; hideZoom(); }
+  e.preventDefault(); d.g.style.left=e.clientX+'px'; d.g.style.top=e.clientY+'px';
+  const z=dragZone(e.clientX, e.clientY); $$('#main [data-zone]').forEach(p=>p.classList.toggle('over', p===z && p.dataset.zone!==d.from));
+});
+document.addEventListener('pointerup', e=>{ const d=DRAG.on; DRAG.on=null; if(!d || !d.g) return;
+  d.g.remove(); d.el.style.opacity=''; DRAG.end=Date.now(); $$('#main [data-zone]').forEach(p=>p.classList.remove('over'));
+  const z=dragZone(e.clientX, e.clientY); if(z && z.dataset.zone!==d.from) toggleSide(d.u);
+});
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && B && B.dive && $('#dive')){ B.dive=null; saveBuild(); hideZoom(); render(); } });
+document.addEventListener('dragstart', e=>{ if(e.target.closest && e.target.closest('#main .c')) e.preventDefault(); });
+$('#rail').addEventListener('click', e=>{ const b=e.target.closest('[data-force]'); if(!b || ROLE!=='host') return; const i=+b.dataset.force, s=H.seats[i]; if(s && s.queue.length){ doPick(i, choice(s).u); pump(); sync(); } });
+$('#codePill').onclick=()=>{ if(navigator.clipboard) navigator.clipboard.writeText(CODE).then(()=>toast('Code copied'), ()=>{}); };
+$('#leaveBtn').onclick=()=>{ if(!confirm(ROLE==='host' ? 'Leave? You are the host, so this ends it for everyone.' : 'Leave this event?')) return; store.del(ROLE==='host'?'dt_host':'dt_guest'); location.href=location.pathname+location.search; };
+/* hover: a readable copy of the card */
+function hideZoom(){ $('#zoom').hidden=true; }
+document.addEventListener('mouseover', e=>{
+  const c=e.target.closest && e.target.closest('.c'); if(!c){ hideZoom(); return; }
+  const d=CARDS[c.dataset.id]; if(!d || !d.img){ hideZoom(); return; }
+  const z=$('#zoom'), r=c.getBoundingClientRect(), w=d.back?612:300, h=420;
+  z.innerHTML=`<img src="${esc(d.img)}" alt="">${d.back?`<img src="${esc(d.back)}" alt="">`:''}`;
+  let x=r.right+10; if(x+w>innerWidth) x=r.left-w-10; if(x<4) x=4;
+  z.style.left=x+'px'; z.style.top=Math.max(4, Math.min(innerHeight-h-4, r.top+r.height/2-h/2))+'px'; z.hidden=false;
+});
+
+/* ================= Game Night (v0.26) =================
+   Ben's design: a navy Game Night page (night/) hosts Modern {day} Night Magic for up to 8; Draft, Sealed and Cube open straight to their
+   own table's setup (draft/, sealed/, cube/, each in its own felt). Every event ends in the same matchmaking room: chat, a 3-minute break
+   before each round, tables named with their voice channel, one 50-minute clock, results sent by the Modern Table and confirmed by both
+   players within 30 seconds (else the host reports them), automatic pairing by standings, and decks kept secret until the final standings. */
+const VOICE = ['', '', '', '', '', '', '', ''];   // Discord voice channel links for Table 1, 2, … (empty: no button)
+const NIGHT_DECKS = '../night/decks.json';          // the Modern Table's tournament decks, written by build.py
+const isCubeSet = c => (SETS_ALL.find(s=>s.code===c)||{}).group==='Cubes';
+const themeFor = v => !v ? VARIANT : v.mode==='modern' ? 'gn' : v.mode==='sealed' ? 'st' : isCubeSet(v.set) ? 'ct' : 'dt';
+function applyTheme(k){ const b=document.body.classList; b.remove('th-gn','th-st','th-ct'); if(k && k!=='dt') b.add('th-'+k); }
+const DAYNAME = () => new Date().toLocaleDateString('en-US', {weekday:'long'});
+const nightTitle = () => `Modern ${DAYNAME()} Night Magic`;
+const eventTitle = v => v.mode==='modern' ? nightTitle() : v.mode==='sealed' ? `Sealed: ${setName(v.set)}` : isCubeSet(v.set) ? `Cube: ${setName(v.set)}` : `Draft: ${setName(v.set)}`;
+const hostNow = () => Date.now() + ((V && V._skew) || 0);
+const mmss = ms => { const s=Math.max(0, Math.ceil(ms/1000)); return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; };
+const HEADSET = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="14" width="4" height="6" rx="1.5" fill="currentColor"/><rect x="17" y="14" width="4" height="6" rx="1.5" fill="currentColor"/></svg>';
+const LOCKSVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+const recOf = s => `${s.w}–${s.l}${s.d?'–'+s.d:''}`;
+
+/* ---- the room's place in the event, from this player's view ---- */
+function roomState(){
+  const T=V && V.tour; if(!T) return {stage:'pre'};
+  if(T.done) return {stage:'final', T};
+  const R=T.rounds.length-1, rd=T.rounds[R]; if(!rd) return {stage:'pre', T};
+  const k=rd.tables.findIndex(t=>t.a===V.me || t.b===V.me), t=k>=0 ? rd.tables[k] : null;
+  const stage = rd.brkEnd && hostNow() < rd.brkEnd ? 'break' : 'play';
+  return {stage, T, R, rd, k, t, side: t ? (t.a===V.me ? 'a' : 'b') : null, opp: t ? V.seats[t.a===V.me ? t.b : t.a].name : '', bye: rd.bye===V.me};
+}
+const myRes = (side, res) => side==='a' ? res : [res[1], res[0]];
+function resText(st, res){ const [x,y]=myRes(st.side, res); return x>y ? `you won ${x}–${y} against ${st.opp}` : x<y ? `you lost ${x}–${y} to ${st.opp}` : `you and ${st.opp} drew ${x}–${y}`; }
+function nightLink(role, code){
+  const q=new URLSearchParams(location.search), o=new URLSearchParams();
+  for(const k of ['peerhost','peerpath','peersecure']) if(q.get(k)!=null) o.set(k, q.get(k));
+  o.set('t', code); o.set('r', role); o.set('gn', '1'); return '../?'+o.toString();
+}
+
+/* ---- the match tab: one Modern Table tab for the whole night, moved from table to table without a click ----
+   This page writes the player's seat to localStorage (gn_seat, read by the Modern Table when it opens with ?gn=1) and sends it on a
+   BroadcastChannel, so an open match tab moves to the next table by itself. The match tab answers pings and sends its result back. */
+const BC = ('BroadcastChannel' in window) ? new BroadcastChannel('mt-night') : null;
+let PONG=0, PONGCODE='', TABRES={};
+if(BC) BC.onmessage = e => { const m=e.data||{}; if(!V || !V.tour) return;
+  if(m.t==='pong' && m.ev===V.code){ PONG=Date.now(); PONGCODE=m.code||''; drawMatchBtns(); }
+  else if(m.t==='res' && m.ev===V.code && Array.isArray(m.res)){ TABRES[m.code]=m.res; const st=roomState(); if(st.t && st.t.code===m.code && !st.t.res) openConfirm(true); } };
+setInterval(()=>{ if(BC && V && V.tour && !V.tour.done) BC.postMessage({t:'ping', ev:V.code}); }, 3000);
+const tabOpen = () => Date.now()-PONG < 7000;
+function seatInfo(){
+  const st=roomState(); if(!st.t || st.stage==='final') return null;
+  const sk=(V._skew||0), deck=myDeck();
+  return { ev:V.code, code:st.t.code, role: st.side==='a' ? 'h' : 'g', round:st.R+1, table:st.k+1, opp:st.opp, title:eventTitle(V),
+    start:st.rd.brkEnd-sk, end:st.rd.end-sk, turns:st.rd.turns||null, called:!!st.rd.called, deckName:deck.name, deckText:deck.text, voice:VOICE[st.k]||'' };
+}
+function myDeck(){
+  if(V.mode==='modern'){ const g=store.get('gn_deck', null); return g && g.ev===V.code ? {name:g.name, text:g.text} : {name:'', text:''}; }
+  loadBuild(); return {name:deckName(), text:deckText()};
+}
+function pushSeat(){ const s=seatInfo(); const sig=JSON.stringify(s); if(sig===pushSeat.sig) return; pushSeat.sig=sig; if(s) store.set('gn_seat', s); if(BC && s) BC.postMessage({t:'seat', seat:s}); }
+
+/* ---- chat ---- */
+function paintChat(){
+  const box=$('#msgs'); if(!box || !V) return; const list=V.chat||[];
+  const atEnd = box.scrollHeight - box.scrollTop - box.clientHeight < 40;
+  const tm = at => new Date(at - (V._skew||0)).toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
+  setHTML(box, list.map(c => c.sys ? `<div class="msg sys">${esc(c.t)}</div>` : `<div class="msg"><time>${tm(c.at)}</time><b>${esc(c.n)}</b>${esc(c.t)}</div>`).join('') || '<p class="hint" style="margin:0">Say hello. Everyone in the event sees this.</p>');
+  if(atEnd) box.scrollTop = box.scrollHeight;
+}
+$('#chatForm').addEventListener('submit', e=>{ e.preventDefault(); const i=$('#chatIn'), v=i.value.trim(); if(!v) return; act({t:'chat', text:v}); i.value=''; });
+
+/* ---- Modern night: lock in a deck before round 1 ---- */
+let NDECKS=null, LK={tab:'t', pick:null, q:'', confirm:false};
+async function nightDecks(){ if(NDECKS) return NDECKS; try{ const r=await fetch(NIGHT_DECKS); if(r.ok){ NDECKS=await r.json(); render(); } }catch(e){} return NDECKS; }
+const deckTextOf = d => d.main.map(([n,c])=>`${c} ${n}`).join('\n') + '\n\nSideboard\n' + d.side.map(([n,c])=>`${c} ${n}`).join('\n');
+function savedList(){ return (store.get('mt_decks', [])||[]).filter(d=>d && d.name && d.text && !/\[id:/.test(d.text)).map(d=>({name:d.name, text:d.text, sub:'Your saved deck'})); }
+function tourList(){ return (NDECKS||[]).map(d=>({name:d.arch, text:deckTextOf(d), sub:`${d.place} · ${d.pilot} · ${d.ev}`})); }
+function keyCards(text){ const out=[]; let side=false; for(const l of text.split('\n')){ if(/^sideboard/i.test(l.trim())){ side=true; continue; } const m=l.match(/^(\d+)\s+(.+)$/); if(m && !side && !/^(Plains|Island|Swamp|Mountain|Forest)$/.test(m[2]) && !/\b(Land|Strand|Mesa|Delta|Tarn|Foothills|Mire|Heath|Catacombs|Rainforest|Flats|Temple|Grave|Fountain|Pool|Garden|Foundry|Crypt|Steam Vents|Shrine|Tomb|Fields)\b/.test(m[2])) out.push(m[2]); if(out.length>=4) break; } return out.join(', '); }
+function cardCount(text){ let m=0, s=0, side=false; for(const l of text.split('\n')){ if(/^sideboard/i.test(l.trim())){ side=true; continue; } const x=l.match(/^(\d+)\s+/); if(x){ if(side) s+=+x[1]; else m+=+x[1]; } } return [m,s]; }
+function lockHTML(host){
+  const me=V.seats[V.me], g=store.get('gn_deck', null), locked = me.ready && g && g.ev===V.code;
+  const all=V.seats.every(s=>s.ready), nL=V.seats.filter(s=>s.ready).length;
+  if(!NDECKS) nightDecks();
+  let h=`<div class="announce"><div class="rd">${LOCKSVG.replace('aria-hidden','style="width:30px;height:30px" aria-hidden')}<small>DECKS</small></div>
+    <b>${locked ? (all ? 'Everyone is locked in.' : 'You’re locked in. Waiting for the others.') : 'Choose the deck you’ll play all night.'}</b>
+    <span class="sub">${locked ? (all ? (host ? 'Pair round 1 when everyone you’re expecting is here. A 3-minute countdown runs before the matches start.' : 'The host pairs round 1. A 3-minute countdown runs before the matches start.') : `${nL} of ${V.seats.length} locked in. Nobody sees anyone else’s deck until the final standings.`) : 'Once you lock it in, it can’t change until the event ends. Sideboarding between games works as usual.'} Friends join with the code <b style="color:var(--ink);letter-spacing:.15em">${esc(CODE)}</b>.</span>
+    ${host ? `<div class="act"><button class="${all?'go':''}" id="roundBtn"${V.seats.length<2?' disabled':''}>Pair round 1</button></div>` : ''}</div>`;
+  if(locked) return h+`<div class="lockedbox" style="max-width:520px">${LOCKSVG}Locked in: ${esc(g.name)}</div><p class="hint" style="margin:0">Your matches tonight open on the Modern Table with this deck already chosen.</p>`;
+  const list = LK.tab==='t' ? tourList() : savedList(), q=LK.q.toLowerCase(), shown=list.map((d,i)=>[d,i]).filter(([d])=>!q || (d.name+' '+d.sub).toLowerCase().includes(q));
+  const pick = LK.pick!=null ? list[LK.pick] : null;
+  h+=`<div class="deckgrid"><div><div class="dtabs"><button class="sm${LK.tab==='t'?' on':''}" data-lk="t">Tournament decks</button><button class="sm${LK.tab==='s'?' on':''}" data-lk="s">My saved decks</button><input id="lkQ" placeholder="Search" value="${esc(LK.q)}" aria-label="Search decks"></div>
+    <div class="dlist">${shown.map(([d,i])=>`<button class="dk${LK.pick===i?' sel':''}" data-dk="${i}"><b>${esc(d.name)}</b><span>${esc(d.sub)}</span></button>`).join('') || `<p class="hint">${LK.tab==='t' ? (NDECKS ? 'No decks match.' : 'Loading the tournament decks…') : 'No saved decks yet. Save one on the Modern Table’s deck screen.'}</p>`}</div></div>
+    <div class="lockcard">${pick ? (()=>{ const [m,sb]=cardCount(pick.text); return `<span class="hint" style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:800">Your choice</span><h3>${esc(pick.name)}</h3><div class="keys">Key cards: <b>${esc(keyCards(pick.text)||'—')}</b></div><div class="hint" style="font-size:13px">${m} main deck · ${sb} sideboard</div>
+      ${LK.confirm ? `<div class="confirm"><p>Lock in <b>${esc(pick.name)}</b> for all three rounds? You can’t switch decks after this.</p><div class="drow" style="justify-content:flex-start"><button class="go" id="lockYes">Lock it in</button><button id="lockNo">Not yet</button></div></div>` : `<button class="go" id="lockBtn">Lock in this deck</button>`}`; })()
+      : '<span class="hint">Pick a deck to see it here.</span>'}</div></div>`;
+  return h;
+}
+
+/* ---- the matchmaking room ---- */
+function voiceBtn(k){ const u=VOICE[k]; return u ? `<a class="vbtn" href="${esc(u)}" target="_blank" rel="noopener">${HEADSET}Join Table ${k+1} voice</a>` : ''; }
+function matchBtns(st){
+  if(!st.t || st.t.res || st.t.disp) return '';
+  const href=nightLink(st.side==='a'?'h':'g', st.t.code);
+  return tabOpen() && PONGCODE===st.t.code ? `<span class="hint" style="font-size:12px">Your match tab is open${st.stage==='break' ? ' and waiting for the round to start' : ''}.</span>`
+    : `<a class="btnlink" href="${esc(href)}" target="mtmatch" rel="opener" data-matchtab="1"><button class="${st.stage==='play'?'go':''} sm">${tabOpen() ? 'Move my match tab here' : 'Open my match tab'}</button></a>`;
+}
+function drawMatchBtns(){ const el=$('#matchBtns'); if(el){ const st=roomState(); setHTML(el, matchBtns(st)); } }
+function roomHTML(host){
+  const st=roomState(), T=V.tour;
+  if(!T) return '';
+  if(!T.total) return `<p class="hint" style="margin:0">${V.mode==='sealed' ? 'You are the only player, so there is no bracket.' : 'You drafted against bots, so there is no bracket.'}</p><div><a href="${playLink('s','')}" target="_blank" rel="noopener" id="soloLink"><button class="go">Practice with this deck on the Modern Table</button></a></div>`;
+  const now=hostNow(), clk=(ms, label, low)=>`<div class="bigclock${low?' low':''}" data-until="${ms}">${mmss(ms-now)}<small>${label}</small></div>`;
+  let rdNo='', top='ROUND', b='', sub='', act='';
+  if(st.stage==='final'){ const s0=standings(T, V.seats)[0]; top='FINAL'; rdNo=T.total; b=`${esc(s0.name)} wins the night at ${recOf(s0)}.`; sub='Final standings are below, with every deck.'; if(host) act=`<button class="ghost sm" id="againBtn">Start a new event with these players</button>`; }
+  else if(st.stage==='break'){ rdNo=st.R+1; top='BREAK';
+    if(st.bye){ b=`Round ${st.R+1}: you have the bye.`; sub='It counts as a 2–0 win. Hang out in the chat until the next round.'; }
+    else { b=`Round ${st.R+1}: you’re at Table ${st.k+1} with ${esc(st.opp)}.`; sub=`Take a break and join the Table ${st.k+1} voice channel. Your match starts when the timer runs out.`; }
+    act=clk(st.rd.brkEnd, 'UNTIL ROUND '+(st.R+1), st.rd.brkEnd-now<30000) + `<span id="matchBtns">${matchBtns(st)}</span>`; }
+  else { rdNo=st.R+1; const t=st.t, waiting=st.rd.tables.map((x,k)=>x.res?null:k+1).filter(Boolean);
+    act=clk(st.rd.end, st.rd.called ? 'TIME' : 'LEFT IN ROUND', st.rd.end-now<5*60000);
+    if(st.bye || !t){ b=st.bye ? `You have the bye in round ${st.R+1}.` : 'You’re not playing this round.'; sub=waiting.length ? `Waiting on ${waiting.length===1?'Table':'Tables'} ${waiting.join(', ')}.` : ''; }
+    else if(t.res){ b=`Your match is in: ${resText(st, t.res)}.`; sub=waiting.length ? `Waiting on ${waiting.length===1?'Table':'Tables'} ${waiting.join(', ')}. The standings update as each one finishes.` : 'Pairing the next round…'; }
+    else if(t.disp){ b=`No agreed result at Table ${st.k+1}.`; sub=`You and ${esc(st.opp)}: talk it over in the chat. The host reports the result.`; }
+    else if(t.pend){ const mine=t.pend.v[st.side], left=Math.max(0, t.pend.at+CONFIRM_MS-now);
+      b = mine ? `You confirmed: ${resText(st, mine)}.` : `${esc(st.opp)} reported: ${resText(st, t.pend.v[st.side==='a'?'b':'a'])}.`;
+      sub = `${mine ? `Waiting for ${esc(st.opp)} to confirm.` : 'Confirm it or correct it.'} You both have <b data-until="${t.pend.at+CONFIRM_MS}" data-short="1">${mmss(left)}</b> to agree; after that the host reports it.`;
+      act += mine ? '' : `<button class="go sm" id="confirmBtn">Confirm the result</button>`; }
+    else if(st.rd.called && !st.rd.turns){ b='Time in the round.'; sub='Waiting for the host to decide on end-of-round turns.'; act+=`<span id="matchBtns">${matchBtns(st)}</span>`; }
+    else if(st.rd.called){ b= st.rd.turns==='yes' ? `End-of-round turns at Table ${st.k+1}.` : 'Time in the round: no extra turns.'; sub = st.rd.turns==='yes' ? 'Finish this turn, then five more; then the table asks who won. Confirm the result here.' : 'Play on until the game ends, then confirm the result here.'; act+=`<span id="matchBtns">${matchBtns(st)}</span><button class="sm" id="reportBtn">Report result</button>`; }
+    else { b=`You’re at Table ${st.k+1} with ${esc(st.opp)}.`; sub=`Join the Table ${st.k+1} voice channel. When the match ends, the Modern Table sends the result here for you both to confirm.`; act+=`<span id="matchBtns">${matchBtns(st)}</span><button class="sm" id="reportBtn">Report result</button>`; }
+  }
+  let h=`<div class="announce"><div class="rd">${rdNo}<small>${top}</small></div><b>${b}</b><span class="sub">${sub}</span><div class="act">${act}</div></div>`;
+  /* tables */
+  if(st.rd && st.stage!=='final'){
+    const pips=n=>'<span class="tpip'+(n>0?' w':'')+'"></span><span class="tpip'+(n>1?' w':'')+'"></span>';
+    const recs=Object.fromEntries(standings(T, V.seats).map(s=>[s.p, s]));
+    h+=`<section class="sect"><div class="secthead"><span class="cap">Round ${st.R+1} tables</span><small>${st.stage==='break'?'starting after the break':''}</small></div><div class="tables">${st.rd.tables.map((t,k)=>{
+      const mine=t.a===V.me || t.b===V.me, r=t.res, A=V.seats[t.a], Bs=V.seats[t.b];
+      let sx;
+      if(r) sx=`<span class="st fin">Finished ${r[0]}–${r[1]}</span>`;
+      else if(st.stage==='break') sx=`<span class="st">${mine?'Your next match':'Next match'}</span>`;
+      else if(t.disp) sx=`<span class="st bad">No agreed result: host to report</span>`;
+      else if(t.pend) sx=`<span class="st warn">Confirming the result · <span data-until="${t.pend.at+CONFIRM_MS}" data-short="1">${mmss(t.pend.at+CONFIRM_MS-now)}</span></span>`;
+      else if(st.rd.called) sx=`<span class="st warn">${st.rd.turns==='yes' ? 'End-of-round turns' : st.rd.turns==='no' ? 'Time: playing on' : 'Time: waiting for the host'}</span>`;
+      else sx=`<span class="st live">${mine?'Your match':'Playing'}</span>`;
+      const sub=x=>{ const s=recs[x]; return s ? `${recOf(s)} tonight` : ''; };
+      const acts = r ? '' : [voiceBtn(k), host && (t.disp || (st.stage==='play' && st.rd.called)) ? `<button class="sm ${t.disp?'go':''}" data-settle="${k}">Report for this table (host)</button>` : ''].join('');
+      return `<article class="tbl${mine?' mine':''}${r?' done':''}"><div class="th"><h3>Table ${k+1}</h3>${sx}</div>
+        <div class="ttop"><div class="tpl${r&&r[0]>r[1]?' win':''}"><div class="n">${esc(A.name)}</div><div class="d">${sub(t.a)}</div></div><div class="tvs">${pips(r?r[0]:0)}<span class="x">vs</span>${pips(r?r[1]:0)}</div><div class="tpl r${r&&r[1]>r[0]?' win':''}"><div class="n">${esc(Bs.name)}</div><div class="d">${sub(t.b)}</div></div></div>
+        ${acts ? `<div class="tacts">${acts}</div>` : ''}</article>`; }).join('')}</div>${st.rd.bye!=null ? `<p class="hint" style="margin:0">${esc(V.seats[st.rd.bye].name)} has the bye this round.</p>` : ''}</section>`;
+  }
+  /* standings */
+  const S=standings(T, V.seats), fin=st.stage==='final', played=T.rounds.filter(r=>r.tables.every(t=>t.res)).length;
+  h+=`<section class="sect"><div class="secthead"><span class="cap">Standings</span><small>${fin ? 'final' : st.stage==='play' && st.rd.tables.some(t=>!t.res) ? `round ${st.R+1} in progress` : played ? `after round ${played}` : 'before round 1'}${fin?'':' · decks are revealed at the end'}</small></div>
+    <table class="stand"><thead><tr><th class="n">#</th><th>${fin?'Player and deck':'Player'}</th><th class="n">Record</th><th class="n">Points</th><th class="n">Games won</th></tr></thead><tbody>${S.map((s,i)=>{ const gp=s.gw+s.gl ? Math.round(100*s.gw/(s.gw+s.gl))+'%' : '–';
+      return `<tr class="${s.p===V.me?'me':''}"><td class="n">${i+1}</td><td>${esc(s.name)}${fin && V.seats[s.p].deck ? `<small>${esc(V.seats[s.p].deck)}</small>` : ''}</td><td class="n">${recOf(s)}</td><td class="n">${s.pts}</td><td class="n">${gp}</td></tr>`; }).join('')}</tbody></table></section>`;
+  return h;
+}
+/* live clocks without redrawing the room */
+function roomClock(){ if(!V) return; const now=hostNow(); let redraw=false;
+  $$('[data-until]').forEach(el=>{ const u=+el.dataset.until, left=u-now; const txt=mmss(left); if(el.firstChild && el.firstChild.nodeType===3) el.firstChild.nodeValue=txt; else el.textContent=txt; if(left<=0 && left>-1100 && !el.dataset.short) redraw=true; });
+  const st=roomState(); const key=st.stage+':'+(st.R||0); if(key!==roomClock.k){ roomClock.k=key; redraw=true; }
+  if(redraw && V.tour) render(); }
+
+/* ---- result windows ---- */
+let DLG=null;
+function closeDlg(){ $('#veil').hidden=true; $('#veil').innerHTML=''; DLG=null; }
+function dlg(kind, html){ const v=$('#veil'); DLG=kind; v.innerHTML=`<div class="dialog" role="dialog">${html}</div>`; v.hidden=false; return v; }
+function resOptions(st){ const o=[['I won 2–0',[2,0]],['I won 2–1',[2,1]],['I lost 1–2',[1,2]],['I lost 0–2',[0,2]]];
+  if(st.rd.called) o.push(['I won 1–0',[1,0]],['I lost 0–1',[0,1]],['Draw 0–0',[0,0]]); o.push(['Draw 1–1',[1,1]]); return o; }
+function sendConfirm(st, mineRes){ act({t:'confirm', r:st.R, k:st.k, res: st.side==='a' ? mineRes : [mineRes[1], mineRes[0]]}); }
+function openConfirm(fromTable){
+  const st=roomState(); if(!st.t || st.t.res || st.stage!=='play') return;
+  const t=st.t, theirs=t.pend && t.pend.v[st.side==='a'?'b':'a'], tab=TABRES[t.code], sug = tab || theirs;
+  if(t.pend && t.pend.v[st.side]) return;
+  if(sug && !(fromTable===false)){
+    const v=dlg('confirm', `<span class="cap">${tab ? 'The Modern Table sent this result' : `${esc(st.opp)} reported this result`}</span><h3>Table ${st.k+1}: ${esc(resText(st, sug))}</h3>
+      <p>You and ${esc(st.opp)} both confirm it. Once you both have, it’s submitted. If you don’t agree within 30 seconds of the first confirmation, the host reports it.</p>
+      <div class="res"><button class="go wide" id="cfYes">Confirm</button><button class="wide" id="cfNo">That’s not right</button></div><div class="drow"><button class="sm ghost" id="cfLater">Decide in the room</button></div>`);
+    $('#cfYes',v).onclick=()=>{ closeDlg(); sendConfirm(st, myRes(st.side, sug)); toast(`Confirmed. Waiting for ${st.opp}.`); };
+    $('#cfNo',v).onclick=()=>openConfirm(false); $('#cfLater',v).onclick=closeDlg; return; }
+  const opts=resOptions(st);
+  const v=dlg('pick', `<h3>Report Table ${st.k+1}</h3><p>Your match against ${esc(st.opp)}.${st.rd.called?' Time was called: a game still going at the end counts as a draw.':''} ${esc(st.opp)} confirms it too.</p>
+    <div class="res">${opts.map((o,i)=>`<button class="${opts.length%2 && i===opts.length-1?'wide':''}" data-r="${i}">${o[0]}</button>`).join('')}</div><div class="drow"><button id="cfCancel">Cancel</button></div>`);
+  $$('[data-r]', v).forEach(b=>b.onclick=()=>{ closeDlg(); sendConfirm(st, opts[+b.dataset.r][1]); toast(`Sent. Waiting for ${st.opp} to confirm.`); });
+  $('#cfCancel',v).onclick=closeDlg;
+}
+function openSettle(k){
+  const st=roomState(), t=st.rd && st.rd.tables[k]; if(!t || t.res) return; const A=V.seats[t.a].name, Bn=V.seats[t.b].name;
+  const o=[[`${A} won 2–0`,[2,0]],[`${A} won 2–1`,[2,1]],[`${Bn} won 2–1`,[1,2]],[`${Bn} won 2–0`,[0,2]]];
+  if(st.rd.called) o.push([`${A} won 1–0`,[1,0]],[`${Bn} won 1–0`,[0,1]],['Draw 0–0',[0,0]]); o.push(['Draw 1–1',[1,1]]);
+  const v=dlg('settle', `<span class="cap">Host</span><h3>Report Table ${k+1}</h3><p>${esc(A)} and ${esc(Bn)}${t.disp?' didn’t agree on a result. Settle it with them in the chat, then pick what happened.':'.'} This submits it.</p>
+    <div class="res">${o.map((x,i)=>`<button class="${o.length%2 && i===o.length-1?'wide':''}" data-r="${i}">${esc(x[0])}</button>`).join('')}</div><div class="drow"><button id="cfCancel">Not yet</button></div>`);
+  $$('[data-r]', v).forEach(b=>b.onclick=()=>{ closeDlg(); act({t:'settle', r:st.R, k, res:o[+b.dataset.r][1]}); });
+  $('#cfCancel',v).onclick=closeDlg;
+}
+function openTurns(){
+  const st=roomState(); if(!st.rd) return; const open=st.rd.tables.map((t,k)=>t.res?null:k+1).filter(Boolean);
+  const v=dlg('turns', `<h3>Time in round ${st.R+1}</h3><p>${open.length===1?'Table':'Tables'} ${open.join(', ')} ${open.length===1?'is':'are'} still playing. Your call applies to every table.</p>
+    <div class="res"><button class="go wide" id="tYes">Yes: finish this turn, then five more turns</button><button class="wide" id="tNo">No: finish the game in progress, no turn limit</button></div>
+    <p>With the extra turns, the table asks who won after turn 5; either way, players confirm their result here.</p>`);
+  $('#tYes',v).onclick=()=>{ closeDlg(); act({t:'turns', v:'yes'}); }; $('#tNo',v).onclick=()=>{ closeDlg(); act({t:'turns', v:'no'}); };
+}
+/* after each view: windows that should open by themselves */
+function roomPrompts(host){
+  const st=roomState(); if(!V.tour || st.stage==='final'){ if(DLG && DLG!=='settle') closeDlg(); return; }
+  if(host && st.rd && st.rd.called && !st.rd.turns && st.rd.tables.some(t=>!t.res) && !DLG) openTurns();
+  if(DLG==='turns' && st.rd && st.rd.turns) closeDlg();
+  if((DLG==='confirm' || DLG==='pick') && (!st.t || st.t.res || st.t.disp || (st.t.pend && st.t.pend.v[st.side]))) closeDlg();
+  if(st.t && !st.t.res && !st.t.disp && st.t.pend && !st.t.pend.v[st.side] && !DLG && roomPrompts.seen!==st.t.code+':'+st.t.pend.at){ roomPrompts.seen=st.t.code+':'+st.t.pend.at; openConfirm(true); }
+}
+
+/* ================= lobby ================= */
+const nameIn=$('#nameIn'); nameIn.value=SETTINGS.name||''; $('#verTag').textContent=VERSION;
+const newsRow = ([v,d,t]) => `<div class="newsrow"><b>${esc(v)}<small>${esc(d)}</small></b><span>${esc(t)}</span></div>`;
+function drawNews(all){ $('#news').innerHTML = `<h4>What's new</h4>${(all ? DNEWS : DNEWS.slice(0,6)).map(newsRow).join('')}${DNEWS.length>6 ? `<a href="#" id="newsAll">${all ? 'Show fewer' : 'See all changes'}</a>` : ''}`;
+  const a=$('#newsAll'); if(a) a.onclick=e=>{ e.preventDefault(); drawNews(!all); }; }
+drawNews(false);
+function saveName(){ SETTINGS.name=(nameIn.value.trim()||'Player').slice(0,20); store.set('mt_settings', Object.assign(store.get('mt_settings',{}), {name:SETTINGS.name})); }
+function showLobby(msg){ ROLE=''; V=null; applyTheme(VARIANT); $('#room').hidden=true; $('#lobby').hidden=false; $('#lobbyMsg').textContent=msg||''; }
+function showRoom(){ $('#lobby').hidden=true; $('#room').hidden=false; drawTop(); }
+function beginHost(saved, mode){
+  saveName(); ROLE='host';
+  H = saved || { mode:mode||'draft', code:randCode(), set:SETS.length?SETS[0].code:'', pod:8, timer:75, phase:'lobby', round:0, uid:0, size:0, busy:'', tour:null, packs:null, chat:[], seats:[{pid:PID, name:SETTINGS.name, bot:0, pool:[], queue:[]}] };
+  if(!H.mode) H.mode='draft'; if(!saved && H.mode==='sealed') H.timer=0;
+  if(!saved && H.mode==='modern'){ H.set=''; H.timer=0; H.phase='build'; sysMsg(`${nightTitle()} is open. Code ${H.code}.`); gcEvent('night-started', 'Modern night started'); }
+  if(!saved && H.mode!=='modern') sysMsg(`Event opened. Code ${H.code}.`);
+  H.busy=''; CODE=H.code; conns.clear();
+  if(saved){ useCache(H.set); if(H.phase==='draft'){ loadSet(H.set).catch(()=>{}); H.seats.forEach(setDue); } }
+  showRoom(); hostPeer(); sync();
+}
+function beginGuest(code){ saveName(); ROLE='guest'; CODE=code; store.set('dt_guest', {code, at:Date.now()}); showRoom(); setHTML($('#rail'), ''); setHTML($('#main'), '<p class="hint">Connecting to the event…</p>'); guestPeer(); }
+$('#hostBtn').onclick=()=>beginHost(null, 'draft');
+$('#sealedBtn').onclick=()=>beginHost(null, 'sealed');
+/* each copy of the page has its own front: Game Night (navy) offers the night's events; Draft, Sealed and Cube host their own */
+function frontPage(){
+  applyTheme(VARIANT);
+  const h1=$('.lhead h1'), lede=$('.lhead p'), corner=$('#lobby .corner'), host=$('#hostBtn'), sealedB=$('#sealedBtn');
+  const setH1 = t => { h1.firstChild.nodeValue = t+' '; };
+  const sw = (k, b, why, to, href, id) => `<${href?'a':'button'} class="choice sw${k==='gn'?' feature':''}"${href?` href="${href}"`:''}${id?` id="${id}"`:''}><span class="felt sw-${k}"><i></i><i></i></span><span><b>${b}</b><span>${why}</span>${to?`<span class="to ${k}">${to}</span>`:''}</span><span>→</span></${href?'a':'button'}>`;
+  { const lg=$('.lobbybox p.legal'), nm={gn:'Game Night', st:'The Sealed Table', ct:'The Cube Table'}[VARIANT]; if(lg && nm) lg.innerHTML=lg.innerHTML.replace('The Draft Table', nm); }
+  if(VARIANT==='gn'){
+    document.title='Game Night'; setH1('Game Night');
+    lede.textContent='Host an evening for up to eight friends: three Swiss rounds of Modern, or a draft, a sealed event or a cube. Everyone locks in a deck, then the matchmaking room pairs each round, runs the clock and keeps the standings.';
+    corner.textContent='Modern Table →'; corner.href='../';
+    host.hidden=true; sealedB.hidden=true;
+    host.insertAdjacentHTML('beforebegin', sw('gn', esc(nightTitle()), 'Up to 8 players, three Swiss rounds. Lock in any tournament deck or one of your own; matches are played on the Modern Table.', 'Hosted here', '', 'nightBtn')
+      + sw('dt', 'Host a draft', 'Booster draft from real pack odds. Bots fill empty seats.', 'Draft Table: straight to setup', '../draft/?host=1')
+      + sw('st', 'Host a sealed event', 'Six packs each, or a prerelease kit; build 40 cards, three rounds.', 'Sealed Table: straight to setup', '../sealed/?host=1')
+      + sw('ct', 'Host a cube draft', 'Draft a curated cube of singletons.', 'Cube Table: straight to setup', '../cube/?host=1'));
+    $('#nightBtn').onclick=()=>beginHost(null, 'modern');
+    $('#codeIn').closest('.choice').querySelector('b').textContent='Join a Game Night';
+    $('#news').innerHTML=`<h4>How a night runs</h4><ol class="steps"><li><span>The host picks the event and shares a six-letter code in the Discord.</span></li><li><span>Everyone locks in a deck. Decks stay secret until the final standings.</span></li><li><span>Each round names your table and its voice channel. A 3-minute break runs before every round, then 50 minutes on the clock.</span></li><li><span>The Modern Table sends your result here; you both confirm it, and the next round is paired by standings.</span></li></ol>`;
+  } else {
+    corner.textContent='← Game Night'; corner.href='../night/'; corner.classList.add('to-gn');
+    if(VARIANT==='st'){ document.title='Sealed Table'; setH1('Sealed Table'); lede.textContent='Everyone opens six packs (a prerelease kit for Reality Fracture), builds 40 cards from what they opened, then plays three rounds on the Modern Table.'; host.hidden=true; sealedB.querySelector('b').textContent='Host a sealed event'; }
+    if(VARIANT==='ct'){ document.title='Cube Table'; setH1('Cube Table'); lede.textContent='Draft a curated cube: every card a singleton, packs of fifteen dealt with no repeats. Build 40 cards, then play three rounds on the Modern Table.'; sealedB.hidden=true; host.querySelector('b').textContent='Host a cube draft'; host.querySelector('span').textContent='Pick the cube, get a six-letter code for your friends. Bots fill empty seats.'; }
+  }
+  /* straight to setup: night/ sends Draft, Sealed and Cube here with ?host=1 */
+  const q=new URLSearchParams(location.search);
+  if(q.get('host')){ q.delete('host'); history.replaceState(null, '', location.pathname+(q.toString()?'?'+q:'')); beginHost(null, VARIANT==='st' ? 'sealed' : 'draft'); }
+}
+$('#joinBtn').onclick=()=>{ const c=$('#codeIn').value.trim().toUpperCase(); if(c.length<4){ $('#lobbyMsg').textContent='Type the code your host sent you.'; return; } beginGuest(c); };
+$('#codeIn').onkeydown=e=>{ if(e.key==='Enter') $('#joinBtn').click(); };
+{ const h=store.get('dt_host', null), g=store.get('dt_guest', null);
+  if(h && h.seats && h.seats.some(s=>s.pid===PID)){ $('#resumeBtn').hidden=false; $('#resumeTxt').textContent=`You are hosting ${h.code} · ${h.mode==='modern' ? nightTitle() : (h.mode==='sealed'?'sealed · ':'')+setName(h.set)}`; $('#resumeBtn').onclick=()=>beginHost(h); }
+  else if(g && g.code && Date.now()-g.at < 864e5){ $('#resumeBtn').hidden=false; $('#resumeTxt').textContent='Event '+g.code; $('#resumeBtn').onclick=()=>beginGuest(g.code); } }
+frontPage();
+window.__D = { get H(){ return H; }, get V(){ return V; }, get B(){ return B; }, sync, genPack, promoFor, loadSet, ensure, useCache, get CARDS(){ return CARDS; } };
+</script>
+</body>
+</html>
