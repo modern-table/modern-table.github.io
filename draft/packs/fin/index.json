@@ -1,4 +1,8 @@
 {
- "boosters": [],
+ "boosters": [
+  "booster-1.webp",
+  "booster-2.webp",
+  "booster-3.webp"
+ ],
  "kit": "kit.webp"
 }
