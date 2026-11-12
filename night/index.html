@@ -345,9 +345,10 @@ a.btnlink{text-decoration:none}
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v0.32';
+const VERSION = 'v0.33';
 /* What's new on the front page (v0.19, like the Modern Table's NEWS): newest first, written for players. Add a line with every version bump. */
 const DNEWS = [
+  ['v0.33','Nov 11',"Sealed: Khans of Tarkir packs now show their real wrapper art, all five covers."],
   ['v0.32','Nov 11',"Sealed: Modern Horizons packs now show their real wrapper art, all three covers."],
   ['v0.31','Nov 11',"Sealed: Final Fantasy packs now show their real wrapper art when you open them."],
   ['v0.30','Nov 11',"Event rooms: tables 1 to 4 now have a Join Table voice button that opens that table's voice channel on our Discord."],
