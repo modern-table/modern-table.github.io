@@ -59,11 +59,14 @@ def main(listfile):
         # one image per cover: when a cover comes in several angles (_01_01, _01_02 …), keep the first
         seen, picked = set(), []
         for n in boosters:
-            m = re.search(r'Bstr[_-](\d+)', os.path.basename(n), re.I)
+            m = re.search(r'Bstr(?:[_-]Play)?[_-](\d+)', os.path.basename(n), re.I)   # cover number: Play_Bstr_02_01 or Bstr_Play_02_01
             key = m.group(1) if m else os.path.basename(n)
             if key not in seen:
                 seen.add(key)
                 picked.append(n)
+        for old in os.listdir(outdir):   # drop wrappers from an earlier run (a set may have fewer covers now)
+            if re.match(r'booster-\d+\.webp$', old):
+                os.remove(os.path.join(outdir, old))
         idx = {'boosters': [], 'kit': ''}
         for i, n in enumerate(picked, 1):
             data, size = shrink(z.read(n), 320)
