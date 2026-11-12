@@ -345,9 +345,10 @@ a.btnlink{text-decoration:none}
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v0.30';
+const VERSION = 'v0.31';
 /* What's new on the front page (v0.19, like the Modern Table's NEWS): newest first, written for players. Add a line with every version bump. */
 const DNEWS = [
+  ['v0.31','Nov 11',"Sealed: Final Fantasy packs now show their real wrapper art when you open them."],
   ['v0.30','Nov 11',"Event rooms: tables 1 to 4 now have a Join Table voice button that opens that table's voice channel on our Discord."],
   ['v0.29','Nov 11',"Cube drafts: the cube's archetypes are laid out right on the setup screen, so everyone who has joined can read them while waiting for the draft to start."],
   ['v0.28','Nov 11',"Cube Table: an Archetypes guide for DF07's Legacy Cube, from its maker DackFayden07 (29 archetypes with their key cards, filtered by color), open from the front page or the top bar at any point in the event. Sealed events are prereleases only for Reality Fracture, the one set whose kit and promo we know; other sets open six packs. The Draft Table now hosts drafts only."],
@@ -1026,7 +1027,7 @@ function kitHTML(){
   const K=V.kit, op=B.op, U=byU(), img=PACKIMG[V.set]; if(!(V.set in PACKIMG)) setTimeout(()=>packImgs(V.set), 0);
   const n=op.opened.filter(Boolean).length, covers=img && img.boosters.length ? img.boosters : null;
   const promo=K.promo ? U.get(K.promo) : null, all=opAll();
-  let h=`<div class="kit">${img && img.kit ? `<img class="kitbox" src="${DBASE}packs/${esc(V.set)}/${esc(img.kit)}" alt="${esc(setName(V.set))} Prerelease Pack">` : ''}
+  let h=`<div class="kit">${img && img.kit && isPre(V.set) ? `<img class="kitbox" src="${DBASE}packs/${esc(V.set)}/${esc(img.kit)}" alt="${esc(setName(V.set))} Prerelease Pack">` : ''}
     <div class="packs">${(kc=>K.packs.map((p,i)=>{ const cv=covers ? covers[kc[i]] : '';
       return `<button class="pk${cv?'':' drawn'}" data-pack="${i}"${op.opened[i]?' disabled':''} aria-label="Pack ${i+1}${op.opened[i]?', opened':''}">${cv ? `<img src="${DBASE}packs/${esc(V.set)}/${esc(cv)}" alt="">` : `<span class="pt">${esc(setName(V.set))}</span>`}<span class="pn">${i+1}</span></button>`; }).join(''))(covers ? kitCovers(K, covers.length) : [])}</div>
     ${K.promo ? `<div class="promo">${op.promo && promo ? cardHTML(promo) : `<button class="cardback${op.opened.every(Boolean)?' ready':''}" id="promoBtn" aria-label="Turn over the promo card"><img src="${BACK_IMG}" alt=""></button>`}<span class="sec" style="margin:0">Foil promo</span></div>` : ''}
