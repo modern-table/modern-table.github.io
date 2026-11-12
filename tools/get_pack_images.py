@@ -34,8 +34,8 @@ def shrink(data, width):
     im.save(out, 'WEBP', quality=86, method=6)
     return out.getvalue(), im.size
 
-# Play Booster wrappers: names like MTGFRA_EN_Play_Bstr_01_01.png (02, 03 … for the other covers). Not displays or boxes.
-BOOSTER = re.compile(r'play[_ -]?b(oo)?st(e)?r', re.I)
+# Play Booster wrappers: names like MTGFRA_EN_Play_Bstr_01_01.png (02, 03 … for the other covers), or MTGFIN_EN_Bstr_Play_01_01.png. Not displays or boxes.
+BOOSTER = re.compile(r'play[_ -]?b(oo)?st(e)?r|b(oo)?st(e)?r[_ -]?play', re.I)
 NOT_BOOSTER = re.compile(r'dsp|display|box|bx|cs[_ -]|case|crtn|carton|bndl|bundle|clctr|collector|draft', re.I)
 KIT = re.compile(r'prrls|prerelease', re.I)
 IMG = re.compile(r'\.(png|jpe?g|tiff?|webp)$', re.I)
