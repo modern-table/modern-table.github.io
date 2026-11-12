@@ -345,9 +345,10 @@ a.btnlink{text-decoration:none}
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v0.34';
+const VERSION = 'v0.35';
 /* What's new on the front page (v0.19, like the Modern Table's NEWS): newest first, written for players. Add a line with every version bump. */
 const DNEWS = [
+  ['v0.35','Nov 11',"Card text is now built into the site, so drafts and cube drafts keep working when Scryfall's card lookups are down, and a card whose picture can't load shows its text instead of a blank."],
   ['v0.34','Nov 11',"Sealed: Modern Horizons 2 packs now show their real wrapper art, all three covers. Every sealed set has real packs now."],
   ['v0.33','Nov 11',"Sealed: Khans of Tarkir packs now show their real wrapper art, all five covers."],
   ['v0.32','Nov 11',"Sealed: Modern Horizons packs now show their real wrapper art, all three covers."],
@@ -450,20 +451,55 @@ async function ensureNames(chunk){
     const r=await sfetch('https://api.scryfall.com/cards/collection', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ identifiers:chunk.map(x=>({name:x.slice(2)})) }) });
     if(!r.ok) throw new Error(r.status);
     const j=await r.json(), want=new Map(chunk.map(x=>[nameKey(x.slice(2)), x]));
-    for(const c of j.data||[]){ const keys=[c.name, ...(c.card_faces||[]).map(f=>f.name), (c.name||'').split(' // ')[0]].map(nameKey); for(const k of keys){ const x=want.get(k); if(x && !CARDS[x]){ CARDS[x]=toCard(c); break; } } }
-  }catch(e){ console.warn('Scryfall lookup failed', e); }
+    for(const c of j.data||[]){ const keys=[c.name, ...(c.card_faces||[]).map(f=>f.name), (c.name||'').split(' // ')[0]].map(nameKey); for(const k of keys){ const x=want.get(k); if(x && (!CARDS[x] || CARDS[x].bk)){ CARDS[x]=toCard(c); break; } } }
+    return true;
+  }catch(e){ console.warn('Scryfall lookup failed', e); return false; }
 }
+/* v0.35: card data built into the site (draft/cards/<code>.json, written by the Build card data workflow from Scryfall's bulk file),
+   so a draft works while Scryfall's card lookups are down. A cube is read from it outright; a set's card is too once the file has that
+   printing ("prints": exact picture and rarity), otherwise Scryfall is asked first and the built-in text (another printing's picture) is
+   the fallback, marked bk so a later lookup can replace it. Pictures still come from Scryfall's image server (imgFail covers that). */
+const BAKED = {}, IMGBAD = new Map();
+function loadBaked(code){ if(!code) return Promise.resolve(null);
+  return BAKED[code] || (BAKED[code] = fetch(DBASE+'cards/'+code+'.json').then(r=>r.ok ? r.json() : null).catch(()=>null)); }
+function cmcOf(mc){ let n=0; for(const m of String(mc||'').matchAll(/\{([^}]+)\}/g)){ const v=m[1]; if(/^\d+$/.test(v)) n+=+v; else if(!/^[XYZ]$/.test(v)) n+=/^2\//.test(v)?2:1; } return n; }
+const scryImg = (sid, side) => `https://cards.scryfall.io/normal/${side}/${sid[0]}/${sid[1]}/${sid}.jpg`;
+function sheetRarity(id){ if(!SET || !SET.sheets || !SET.ids) return '';
+  if(!SET._rar){ SET._rar={}; const R={mythic:'mythic', rare:'rare', rare_mythic:'rare', uncommon:'uncommon', common:'common'};
+    for(const [nm, sh] of Object.entries(SET.sheets)){ const r=R[nm]; const c=sh && sh.c; if(!r || !Array.isArray(c)) continue; for(let i=0;i<c.length;i+=2){ const x=SET.ids[c[i]]; if(x && !SET._rar[baseId(x)]) SET._rar[baseId(x)]=r; } } }
+  return SET._rar[id] || ''; }
+function fromBaked(B, id){ if(!B || !B.cards) return null;
+  let name, pr=null;
+  if(id.startsWith('n|')) name=id.slice(2);
+  else { const ids=B.ids||{}, k=ids[id] ? id : id.replace(/^([^:]+):(\d+)[a-z★]+$/,'$1:$2'); name=ids[k]; pr=(B.prints||{})[id] || (B.prints||{})[k] || null; }
+  if(!name) return null;
+  const t=B.cards[name.toLowerCase()] || B.cards[name.split(' // ')[0].toLowerCase()]; if(!t) return null;
+  const f=t.card_faces, im=t.image_uris || (f && f[0].image_uris) || {};
+  const split=f && /split|flip|adventure/i.test(t.layout||'');
+  const d={ n:t.name, mc:t.mana_cost || (f ? f.map(x=>x.mana_cost).filter(Boolean).join(' // ') : ''), t:t.type_line||'',
+    o:(t.oracle_text || (f ? f.map(x=>x.oracle_text||'').join('\n') : '')).slice(0,600),
+    pt:t.power!=null ? t.power+'/'+t.toughness : (f && f[0].power!=null ? f[0].power+'/'+f[0].toughness : ''),
+    img:im.normal||'', back:(!t.image_uris && f && f[1] && f[1].image_uris) ? f[1].image_uris.normal : '',
+    sid:t.id, r:'', c:(t.colors || (f && f[0].colors) || []).join(''),
+    cmc: split ? cmcOf(f.map(x=>x.mana_cost).join('')) : cmcOf(t.mana_cost || (f && f[0].mana_cost)) };
+  if(pr){ const [sid, r, bk]=pr; d.sid=sid; d.img=scryImg(sid,'front'); d.back=bk ? scryImg(sid,'back') : ''; d.r=({m:'mythic', r:'rare', u:'uncommon', c:'common', s:'special', b:'special'})[r] || ''; }
+  else if(!id.startsWith('n|')){ d.r=sheetRarity(id); d.bk=1; }
+  return d; }
 async function ensure(ids, onProgress){
-  const now=Date.now(), want=[...new Set(ids)].filter(i => !CARDS[i] && !pendingIds.has(i) && !(missed[i] > now-30000));
+  const B=await loadBaked(cardSet);
+  if(B) for(const i of new Set(ids)){ if(CARDS[i] && !CARDS[i].bk) continue; if(i.startsWith('n|') || (B.prints && (B.prints[i] || B.prints[i.replace(/^([^:]+):(\d+)[a-z★]+$/,'$1:$2')]))){ const d=fromBaked(B, i); if(d) CARDS[i]=d; } }
+  const now=Date.now(), want=[...new Set(ids)].filter(i => (!CARDS[i] || CARDS[i].bk) && !pendingIds.has(i) && !(missed[i] > now-(CARDS[i] ? 300000 : 30000)));   // a built-in fallback card asks Scryfall again every 5 minutes, a missing one every 30 s
   if(!want.length) return;
   want.forEach(i=>pendingIds.add(i));
+  let down=false;   // once a lookup fails, the rest of this call uses the built-in data without asking
   let done=0;
   for(let i=0;i<want.length;i+=75){
     const chunk=want.slice(i,i+75);
-    if(chunk[0].startsWith('n|')){ await ensureNames(chunk); for(const x of chunk){ pendingIds.delete(x); if(!CARDS[x]) missed[x]=Date.now(); } done+=chunk.length; onProgress && onProgress(done, want.length); if(i+75<want.length) await sleep(110); continue; }
+    if(down){ for(const x of chunk){ pendingIds.delete(x); missed[x]=Date.now(); if(!CARDS[x]){ const d=fromBaked(B, x); if(d) CARDS[x]=d; } } done+=chunk.length; onProgress && onProgress(done, want.length); continue; }
+    if(chunk[0].startsWith('n|')){ if(!(await ensureNames(chunk))) down=true; for(const x of chunk){ pendingIds.delete(x); if(!CARDS[x]){ missed[x]=Date.now(); const d=fromBaked(B, x); if(d) CARDS[x]=d; } } done+=chunk.length; onProgress && onProgress(done, want.length); if(i+75<want.length) await sleep(110); continue; }
     /* The odds data numbers two-faced, adventure and split cards "151a"; Scryfall calls the same card "151". Ask for the plain number first, then the number as written. */
     for(const strip of [true, false]){
-      const ask={}; for(const x of chunk){ if(CARDS[x]) continue; const p=x.split(':'), n=strip ? p[1].replace(/^(\d+)a$/, '$1') : p[1]; if(!strip && n===p[1].replace(/^(\d+)a$/, '$1')) continue; ask[p[0]+':'+n]=x; }
+      const ask={}; for(const x of chunk){ if(CARDS[x] && !CARDS[x].bk) continue; const p=x.split(':'), n=strip ? p[1].replace(/^(\d+)a$/, '$1') : p[1]; if(!strip && n===p[1].replace(/^(\d+)a$/, '$1')) continue; ask[p[0]+':'+n]=x; }
       const keys=Object.keys(ask); if(!keys.length) continue;
       try{
         const r=await sfetch('https://api.scryfall.com/cards/collection', { method:'POST', headers:{'Content-Type':'application/json'},
@@ -471,9 +507,9 @@ async function ensure(ids, onProgress){
         if(!r.ok) throw new Error(r.status);
         const j=await r.json();
         for(const c of j.data||[]){ const x=ask[c.set+':'+c.collector_number]; if(x) CARDS[x]=toCard(c); }
-      }catch(e){ console.warn('Scryfall lookup failed', e); }
+      }catch(e){ console.warn('Scryfall lookup failed', e); down=true; break; }
     }
-    for(const x of chunk){ pendingIds.delete(x); if(!CARDS[x]) missed[x]=Date.now(); }
+    for(const x of chunk){ pendingIds.delete(x); if(!CARDS[x] || CARDS[x].bk){ missed[x]=Date.now(); if(!CARDS[x]){ const d=fromBaked(B, x); if(d) CARDS[x]=d; } } }
     done+=chunk.length; onProgress && onProgress(done, want.length);
     if(i+75<want.length) await sleep(110);
   }
@@ -772,9 +808,13 @@ function gotView(v){
   if(sel!=null && !(v.pack||[]).some(c=>c.u===sel)) sel=null;
   render();
 }
+/* v0.35: a picture that fails to load (Scryfall's image server down) becomes the text tile; the address is tried again after 2 minutes. */
+const imgBad = u => { const t=IMGBAD.get(u); return !!t && Date.now()-t < 120000; };
+function txtHTML(d, id){ return `<div class="txt"><b>${esc(d?d.n:id)}</b><i>${esc(d?d.t:'')}</i><span>${esc(d?d.o:'')}</span></div>`; }
+function imgFail(el){ const u=el.getAttribute('src'); IMGBAD.set(u, Date.now()); const c=el.closest('.c'), d=c && CARDS[c.dataset.id]; el.outerHTML=txtHTML(d, c?c.dataset.id:''); }
 function cardHTML(c, cls=''){
   const d=CARDS[c.id];
-  return `<div class="c ${cls}${c.f?' foil':''}${c.promo?' promo':''}" data-u="${c.u}" data-id="${esc(c.id)}">${d && d.img ? `<img src="${esc(d.img)}" alt="${esc(d.n)}" loading="lazy" draggable="false">` : `<div class="txt"><b>${esc(d?d.n:c.id)}</b><i>${esc(d?d.t:missed[c.id]?'No card data yet':'Loading…')}</i><span>${esc(d?d.o:'')}</span></div>`}${c.promo?'<span class="tag">PROMO</span>':c.f?'<span class="tag">FOIL</span>':''}</div>`;
+  return `<div class="c ${cls}${c.f?' foil':''}${c.promo?' promo':''}" data-u="${c.u}" data-id="${esc(c.id)}">${d && d.img && !imgBad(d.img) ? `<img src="${esc(d.img)}" alt="${esc(d.n)}" loading="lazy" draggable="false" onerror="imgFail(this)">` : `<div class="txt"><b>${esc(d?d.n:c.id)}</b><i>${esc(d?d.t:missed[c.id]?'No card data yet':'Loading…')}</i><span>${esc(d?d.o:'')}</span></div>`}${c.promo?'<span class="tag">PROMO</span>':c.f?'<span class="tag">FOIL</span>':''}</div>`;
 }
 const RANK={mythic:0, rare:1, uncommon:2, common:3};
 const colourKey = d => !d ? 9 : isLandCard(d) ? 7 : d.c.length>1 ? 5 : d.c.length===0 ? 6 : 'WUBRG'.indexOf(d.c);
@@ -1127,7 +1167,7 @@ $('#leaveBtn').onclick=()=>{ if(!confirm(ROLE==='host' ? 'Leave? You are the hos
 function hideZoom(){ $('#zoom').hidden=true; }
 document.addEventListener('mouseover', e=>{
   const c=e.target.closest && e.target.closest('.c,[data-zid]'); if(!c){ hideZoom(); return; }
-  const d=CARDS[c.dataset.id || c.dataset.zid]; if(!d || !d.img){ hideZoom(); return; }
+  const d=CARDS[c.dataset.id || c.dataset.zid]; if(!d || !d.img || imgBad(d.img)){ hideZoom(); return; }
   const z=$('#zoom'), r=c.getBoundingClientRect(), w=d.back?612:300, h=420;
   z.innerHTML=`<img src="${esc(d.img)}" alt="">${d.back?`<img src="${esc(d.back)}" alt="">`:''}`;
   let x=r.right+10; if(x+w>innerWidth) x=r.left-w-10; if(x<4) x=4;

@@ -8,7 +8,9 @@ For a booster set, the cards are 'set:collector_number' ids; their names come fr
 (/cards/search?q=e:<set> unique:prints include:extras, 0.2 s between pages, as Scryfall asks) and their text from the
 Oracle bulk file. For a cube, the names are in the set file already.
 
-Output: {"code", "name", "ids": {"fra:10": "card name", ...} (sets only), "cards": {"card name in lower case": trimmed card}, "missing": [...]}"""
+Output: {"code", "name", "ids": {"fra:10": "card name", ...} (sets only), "prints": {"fra:10": [scryfall id, rarity letter, 1 if the
+printing has a back face picture else 0], ...} (sets only, since v0.35: the Draft Table draws that exact printing from it without asking
+Scryfall), "cards": {"card name in lower case": trimmed card}, "missing": [...]}"""
 import json, os, re, sys, time, urllib.request, urllib.parse
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from make_cards import load_bulk, trim, plain, odd, SKIP
@@ -28,13 +30,14 @@ def get(url):
     raise SystemExit('Scryfall did not answer: ' + url)
 
 def prints(setcode):
-    """collector number -> oracle name for every printing in a set"""
+    """collector number -> (oracle name, [scryfall id, rarity letter, back face picture 0/1]) for every printing in a set"""
     out, url = {}, 'https://api.scryfall.com/cards/search?' + urllib.parse.urlencode({'q': f'e:{setcode} unique:prints include:extras include:variations', 'order': 'set'})
     while url:
         time.sleep(0.2); page = get(url)
         if not page: break
         for c in page.get('data', []):
-            out[str(c['collector_number']).lower()] = c['name']
+            back = 1 if (not c.get('image_uris') and len(c.get('card_faces') or []) > 1 and (c['card_faces'][1].get('image_uris') or {}).get('normal')) else 0
+            out[str(c['collector_number']).lower()] = (c['name'], [c['id'], (c.get('rarity') or 'c')[0], back])
         url = page.get('next_page') if page.get('has_more') else None
     return out
 
@@ -52,12 +55,12 @@ def main():
         d = json.load(open(f'draft/sets/{code}.json', encoding='utf-8')); out = {'code': code, 'name': d.get('name', code), 'cards': {}, 'missing': []}
         if d.get('cube'): names = d['names']
         else:
-            ids = sorted({re.sub(r':foil$', '', i) for i in d.get('ids', [])}); out['ids'] = {}
+            ids = sorted({re.sub(r':(foil|etched)$', '', i) for i in d.get('ids', [])}); out['ids'] = {}; out['prints'] = {}
             for i in ids:
                 s, n = i.split(':', 1)
                 if s not in cache: cache[s] = prints(s)
-                nm = cache[s].get(n.lower()) or cache[s].get(re.sub(r'[a-z★]+$', '', n.lower()))
-                if nm: out['ids'][i] = nm
+                hit = cache[s].get(n.lower()) or cache[s].get(re.sub(r'[a-z★]+$', '', n.lower()))
+                if hit: out['ids'][i], out['prints'][i] = hit
                 else: out['missing'].append(i)
             names = sorted(set(out['ids'].values()))
         for n in names:
