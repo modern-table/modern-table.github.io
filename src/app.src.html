@@ -692,7 +692,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v4.121';
+const VERSION = 'v4.122';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -708,6 +708,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.122','Nov 11',"Deck editor: give a saved deck a new name and Save makes a new deck, leaving the original as it was. Keep the name to save your changes over it."],
   ['v4.121','Nov 11',"Game Night: when the round clock runs out, the host decides for every table. Yes enforces the end-of-round turns (this turn is turn 0, then five more); No means no time limit, so matches play out. Both players see a Time in round notice either way."],
   ['v4.120','Nov 11',"Game Night: the Game Night link (top right) opens a night of Modern, draft, sealed or cube for up to eight players. Your matches open here with your locked-in deck, follow the night's round clock, and send the result back to the room for both of you to confirm."],
   ['v4.119','Nov 10',"The built-in decks now credit MTGTop8, where the weekly lists come from, and each deck's link opens its page there (it pointed at MTGGoldfish)."],
@@ -8159,7 +8160,7 @@ function viewDeck(d, name, sub, link, canSave, savedIdx){
    (Scryfall's name completion through sfetch, then the cards themselves, so Modern legality and the ring show), List or Cards view (columns by
    mana value, the sideboard pinned right), − / + / to side on every card. Four copies at most across main deck and sideboard, except basic lands
    and cards that say otherwise; a draft deck (one with exact printings, d.art) has no copy limit and needs 40 cards. A tournament list is never
-   overwritten: edits are saved as a new deck in mt_decks; a saved deck is saved in place. */
+   overwritten: edits are saved as a new deck in mt_decks; a saved deck is saved in place, unless it was renamed (v4.122: then it is saved as a new deck). */
 function paintUnl(){ const el=$('#unlBox'); if(!el) return; const seen=new Set();
   const add=c=>{ if(unlearned(c)){ const n=cdata(c).n; if(n) seen.add(n); } };
   for(const z of ['lib','hand','bf','gy','ex','st','side']) for(const c of (G.me[z]||[])) add(c);
@@ -8220,7 +8221,8 @@ function paintEd(){ const v=$('#deckView'); if(!ED || !v) return; v.dataset.tok=
     viewDeck(d, ch || o.kind!=='tour' ? o.name : (o.name0||o.name), o.sub, o.link, o.kind==='paste' || (ch && o.kind==='tour'), o.kind==='saved' ? o.savedIdx : null); };
   paintEdBody(); }
 function edSave(){ if(!ED) return; const d=edDeck(), text=edText(d), sv=store.get('mt_decks',[]);
-  if(ED.kind==='saved' && sv[ED.savedIdx]) sv[ED.savedIdx]=Object.assign({}, sv[ED.savedIdx], {name:ED.name, text});
+  const asNew = ED.kind==='saved' && ED.name!==ED.name0;   // v4.122 (Ben): a renamed saved deck is saved as a new deck; the one it came from stays as it was
+  if(ED.kind==='saved' && !asNew && sv[ED.savedIdx]) sv[ED.savedIdx]=Object.assign({}, sv[ED.savedIdx], {name:ED.name, text});
   else { const nm=edSaveName(); sv.unshift({name:nm, text}); ED.kind='saved'; ED.savedIdx=0; ED.name=nm; ED.sub='Saved deck'; }
   store.set('mt_decks', sv); ED.base=text; ED.name0=ED.name; toast(`Saved to your decks as “${ED.name}”.`); paintEd(); }
 function edAdd(n, z){ if(!ED) return; if(edCopies(n)>=copyCap(n)){ toast(`${n}: ${copyCap(n)} copies is the most a deck may have.`); return; }
@@ -8261,7 +8263,7 @@ function paintEdBody(){ if(!ED) return; const b=$('#edBody'); if(!b) return; con
   document.querySelectorAll('#deckView [data-into]').forEach(x=>x.classList.toggle('on', x.dataset.into===ED.into)); document.querySelectorAll('#deckView [data-ev]').forEach(x=>x.classList.toggle('on', x.dataset.ev===mode));
   $('#edTally').innerHTML=`<span class="${w.some(x=>/main/.test(x))?'edbad':''}">${m} main</span> · <span class="${w.some(x=>/sideboard/.test(x))?'edbad':''}">${s} sideboard</span>${edLimited()?' · draft deck, at least 40':''}`;
   $('#edTip').textContent = mode==='cards' && (m||s) ? 'Point at a card to see it enlarged.' : '';
-  const sb=$('#edSave'); const chN = ED.kind==='saved' && ED.name!==ED.name0; sb.textContent = ED.kind==='saved' ? (ch||chN ? 'Save changes' : 'Saved') : `Save as “${edSaveName()}”`; sb.disabled = ED.kind==='saved' ? !(ch||chN) : !(m+s);
+  const sb=$('#edSave'); const chN = ED.kind==='saved' && ED.name!==ED.name0; sb.textContent = ED.kind==='saved' ? (chN ? `Save as new deck “${edSaveName()}”` : ch ? 'Save changes' : 'Saved') : `Save as “${edSaveName()}”`; sb.title = chN ? `“${ED.name0}” stays as it was` : ''; sb.disabled = ED.kind==='saved' ? !(ch||chN) : !(m+s);
   $('#edUndo').disabled=!ch;
   $('#edMsg').innerHTML = w.length ? `<span class="edbad">Not tournament legal: ${esc(w.join(', '))}.</span> You can still save it, and play it for testing.` : (ch && ED.kind==='tour' ? 'The tournament list itself is kept; your version is saved as a new deck.' : '');
   if(!m && !s){ b.innerHTML=`<div class="edempty"><b>This deck is empty.</b><span>Type a card name in the bar above to add it. To start with lands, add basics here; each click adds one, and the + beside them adds more.</span><div class="edacts">${['Plains','Island','Swamp','Mountain','Forest'].map(n=>`<button data-ed="basic" data-n="${n}">+ ${n}</button>`).join('')}</div></div>`; return; }
