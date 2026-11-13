@@ -102,7 +102,26 @@ h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
 .cols .n{display:inline-block;width:1.6em;color:var(--brass);font-variant-numeric:tabular-nums}
 textarea#paste{width:100%;min-height:300px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
 .hint{color:var(--dim);font-size:13px;max-width:70ch}
-.xfpair{display:flex;gap:14px;align-items:center;justify-content:center;margin:2px 0 12px}.xfpair figure{margin:0;text-align:center}.xfpair .xfc{position:relative;width:min(210px,38vw);aspect-ratio:63/88;border-radius:10px;overflow:hidden;box-shadow:0 4px 14px #0008}.xfpair .xfb .xfc{outline:2px solid var(--brass);outline-offset:2px}.xfpair .xfc img{position:absolute;inset:0;width:100%;height:100%;display:block}.xfpair .xftx{position:absolute;inset:0;box-sizing:border-box;border-radius:10px;padding:10px;background:var(--felt2,#1d2b26);border:1px solid var(--line);text-align:left;font-size:12px;overflow:hidden}.xfpair .xftx b{display:block;font-size:13px;margin-bottom:4px}.xfpair .xftx i{display:block;color:var(--dim);margin-bottom:6px}.xfpair figcaption{font:600 11px var(--ui);letter-spacing:.06em;text-transform:uppercase;color:var(--brass);margin-top:6px}.xfpair .xfarr{font-size:28px;color:var(--brass);line-height:1}
+/* v4.127: the coin flip window (cfWindow); the coin is Ben's sprite sheet, img/coin-flip.webp: 4 x 4 frames, one turn; frame 0 = heads (planeswalker symbol), frame 8 = tails (the rat) */
+.cfstage{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px}.cfstage.solo{grid-template-columns:1fr;justify-items:center}
+.cfstage figure{margin:0;text-align:center;transition:opacity .35s,filter .35s}
+.cfstage:not(.win) .xfb .xfc{outline-color:transparent}.cfstage .xfb .xfc{transition:outline-color .3s,box-shadow .3s}.cfstage.win .xfb .xfc{outline-color:var(--brass);box-shadow:0 0 26px #d9b25f88}
+.cfstage.lose .xfb{opacity:.35;filter:grayscale(.8)}.cfstage.lose .xfb figcaption{color:var(--dim)}
+.cfcoin,.cfface{background-image:url(img/coin-flip.webp);background-size:400% 400%;background-repeat:no-repeat;background-position:0 0}
+.cfbox{display:flex;flex-direction:column;align-items:center;gap:10px;min-width:220px;text-align:center}
+.cfwrap{height:150px;width:130px;display:grid;place-items:end center}
+.cfcoin{width:112px;height:112px;margin-bottom:4px;will-change:transform}
+.cfcoin.nos{background:radial-gradient(circle at 35% 30%,#f6dc95,#d9b25f 45%,#9c7a32);border-radius:50%;display:grid;place-items:center;font:400 34px var(--display);color:#4a3712}
+.cfshadow{width:70px;height:10px;border-radius:50%;background:#0007;filter:blur(2px)}
+.cfres{font-family:var(--display);font-size:20px;min-height:28px}.cfres.win{color:var(--good)}.cfres.lose{color:var(--bad)}
+.cfcall{display:flex;gap:8px}.cfcall[hidden]{display:none}.cfcall button{min-width:92px}
+.cfsub{color:var(--dim);font-size:12.5px;min-height:18px}.cfsub a{color:var(--brass);cursor:pointer;text-decoration:underline}
+.cfface{display:inline-block;width:22px;height:22px;vertical-align:-6px;margin-right:6px}.cfface.t{background-position:0 66.6667%}
+.cfout{border-radius:8px;padding:8px 12px;font-size:13px}.cfout[hidden]{display:none}.cfout.win{background:#123024;border:1px solid #2f6b4c}.cfout.lose{background:#2a1414;border:1px solid #6b2a24}
+.cfkey{display:flex;gap:14px;align-items:center;margin-right:6px;font:800 12px var(--ui);letter-spacing:.08em;text-transform:uppercase}.cfkey>span{display:flex;align-items:center;gap:7px}.cfkey .cfface{width:38px;height:38px;margin:0;vertical-align:middle}
+.sheet footer .cfnote{margin-right:auto;color:var(--dim);font-size:13px;align-self:center}
+@media (max-width:760px){.cfstage{grid-template-columns:1fr;justify-items:center}.cfstage .cfbox{order:-1}}
+.xfpair{display:flex;gap:14px;align-items:center;justify-content:center;margin:2px 0 12px}:is(.xfpair,.cfstage) figure{margin:0;text-align:center}:is(.xfpair,.cfstage) .xfc{position:relative;width:min(210px,38vw);aspect-ratio:63/88;border-radius:10px;overflow:hidden;box-shadow:0 4px 14px #0008}:is(.xfpair,.cfstage) .xfb .xfc{outline:2px solid var(--brass);outline-offset:2px}:is(.xfpair,.cfstage) .xfc img{position:absolute;inset:0;width:100%;height:100%;display:block}:is(.xfpair,.cfstage) .xftx{position:absolute;inset:0;box-sizing:border-box;border-radius:10px;padding:10px;background:var(--felt2,#1d2b26);border:1px solid var(--line);text-align:left;font-size:12px;overflow:hidden}:is(.xfpair,.cfstage) .xftx b{display:block;font-size:13px;margin-bottom:4px}:is(.xfpair,.cfstage) .xftx i{display:block;color:var(--dim);margin-bottom:6px}:is(.xfpair,.cfstage) figcaption{font:600 11px var(--ui);letter-spacing:.06em;text-transform:uppercase;color:var(--brass);margin-top:6px}:is(.xfpair,.cfstage) .xfarr{font-size:28px;color:var(--brass);line-height:1}
 
 /* ---------- table ---------- */
 #table{display:grid;grid-template-columns:calc(var(--cw) + 26px) 1fr 272px;position:relative}
@@ -693,7 +712,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v4.126';
+const VERSION = 'v4.127';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -709,6 +728,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.127','Nov 13',"Coin flips get their own window with a real coin: heads is the planeswalker symbol, tails is the rat. Call it once per game, then Flip the coin (or press Space). For Ral, Monsoon Mage the window shows both of his sides; win, and you choose right there whether to transform him. Roll › Flip a coin uses the same coin."],
   ['v4.126','Nov 13',"A Saga that transforms after its last chapter (Fable of the Mirror-Breaker) now just flips over, with no window to click, since there's no choice to make."],
   ['v4.125','Nov 13',"When a card asks whether to transform (Ajani, Nacatl Pariah and the like), the window now shows the card as it is and the side it turns into."],
   ['v4.124','Nov 13',"Ragavan: when the card it exiles is a land, it still shows in the box, but its Cast it button is greyed out, since lands can't be cast."],
@@ -1842,6 +1862,59 @@ function pickP(title, cards, none){ return new Promise(res=>{ let done=false; co
 function xfFace(c, i){ const d=cdata(c), img=i ? d.back : d.img, nm=faceName(c,i), tp=faceTypeOf(c,i), tx=(String(d.o||'').split('\n\n')[i]||'').replace(/^[^\n]*\n/,'');
   return `<div class="xfc"><div class="xftx"><b>${esc(nm)}</b><i>${esc(tp)}</i>${esc(tx).slice(0,420).replace(/\n/g,'<br>')}</div>${img ? `<img src="${esc(img)}" alt="${esc(nm)}" draggable="false" onerror="this.remove()">` : ''}</div>`; }
 function xfPairHTML(c){ const d=c && cdata(c); if(!d || !(d.back || / \/\/ /.test(d.t||''))) return ''; return `<div class="xfpair"><figure>${xfFace(c,0)}<figcaption>Now</figcaption></figure><span class="xfarr">→</span><figure class="xfb">${xfFace(c,1)}<figcaption>Transforms into</figcaption></figure></div>`; }
+/* v4.127 (Ben): coin flips in one window: the call (first flip of a game, kept in m.coinCall), Flip the coin (or Space), the coin tossed from the sprite sheet,
+   the result, and what happens next. A trigger whose win is "you may exile …, then return … transformed" shows Now → Transforms into and asks there (G.coinXf).
+   o: {title, why, src, win, lose, xf, call} (call: a game flip with heads/tails called; without it, the Roll menu's plain flip). Resolves {side, res, xf}. */
+const CF_IMG='img/coin-flip.webp'; let CFP=null;
+function cfLoad(){ if(!CFP) CFP=new Promise(res=>{ const i=new Image(); i.onload=()=>res(true); i.onerror=()=>{ CFP=null; res(false); }; i.src=CF_IMG; }); return CFP; }
+const CF_KEY=`<span class="cfkey" title="Heads is the planeswalker symbol, tails is the rat"><span><span class="cfface"></span>Heads</span><span><span class="cfface t"></span>Tails</span></span>`;
+function cfFrame(el, i){ i=((i%16)+16)%16; el.style.backgroundPosition=`${(i%4)*100/3}% ${Math.floor(i/4)*100/3}%`; }
+function cfToss(el, sh, side, alive){ return new Promise(res=>{ const target=side==='tails' ? 8 : 0, total=16*5+target, dur=1500;
+  const done=()=>{ cfFrame(el, target); el.style.transform=''; if(sh) sh.style.transform=''; if(el.classList.contains('nos')) el.textContent=side==='tails'?'T':'H'; res(); };
+  if(noMotion()){ done(); return; } const t0=performance.now();
+  const step=now=>{ if(!alive()){ res(); return; } const p=Math.min(1,(now-t0)/dur), turn=1-Math.pow(1-p,2.2), h=4*p*(1-p);
+    cfFrame(el, Math.floor(turn*total)); el.style.transform=`translateY(${-78*h}px) scale(${1+0.14*h})`; if(sh) sh.style.transform=`scale(${1-0.45*h})`; if(p<1) requestAnimationFrame(step); else done(); };
+  requestAnimationFrame(step); }); }
+let CFT=0;
+function cfWindow(o){ return new Promise(resolve=>{ const m=G.me, tok=++CFT, pair=!!(o.src && o.xf); if(!$('#modal').hidden) closeModal(); cfLoad().then(ok=>{ const c=$('#cfCoin'); if(!ok && c && $('#modal')._cf===tok){ c.classList.add('nos'); c.textContent='H'; } });
+  const cap=x=>String(x||'').replace(/^([a-z])/, y=>y.toUpperCase()), short=o.src ? faceName(o.src,0).split(',')[0] : '';
+  const body=`${o.why ? `<span class="hint">${esc(o.why)}</span>` : ''}<div class="cfstage${pair?'':' solo'}" id="cfStage">${pair ? `<figure>${xfFace(o.src,0)}<figcaption>Now</figcaption></figure>` : ''}<div class="cfbox"><div class="cfwrap"><div class="cfcoin" id="cfCoin" role="img" aria-label="Coin"></div></div><div class="cfshadow" id="cfSh"></div><div class="cfres" id="cfRes"></div><div class="cfcall" id="cfCall" hidden><button data-cfc="heads"><span class="cfface"></span>Heads</button><button data-cfc="tails"><span class="cfface t"></span>Tails</button></div><div class="cfsub" id="cfSub"></div></div>${pair ? `<figure class="xfb">${xfFace(o.src,1)}<figcaption id="cfBackCap">Transforms into, if you win</figcaption></figure>` : ''}</div><div class="cfout" id="cfOut" hidden></div>`;
+  const el=modal(o.title, body, [['…',()=>{}]], {noClose:!!o.call, width:pair?820:520}); el._cf=tok;
+  const F=$('footer',el), coin=$('#cfCoin',el), sh=$('#cfSh',el), alive=()=>$('#modal')._cf===tok && !$('#modal').hidden; cfFrame(coin,0);
+  let stage='call', side=null, res=null, done=false;
+  const end=v=>{ if(done) return; done=true; removeEventListener('keydown', key, true); el.removeEventListener('click', onClick); resolve(v); };
+  const finish=v=>{ el._onclose=null; el._cf=0; closeModal(); end(v); };
+  el._onclose=()=>{ el._cf=0; if(done) return; if(side){ end({side, res, xf:false}); return; } if(!o.call){ end({side:null}); return; }   // closed from outside before the coin landed: flip it now
+    if(!m.coinCall){ m.coinCall='heads'; log(`${m.name} calls heads for coin flips this game.`); } const sd=Math.random()<0.5?'heads':'tails'; toast(`${o.title}: the coin came up ${sd}.`); end({side:sd, res:sd===m.coinCall?'win':'lose', xf:false}); };
+  const key=e=>{ if(!alive()){ removeEventListener('keydown', key, true); return; } if((e.key===' ' || e.key==='Spacebar') && stage==='ready'){ e.preventDefault(); e.stopImmediatePropagation(); flip(); } };
+  addEventListener('keydown', key, true);
+  const foot=h=>{ F.innerHTML=h; };
+  const askCall=()=>{ stage='call'; $('#cfCall',el).hidden=false; $('#cfSub',el).textContent='Call it. Your call counts for every coin flip this game.'; foot(`<span class="cfnote">First coin flip this game</span>${CF_KEY}`); };
+  const ready=()=>{ stage='ready'; $('#cfCall',el).hidden=true;
+    $('#cfSub',el).innerHTML = o.call ? `Your call: <b>${m.coinCall}</b> · <a data-cfchg>change</a>` : '';
+    foot(`<span class="cfnote">Space flips too</span>${CF_KEY}<button class="go" data-cff>Flip the coin</button>`); const b=$('[data-cff]',el); if(b) b.focus(); };
+  const flip=async()=>{ if(stage!=='ready') return; stage='flip'; foot(`<span class="cfnote">Flipping…</span>${CF_KEY}<button class="go" disabled>Flip the coin</button>`);
+    side=Math.random()<0.5 ? 'heads' : 'tails'; res = o.call ? (side===m.coinCall ? 'win' : 'lose') : null;
+    await cfToss(coin, sh, side, alive); if(!alive()) return; land(); };
+  const land=()=>{ stage='done';
+    const r=$('#cfRes',el); r.className='cfres'+(res?' '+res:''); r.textContent = res ? `${cap(side)}: you ${res} the flip` : cap(side);
+    $('#cfSub',el).textContent = o.call ? `You called ${m.coinCall}.` : '';
+    const st=$('#cfStage',el); if(res) st.classList.add(res);
+    const br = res==='win' ? o.win : res==='lose' ? o.lose : '';
+    if(pair && res==='lose'){ const bc=$('#cfBackCap',el); if(bc) bc.textContent="Doesn't transform"; }
+    if(pair && res==='win'){ const bc=$('#cfBackCap',el); if(bc) bc.textContent='Transforms into';
+      const d=cdata(o.src), L=+(d.loy2||NaN); let note=''; if(/\bPlaneswalker\b/.test(faceTypeOf(o.src,1)) && !isNaN(L)){ const k=/additional loyalty counter on (?:him|her|it) for each instant and sorcery spell you(?:'|’)ve cast this turn/i.test(String(d.o||'').split('\n\n')[1]||'') ? ((m.cast&&m.cast.is)||0) : 0; note = k ? `${short} enters with ${L+k} loyalty (${L} + ${k} instant and sorcery spell${k>1?'s':''} cast this turn)` : `${short} enters with ${L} loyalty`; }
+      el._noClose=false; foot(`<span class="cfnote">${esc(note)}</span><button class="ghost" data-cfx="0">Not now</button><button class="go" data-cfx="1">Exile ${esc(short)} and return transformed</button>`); const b=$('[data-cfx="1"]',el); if(b) b.focus(); return; }
+    if(br){ const ou=$('#cfOut',el); ou.hidden=false; ou.className='cfout '+res; ou.textContent=cap(br); }
+    el._noClose=false; foot(`<span class="cfnote">${br ? 'Nothing to choose: OK carries it out' : ''}</span><button class="go" data-cfok>OK</button>`); const b=$('[data-cfok]',el); if(b) b.focus(); };
+  function onClick(e){ if(!alive()) return; const t=e.target;
+    const cc=t.closest('[data-cfc]'); if(cc && stage==='call'){ m.coinCall=cc.dataset.cfc; log(`${m.name} calls ${m.coinCall} for coin flips this game.`); changed(); ready(); flip(); return; }
+    if(t.closest('[data-cfchg]') && stage==='ready'){ askCall(); return; }
+    if(t.closest('[data-cff]')){ flip(); return; }
+    const x=t.closest('[data-cfx]'); if(x && stage==='done'){ finish({side, res, xf:x.dataset.cfx==='1'}); return; }
+    if(t.closest('[data-cfok]') && stage==='done'){ finish({side, res, xf:false}); return; } }
+  el.addEventListener('click', onClick);
+  if(o.call && !m.coinCall) askCall(); else ready(); }); }
 function yesNoXf(title, c, text, yes, no){ return new Promise(res=>{ let done=false; const fin=v=>{ if(done) return; done=true; closeModal(); res(v); };
   if(!$('#modal').hidden) closeModal();
   modal(title, `${xfPairHTML(c)}<span class="hint">${esc(text)}</span>`, [[no||'No',()=>fin(false),'ghost'], [yes||'Yes',()=>fin(true),'go']], {onClose:()=>{ if(!done){ done=true; res(false); } }}); }); }
@@ -3542,10 +3615,11 @@ async function simpleEffects(c, text, srcId){
     if(new RegExp('^put a \\+1\\/\\+1 counter on '+self+' and draw a card\\.?$','i').test(sen)){ const b=srcC || (c.ab && find(c.ab.id) && find(c.ab.id).c); if(b && find(b.id) && find(b.id).z==='bf'){ b.c=(b.c||0)+1; log(`${by}: ${cname(b)} gets a +1/+1 counter.`); } draw(1); changed(); continue; }
     if(/^it gains haste\.?$/i.test(sen)){ for(const x of made){ x.hst=G.turn.n||1; delete x.sick; } continue; }
     // Ral, Monsoon Mage: "Flip a coin. If you lose the flip, … If you win the flip, …"
-    if(/^flip a coin\.?$/i.test(sen)){ waited=true;
-      if(!m.coinCall){ m.coinCall = (await yesNo(`${by}: call the coin`, `Pick heads or tails. Your call counts as a win for every coin flip for the rest of this game.`, 'Heads', 'Tails')) ? 'heads' : 'tails'; log(`${m.name} calls ${m.coinCall} for coin flips this game.`); }
-      const side=Math.random()<0.5 ? 'heads' : 'tails'; G.coin = side===m.coinCall ? 'win' : 'lose';
-      G.coinMsg=`The coin came up ${side} (${m.name} called ${m.coinCall}): ${G.coin==='win'?'a win':'a loss'}.`; log(`${by}: ${G.coinMsg}`); toast(G.coinMsg); changed(); continue; }
+    if(/^flip a coin\.?$/i.test(sen)){ waited=true; G.coinXf=null;   // v4.127: the coin window (cfWindow) does the call, the flip and, for Ral, the transform choice
+      const T=String(text||'').trim(), lw=T.match(/If you win the flip, ([\s\S]*?)(?=\s*If you lose the flip,|$)/i), ll=T.match(/If you lose the flip, ([\s\S]*?)(?=\s*If you win the flip,|$)/i);
+      const xf=!!(srcC && cdata(srcC).back && !srcC.flip && lw && /^you may exile [^,]+, then return (?:him|her|it|them) to the battlefield transformed/i.test(lw[1].trim()));
+      const R=await cfWindow({title:srcC ? faceName(srcC,0) : by, why:T.replace(/^([a-z])/, x=>x.toUpperCase()), src:srcC, win:lw&&lw[1].trim(), lose:ll&&ll[1].trim(), xf, call:true});
+      G.coin=R.res; G.coinMsg=`The coin came up ${R.side} (${m.name} called ${m.coinCall}): ${G.coin==='win'?'a win':'a loss'}.`; log(`${by}: ${G.coinMsg}`); if(xf && G.coin==='win') G.coinXf=!!R.xf; G.coinMsg=null; changed(); continue; }
     if((r=sen.match(/^if you (win|lose) the flip, (.+)$/i))){ if(G.coin!==r[1].toLowerCase()) continue; sen=r[2].replace(/^([a-z])/, x=>x.toUpperCase()); }
     if(/^you may copy the exiled card\.?$/i.test(sen)){ const e=srcC && srcC.impId ? find(srcC.impId) : null; if(!(e && e.z==='ex')){ log(`${by}: no card is exiled with it.`); didIt=false; continue; }
       waited=true; didIt=await yesNo(by, `Copy ${cname(e.c)}?`, 'Copy it', "Don't"); if(didIt) G.copyOf=e.c; continue; }
@@ -3747,7 +3821,7 @@ async function simpleEffects(c, text, srcId){
     if((r=sen.match(/^each opponent loses (\d+) life(?: and you gain (\d+) life)?\.?$/i))){ if(G.opp){ send({t:'adj', life:-(+r[1])}); } const g2=r[2] ? gainOK(+r[2], by) : 0; m.life+=g2; log(`${by}: ${G.opp?G.opp.name:'each opponent'} loses ${r[1]} life${g2?` and ${m.name} gains ${g2} (now ${m.life})`:''}.`); changed(); continue; }
     if((r=sen.match(/^you may sacrifice an? ((?:non[a-z]+ )?(?:permanent|creature|artifact|land|enchantment|planeswalker))\.?$/i))){ waited=true; const cs=m.bf.filter(x=>!x.fd && (r[1].toLowerCase()==='permanent' || matchesDesc(x, r[1]))); const p=cs.length ? await pickP(`${by}: you may sacrifice a ${r[1].toLowerCase()}`, cs, "Don't") : null; didIt=!!(p && find(p.id) && find(p.id).z==='bf'); if(didIt){ log(`${by}: ${m.name} sacrifices ${cname(p)}.`); move(p.id,'gy',{silent:true}); changed(); } continue; }
     if((r=sen.match(/^you may exile an? (.+?) card from your graveyard\.?$/i))){ waited=true; const cs=m.gy.filter(x=>matchesDesc(x, r[1])); const p=cs.length ? await pickP(`${by}: you may exile a ${r[1]} card from your graveyard`, cs, "Don't") : null; didIt=!!(p && find(p.id) && find(p.id).z==='gy'); if(didIt){ move(p.id,'ex',{silent:true}); log(`${by}: ${m.name} exiles ${cname(p)} from their graveyard.`); changed(); } else if(!cs.length) log(`${by}: ${m.name} has no ${r[1]} card in their graveyard.`); continue; }
-    if((r=sen.match(/^(you may )?exile (?:[^,]+), then return (?:him|her|it|them) to the battlefield transformed under (?:his|her|its|their) owner(?:'|’)s control\.?$/i))){ const t=srcC; if(!t || !find(t.id) || find(t.id).z!=='bf' || t.flip){ log(`${by}: it is no longer on the battlefield, so nothing happens.`); continue; } waited=true; delete t.att; const ok=!r[1] || await yesNoXf(by, t, `${G.coin==='win' && G.coinMsg ? G.coinMsg+' ' : ''}Exile ${faceName(t,0).split(',')[0]} and return it transformed?`, 'Yes, transform', 'No'); G.coinMsg=null;
+    if((r=sen.match(/^(you may )?exile (?:[^,]+), then return (?:him|her|it|them) to the battlefield transformed under (?:his|her|its|their) owner(?:'|’)s control\.?$/i))){ const t=srcC; if(!t || !find(t.id) || find(t.id).z!=='bf' || t.flip){ log(`${by}: it is no longer on the battlefield, so nothing happens.`); continue; } waited=true; delete t.att; const ok=!r[1] || (G.coinXf!=null ? G.coinXf : await yesNoXf(by, t, `${G.coin==='win' && G.coinMsg ? G.coinMsg+' ' : ''}Exile ${faceName(t,0).split(',')[0]} and return it transformed?`, 'Yes, transform', 'No')); G.coinMsg=null; G.coinXf=null;
       if(!ok){ log(`${by}: ${m.name} doesn't transform it.`); continue; } t.c=0; t.tap=false; t.row=null; t.atk=false; delete t.kw; delete t.tp; delete t.tt; delete t.dmg; t.flip=true; t.sick=!!G.turn.n; t.ent=newEnt(); { const L=cdata(t).loy2; if(isPW(t) && L && !isNaN(+L)) t.c=+L; } let xtra=''; if(isPW(t) && /enters with an additional loyalty counter on (?:him|her|it) for each instant and sorcery spell you(?:'|’)ve cast this turn/i.test(frontText(t)||'')){ const k=(m.cast&&m.cast.is)||0; t.c+=k; xtra=` (${cdata(t).loy2} + ${k} for the instants and sorceries cast this turn)`; }
       log(`${by}: ${m.name} exiles it and returns it transformed: ${faceName(t,1)}${isPW(t)?' with '+t.c+' loyalty'+xtra:''}.`); changed(); continue; }
     if((r=sen.match(/^target player (creates .+|scries (?:X|\d+), then draws a card\.?)$/i))){ const p=tg.find(x=>x==='p1'||x==='p2') || G.myId; if(p!==G.myId){ log(`${by}: ${G.opp?G.opp.name:'The opponent'} ${r[1].replace(/\.$/,'')} (on their side).`); continue; }
@@ -8066,7 +8140,7 @@ $('#turnlbl').onclick=()=>turnMenu();
 $('#tokBtn').onclick=()=>tokenModal();
 $('#undoBtn').onclick=()=>undo();
 $('#diceBtn').onclick=e=>{ const r=e.currentTarget.getBoundingClientRect(), roll=n=>()=>log(`${G.me.name} rolls a d${n}: ${1+Math.floor(Math.random()*n)}.`);
-  menu(r.left, r.bottom+4, [['Roll a d20',roll(20)],['Roll a d6',roll(6)],['Flip a coin',()=>log(`${G.me.name} flips a coin: ${Math.random()<.5?'heads':'tails'}.`)]]); };
+  menu(r.left, r.bottom+4, [['Roll a d20',roll(20)],['Roll a d6',roll(6)],['Flip a coin',()=>{ cfWindow({title:'Flip a coin'}).then(R=>{ if(R && R.side){ log(`${G.me.name} flips a coin: ${R.side}.`); changed(); } }); }]]); };
 $('#camSet').onclick=()=>streamModal(); applyStream();
 $('#chat').onkeydown=e=>{ e.stopPropagation(); if(e.key==='Enter' && e.target.value.trim()){ const text=`${G.me.name}: ${e.target.value.trim()}`; addLog(text,'cm'); send({t:'log', text, chat:1}); e.target.value=''; } };
 document.addEventListener('keydown', e=>{
