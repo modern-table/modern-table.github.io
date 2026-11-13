@@ -102,6 +102,7 @@ h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
 .cols .n{display:inline-block;width:1.6em;color:var(--brass);font-variant-numeric:tabular-nums}
 textarea#paste{width:100%;min-height:300px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
 .hint{color:var(--dim);font-size:13px;max-width:70ch}
+.xfpair{display:flex;gap:14px;align-items:center;justify-content:center;margin:2px 0 12px}.xfpair figure{margin:0;text-align:center}.xfpair .xfc{position:relative;width:min(210px,38vw);aspect-ratio:63/88;border-radius:10px;overflow:hidden;box-shadow:0 4px 14px #0008}.xfpair .xfb .xfc{outline:2px solid var(--brass);outline-offset:2px}.xfpair .xfc img{position:absolute;inset:0;width:100%;height:100%;display:block}.xfpair .xftx{position:absolute;inset:0;box-sizing:border-box;border-radius:10px;padding:10px;background:var(--felt2,#1d2b26);border:1px solid var(--line);text-align:left;font-size:12px;overflow:hidden}.xfpair .xftx b{display:block;font-size:13px;margin-bottom:4px}.xfpair .xftx i{display:block;color:var(--dim);margin-bottom:6px}.xfpair figcaption{font:600 11px var(--ui);letter-spacing:.06em;text-transform:uppercase;color:var(--brass);margin-top:6px}.xfpair .xfarr{font-size:28px;color:var(--brass);line-height:1}
 
 /* ---------- table ---------- */
 #table{display:grid;grid-template-columns:calc(var(--cw) + 26px) 1fr 272px;position:relative}
@@ -692,7 +693,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v4.124';
+const VERSION = 'v4.125';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -708,6 +709,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.125','Nov 13',"When a card asks whether to transform (Ajani, Nacatl Pariah and the like), the window now shows the card as it is and the side it turns into."],
   ['v4.124','Nov 13',"Ragavan: when the card it exiles is a land, it still shows in the box, but its Cast it button is greyed out, since lands can't be cast."],
   ['v4.123','Nov 13',"Kiora of Salt and Sand's attack trigger now happens only if you've activated a loyalty ability this turn."],
   ['v4.122','Nov 11',"Deck editor: give a saved deck a new name and Save makes a new deck, leaving the original as it was. Keep the name to save your changes over it."],
@@ -1835,6 +1837,13 @@ function pickP(title, cards, none){ return new Promise(res=>{ let done=false; co
   if(!$('#modal').hidden) closeModal();
   const el=modal(title, `<div class="grid" id="pkGrid">${cards.map(c=>cardHTML(c,'gy',true)).join('')}</div><span class="hint">Click a card to choose it.</span>`, [[none||'None',()=>fin(null),'ghost']], {wide:true, onClose:()=>{ if(!done){ done=true; res(null); } }});
   $('#pkGrid',el).onclick=e=>{ const d=e.target.closest('.card[data-id]'); if(!d) return; fin(cards.find(x=>x.id===d.dataset.id)||null); }; }); }
+/* v4.125 (Ben): transform windows show the card as it is now and the face it transforms into */
+function xfFace(c, i){ const d=cdata(c), img=i ? d.back : d.img, nm=faceName(c,i), tp=faceTypeOf(c,i), tx=(String(d.o||'').split('\n\n')[i]||'').replace(/^[^\n]*\n/,'');
+  return `<div class="xfc"><div class="xftx"><b>${esc(nm)}</b><i>${esc(tp)}</i>${esc(tx).slice(0,420).replace(/\n/g,'<br>')}</div>${img ? `<img src="${esc(img)}" alt="${esc(nm)}" draggable="false" onerror="this.remove()">` : ''}</div>`; }
+function xfPairHTML(c){ const d=c && cdata(c); if(!d || !(d.back || / \/\/ /.test(d.t||''))) return ''; return `<div class="xfpair"><figure>${xfFace(c,0)}<figcaption>Now</figcaption></figure><span class="xfarr">→</span><figure class="xfb">${xfFace(c,1)}<figcaption>Transforms into</figcaption></figure></div>`; }
+function yesNoXf(title, c, text, yes, no){ return new Promise(res=>{ let done=false; const fin=v=>{ if(done) return; done=true; closeModal(); res(v); };
+  if(!$('#modal').hidden) closeModal();
+  modal(title, `${xfPairHTML(c)}<span class="hint">${esc(text)}</span>`, [[no||'No',()=>fin(false),'ghost'], [yes||'Yes',()=>fin(true),'go']], {onClose:()=>{ if(!done){ done=true; res(false); } }}); }); }
 function yesNo(title, text, yes, no){ return new Promise(res=>{ let done=false; const fin=v=>{ if(done) return; done=true; closeModal(); res(v); };
   if(!$('#modal').hidden) closeModal();
   modal(title, `<span class="hint">${esc(text)}</span>`, [[no||'No',()=>fin(false),'ghost'], [yes||'Yes',()=>fin(true),'go']], {onClose:()=>{ if(!done){ done=true; res(false); } }}); }); }
@@ -2246,7 +2255,7 @@ const cageOut = () => [...G.me.bf, ...((G.opp&&G.opp.bf)||[])].some(x=>!x.fd && 
 /* Ajani, Nacatl Pariah: "Whenever one or more other Cats you control die, you may exile Ajani, then return him to the battlefield transformed" */
 let AJQ=null;
 function catDied(c){ const aj=G.me.bf.filter(x=>!x.fd && !x.flip && x.id!==c.id && /Whenever one or more other Cats you control die, you may exile [^,]+, then return (?:him|her|it) to the battlefield transformed/i.test(frontText(x)||'')); if(!aj.length || AJQ) return;
-  AJQ=setTimeout(async ()=>{ AJQ=null; for(const a of aj){ const f=find(a.id); if(!f || f.z!=='bf') continue; const yes=await yesNo(`${cdata(a).n.split(',')[0]}`, `A Cat you control died. Exile ${faceName(a,0)} and return it to the battlefield transformed?`, 'Flip it', 'No');
+  AJQ=setTimeout(async ()=>{ AJQ=null; for(const a of aj){ const f=find(a.id); if(!f || f.z!=='bf') continue; const yes=await yesNoXf(`${cdata(a).n.split(',')[0]}`, a, `A Cat you control died. Exile ${faceName(a,0)} and return it to the battlefield transformed?`, 'Flip it', 'No');
     if(yes){ const g=find(a.id); if(!g || g.z!=='bf') continue; move(a.id,'ex',{silent:true}); const h=find(a.id); if(h){ h.c.flip=true; move(a.id,'bf',{silent:true}); log(`${G.me.name} exiles ${faceName(a,0)} and returns it transformed: ${faceName(a,1)}.`); } changed(); } } }, 50); }
 /* Karn, Argent Defender ("Artifacts and creatures entering don't cause abilities to trigger"), Torpor Orb, Hushbringer: an artifact or creature
    entering doesn't put its enter triggers (or its evoke sacrifice) on the stack. Both players are told; Put it on the stack anyway is for anything agreed. */
@@ -2469,7 +2478,7 @@ function sagaTick(turnN){
 function sagaEnd(s){
   const d=cdata(s), xf=!!d.back && /return it to the battlefield transformed/i.test(d.o||'');
   if(!xf){ const f=find(s.id); if(!f || f.z!=='bf') return; log(`${cname(f.c)}'s last chapter has resolved, so ${G.me.name} sacrifices it.`); move(s.id,'gy',{silent:true}); changed(); return; }   // a Saga is sacrificed as its last chapter leaves the stack (Urza's Saga: while its search is still going)
-  modal(`${faceName(s,0)}: last chapter resolved`, `<span class="hint">${xf ? 'Its last chapter exiles it and returns it to the battlefield transformed.' : 'A Saga is sacrificed once its last chapter has resolved.'}</span>`, [
+  modal(`${faceName(s,0)}: last chapter resolved`, `${xf ? xfPairHTML(s) : ''}<span class="hint">${xf ? 'Its last chapter exiles it and returns it to the battlefield transformed.' : 'A Saga is sacrificed once its last chapter has resolved.'}</span>`, [
     ['Leave it on the battlefield',()=>closeModal(),'ghost'],
     xf ? ['Exile it and return it transformed',()=>{ closeModal(); const f=find(s.id); if(!f || f.z!=='bf') return; const c=f.c; c.c=0; c.tap=false; c.row=null; c.atk=false; delete c.kw; delete c.lt; delete c.tp; delete c.tt; c.flip=true; c.sick=!!G.turn.n; const L=cdata(c).loy2; if(isPW(c) && L && !isNaN(+L)) c.c=+L; log(`${G.me.name} exiles ${cname(c)} and returns it transformed (${faceName(c,1)}).`); changed(); },'go']
        : ['Sacrifice the Saga',()=>{ closeModal(); const f=find(s.id); if(!f || f.z!=='bf') return; log(`${G.me.name} sacrifices ${cname(f.c)}.`); move(s.id,'gy',{silent:true}); changed(); },'go'] ]);
@@ -3740,7 +3749,7 @@ async function simpleEffects(c, text, srcId){
     if((r=sen.match(/^each opponent loses (\d+) life(?: and you gain (\d+) life)?\.?$/i))){ if(G.opp){ send({t:'adj', life:-(+r[1])}); } const g2=r[2] ? gainOK(+r[2], by) : 0; m.life+=g2; log(`${by}: ${G.opp?G.opp.name:'each opponent'} loses ${r[1]} life${g2?` and ${m.name} gains ${g2} (now ${m.life})`:''}.`); changed(); continue; }
     if((r=sen.match(/^you may sacrifice an? ((?:non[a-z]+ )?(?:permanent|creature|artifact|land|enchantment|planeswalker))\.?$/i))){ waited=true; const cs=m.bf.filter(x=>!x.fd && (r[1].toLowerCase()==='permanent' || matchesDesc(x, r[1]))); const p=cs.length ? await pickP(`${by}: you may sacrifice a ${r[1].toLowerCase()}`, cs, "Don't") : null; didIt=!!(p && find(p.id) && find(p.id).z==='bf'); if(didIt){ log(`${by}: ${m.name} sacrifices ${cname(p)}.`); move(p.id,'gy',{silent:true}); changed(); } continue; }
     if((r=sen.match(/^you may exile an? (.+?) card from your graveyard\.?$/i))){ waited=true; const cs=m.gy.filter(x=>matchesDesc(x, r[1])); const p=cs.length ? await pickP(`${by}: you may exile a ${r[1]} card from your graveyard`, cs, "Don't") : null; didIt=!!(p && find(p.id) && find(p.id).z==='gy'); if(didIt){ move(p.id,'ex',{silent:true}); log(`${by}: ${m.name} exiles ${cname(p)} from their graveyard.`); changed(); } else if(!cs.length) log(`${by}: ${m.name} has no ${r[1]} card in their graveyard.`); continue; }
-    if((r=sen.match(/^(you may )?exile (?:[^,]+), then return (?:him|her|it|them) to the battlefield transformed under (?:his|her|its|their) owner(?:'|’)s control\.?$/i))){ const t=srcC; if(!t || !find(t.id) || find(t.id).z!=='bf' || t.flip){ log(`${by}: it is no longer on the battlefield, so nothing happens.`); continue; } waited=true; delete t.att; const ok=!r[1] || await yesNo(by, `${G.coin==='win' && G.coinMsg ? G.coinMsg+' ' : ''}Exile ${faceName(t,0).split(',')[0]} and return it transformed?`, 'Yes, transform', 'No'); G.coinMsg=null;
+    if((r=sen.match(/^(you may )?exile (?:[^,]+), then return (?:him|her|it|them) to the battlefield transformed under (?:his|her|its|their) owner(?:'|’)s control\.?$/i))){ const t=srcC; if(!t || !find(t.id) || find(t.id).z!=='bf' || t.flip){ log(`${by}: it is no longer on the battlefield, so nothing happens.`); continue; } waited=true; delete t.att; const ok=!r[1] || await yesNoXf(by, t, `${G.coin==='win' && G.coinMsg ? G.coinMsg+' ' : ''}Exile ${faceName(t,0).split(',')[0]} and return it transformed?`, 'Yes, transform', 'No'); G.coinMsg=null;
       if(!ok){ log(`${by}: ${m.name} doesn't transform it.`); continue; } t.c=0; t.tap=false; t.row=null; t.atk=false; delete t.kw; delete t.tp; delete t.tt; delete t.dmg; t.flip=true; t.sick=!!G.turn.n; t.ent=newEnt(); { const L=cdata(t).loy2; if(isPW(t) && L && !isNaN(+L)) t.c=+L; } let xtra=''; if(isPW(t) && /enters with an additional loyalty counter on (?:him|her|it) for each instant and sorcery spell you(?:'|’)ve cast this turn/i.test(frontText(t)||'')){ const k=(m.cast&&m.cast.is)||0; t.c+=k; xtra=` (${cdata(t).loy2} + ${k} for the instants and sorceries cast this turn)`; }
       log(`${by}: ${m.name} exiles it and returns it transformed: ${faceName(t,1)}${isPW(t)?' with '+t.c+' loyalty'+xtra:''}.`); changed(); continue; }
     if((r=sen.match(/^target player (creates .+|scries (?:X|\d+), then draws a card\.?)$/i))){ const p=tg.find(x=>x==='p1'||x==='p2') || G.myId; if(p!==G.myId){ log(`${by}: ${G.opp?G.opp.name:'The opponent'} ${r[1].replace(/\.$/,'')} (on their side).`); continue; }
@@ -4066,8 +4075,8 @@ async function simpleEffects(c, text, srcId){
     // "you may transform it." / "untap Cecil and transform it." (Cecil's life check)
     if((r=sen.match(/^(?:then )?(?:if (.+?), )?(you may )?(?:(?:untap [^.]+?) and )?transform (?:this \w+|it|[A-Z][^.,]*?)(?:, then attach it to a creature you control)?\.?$/i)) && srcC && cdata(srcC).back && !/time this ability has resolved/i.test(sen)){
       const f=find(srcC.id); if(!f || f.z!=='bf' || srcC.flip){ log(`${by}: it is no longer on the battlefield (or already transformed).`); continue; } waited=true;
-      if(r[1]){ const v=condTrue(r[1], srcC); if(v===false){ log(`${by}: it isn't true that ${r[1]}, so it doesn't transform.`); continue; } if(v==null && !(await yesNo(by, `Is it true that ${r[1]}? If so, ${faceName(srcC,0).split(',')[0]} transforms.`, 'Yes, transform', 'No'))){ log(`${by}: ${m.name} says no, so it doesn't transform.`); continue; } }
-      if(r[2] && !(await yesNo(by, `Transform ${faceName(srcC,0).split(',')[0]} into ${faceName(srcC,1)}?`, 'Transform', 'Not now'))){ log(`${by}: ${m.name} doesn't transform it.`); continue; }
+      if(r[1]){ const v=condTrue(r[1], srcC); if(v===false){ log(`${by}: it isn't true that ${r[1]}, so it doesn't transform.`); continue; } if(v==null && !(await yesNoXf(by, srcC, `Is it true that ${r[1]}? If so, ${faceName(srcC,0).split(',')[0]} transforms.`, 'Yes, transform', 'No'))){ log(`${by}: ${m.name} says no, so it doesn't transform.`); continue; } }
+      if(r[2] && !(await yesNoXf(by, srcC, `Transform ${faceName(srcC,0).split(',')[0]} into ${faceName(srcC,1)}?`, 'Transform', 'Not now'))){ log(`${by}: ${m.name} doesn't transform it.`); continue; }
       if(/\buntap\b/i.test(sen)) srcC.tap=false; transform(srcC); changed(); continue; }
     // "(You may) put N +1/+1 counters on target artifact creature." (modular) and other qualified single targets
     if((r=sen.match(/^(?:you may )?put (a|an|one|two|three|four|five|six|\d+) \+1\/\+1 counters? on target ([a-z ]+?)\.?$/i)) && !/^creature$/i.test(r[2])){ const k=NUMW2[r[1].toLowerCase()]||+r[1]||1, t=fitTargets(tg, r[2])[0] || tg.find(x=>{ const a=findAny(x); return a && a.z==='bf'; });
