@@ -700,7 +700,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v4.123';
+const VERSION = 'v4.124';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -716,6 +716,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.124','Nov 13',"Ragavan: when the card it exiles is a land, it still shows in the box, but its Cast it button is greyed out, since lands can't be cast."],
   ['v4.123','Nov 13',"Kiora of Salt and Sand's attack trigger now happens only if you've activated a loyalty ability this turn."],
   ['v4.122','Nov 11',"Deck editor: give a saved deck a new name and Save makes a new deck, leaving the original as it was. Keep the name to save your changes over it."],
   ['v4.121','Nov 11',"Game Night: when the round clock runs out, the host decides for every table. Yes enforces the end-of-round turns (this turn is turn 0, then five more); No means no time limit, so matches play out. Both players see a Time in round notice either way."],
@@ -1257,6 +1258,7 @@ function onMsg(m){
   else if(m.t==='take'){ const f=find(m.id); if(f && f.z==='ex' && m.zone==='bf' && f.c.empBy===oppId()){ G.noUndo=true; const c=f.c; G.me.ex.splice(f.i,1); delete c.empBy; c.fd=false; send({t:'give', card:c, zone:'bf', emp:String(m.emp||'').slice(0,60)||'Emperor of Bones'}); log(`${G.opp?G.opp.name:'Opponent'} puts ${cname(c)} from ${G.me.name}'s exile onto the battlefield under their control.`); changed(); }
     else if(f && f.z==='ex' && f.c.by && f.c.by.vd && f.c.by.pid===oppId()){ if(f.c.by.free!==G.turn.n){ render(); return; } G.noUndo=true; const c=f.c, land=isLand(c); G.me.ex.splice(f.i,1); delete c.by; c.fd=false;
       send({t:'give', card:c, zone:land?'hand':'st', vfree:1, playland:land?1:0}); log(`${G.opp?G.opp.name:'Opponent'} ${land?'plays':'casts'} ${cname(c)} from ${G.me.name}'s exile${land?'':' without paying its mana cost'} (Dauthi Voidwalker).`); changed(); }
+    else if(f && f.z==='ex' && f.c.offer && isLand(f.c) && !(f.c.by && f.c.by.mode==='play')){ log(`${cname(f.c)} is a land, so it can't be cast; it stays in exile.`); render(); }   // v4.124: an offer is "you may cast"
     else if(f && f.z==='ex' && f.c.offer && !offerLive(f.c)){ delete f.c.offer; log(`${cname(f.c)} can no longer be cast: that was only until the end of the turn it was exiled.`); changed(); }
     else if(f && f.z==='ex' && (f.c.offer || (f.c.by && f.c.by.mode==='play' && f.c.by.pid===oppId()))){ G.noUndo=true; const c=f.c; G.me.ex.splice(f.i,1); delete c.offer; delete c.by; delete c.warp; c.fd=false; if(m.x!=null && isFinite(+m.x)) c.x=Math.max(0,Math.min(99,+m.x)); send({t:'give', card:c, zone:'st'}); log(`${G.opp?G.opp.name:'Opponent'} casts ${cname(c)} from ${G.me.name}'s exile.`); changed(); } }
   else if(m.t==='give'){ G.noUndo=true; let vdBy=null; if(m.zone==='gy' && m.card && !m.card.tok){ const src=gyReplace(m.card.o||G.myId, m.card); if(src){ m.zone='ex'; ripNote(src, cname(m.card)); } else if((vdBy=voidBy(m.card.o||G.myId))){ m.zone='ex'; voidNote(vdBy.n, cname(m.card)); } } const gc=m.card, play=m.zone==='bf'||m.zone==='st'; if((gc.tok && !play) || (gc.made && !play && m.zone!=='hand')){ render(); return; } if(m.zone==='st') gc.ts=Date.now(); delete gc.lft; delete gc.sick; if(m.zone==='bf' && G.turn.n) gc.sick=true; if(m.zone==='bf') gc.ent=newEnt(); place(m.card, m.zone, m.pos); if(vdBy) gc.by=vdBy; if(m.blink && m.zone==='ex' && !gc.tok){ move(gc.id,'bf',{silent:true}); log(`${String(m.blink).slice(0,80)}: ${cname(gc)} returns to the battlefield under ${G.me.name}'s control.`); } if(m.zone==='gy') noteGy(gc); if(m.zone==='st' && !m.stolen){ noteCast(gc); castTriggers(gc); castTrigs(gc); } if(m.zone==='st' && m.stolen) log(`${G.me.name} now controls ${cname(gc)} on the stack. Right-drag from it to choose new targets.`); if(m.emp && m.zone==='bf'){ gc.fin=1; gc.hst=G.turn.n||1; delete gc.sick; gc.sacEnd=1; gc.sacBy=String(m.emp).slice(0,60); entered(gc); }
@@ -7190,7 +7192,9 @@ function render(){
     const btn = iCast ? `<button class="go" data-take="${c.id}"${free?` data-free="1"`:''}>${free ? (land ? 'Play it' : 'Cast it free') : 'Cast it'}</button>` : (mine && by.mode==='hold') ? `<button data-byback="${c.id}">Return it</button>` : '';
     return row(c, mine, line, btn, tip); };
   $('#offerwrap').hidden = !(myOff.length || opOff.length || myBy.length || opBy.length);
-  $('#offers').innerHTML = opOff.map(c=>row(c, false, `From ${on}'s library · cast it this turn`, `<button class="go" data-take="${c.id}">Cast it</button>`, `From ${on}'s library. You may cast it this turn; it still belongs to ${on}.`)).join('')
+  $('#offers').innerHTML = opOff.map(c=>isLand(c)   /* v4.124 (Ben): a land exiled by Ragavan can't be cast, so it is shown with the button greyed out */
+      ? row(c, false, `From ${on}'s library · a land can't be cast`, `<button class="go" disabled title="Lands can't be cast, so this one can't be played">Cast it</button>`, `From ${on}'s library. It's a land: lands can't be cast, so you can't play it. It stays in ${on}'s exile.`)
+      : row(c, false, `From ${on}'s library · cast it this turn`, `<button class="go" data-take="${c.id}">Cast it</button>`, `From ${on}'s library. You may cast it this turn; it still belongs to ${on}.`)).join('')
     + myOff.map(c=>row(c, true, `${on} may cast this until the turn ends`, `<button data-offend="${c.id}">Stop offering</button>`, `${on} may cast this until the turn ends. It is in your exile.`)).join('')
     + opBy.map(c=>byHTML(c,false)).join('') + myBy.map(c=>byHTML(c,true)).join('');
   // turn + phases
@@ -8027,6 +8031,7 @@ document.addEventListener('click', e=>{
   const smp=t.closest('[data-smana]'); if(smp){ if(PAY && spToggle(+smp.dataset.smana)) return; spendSpecial(+smp.dataset.smana); return; }
   const lifeB=t.closest('[data-life]'); if(lifeB){ const d=(+lifeB.dataset.life)*(e.shiftKey?5:1); if(lifeB.dataset.pl===G.myId) setLife(d); else if(G.opp){ send({t:'adj', life:d}); log(`${G.me.name} changes ${G.opp.name}'s life by ${d>0?'+':''}${d}.`); } return; }
   const tk=t.closest('[data-take]'); if(tk){ const a=findAny(tk.dataset.take);
+    if(a && !a.mine && a.c.offer && isLand(a.c)){ toast(`${cdata(a.c).n} is a land: lands can't be cast.`); return; }   // v4.124: Ragavan-style "you may cast that card"
     if(a && !a.mine && !isLand(a.c) && !tk.dataset.lkok){ const lk=castLock(a.c, a.z); if(lk){ modal('Can\'t cast', `<span class="hint">${esc(lk)}.<br><br>Cast anyway only if you have both agreed it's allowed.</span>`, [["Don't cast",()=>closeModal(),'ghost'], ['Cast anyway',()=>{ closeModal(); log(`${G.me.name} casts anyway (${lk}).`); tk.dataset.lkok='1'; tk.click(); },'go']]); return; } }   /* v4.82: Drannith Magistrate */
     if(a && a.c.by && a.c.by.ns && autoPayOn()){ const n=manaValue(a.c), id=tk.dataset.take; payFor(normSyms(n ? [String(n)] : []), {spell:true, card:a.c}, {title:`Cast ${cdata(a.c).n} (mana of any type)`, verb:'cast', done:()=>send({t:'take', id})}); return; } if(a && !a.mine && !tk.dataset.free && !isLand(a.c) && autoPayOn()){ const id=tk.dataset.take, c=a.c; (async()=>{   // v4.29: casting the opponent's exiled card (Ragavan, Dauthi) pays like any other cast
       let x; if(/\{X\}/.test(cdata(c).mc||'')){ x=await askN(`${cdata(c).n}: X =`, 0); if(x==null) return; }
