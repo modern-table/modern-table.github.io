@@ -700,7 +700,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v4.122';
+const VERSION = 'v4.123';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -716,6 +716,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.123','Nov 13',"Kiora of Salt and Sand's attack trigger now happens only if you've activated a loyalty ability this turn."],
   ['v4.122','Nov 11',"Deck editor: give a saved deck a new name and Save makes a new deck, leaving the original as it was. Keep the name to save your changes over it."],
   ['v4.121','Nov 11',"Game Night: when the round clock runs out, the host decides for every table. Yes enforces the end-of-round turns (this turn is turn 0, then five more); No means no time limit, so matches play out. Both players see a Time in round notice either way."],
   ['v4.120','Nov 11',"Game Night: the Game Night link (top right) opens a night of Modern, draft, sealed or cube for up to eight players. Your matches open here with your locked-in deck, follow the night's round clock, and send the result back to the room for both of you to confirm."],
@@ -2224,6 +2225,7 @@ function othersEnter(c){ const out=[], cr=isCreature(c), art=/\bArtifact\b/.test
 /* "Whenever you attack, …" (once per combat; Guide of Souls asks for energy only when there is enough) and delayed "whenever you attack this turn" (Dalkovan Encampment) */
 function youAttack(){ const m=G.me; if(m.atkC===G.turn.n) return; m.atkC=G.turn.n; const out=[];
   for(const x of m.bf){ if(x.fd || (!x.k && !x.cu)) continue; const mm=(frontText(x)||'').match(/(?:^|\n)Whenever you attack, ([^\n]+)/i); if(!mm) continue; const need=(mm[1].match(/^you may pay ((?:\{E\})+)/i)||[])[1];
+    { const ci=mm[1].match(/^if ([^,]+), /i); if(ci && condTrue(ci[1], x)===false){ log(`${cdata(x).n.split(',')[0]}: it isn't true that ${ci[1]}, so its trigger doesn't happen.`); continue; } }   // v4.123: intervening if, checked as it triggers (Kiora of Salt and Sand)
     if(need && (m.ctr.energy||0) < (need.match(/\{E\}/g)||[]).length) continue; const d=cdata(x), sn=d.n.split(',')[0];
     m.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:x.id, tr:true}, cu:{n:`${sn}: attack trigger`, t:'Triggered ability', o:mm[0].replace(/^\n/,''), img:d.img||''}})); out.push(sn); }
   for(const e of (m.wya||[]).filter(e=>e.n===G.turn.n)){ m.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:null, tr:true}, cu:{n:`${e.src}: delayed trigger`, t:'Triggered ability', o:e.txt, img:e.img||''}})); out.push(e.src); }
@@ -2683,6 +2685,7 @@ const powerOf = c => { const dp=dynPT(c, G.myId); if(dp && !dp.printed) return d
 function condTrue(x, c){ x=String(x||'').toLowerCase().trim().replace(/\.$/,''); const m=G.me; let q;
   if((q=x.match(/^there are (\w+) or more card types among cards in your graveyard$/))) return gyTypes(m.gy).length >= (NUMW2[q[1]]||+q[1]||4);   // v4.60: delirium (Fear of Missing Out)
   if(/^you attacked (?:with a creature )?this turn$/.test(x)) return m.atkC===G.turn.n;
+  if(/^you(?:'|’)?ve activated a loyalty ability this turn$|^you have activated a loyalty ability this turn$/.test(x)) return m.loyT===G.turn.n;   // v4.123: Kiora of Salt and Sand
   if(/^there is an? land card in your graveyard$/.test(x)) return m.gy.some(g=>isLand(g));   // v4.94: Igneous Elemental
   if(/^you(?:'ve| have) cast a noncreature spell this turn$/.test(x)) return !!(m.cast && m.cast.nc>0);   // v4.94: Traxos, Academy Guardian (noteCast counts noncreature spells in cast.nc; m.cast resets every turn)
   if((q=x.match(/^you control (an? .+)$/))){ let d=q[1].replace(/^an? /,''); const oth=d.match(/^(.+?) other than (.+)$/), nm=oth ? oth[2].split(',')[0].trim() : ''; if(oth) d=oth[1];   /* v4.97: "a red permanent other than Ajani" (Ajani, Nacatl Avenger): the source itself doesn't count */
@@ -5331,7 +5334,7 @@ function activate(id, a, evDone, extra){ if(waitMull()) return;
   else if(syms && G.me.mana && MANA.some(k=>G.me.mana[k]) && payCost(syms)) paid.push('mana from the pool');
   if(/\{T\}/.test(cost)){ c.tap=true; paid.push('tapped'); } if(/\{Q\}/.test(cost)){ c.tap=false; paid.push('untapped'); }
   if(/\bexert\b/i.test(cost)){ c.exert=true; paid.push('exerted'); }
-  if(loy){ c.c=(c.c||0)+(/[−-]/.test(loy[1]) ? -(+loy[2]) : +loy[2]); paid.push('loyalty now '+c.c); }
+  if(loy){ c.c=(c.c||0)+(/[−-]/.test(loy[1]) ? -(+loy[2]) : +loy[2]); paid.push('loyalty now '+c.c); G.me.loyT=G.turn.n; }   // v4.123: m.loyT = turn a loyalty ability was last activated (Kiora of Salt and Sand)
   if(rn){ c.c-=rn; paid.push(rn>1 ? rn+' counters removed' : 'a counter removed'); }
   if(life){ G.me.life-=+life[1]; paid.push('paid '+life[1]+' life'); }
   if(/\bpay X \{E\}/i.test(cost) && extra && extra.x!=null){ G.me.ctr.energy=Math.max(0,(G.me.ctr.energy||0)-extra.x); paid.push(`paid ${extra.x} energy (${G.me.ctr.energy} left)`); }
@@ -6586,7 +6589,7 @@ function gather(){
   const m=G.me; G.noUndo=true; for(const c of (m.ph||[]).splice(0)){ delete c.phz; m.bf.push(c); }
   for(const z of ['hand','bf','gy','ex','st']){ for(const c of m[z].splice(0)){ if(c.tok || c.made) continue; if(c.sideOrig && c.o===G.myId){ delete c.sideOrig; Object.assign(c,{tap:false,c:0,att:null,atk:false,fd:false,flip:false,note:'',row:null}); m.side.push(c); continue; } if(c.o!==G.myId){ send({t:'give', card:Object.assign(c,{tap:false,c:0,att:null,atk:false,fd:false,flip:false}), zone:'lib'}); continue; } Object.assign(c,{tap:false,c:0,att:null,atk:false,fd:false,flip:false,note:'',row:null}); m.lib.push(c); } }
   for(const c of m.lib.filter(x=>x.sideOrig)){ m.lib.splice(m.lib.indexOf(c),1); delete c.sideOrig; m.side.push(c); }
-  G.mullGo=false; delete m.btm; m.life=20; m.lastLife=20; delete m.para; delete m.paraT; delete m.noMax; delete m.coinCall; delete m.tmpRed; delete m.pauseAsk; delete m.pauseReq; delete m.emb; delete m.monarch; delete m.xturns; delete m.oppT; delete m.dsc; delete m.mayAlways; delete m.gain; delete m.city; delete m.wya; delete m.atkC; delete m.lock; delete m.lp; delete m.lpx; m.ctr={poison:0,energy:0}; m.arrows=[]; m.reveal=false; m.mull=0; m.roll=null; m.compDone=false; m.skipRoll=false; m.dealt=false; m.kept=false; delete m.btm; G.mullGo=false; m.mana=noMana(); m.smana=[]; m.energySeen=false; m.poisonSeen=false; m.drew=0; m.ctl=false; m.ctlNext=false; m.cast={n:0,is:0}; m.pacts=[]; m.baub=[]; m.trk=null; for(const c of m.side) delete c.comp; for(const c of m.lib){ delete c.by; delete c.warp; delete c.wp; delete c.fl; delete c.bt; delete c.ent; delete c.offer; delete c.pl; delete c.kw; delete c.lt; delete c.sick; delete c.lft; delete c.cp; }
+  G.mullGo=false; delete m.btm; m.life=20; m.lastLife=20; delete m.para; delete m.paraT; delete m.noMax; delete m.coinCall; delete m.tmpRed; delete m.pauseAsk; delete m.pauseReq; delete m.emb; delete m.monarch; delete m.xturns; delete m.oppT; delete m.dsc; delete m.mayAlways; delete m.gain; delete m.city; delete m.wya; delete m.atkC; delete m.loyT; delete m.lock; delete m.lp; delete m.lpx; m.ctr={poison:0,energy:0}; m.arrows=[]; m.reveal=false; m.mull=0; m.roll=null; m.compDone=false; m.skipRoll=false; m.dealt=false; m.kept=false; delete m.btm; G.mullGo=false; m.mana=noMana(); m.smana=[]; m.energySeen=false; m.poisonSeen=false; m.drew=0; m.ctl=false; m.ctlNext=false; m.cast={n:0,is:0}; m.pacts=[]; m.baub=[]; m.trk=null; for(const c of m.side) delete c.comp; for(const c of m.lib){ delete c.by; delete c.warp; delete c.wp; delete c.fl; delete c.bt; delete c.ent; delete c.offer; delete c.pl; delete c.kw; delete c.lt; delete c.sick; delete c.lft; delete c.cp; }
 }
 function newGame(remote){
   gather(); dummyReset(true); G.turn={active:null, phase:2, n:0};
