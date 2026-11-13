@@ -720,7 +720,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v4.127';
+const VERSION = 'v4.128';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -736,6 +736,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.128','Nov 13',"Coin flips: when there's nothing to choose, the result happens as the coin lands. Lose Ral's flip and your life drops right away, and the window shows the change (20 → 19); OK just closes it."],
   ['v4.127','Nov 13',"Coin flips get their own window with a real coin: heads is the planeswalker symbol, tails is the rat. Call it once per game, then Flip the coin (or press Space). For Ral, Monsoon Mage the window shows both of his sides; win, and you choose right there whether to transform him. Roll › Flip a coin uses the same coin."],
   ['v4.126','Nov 13',"A Saga that transforms after its last chapter (Fable of the Mirror-Breaker) now just flips over, with no window to click, since there's no choice to make."],
   ['v4.125','Nov 13',"When a card asks whether to transform (Ajani, Nacatl Pariah and the like), the window now shows the card as it is and the side it turns into."],
@@ -1914,13 +1915,15 @@ function cfWindow(o){ return new Promise(resolve=>{ const m=G.me, tok=++CFT, pai
       const d=cdata(o.src), L=+(d.loy2||NaN); let note=''; if(/\bPlaneswalker\b/.test(faceTypeOf(o.src,1)) && !isNaN(L)){ const k=/additional loyalty counter on (?:him|her|it) for each instant and sorcery spell you(?:'|’)ve cast this turn/i.test(String(d.o||'').split('\n\n')[1]||'') ? ((m.cast&&m.cast.is)||0) : 0; note = k ? `${short} enters with ${L+k} loyalty (${L} + ${k} instant and sorcery spell${k>1?'s':''} cast this turn)` : `${short} enters with ${L} loyalty`; }
       el._noClose=false; foot(`<span class="cfnote">${esc(note)}</span><button class="ghost" data-cfx="0">Not now</button><button class="go" data-cfx="1">Exile ${esc(short)} and return transformed</button>`); const b=$('[data-cfx="1"]',el); if(b) b.focus(); return; }
     if(br){ const ou=$('#cfOut',el); ou.hidden=false; ou.className='cfout '+res; ou.textContent=cap(br); }
-    el._noClose=false; foot(`<span class="cfnote">${br ? 'Nothing to choose: OK carries it out' : ''}</span><button class="go" data-cfok>OK</button>`); const b=$('[data-cfok]',el); if(b) b.focus(); };
+    el._noClose=false; foot(`<span class="cfnote">${br ? "Nothing to choose: it's done" : ''}</span><button class="go" data-cfok>OK</button>`); const b=$('[data-cfok]',el); if(b) b.focus();
+    /* v4.128 (Ben): with nothing to choose, the result happens as the coin lands (the trigger goes on while the window stays up; OK only closes it), and a life change shows in the strip */
+    if(o.call){ const lf=m.life; done=true; removeEventListener('keydown', key, true); resolve({side, res, xf:false}); if(br) setTimeout(()=>{ if(!alive() || m.life===lf) return; const ou=$('#cfOut',el); if(ou) ou.textContent=`${cap(br)} Life ${lf} → ${m.life}.`; }, 120); } };
   function onClick(e){ if(!alive()) return; const t=e.target;
     const cc=t.closest('[data-cfc]'); if(cc && stage==='call'){ m.coinCall=cc.dataset.cfc; log(`${m.name} calls ${m.coinCall} for coin flips this game.`); changed(); ready(); flip(); return; }
     if(t.closest('[data-cfchg]') && stage==='ready'){ askCall(); return; }
     if(t.closest('[data-cff]')){ flip(); return; }
     const x=t.closest('[data-cfx]'); if(x && stage==='done'){ finish({side, res, xf:x.dataset.cfx==='1'}); return; }
-    if(t.closest('[data-cfok]') && stage==='done'){ finish({side, res, xf:false}); return; } }
+    if(t.closest('[data-cfok]') && stage==='done'){ if(done){ el.removeEventListener('click', onClick); el._onclose=null; el._cf=0; closeModal(); return; } finish({side, res, xf:false}); return; } }
   el.addEventListener('click', onClick);
   if(o.call && !m.coinCall) askCall(); else ready(); }); }
 function yesNoXf(title, c, text, yes, no){ return new Promise(res=>{ let done=false; const fin=v=>{ if(done) return; done=true; closeModal(); res(v); };
