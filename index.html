@@ -701,7 +701,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v4.125';
+const VERSION = 'v4.126';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -717,6 +717,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.126','Nov 13',"A Saga that transforms after its last chapter (Fable of the Mirror-Breaker) now just flips over, with no window to click, since there's no choice to make."],
   ['v4.125','Nov 13',"When a card asks whether to transform (Ajani, Nacatl Pariah and the like), the window now shows the card as it is and the side it turns into."],
   ['v4.124','Nov 13',"Ragavan: when the card it exiles is a land, it still shows in the box, but its Cast it button is greyed out, since lands can't be cast."],
   ['v4.123','Nov 13',"Kiora of Salt and Sand's attack trigger now happens only if you've activated a loyalty ability this turn."],
@@ -2486,10 +2487,7 @@ function sagaTick(turnN){
 function sagaEnd(s){
   const d=cdata(s), xf=!!d.back && /return it to the battlefield transformed/i.test(d.o||'');
   if(!xf){ const f=find(s.id); if(!f || f.z!=='bf') return; log(`${cname(f.c)}'s last chapter has resolved, so ${G.me.name} sacrifices it.`); move(s.id,'gy',{silent:true}); changed(); return; }   // a Saga is sacrificed as its last chapter leaves the stack (Urza's Saga: while its search is still going)
-  modal(`${faceName(s,0)}: last chapter resolved`, `${xf ? xfPairHTML(s) : ''}<span class="hint">${xf ? 'Its last chapter exiles it and returns it to the battlefield transformed.' : 'A Saga is sacrificed once its last chapter has resolved.'}</span>`, [
-    ['Leave it on the battlefield',()=>closeModal(),'ghost'],
-    xf ? ['Exile it and return it transformed',()=>{ closeModal(); const f=find(s.id); if(!f || f.z!=='bf') return; const c=f.c; c.c=0; c.tap=false; c.row=null; c.atk=false; delete c.kw; delete c.lt; delete c.tp; delete c.tt; c.flip=true; c.sick=!!G.turn.n; const L=cdata(c).loy2; if(isPW(c) && L && !isNaN(+L)) c.c=+L; log(`${G.me.name} exiles ${cname(c)} and returns it transformed (${faceName(c,1)}).`); changed(); },'go']
-       : ['Sacrifice the Saga',()=>{ closeModal(); const f=find(s.id); if(!f || f.z!=='bf') return; log(`${G.me.name} sacrifices ${cname(f.c)}.`); move(s.id,'gy',{silent:true}); changed(); },'go'] ]);
+  { const f=find(s.id); if(!f || f.z!=='bf') return; const c=f.c; c.c=0; c.tap=false; c.row=null; c.atk=false; delete c.kw; delete c.lt; delete c.tp; delete c.tt; c.flip=true; c.sick=!!G.turn.n; const L=cdata(c).loy2; if(isPW(c) && L && !isNaN(+L)) c.c=+L; log(`${faceName(c,0)}'s last chapter: ${G.me.name} exiles it and returns it transformed (${faceName(c,1)}).`); changed(); }   // v4.126 (Ben): no choice to make, so no window (Fable of the Mirror-Breaker); before, a window offered "Leave it on the battlefield"
 }
 /* discarding: every way of discarding from my hand comes through discard(). A card with madness goes to exile first and its owner is asked
    whether to cast it for the madness cost; if not, it goes to the graveyard. */
