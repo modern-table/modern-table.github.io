@@ -91,10 +91,10 @@ jobs:
           echo "changed=1" >> "$GITHUB_OUTPUT"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/cards.json index.html draft/index.html draft/cards
+          git add src/cards.json src/learned.txt index.html draft/index.html draft/cards
           git commit -m "Card data from Scryfall's bulk file, $(date -u +%Y-%m-%d)"
           for i in 1 2 3; do
-            git pull --rebase --strategy-option=theirs origin main && python3 build.py > /dev/null && git add index.html draft/index.html \
+            git pull --rebase --strategy-option=theirs origin main && python3 build.py > /dev/null && git add src/learned.txt index.html draft/index.html \
               && (git diff --cached --quiet || git commit -m "Rebuild after rebase") && git push origin HEAD:main && exit 0
             sleep 10
           done

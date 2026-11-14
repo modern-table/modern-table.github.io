@@ -62,6 +62,26 @@ src=src.replace('/*__READY__*/[]', json.dumps(json.loads(ready.group(1).replace(
 readyn=sorted({l.strip().lower() for c in json.loads(ready.group(1).replace("'",'"')) if os.path.exists(f'draft/cubes/{c}.txt') for l in open(f'draft/cubes/{c}.txt', encoding='utf-8') if l.strip() and not l.startswith('#')})
 assert '/*__READYN__*/[]' in src
 src=src.replace('/*__READYN__*/[]', json.dumps(readyn, ensure_ascii=False).replace('</','<\\/'))
+# v4.132: every card that has ever been in a built-in tournament deck stays learned (no violet ring) after the weekly refresh drops it.
+# src/learned.txt keeps their names, one per line; each build adds the current decks' cards, so it only grows. Names only: no card data is built in for them.
+def _sfn(n):
+    n=re.sub(r'\s*(?<!/)/(?!/)\s*', ' // ', n.strip()); return aliases.get(_plain(n), n)
+learned={}
+if os.path.exists('src/learned.txt'):
+    for line in open('src/learned.txt', encoding='utf-8'):
+        if line.strip() and not line.startswith('#'): learned[line.strip().lower()]=line.strip()
+_before=len(learned)
+for d in out:
+    for n,_ in d['main']+d['side']:
+        nn=_sfn(n); learned.setdefault(nn.lower(), nn)
+if len(learned)!=_before or not os.path.exists('src/learned.txt'):
+    with open('src/learned.txt','w', encoding='utf-8') as f:
+        f.write('# Cards that have been in a built-in tournament deck (src/decks.txt). The table counts them as learned (no violet ring) even after\n'
+                '# the weekly refresh drops them. build.py adds the current decks\' cards on every build; commit this file with the rebuilt pages.\n')
+        for k in sorted(learned): f.write(learned[k]+'\n')
+    print(f'src/learned.txt: {len(learned)} names ({len(learned)-_before} new)')
+assert '/*__LEARNED__*/[]' in src
+src=src.replace('/*__LEARNED__*/[]', json.dumps(sorted(learned), ensure_ascii=False).replace('</','<\\/'))
 html=src.replace('/*__DECKS__*/[]',json.dumps(out,separators=(',',':'),ensure_ascii=False)).replace('/*__CARDS__*/{}',json.dumps(cards,separators=(',',':'),ensure_ascii=False).replace('</','<\\/')).replace('/*__PEERJS__*/',peer)
 open('index.html','w', encoding='utf-8').write(html)
 ver=re.search(r"const VERSION = '([^']+)'", src).group(1)

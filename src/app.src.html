@@ -720,7 +720,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v4.131';
+const VERSION = 'v4.132';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -736,6 +736,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.132','Nov 14',"Cards that were in a tournament deck stay known after the Monday refresh drops them, so they no longer get the violet ring. About 190 cards had it again, among them Goblin Guide, Ensnaring Bridge, Azusa, Brazen Borrower and Craterhoof Behemoth."],
   ['v4.131','Nov 14',"Bring to Light works: it counts the colors of mana you spent, opens your library to pick a creature, instant or sorcery with mana value up to that number, exiles it, shuffles, then offers to cast it free. Dryad of the Ilysian Grove lost its violet ring (it already worked; it had only dropped out of this week's tournament decks)."],
   ['v4.130','Nov 13',"A card you add from outside the game (Add a token or card › Modern cards) now has a brass folded corner with a star, instead of the grey \"created\" tag. Point at the corner to see what it means."],
   ['v4.129','Nov 13',"The spell counters got a new look: Ral, Monsoon Mage's count and the Storm count in the turn bar are now small brass plaques instead of rounded tags."],
@@ -1084,7 +1085,8 @@ const ALIASES = /*__ALIASES__*/{};
    cards printed in the Draft Table's ready sets (READY_SETS, read from src/draft.src.html by the build), basic lands and cards with no rules text.
    Any other card can be played, by hand where needed, and carries a violet ring (.unlr) with a legend under the game log. */
 const READY_SETS = /*__READY__*/[], READY_NAMES = new Set(/*__READYN__*/[]);   // the ready cubes' card names
-const learnedK = k => { if(!k || BAKED[k]) return true; const e=DB[k]; if(!e) return true; { const n=String(e.n||'').toLowerCase(), f=n.split(' // ')[0], kf=String(k).split(' // ')[0]; if(BAKED[n] || BAKED[f] || BAKED[kf]) return true; }  /* v4.50: a double-faced card named in full or by printing is baked under its front face */ if(READY_SETS.includes(e.set) || READY_NAMES.has(String(e.n||'').toLowerCase()) || READY_NAMES.has(k)) return true; if(/\bBasic\b[^—]*\bLand\b/.test(e.t||'')) return true; return !e.tmp && !String(e.o||'').replace(/\([^)]*\)/g,'').trim(); };
+const LEARNED = new Set(/*__LEARNED__*/[]);   // v4.132: every card that has been in a built-in tournament deck (src/learned.txt, kept by build.py), learned even after the refresh drops it
+const learnedK = k => { if(!k || BAKED[k]) return true; const e=DB[k]; if(!e) return true; { const n=String(e.n||'').toLowerCase(), f=n.split(' // ')[0], kf=String(k).split(' // ')[0]; if(BAKED[n] || BAKED[f] || BAKED[kf]) return true; }  /* v4.50: a double-faced card named in full or by printing is baked under its front face */ if(READY_SETS.includes(e.set) || READY_NAMES.has(String(e.n||'').toLowerCase()) || READY_NAMES.has(k)) return true; { const n=String(e.n||'').toLowerCase(); if(LEARNED.has(k) || LEARNED.has(n) || LEARNED.has(n.split(' // ')[0]) || LEARNED.has(String(k).split(' // ')[0])) return true; } if(/\bBasic\b[^—]*\bLand\b/.test(e.t||'')) return true; return !e.tmp && !String(e.o||'').replace(/\([^)]*\)/g,'').trim(); };
 const unlearned = c => !!c && !!c.k && !c.tok && !c.cu && !c.fd && !learnedK(c.k);
 const sfName = n => ALIASES[plainName(n)] || n;
 if(!/[?&]nobake\b/.test(location.search)) for(const k in BAKED){ try{ const d=toDB(BAKED[k]); d.bk=1; DB[k]=d; }catch(e){} }
