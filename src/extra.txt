@@ -132,3 +132,15 @@ Sideboard
 # 2026-11-14: Dryad of the Ilysian Grove (already automated; dropped out of the tournament decks on 2026-11-02), Bring to Light
 1 Dryad of the Ilysian Grove
 1 Bring to Light
+
+# 2026-11-14 (v4.133): asked to work at the table
+1 Valki, God of Lies
+1 MACO Strike Team
+1 The Naked Time
+1 Atarka's Command
+1 Burning-Tree Emissary
+1 Reckless Pyrosurfer
+1 Reckless Bushwhacker
+1 Ghor-Clan Rampager
+1 Leyline of Combustion
+1 Gallia of the Endless Dance
