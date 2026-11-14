@@ -128,3 +128,7 @@ Sideboard
 1 Loran of the Third Path
 1 Mai, Scornful Striker
 1 Lavinia, Azorius Renegade
+
+# 2026-11-14: Dryad of the Ilysian Grove (already automated; dropped out of the tournament decks on 2026-11-02), Bring to Light
+1 Dryad of the Ilysian Grove
+1 Bring to Light
