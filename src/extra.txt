@@ -144,3 +144,8 @@ Sideboard
 1 Ghor-Clan Rampager
 1 Leyline of Combustion
 1 Gallia of the Endless Dance
+
+# 2026-11-15 (v4.134)
+1 Captain James T. Kirk
+1 Winota, Joiner of Forces
+1 Sokenzan, Crucible of Defiance
