@@ -1,0 +1,219 @@
+{
+ "name": "Reality Fracture",
+ "credit": "Archetypes and signpost cards from Wizards of the Coast's Reality Fracture Prerelease Guide. Players' notes, rankings and extra key cards from Draftsim's draft guide (October 2026) and MTG Arena Zone's archetype guide, reworded.",
+ "about": "The ally-color decks are the five colleges of Hexhaven; the enemy-color decks follow the set's big characters. Players found the games run long and turn on card advantage and bombs. Fixing is better than usual, so splashing is easy and pays off in both draft and sealed. Empower Jace and your total resources matter, and there is little graveyard hate.",
+ "src": [
+  {
+   "t": "Reality Fracture Prerelease Guide (Wizards of the Coast)",
+   "u": "https://magic.wizards.com/en/news/feature/reality-fracture-prerelease-guide"
+  },
+  {
+   "t": "Reality Fracture draft guide (Draftsim)",
+   "u": "https://draftsim.com/mtg-reality-fracture-draft-guide/"
+  },
+  {
+   "t": "FRA Limited archetypes and example decks (MTG Arena Zone)",
+   "u": "https://mtgazone.com/reality-fracture-fra-limited-archetypes-guide-and-example-decks/"
+  }
+ ],
+ "list": [
+  {
+   "n": "Fatehold Surveil Aggro",
+   "c": "WU",
+   "d": "Surveil and scry to line up your next draws, then cash those choices in with cards that reward looking ahead. Keeps creatures attacking.",
+   "s": [
+    "Fatehold Chronologist",
+    "Prudent Fateseer"
+   ],
+   "k": [
+    "Surveillance Phantasm",
+    "Your Fate Ends Here",
+    "Semester Foreseer",
+    "Twinned Vision",
+    "Cryotheory Adept",
+    "Proctor of Potential"
+   ],
+   "p": "The top pair a week in. Keep a low-loyalty Jace token alive for its surveil, and play fragile cards in a careful order.",
+   "r": "Draftsim: 1st of 10"
+  },
+  {
+   "n": "Theorix Graveyard Math",
+   "c": "UB",
+   "d": "Fill your graveyard to seven or more cards with self-mill and cheap spells, then turn on the threshold payoffs. Snowballs once the graveyard is stocked.",
+   "s": [
+    "Paradox Shaper",
+    "Theorix Metamage"
+   ],
+   "k": [
+    "Theoretical Necromancer",
+    "Recursive Recruitment",
+    "Proft, Sinister Mastermind",
+    "Rewrite Regrets",
+    "Fblthp, Impossibly Lost",
+    "Dark Matter Manipulator",
+    "Null Summoner"
+   ],
+   "p": "Build around the graveyard payoffs; the format has little graveyard hate. Use Paradox Shaper to recycle spells so you never mill yourself out.",
+   "r": "Draftsim: 2nd of 10"
+  },
+  {
+   "n": "Stingerquill Face Burn",
+   "c": "BR",
+   "d": "Removal and direct damage that also hit the opponent, with cards that get stronger whenever you deal noncombat damage. Can finish a game after the board clogs.",
+   "s": [
+    "Stingerquill Voxmancer",
+    "Whiplash Wordsmith"
+   ],
+   "k": [
+    "Screeching Soulbreaker",
+    "Skilled Battlecarver",
+    "Extended Absence",
+    "Massacre Girl, Most Wanted",
+    "Fulminous Forte",
+    "Master of Barbs",
+    "Stinging Vitriol"
+   ],
+   "p": "Attacking is often worth less here than you would think: ping with Vicious Verse and draw cards while your own life total is safe.",
+   "r": "Draftsim: 8th of 10"
+  },
+  {
+   "n": "Konstrari Mana Ramp",
+   "c": "RG",
+   "d": "Heartwood tokens, a red-green mana rock, put big creatures on the table early.",
+   "s": [
+    "Konstrari Improviser",
+    "Woodwork Prodigy"
+   ],
+   "k": [
+    "Vinelasher Adept",
+    "No Admittance",
+    "Wrath of the Bloodmane",
+    "Arcane Amphisbaena",
+    "Craftwork Crusher",
+    "Kiora of Fire and Ashes",
+    "Tenured Tethermage",
+    "Verdant Kraken"
+   ],
+   "p": "Cheap blockers and removal buy the turns your Heartwood tokens need to set up the big threats.",
+   "r": "Draftsim: 4th of 10"
+  },
+  {
+   "n": "Vigorbloom Life Gain",
+   "c": "GW",
+   "d": "Gain life in small bursts and turn it into +1/+1 counters, then keep those counters on the board.",
+   "s": [
+    "Emergency Phytomedic",
+    "Vigorbloom Vanguard"
+   ],
+   "k": [
+    "Unflinching Hortimancer",
+    "Bloombrute",
+    "Greenhouse Propagator",
+    "Extended Absence",
+    "Warrior's Blades",
+    "Danitha, Sword of Hope",
+    "Medic's Kitesail",
+    "Solarium Sentry"
+   ],
+   "p": "Repeatable life gain beats one-off gains, and the Seed Suture creatures make the triggers reliable. One or two Medic's Kitesail make removal-heavy opponents spend it on your creatures.",
+   "r": "Draftsim: 6th of 10"
+  },
+  {
+   "n": "Liliana's Attrition",
+   "c": "WB",
+   "d": "Chip in with small creatures, then profit when they die or are sacrificed, turning each one into several resources.",
+   "s": [
+    "Edgar, Ancient Bloodlord",
+    "Twisted Fates"
+   ],
+   "k": [
+    "Silence the Echo",
+    "Campus Crier",
+    "Winter, Tormented Loner",
+    "Way of the Deathbringer",
+    "Teyo, Lightshield Expert",
+    "Lich's Relic",
+    "Vindictive Triumph"
+   ],
+   "p": "Ranked last. Only lean into sacrifice if the enablers come to you; otherwise play your best white and black cards and splash removal and bombs.",
+   "r": "Draftsim: 10th of 10"
+  },
+  {
+   "n": "Chandra's Prowess",
+   "c": "UR",
+   "d": "A controlling spells deck: cheap instants and sorceries trigger your noncreature-spell payoffs while keeping the other side of the board clear.",
+   "s": [
+    "Clash of Elements",
+    "Saheeli, Jewel of Avishkar"
+   ],
+   "k": [
+    "Icy Reception",
+    "Unsummon",
+    "Twinned Vision",
+    "Variable Chaser",
+    "Pompous Battlemage",
+    "Pyre Rhymer"
+   ],
+   "p": "Play it as tempo-control: keep cantrips and cheap interaction flowing so a prowess trigger happens every turn.",
+   "r": "Draftsim: 5th of 10"
+  },
+  {
+   "n": "Garruk's Bestiary",
+   "c": "BG",
+   "d": "A stampede of creatures that each bring value: when they are cast, when they die and from the graveyard.",
+   "s": [
+    "Hapatra, the Desert Fang",
+    "Primal Witchstalker"
+   ],
+   "k": [
+    "Recursive Recruitment",
+    "Rewrite Regrets",
+    "Something Worth Saving",
+    "Arcane Amphisbaena",
+    "Apex Witchstalker"
+   ],
+   "p": "Treat it as a good-stuff deck that splashes the best cards you see. Take, and splash, every Recursive Recruitment.",
+   "r": "Draftsim: 3rd of 10"
+  },
+  {
+   "n": "Ajani's Army",
+   "c": "RW",
+   "d": "Aggressive: grow your creatures with +1/+1 counters, make Cadet tokens and pump the team before the opponent stabilizes.",
+   "s": [
+    "Mabel, Valley Hero",
+    "Warrior's Blades"
+   ],
+   "k": [
+    "Campus Crier",
+    "Skilled Battlecarver",
+    "Tomik, Orzhov Lawmage",
+    "Yoshimaru, Beloved Companion",
+    "Medic's Kitesail",
+    "Guiding Hydra"
+   ],
+   "p": "Good cards and a good curve matter more than counter synergies. Lean on cheap removal and combat tricks.",
+   "r": "Draftsim: 9th of 10"
+  },
+  {
+   "n": "Jace's Mastery",
+   "c": "GU",
+   "d": "Empower Jace again and again and draw value from the planeswalker token over the whole game.",
+   "s": [
+    "Kiora of Salt and Sand",
+    "Mind Meanderer"
+   ],
+   "k": [
+    "Mindseeker Oculus",
+    "Arcane Amphisbaena",
+    "Protégé's Awakening",
+    "Inspired Tethermage",
+    "Way of the Mind Sculptor",
+    "Way of the Cryomancer",
+    "Simulacrum Shaper",
+    "Jace's Machinations"
+   ],
+   "p": "Plan your turns around empowering Jace. Don't surveil cards away unless you need lands or spells.",
+   "r": "Draftsim: 7th of 10"
+  }
+ ]
+}

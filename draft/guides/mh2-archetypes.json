@@ -1,0 +1,241 @@
+{
+ "name": "Modern Horizons 2",
+ "credit": "Archetypes from Mark Rosewater's Modern Horizons 2 design article (Wizards of the Coast). Wizards named no signposts; the ones here are the set's gold uncommons, which player guides treat as each pair's signature card. Notes and key cards from Flipside Gaming's and Draftsim's guides, reworded.",
+ "about": "The archetypes overlap a lot: artifacts, graveyard, big mana, tokens and +1/+1 counters each run through several pairs. Fixing is strong (the artifact dual lands, Ornithopter of Paradise, Rift Sower, the landcyclers), so three-color and even five-color decks happen. Removal is efficient; Tragic Fall, Bone Shards and Unholy Heat are the commons players name most.",
+ "src": [
+  {
+   "t": "Modern Approach, Part 2 (Wizards of the Coast)",
+   "u": "https://magic.wizards.com/en/news/making-magic/modern-approach-part-2-2021-05-31"
+  },
+  {
+   "t": "A Limited Guide to Modern Horizons 2 (Flipside Gaming)",
+   "u": "https://flipsidegaming.com/blogs/magic-blog/a-limited-guide-to-modern-horizons-2"
+  },
+  {
+   "t": "Modern Horizons 2 draft guide (Draftsim)",
+   "u": "https://draftsim.com/mh2-draft-guide/"
+  }
+ ],
+ "list": [
+  {
+   "n": "Artifacts Matter",
+   "c": "WU",
+   "d": "Affinity and metalcraft: get artifacts down early, find more, then cast affinity cards far ahead of schedule.",
+   "s": [
+    "Ethersworn Sphinx"
+   ],
+   "k": [
+    "Chrome Courier",
+    "Sojourner's Companion",
+    "Etherium Spinner",
+    "Lens Flare",
+    "Piercing Rays",
+    "Knighted Myr",
+    "Marble Gargoyle",
+    "Steelfin Whale",
+    "Barbed Spike",
+    "Filigree Attendant",
+    "Nettlecyst"
+   ],
+   "p": "Count your artifacts a few turns ahead so Sojourner's Companion and Steelfin Whale come down cheap."
+  },
+  {
+   "n": "Self-Discard Matters",
+   "c": "UB",
+   "d": "Cards that reward you for discarding from your own hand. Works well alongside reanimation, delirium and madness.",
+   "s": [
+    "Lazotep Chancellor"
+   ],
+   "k": [
+    "Dihada's Ploy",
+    "Tragic Fall",
+    "Bone Shards",
+    "Recalibrate",
+    "Hell Mongrel",
+    "Kitchen Imp",
+    "Cabal Initiate",
+    "Aeromoeba",
+    "Feast of Sanity",
+    "Mystic Redaction"
+   ],
+   "p": "Keep a steady supply of discard outlets; the payoffs shine in long games."
+  },
+  {
+   "n": "Madness",
+   "c": "BR",
+   "d": "Empty your hand fast and use discard-as-a-cost cards to cast madness spells cheaply.",
+   "s": [
+    "Rakdos Headliner"
+   ],
+   "k": [
+    "Terminal Agony",
+    "Hell Mongrel",
+    "Kitchen Imp",
+    "Skophos Reaver",
+    "Revolutionist",
+    "Bone Shards",
+    "Viashino Lashclaw",
+    "Cabal Initiate",
+    "Fodder Tosser",
+    "Chainer, Nightmare Adept",
+    "Necrogoyf"
+   ],
+   "p": "Use a discard outlet to flash Hell Mongrel in at the end of the opponent's turn."
+  },
+  {
+   "n": "Storm",
+   "c": "RG",
+   "d": "Cast many spells in one turn and get paid for each.",
+   "s": [
+    "Road // Ruin"
+   ],
+   "k": [
+    "Goblin Anarchomancer"
+   ],
+   "p": "The least supported pair: ramp on its own is not enough, you need turns with several spells."
+  },
+  {
+   "n": "+1/+1 Counters",
+   "c": "GW",
+   "d": "The most traditional plan in the set: play creatures, grow them, remove blockers and attack.",
+   "s": [
+    "Arcus Acolyte"
+   ],
+   "k": [
+    "Captured by Lagacs",
+    "Bannerhide Krushok",
+    "Smell Fear",
+    "Deepwood Denizen",
+    "Unbounded Potential",
+    "Urban Daggertooth",
+    "Herd Baloth",
+    "Monoskelion",
+    "Scurry Oak"
+   ],
+   "p": "Hold Unbounded Potential and Captured by Lagacs until they add the most counters."
+  },
+  {
+   "n": "Reanimator",
+   "c": "WB",
+   "d": "Put creatures in the graveyard and bring them back; big ones are the prize, small ones still bring value.",
+   "s": [
+    "Graceful Restoration"
+   ],
+   "k": [
+    "Breathless Knight",
+    "Late to Dinner",
+    "Soul of Migration",
+    "Landscaper Colos",
+    "Discerning Taste",
+    "Tizerus Charger",
+    "Young Necromancer",
+    "Vile Entomber",
+    "Bone Shards",
+    "Tragic Fall"
+   ],
+   "p": "Against aggro, don't trade Breathless Knight away: its lifelink is how you stabilize."
+  },
+  {
+   "n": "Delirium",
+   "c": "UR",
+   "d": "Get four card types into your graveyard to unlock strong bonuses.",
+   "s": [
+    "Prophetic Titan"
+   ],
+   "k": [
+    "Storm God's Oracle",
+    "Unholy Heat",
+    "Mine Collapse",
+    "Mount Velus Manticore",
+    "Parcel Myr",
+    "Battle Plan",
+    "Lightning Spear",
+    "Raving Visionary",
+    "Lucid Dreams",
+    "Gouged Zealot"
+   ],
+   "p": "One of the harder decks to draft. Mix card types with self-mill and discard, and lean toward tempo rather than pure control."
+  },
+  {
+   "n": "Squirrels and Sacrifice",
+   "c": "BG",
+   "d": "Go wide with Squirrel tokens and sacrifice them for value.",
+   "s": [
+    "Ravenous Squirrel"
+   ],
+   "k": [
+    "Drey Keeper",
+    "Vermin Gorger",
+    "Tragic Fall",
+    "Bone Shards",
+    "Tizerus Charger",
+    "Scurry Oak",
+    "Clattering Augur",
+    "Legion Vanguard",
+    "Chatterfang, Squirrel General",
+    "Squirrel Sovereign",
+    "Grist, the Hunger Tide"
+   ],
+   "p": "Needs some luck to come together, but it is powerful when it does. Activate Vermin Gorger and Legion Vanguard on the opponent's turn, often alongside a chump block."
+  },
+  {
+   "n": "Artifact Aggro",
+   "c": "RW",
+   "d": "A more aggressive artifact deck built on modular: small artifact creatures that merge their counters.",
+   "s": [
+    "Arcbound Shikari"
+   ],
+   "k": [
+    "Foundry Helix",
+    "Arcbound Prototype",
+    "Arcbound Tracker",
+    "Arcbound Mouser",
+    "Arcbound Slasher",
+    "Knighted Myr",
+    "Myr Scrapling",
+    "Marble Gargoyle",
+    "Blacksmith's Skill",
+    "Lightning Spear",
+    "Zabaz, the Glimmerwasp"
+   ],
+   "p": "Play lots of creatures and commit several early to outpace removal; modular moves counters from a blocked creature to an unblocked one."
+  },
+  {
+   "n": "Tokens Matter",
+   "c": "GU",
+   "d": "Creature tokens plus Clues, Food and Treasure, for steady card advantage or a swarm of evasive attackers.",
+   "s": [
+    "Combine Chrysalis"
+   ],
+   "k": [
+    "Wavesifter",
+    "Hard Evidence",
+    "Orchard Strider",
+    "Etherium Spinner",
+    "Chatterstorm",
+    "Floodhound",
+    "Tireless Provisioner",
+    "Fae Offering",
+    "Junk Winder",
+    "Smell Fear",
+    "So Shiny"
+   ],
+   "p": "Don't chump block with your tokens early: Junk Winder and Combine Chrysalis want them."
+  },
+  {
+   "n": "Five-Color Converge",
+   "c": "",
+   "d": "Rosewater's extra archetype: use the set's fixing to play every color and power up converge cards.",
+   "s": [],
+   "k": [
+    "Prismatic Ending",
+    "Radiant Epicure",
+    "Glinting Creeper",
+    "Kaleidoscorch",
+    "Sweep the Skies",
+    "Ornithopter of Paradise",
+    "Rift Sower"
+   ]
+  }
+ ]
+}

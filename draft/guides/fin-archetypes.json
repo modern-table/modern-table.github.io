@@ -1,0 +1,210 @@
+{
+ "name": "Final Fantasy",
+ "credit": "Archetypes and signpost uncommons from Wizards of the Coast's FINAL FANTASY Prerelease Guide; each pair's two signposts are legendary creatures from the series. Players' tiers, notes and extra key cards from Draftsim's draft guide (2025), reworded.",
+ "about": "Players found a balanced, high-synergy and fairly slow format where a cohesive two-color deck wins. Job select, summons and the tiered spells overperformed; most \"legends matter\" cards did not (Venat is the exception). Payoffs that build up an edge over several turns are what you want.",
+ "src": [
+  {
+   "t": "FINAL FANTASY Prerelease Guide (Wizards of the Coast)",
+   "u": "https://magic.wizards.com/en/news/feature/final-fantasy-prerelease-guide"
+  },
+  {
+   "t": "Final Fantasy draft guide (Draftsim)",
+   "u": "https://draftsim.com/mtg-fin-draft-guide/"
+  }
+ ],
+ "list": [
+  {
+   "n": "Artifacts",
+   "c": "WU",
+   "d": "Build a big board of artifact creatures, Equipment and Treasure.",
+   "s": [
+    "Tidus, Blitzball Star",
+    "Cid, Timeless Artificer"
+   ],
+   "k": [
+    "Gaelicat",
+    "Rook Turret",
+    "Dragoon's Wyvern",
+    "Weapons Vendor",
+    "Syncopate"
+   ],
+   "p": "Plays best as a skies deck: fliers early, then countermagic to protect them or stop a bomb later. Draftsim would cut Tidus.",
+   "r": "Draftsim: tier 2"
+  },
+  {
+   "n": "Control",
+   "c": "UB",
+   "d": "Get value from the graveyard and win with a slow, steady approach.",
+   "s": [
+    "Locke Cole",
+    "Ultimecia, Time Sorceress"
+   ],
+   "k": [
+    "Sidequest: Hunt the Mark",
+    "Diamond Weapon",
+    "Sephiroth's Intervention",
+    "Ice Magic",
+    "Dreams of Laguna"
+   ],
+   "p": "Skip heavy synergy and grind the opponent out with two-for-ones and removal.",
+   "r": "Draftsim: tier 3"
+  },
+  {
+   "n": "Black Mage Aggro",
+   "c": "BR",
+   "d": "Cast noncreature spells that deal damage to the opponent.",
+   "s": [
+    "Black Waltz No. 3",
+    "Garland, Knight of Cornelia"
+   ],
+   "k": [
+    "Cornered by Black Mages",
+    "Black Mage's Rod",
+    "Circle of Power",
+    "Mysidian Elder",
+    "Queen Brahne",
+    "Fire Magic",
+    "Malboro"
+   ],
+   "p": "Build it almost entirely out of removal, using cheap removal to clear away fodder before your edicts.",
+   "r": "Draftsim: tier 3"
+  },
+  {
+   "n": "Landfall Aggro",
+   "c": "RG",
+   "d": "Use landfall triggers to pressure the opponent with aggressive creatures.",
+   "s": [
+    "Rydia, Summoner of Mist",
+    "Gladiolus Amicitia"
+   ],
+   "k": [
+    "Sabotender",
+    "Chocobo Racetrack",
+    "Ride the Shoopuf",
+    "Tifa Lockhart",
+    "Summon: Fat Chocobo",
+    "Sazh's Chocobo",
+    "Call the Mountain Chocobo"
+   ],
+   "p": "Prioritize the best birds and summons; a light splash works with Prishe's Wanderings.",
+   "r": "Draftsim: tier 3"
+  },
+  {
+   "n": "Go Wide",
+   "c": "GW",
+   "d": "Build a big board of creatures and tokens, then attack.",
+   "s": [
+    "Garnet, Princess of Alexandria",
+    "Rinoa Heartilly"
+   ],
+   "k": [
+    "Auron's Inspiration",
+    "Aerith Rescue Mission",
+    "Hecteyes",
+    "Goobbue Gardener",
+    "Scorpion Sentinel"
+   ],
+   "p": "Commit mainly when you have good summons, rares or Rinoa; otherwise black-green or green-blue are usually better homes for the green cards.",
+   "r": "Draftsim: tier 3"
+  },
+  {
+   "n": "Sacrifice",
+   "c": "WB",
+   "d": "Turn permanents into resources by sacrificing them for payoffs.",
+   "s": [
+    "Rufus Shinra",
+    "Judge Magister Gabranth"
+   ],
+   "k": [
+    "Al Bhed Salvagers",
+    "Phantom Train",
+    "Namazu Trader",
+    "Ahriman",
+    "Hecteyes",
+    "White Auracite",
+    "Vayne's Treachery",
+    "Unexpected Request"
+   ],
+   "p": "Balance payoffs, sacrifice outlets and fodder, and keep plenty of strong removal.",
+   "r": "Draftsim: tier 2"
+  },
+  {
+   "n": "Big Noncreatures",
+   "c": "UR",
+   "d": "Cast expensive spells for extra value, with cards that care how much mana you spent.",
+   "s": [
+    "Shantotto, Tactician Magician",
+    "The Emperor of Palamecia"
+   ],
+   "k": [
+    "Thunder Magic",
+    "Ice Magic",
+    "Dreams of Laguna",
+    "Retrieve the Esper",
+    "Eject",
+    "Sorceress's Schemes",
+    "Choco-Comet",
+    "Ultros, Obnoxious Octopus",
+    "Prompto Argentum"
+   ],
+   "p": "Take noncreature spells that cost four or more mana highly: they are what turn the payoffs on. Led the early win rates among two-color decks.",
+   "r": "Draftsim: tier 1"
+  },
+  {
+   "n": "Graveyard Value",
+   "c": "BG",
+   "d": "Stock the graveyard with permanent cards to power up your spells.",
+   "s": [
+    "Exdeath, Void Warlock",
+    "Cloud of Darkness"
+   ],
+   "k": [
+    "Town Greeter",
+    "Shinra Reinforcements",
+    "Resentful Revelation"
+   ],
+   "p": "Town Greeter, Shinra Reinforcements and Resentful Revelation are the backbone; take them highly.",
+   "r": "Draftsim: tier 1"
+  },
+  {
+   "n": "Equipment Aggro",
+   "c": "RW",
+   "d": "Equip your best creatures and outvalue the opponent with Equipment.",
+   "s": [
+    "Zidane, Tantalus Thief",
+    "Giott, King of the Dwarves"
+   ],
+   "k": [
+    "Samurai's Katana",
+    "Dragoon's Lance",
+    "Paladin's Arms",
+    "Cloud, Midgar Mercenary",
+    "Gilgamesh, Master-at-Arms",
+    "Firion, Wild Rose Warrior",
+    "Freya Crescent",
+    "Adelbert Steiner"
+   ],
+   "p": "Win by building up board advantage with Equipment rather than by racing.",
+   "r": "Draftsim: tier 2"
+  },
+  {
+   "n": "Town Ramp",
+   "c": "GU",
+   "d": "Play Towns and other nonbasic lands and get extra value from your lands.",
+   "s": [
+    "Ignis Scientia",
+    "Omega, Heartless Evolution"
+   ],
+   "k": [
+    "Travel the Overworld",
+    "Goobbue Gardener",
+    "Scorpion Sentinel",
+    "Town Greeter",
+    "Qiqirn Merchant",
+    "Syncopate"
+   ],
+   "p": "Usually wants at least three colors to support the Towns. Favor removal, big creatures and defensive bodies; bring countermagic in by matchup.",
+   "r": "Draftsim: tier 2"
+  }
+ ]
+}

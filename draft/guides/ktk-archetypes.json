@@ -1,0 +1,154 @@
+{
+ "name": "Khans of Tarkir",
+ "sl": "Clan cards",
+ "credit": "The five clans as Wizards of the Coast's Khans of Tarkir Prerelease Primer describes them; clan cards are each clan's gold commons and uncommons. Players' notes, key cards and the two-color decks from Draftsim's Khans of Tarkir guide (2024) and MTG Arena Zone's draft guide, reworded.",
+ "about": "A slow, three-color wedge format built around morph. Most good morphs cost five or more to turn face up. Fixing decides decks: players take relevant dual and tri-lands over most commons and aim for eight or more sources of each main color, three or four for a splash. Prioritize bombs and splash them when you can. Play 17 or 18 lands. The two-color decks that work are mostly enemy pairs.",
+ "src": [
+  {
+   "t": "Khans of Tarkir Prerelease Primer (Wizards of the Coast)",
+   "u": "https://magic.wizards.com/en/news/feature/khans-of-tarkir-prerelease-primer"
+  },
+  {
+   "t": "Khans of Tarkir draft guide (Draftsim)",
+   "u": "https://draftsim.com/mtg-ktk-draft-guide/"
+  },
+  {
+   "t": "Khans of Tarkir draft guide (MTG Arena Zone)",
+   "u": "https://mtgazone.com/?p=199305"
+  }
+ ],
+ "list": [
+  {
+   "n": "Abzan (outlast)",
+   "c": "WBG",
+   "d": "Endurance. Outlast grows your creatures over time: hold the early game and take over the late game.",
+   "s": [
+    "Abzan Guide",
+    "Abzan Charm",
+    "Armament Corps"
+   ],
+   "k": [
+    "Abzan Battle Priest",
+    "Abzan Falconer",
+    "Tuskguard Captain",
+    "Longshot Squad",
+    "Siege Rhino",
+    "Abzan Ascendancy"
+   ],
+   "p": "Stack the outlast lords that reward creatures with +1/+1 counters in a midrange deck. The premium removal is at uncommon. Abzan's gold cards are among the set's best."
+  },
+  {
+   "n": "Jeskai (prowess)",
+   "c": "WUR",
+   "d": "Nimble and cunning. Prowess pumps your creatures whenever you cast a noncreature spell, so opponents hesitate to block.",
+   "s": [
+    "Efreet Weaponmaster",
+    "Jeskai Charm",
+    "Warden of the Eye"
+   ],
+   "k": [
+    "Jeskai Windscout",
+    "Arrow Storm",
+    "Flying Crane Technique",
+    "Jeskai Ascendancy"
+   ],
+   "p": "Straight Jeskai is aggressive: fliers plus Arrow Storm. Jeskai Windscout is an excellent common."
+  },
+  {
+   "n": "Sultai (delve)",
+   "c": "UBG",
+   "d": "Wealthy and ruthless. Delve exiles your graveyard to cast big threats early.",
+   "s": [
+    "Abomination of Gudul",
+    "Sultai Charm",
+    "Sultai Soothsayer"
+   ],
+   "k": [
+    "Treasure Cruise",
+    "Sultai Scavenger",
+    "Bitter Revelation",
+    "Villainous Wealth"
+   ],
+   "p": "A grindy graveyard deck; fliers like Sultai Scavenger give it inevitability. Watch your library in long games. Its gold cards are weaker than the other clans'."
+  },
+  {
+   "n": "Mardu (raid)",
+   "c": "WBR",
+   "d": "Fast, brutal and relentless. Raid rewards you for having attacked this turn.",
+   "s": [
+    "Ponyback Brigade",
+    "Mardu Charm",
+    "Mardu Roughrider"
+   ],
+   "k": [
+    "Mardu Hordechief",
+    "Mardu Warshrieker",
+    "Valley Dasher",
+    "Rush of Battle"
+   ],
+   "p": "The most aggressive clan, built to go wide. It is rarely a slow good-stuff deck."
+  },
+  {
+   "n": "Temur (ferocious)",
+   "c": "URG",
+   "d": "Savage. Ferocious rewards you for controlling a creature with power 4 or greater.",
+   "s": [
+    "Snowhorn Rider",
+    "Bear's Companion",
+    "Temur Charm"
+   ],
+   "k": [
+    "Savage Punch",
+    "Force Away",
+    "Woolly Loxodon",
+    "Hooting Mandrills",
+    "Longshot Squad"
+   ],
+   "p": "Fit in as many 4-power creatures as you can. Struggles from behind but can be unstoppable after a smooth start. Woolly Loxodon is one of the best common morphs."
+  },
+  {
+   "n": "Warriors",
+   "c": "WB",
+   "d": "A players' deck: a lean curve of Warriors and their lords, sometimes with a touch of red.",
+   "s": [],
+   "k": [
+    "Chief of the Edge",
+    "Chief of the Scale",
+    "Raiders' Spoils",
+    "Rush of Battle",
+    "Ponyback Brigade"
+   ],
+   "p": "One of the best archetypes. Flood the board early and pick up the two Chiefs. Plays as few as 16 lands.",
+   "r": "Not a clan"
+  },
+  {
+   "n": "Bear Punch",
+   "c": "UG",
+   "d": "A players' deck: fast aggro that punishes opponents stuck on taplands and morphs.",
+   "s": [],
+   "k": [
+    "Savage Punch",
+    "Alpine Grizzly",
+    "Force Away",
+    "Singing Bell Strike",
+    "Jeskai Windscout",
+    "Smoke Teller",
+    "Wetland Sambar"
+   ],
+   "r": "Not a clan"
+  },
+  {
+   "n": "Morphs",
+   "c": "UG",
+   "d": "A players' deck built around morph payoffs and the cards that reveal themselves when turned face up.",
+   "s": [],
+   "k": [
+    "Secret Plans",
+    "Trail of Mystery",
+    "Dragon's Eye Savants",
+    "Temur Charger"
+   ],
+   "r": "Not a clan"
+  }
+ ]
+}

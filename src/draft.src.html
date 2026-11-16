@@ -285,6 +285,16 @@ a.btnlink{text-decoration:none}
 .dialog .cap{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);font-weight:800}
 .res{display:grid;grid-template-columns:1fr 1fr;gap:8px}.res button{padding:10px}.res .wide{grid-column:1/-1}
 .drow{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+/* v0.36: clan choice and the clan's seeded booster */
+.clans{margin-top:16px;display:flex;flex-direction:column;gap:10px}
+.clrow{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.clan{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:10px 12px;text-align:left;border-radius:8px;background:var(--chip);border:1px solid var(--line)}
+.clan b{font-size:15px;color:var(--ink)}.clan .cm{font-size:12px;color:var(--dim)}.clan .cw{font-size:12px;color:var(--brass);min-height:1.2em}
+.clan.on{border-color:var(--brass);box-shadow:0 0 0 1px var(--brass) inset;background:var(--chip2)}
+.pk.seed{background:linear-gradient(160deg,var(--sa) 0 33%,var(--sb) 33% 66%,var(--sc) 66%);}
+.pk.seed::before,.pk.seed::after{background:repeating-linear-gradient(90deg,#d9c58f 0 4px,#9c8452 4px 8px)}
+.pk.seed .gpips{position:absolute;top:16px;left:0;right:0;justify-content:center}
+.pk.seed .pt{bottom:12px;background:#000a;padding:4px 2px;font-size:9px}.pk.seed .pt b{display:block;font-size:12px;letter-spacing:.08em}
 /* cube archetype guide (v0.28) */
 #guide{position:fixed;inset:0;z-index:75;background:#000a;display:grid;place-items:center;padding:16px}
 .gpanel{width:min(1180px,100%);height:min(100%,900px);display:flex;flex-direction:column;background:var(--felt);border:1px solid var(--brass);border-radius:12px;box-shadow:0 20px 50px #000b;overflow:hidden}
@@ -301,7 +311,15 @@ a.btnlink{text-decoration:none}
 .gpips{display:flex;gap:3px;flex:none}
 .gany{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);white-space:nowrap}
 .gkeys{display:flex;flex-wrap:wrap;gap:5px;margin-top:auto}
-.gk{font-size:12px;padding:3px 8px;border-radius:999px;background:var(--well);border:1px solid var(--line);color:var(--ink);cursor:default}
+.gk{font-size:12px;padding:3px 8px;border-radius:4px;background:var(--well);border:1px solid var(--line);color:var(--ink);cursor:default}
+.gk.sp{border-color:var(--brass);color:var(--ink);background:var(--deep)}
+.gk.inpk{border-color:var(--go);box-shadow:0 0 0 1px var(--go) inset}.gk i{font-style:normal;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--go)}
+.gl{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--dim);align-self:center;margin-right:2px}
+.gfoot{display:flex;flex-direction:column;gap:6px;margin-top:auto}.gfoot .gkeys{margin-top:0}
+.garch .gp{font-size:12.5px;opacity:1;color:var(--dim);border-left:2px solid var(--line);padding-left:8px}.garch .gp .gl{margin-right:4px}
+.grank{font-size:11px;color:var(--brass);letter-spacing:.04em;margin-top:-4px}
+.gabout{margin:0 0 14px;max-width:110ch;font-size:13.5px;line-height:1.55;color:var(--ink)}
+.gsrc{margin:16px 0 0}.gsrc a{color:var(--brass)}
 .gk:hover{border-color:var(--brass)}
 .gk.mine{border-color:var(--good);color:var(--good)}
 .lguide{margin-top:18px;display:flex;flex-direction:column;gap:10px}.lguide .bar{flex-wrap:wrap;gap:10px}.lguide .gfilt{margin-left:auto}.lguide .gnote{margin:0}
@@ -345,9 +363,10 @@ a.btnlink{text-decoration:none}
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v0.35';
+const VERSION = 'v0.36';
 /* What's new on the front page (v0.19, like the Modern Table's NEWS): newest first, written for players. Add a line with every version bump. */
 const DNEWS = [
+  ['v0.36','Nov 15',"Archetype guides for every set: Reality Fracture, Final Fantasy, Modern Horizons 1 and 2 and Khans of Tarkir. Each shows the official archetypes and signpost cards plus notes and key cards from players' draft guides. Read them while choosing a set, while everyone joins, and in a window during the draft (Archetypes in the top bar or next to Take). Khans of Tarkir prereleases now work like the real one: pick a clan, then open five packs plus a seeded booster of your clan's colors with a foil clan promo."],
   ['v0.35','Nov 11',"Card text is now built into the site, so drafts and cube drafts keep working when Scryfall's card lookups are down, and a card whose picture can't load shows its text instead of a blank."],
   ['v0.34','Nov 11',"Sealed: Modern Horizons 2 packs now show their real wrapper art, all three covers. Every sealed set has real packs now."],
   ['v0.33','Nov 11',"Sealed: Khans of Tarkir packs now show their real wrapper art, all five covers."],
@@ -388,10 +407,15 @@ const SETS = SETS_ALL.filter(s=>READY.includes(s.code) && (VARIANT==='ct' ? s.gr
 const PREFIX = 'draft-table-v1-';
 const BACK_IMG = 'https://backs.scryfall.io/large/0/a/0aeebaf5-8c7d-4636-9e82-8c27447861f7.jpg';   // the card back the Modern Table uses
 const KIT_PACKS = 6;                // a prerelease kit: six Play Boosters and one foil promo
-const PRE_SETS = ['fra'];           // v0.28: sets whose prerelease kit we know (Reality Fracture: six Play Boosters and a foil promo from the rare slot). Other sets' sealed events open six packs, no promo.
+const PRE_SETS = ['fra','ktk'];     // v0.28: sets whose prerelease kit we know (Reality Fracture: six Play Boosters and a foil promo from the rare slot; v0.36 Khans of Tarkir: see SEEDED). Other sets' sealed events open six packs, no promo.
+/* v0.36: kits with a clan-seeded booster (Khans of Tarkir, 2014): each player picks a clan in the lobby (s.clan, message 'clan'); the kit is SEEDED[set] regular
+   boosters plus one seeded booster of that clan (draft/sets/<set>-seeded.json, tools/make_seeded.py) with the foil promo from its promo sheet. */
+const SEEDED = {ktk:5};
+const CLANS = {ktk:[{k:'abzan', n:'Abzan', c:'WBG', m:'Outlast'}, {k:'jeskai', n:'Jeskai', c:'WUR', m:'Prowess'}, {k:'sultai', n:'Sultai', c:'UBG', m:'Delve'}, {k:'mardu', n:'Mardu', c:'WBR', m:'Raid'}, {k:'temur', n:'Temur', c:'URG', m:'Ferocious'}]};
+const clanOf = (set, k) => (CLANS[set]||[]).find(c=>c.k===k) || null;
 const isPre = code => PRE_SETS.includes(code);
 const CUBE_BY = {df07:'DackFayden07'};   // who made each cube (list and guide): credited on the Cube Table's front page, at setup and in the guide
-const GUIDES = /*__GUIDES__*/[];    // v0.28: cubes with an archetype guide in draft/cubes/<code>-archetypes.json (build.py lists them)
+const GUIDES = /*__GUIDES__*/[];    // v0.28: cubes with an archetype guide in draft/cubes/<code>-archetypes.json; v0.36 sets too, in draft/guides/<code>-archetypes.json (build.py lists them)
 const $ = (s, el=document) => el.querySelector(s), $$ = (s, el=document) => [...el.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -550,7 +574,7 @@ function genPack(set, nextUid){
 /* The prerelease promo: one traditional foil card from the booster's rare slot (its "rare…" sheet, at that sheet's odds),
    counting each card once at its lowest collector number so the promo is the plain printing. Only for PRE_SETS (v0.28); none for cubes. */
 function promoFor(set, nextUid){
-  if(set.cube || !isPre(set.code)) return null;
+  if(set.cube || !isPre(set.code) || SEEDED[set.code]) return null;
   const name=Object.keys(set.sheets).find(k=>/^rare/.test(k)); if(!name) return null;
   const sh=set.sheets[name], best=new Map(), num=id=>parseInt(id.split(':')[1],10)||9999;
   for(let i=0;i<sh.c.length;i+=2){ const id=baseId(set.ids[sh.c[i]]), d=CARDS[id], key=d ? d.n : id, w=sh.c[i+1], b=best.get(key);
@@ -560,13 +584,21 @@ function promoFor(set, nextUid){
 }
 function cubeDealer(set){ let pile=[]; return n=>{ const out=[]; while(out.length<n){ if(!pile.length) pile=shuffle(set.ids.filter(id=>CARDS[id])); if(!pile.length) break; out.push({u:++H.uid, id:pile.pop(), f:0}); } return out; }; }
 /* Sealed: no bots and no passing. Each player gets a kit; the cards are their pool from the start, opening the packs happens on their own screen. */
-function startSealed(set){
+function startSealed(set, seed){
   H.seats=H.seats.filter(s=>!s.bot);
   H.uid=0; H.size=set.size; H.gen=(H.gen||0)+1;
   const deal = set.cube ? cubeDealer(set) : null;
   for(const s of H.seats){
-    const packs=Array.from({length:KIT_PACKS}, ()=>deal ? deal(set.size) : genPack(set, ()=>++H.uid)), promo=promoFor(set, ()=>++H.uid);
-    s.kit={packs:packs.map(p=>p.map(c=>c.u)), promo:promo?promo.u:0};
+    let packs, promo, clan='';
+    if(seed){   // v0.36: five regular boosters, then the clan's seeded booster; its promo is the kit's promo
+      const cl=seed.clans.find(c=>c.k===s.clan) || seed.clans[Math.floor(Math.random()*seed.clans.length)];
+      if(cl.k!==s.clan) sysMsg(`${s.name} didn't choose a clan and gets ${cl.n}.`);
+      clan=s.clan=cl.k;
+      packs=Array.from({length:seed.packs}, ()=>genPack(set, ()=>++H.uid)); packs.push(genPack(cl, ()=>++H.uid));
+      const ix=weighted(cl.sheets[cl.promo].c, ()=>false), id=ix<0 ? '' : cl.ids[ix];
+      promo = id ? {u:++H.uid, id:baseId(id), f:1, promo:1} : null;
+    } else { packs=Array.from({length:KIT_PACKS}, ()=>deal ? deal(set.size) : genPack(set, ()=>++H.uid)); promo=promoFor(set, ()=>++H.uid); }
+    s.kit={packs:packs.map(p=>p.map(c=>c.u)), promo:promo?promo.u:0, clan};
     s.pool=[...packs.flat(), ...(promo?[promo]:[])]; s.queue=[]; s.ready=false; s.due=0;
   }
   H.phase='build'; H.round=0; H.busy=''; H.tour=null; H.packs=null;
@@ -606,7 +638,7 @@ function view(i){
   const s=H.seats[i], p=s.queue[0]||null;
   const fin = !!(H.tour && H.tour.done);
   return { t:'v', mode:H.mode||'draft', kit:s.kit||null, code:H.code, gen:H.gen||0, set:H.set, pod:H.pod, timer:H.timer, phase:H.phase, round:H.round, me:i, size:H.size||0, busy:H.busy||'',
-    seats:H.seats.map((x,j)=>({name:x.name, bot:x.bot?1:0, on:isOn(x)?1:0, q:x.queue.length, n:x.pool.length, ready:x.ready?1:0, host:x.pid===PID?1:0, deck: fin || j===i ? (x.deck||'') : ''})),
+    seats:H.seats.map((x,j)=>({name:x.name, bot:x.bot?1:0, on:isOn(x)?1:0, q:x.queue.length, n:x.pool.length, ready:x.ready?1:0, host:x.pid===PID?1:0, clan:x.clan||'', deck: fin || j===i ? (x.deck||'') : ''})),
     pack:p, pool:s.pool, left:s.due ? Math.max(0, s.due-Date.now()) : 0, tour:H.tour||null, chat:(H.chat||[]).slice(-120), now:Date.now() };
 }
 function sync(){
@@ -646,7 +678,9 @@ async function startDraft(){
   await ensure(allIds(set), (a,t)=>{ H.busy=`Loading cards ${a}/${t}…`; sync(); });
   if(set.cube){ const miss=set.ids.filter(i=>!CARDS[i]); if(miss.length){ const nm=miss.map(x=>x.slice(2)); console.warn('Cube cards not found on Scryfall:', nm); setTimeout(()=>toast(`${nm.length} cube card${nm.length>1?'s were':' was'} not found on Scryfall and left out: ${nm.slice(0,8).join(', ')}${nm.length>8?'…':''}`, 12000), 400); } if(set.ids.length-miss.length < set.size*3){ H.busy=''; sync(); toast('Could not load the cube cards. Check your connection and try again.'); return; } }
   { const hum=H.seats.filter(s=>!s.bot).length; gcEvent(H.mode==='sealed' ? 'sealed-started' : 'draft-started', `${H.mode==='sealed'?'Sealed':'Draft'} started: ${String(H.set).toUpperCase()}, ${hum} player${hum===1?'':'s'}`); }
-  if(H.mode==='sealed'){ startSealed(set); return; }
+  if(H.mode==='sealed'){ let seed=null;
+    if(SEEDED[H.set]){ try{ const r=await fetch(DBASE+'sets/'+H.set+'-seeded.json'); if(!r.ok) throw new Error(r.status); seed=await r.json(); }catch(e){ H.busy=''; sync(); toast('Could not load the clan boosters. Check your connection and try again.'); return; } }
+    startSealed(set, seed); return; }
   while(H.seats.length<H.pod) H.seats.push({pid:'bot'+H.seats.length, name:BOTS[H.seats.length%BOTS.length], bot:1, pool:[], queue:[]});
   shuffle(H.seats);
   H.uid=0; H.size=set.size; H.gen=(H.gen||0)+1;
@@ -716,6 +750,7 @@ function handle(i, m){
   if(!m || typeof m!=='object' || i<0) return;
   if(m.t==='pick'){ if(doPick(i, m.u)){ pump(); sync(); } }
   else if(m.t==='ready'){ if(H.tour) return; H.seats[i].ready=!!m.v; if(typeof m.deck==='string') H.seats[i].deck=m.deck.slice(0,60); sync(); }
+  else if(m.t==='clan'){ if(H.phase!=='lobby') return; const k=String(m.k||''); H.seats[i].clan = clanOf(H.set, k) ? k : ''; sync(); }
   else if(m.t==='chat'){ const tx=String(m.text||'').replace(/\s+/g,' ').trim().slice(0,300); if(!tx) return; (H.chat||(H.chat=[])).push({n:H.seats[i].name, t:tx, at:Date.now()}); if(H.chat.length>300) H.chat.splice(0, H.chat.length-300); sync(); }
   else if(m.t==='lock'){ const s=H.seats[i]; if(H.mode!=='modern' || H.tour || s.ready) return; const nm=String(m.name||'').trim().slice(0,60); if(!nm) return; s.deck=nm; s.ready=true; sysMsg(`${s.name} locked in a deck.`); sync(); }
   else if((m.t==='confirm' || m.t==='settle') && H.tour && !H.tour.done){ const R=H.tour.rounds.length-1, r=H.tour.rounds[R], t=r && r.tables[m.k], res=goodRes(m.res);
@@ -850,7 +885,7 @@ function render(){
     const note = V.phase==='draft' ? `${s.n} picked${s.q>1?` · ${s.q} packs waiting`:''}`
       : V.tour && V.tour.total ? (st.stage==='final' ? (s.deck||'finished') : st.rd && st.rd.bye===i ? 'bye this round' : !tb ? '' : tb.res ? 'in the room' : st.stage==='break' ? `Table ${at+1} next` : tb.disp ? `Table ${at+1}: host to report` : `playing at Table ${at+1}`)
       : V.mode==='modern' ? (s.ready ? (i===V.me && s.deck ? s.deck : 'deck locked in') : 'choosing a deck')
-      : V.phase==='build' ? (s.bot?'bot':s.ready?'deck ready':V.mode==='sealed'?'opening and building':'building') : s.bot?'bot':s.host?'host':'';
+      : V.phase==='build' ? (s.bot?'bot':s.ready?'deck ready':V.mode==='sealed'?'opening and building':'building') : V.mode==='sealed' && SEEDED[V.set] ? ((clanOf(V.set, s.clan)||{}).n || 'no clan yet') : s.bot?'bot':s.host?'host':'';
     const rec = V.tour && V.tour.total && !s.bot ? (()=>{ const x=standings(V.tour, V.seats).find(y=>y.p===i); return x ? recOf(x) : ''; })() : '';
     const busy2 = busy || (tb && !tb.res && st.stage==='play') || (V.mode==='modern' && !V.tour && !s.ready);
     r+=`<div class="seat ${i===V.me?'me ':''}${!s.on?'off':busy2?'busy':'on'}"><span class="dot"></span><span class="nm">${esc(s.name)}${i===V.me?' (you)':''}${s.host?' · host':''}<small>${esc(note)}${!s.on?' · disconnected':''}</small></span><span>${host && !s.bot && i!==V.me && V.phase==='draft' ? `<button class="sm" data-force="${i}" title="Pick for this player now"${busy?'':' disabled'}>Pick</button>` : rec ? `<span class="rec">${rec}</span>` : ''}</span></div>`;
@@ -866,20 +901,21 @@ function render(){
     const groups=[...new Set(SETS.map(s=>s.group))];
     const sealed=V.mode==='sealed';
     h+=`<div class="bar"><h3>${host ? (sealed ? 'Set up the sealed event' : isCubeSet(V.set) ? 'Set up the cube draft' : 'Set up the draft') : 'Waiting for the host to start'}</h3></div>
-      <p class="hint" style="max-width:62ch;margin:0">Send your friends the code <b style="color:var(--ink);letter-spacing:.15em">${esc(CODE)}</b>. They open this page and choose Join with a code. ${sealed ? (isPre(V.set) ? `Each player opens a prerelease kit: six packs of ${esc(setName(V.set))} and a foil promo, then builds a 40-card deck from them.` : `Each player opens six packs of ${esc(setName(V.set))}, then builds a 40-card deck from them.`) : `Each player gets three packs of ${esc(setName(V.set))}; you pick one card and pass the rest.${CUBE_BY[V.set] ? ` Cube list by ${esc(CUBE_BY[V.set])}.` : ''}`}</p>`;
+      <p class="hint" style="max-width:62ch;margin:0">Send your friends the code <b style="color:var(--ink);letter-spacing:.15em">${esc(CODE)}</b>. They open this page and choose Join with a code. ${sealed ? (SEEDED[V.set] ? `Each player chooses a clan, then opens a prerelease kit: ${['','one','two','three','four','five','six'][SEEDED[V.set]]||SEEDED[V.set]} packs of ${esc(setName(V.set))} and a seeded booster of the clan's colors with a foil promo of the clan, and builds a 40-card deck from them.` : isPre(V.set) ? `Each player opens a prerelease kit: six packs of ${esc(setName(V.set))} and a foil promo, then builds a 40-card deck from them.` : `Each player opens six packs of ${esc(setName(V.set))}, then builds a 40-card deck from them.`) : `Each player gets three packs of ${esc(setName(V.set))}; you pick one card and pass the rest.${CUBE_BY[V.set] ? ` Cube list by ${esc(CUBE_BY[V.set])}.` : ''}`}</p>`;
     if(host) h+=`<div class="setrow">
         <div class="field"><label for="setSel">Set</label><select id="setSel">${groups.map(g=>`<optgroup label="${esc(g)}">${SETS.filter(s=>s.group===g).map(s=>`<option value="${s.code}"${s.code===V.set?' selected':''}>${esc(s.name)}</option>`).join('')}</optgroup>`).join('')}</select></div>
         ${sealed ? '' : `<div class="field"><label for="podSel">Seats</label><select id="podSel">${[2,3,4,5,6,7,8].map(n=>`<option${n===V.pod?' selected':''}>${n}</option>`).join('')}</select></div>
         <div class="field"><label for="timeSel">Pick timer</label><select id="timeSel">${[[0,'Off'],[45,'45 seconds'],[75,'75 seconds'],[120,'2 minutes']].map(([n,l])=>`<option value="${n}"${n===V.timer?' selected':''}>${l}</option>`).join('')}</select></div>`}
         <button class="go" id="startBtn"${V.busy?' disabled':''}>${sealed ? (isPre(V.set) ? 'Start the prerelease' : 'Start the event') : 'Start the draft'}</button></div><p class="hint" id="busyMsg" style="margin:0">${esc(V.busy)}</p>`;
     else h+=`<p class="hint" style="margin:0">${esc(V.busy || (sealed ? `${isPre(V.set) ? 'Prerelease' : 'Sealed'} · ${setName(V.set)} · up to ${V.pod} players` : `${setName(V.set)} · ${V.pod} seats · ${V.timer ? V.timer+' second pick timer' : 'no pick timer'}`))}</p>`;
+    h+=clanPickHTML();
     h+=lobbyGuideHTML();
   }
   else if(V.phase==='draft'){
     const n=V.seats.length, from=V.seats[(V.me-dirOf(V.round)+n)%n];
     if(V.pack){
       const pk=V.pack.slice().sort(byRarity), s=V.pack.find(c=>c.u===sel), sd=s && CARDS[s.id];
-      h+=`<div class="bar"><h3>Pack ${V.round}, pick ${V.size-V.pack.length+1}</h3><span class="clock" id="clock"></span><span style="margin-left:auto"></span><button class="go" id="takeBtn"${s?'':' disabled'}>${s ? 'Take '+esc(sd?sd.n:'this card') : 'Choose a card'}</button></div>
+      h+=`<div class="bar"><h3>Pack ${V.round}, pick ${V.size-V.pack.length+1}</h3><span class="clock" id="clock"></span><span style="margin-left:auto"></span>${GUIDES.includes(V.set) ? `<button class="ghost" data-guide="${esc(V.set)}">Archetypes</button>` : ''}<button class="go" id="takeBtn"${s?'':' disabled'}>${s ? 'Take '+esc(sd?sd.n:'this card') : 'Choose a card'}</button></div>
         <div class="grid" id="pack">${pk.map(c=>cardHTML(c, c.u===sel?'sel':'')).join('')}</div><p class="hint" style="margin:0">Click a card, then Take. Double-click takes it straight away.</p>`;
     } else h+=`<div class="bar"><h3>Pack ${V.round}</h3></div><p class="hint" style="margin:0">Waiting for ${esc(from.name)} to pass you a pack.</p>`;
     loadBuild(); const deck=V.pool.filter(inMain), side=V.pool.filter(c=>!inMain(c));
@@ -894,6 +930,14 @@ function render(){
   $('#chatCol').hidden=!chatOn; $('#roomBody').classList.toggle('chatty', chatOn); if(chatOn) paintChat();
   if(V.tour){ pushSeat(); roomPrompts(host); }
   tickClock();
+}
+/* v0.36: clan choice before a seeded prerelease (Khans of Tarkir). Everyone sees who chose what; a player with no choice gets a random clan at the start. */
+function clanPickHTML(){
+  if(!V || V.mode!=='sealed' || !SEEDED[V.set]) return '';
+  const mine=(V.seats[V.me]||{}).clan||'';
+  return `<section class="clans"><div class="bar"><h3>Choose your clan</h3><span class="hint">${mine ? 'you can change it until the host starts' : 'your seeded booster and promo come from this clan'}</span></div>
+    <div class="clrow">${CLANS[V.set].map(c=>{ const who=V.seats.filter(x=>x.clan===c.k).map(x=>x.name);
+      return `<button class="clan${mine===c.k?' on':''}" data-clan="${c.k}" aria-pressed="${mine===c.k}"><span class="gpips">${[...c.c].map(manaSym).join('')}</span><b>${esc(c.n)}</b><span class="cm">${esc(c.m)}</span><span class="cw">${who.length ? esc(who.join(', ')) : '&nbsp;'}</span></button>`; }).join('')}</div></section>`;
 }
 /* ---------- after the draft: deck building and the tournament ---------- */
 function loadBuild(){ const key=V.code+':'+V.gen; if(B && B.code===key) return; B=store.get('dt_build', null);
@@ -1000,6 +1044,8 @@ const coverOf = (u, n) => { let h=(u*0x9E3779B1)>>>0; h^=h>>>15; h=Math.imul(h, 
 /* v0.24: a kit's wrappers are dealt evenly (six packs, three covers: two of each), in an order shuffled by the kit's first card, so every seat sees every cover and a reload keeps the same order */
 const kitCovers = (K, n) => { const k=K.packs.length, out=[]; for(let i=0;i<k;i++) out.push(i%n); let seed=K.packs[0][0]||1; for(let i=k-1;i>0;i--){ seed++; const j=coverOf(seed*7919, i+1); [out[i], out[j]]=[out[j], out[i]]; } return out; };
 const byU = () => new Map((V.pool||[]).map(c=>[c.u, c]));
+const seedIx = K => K && K.clan ? K.packs.length-1 : -1;   // v0.36: the seeded booster is the kit's last pack
+const clanHue = (c, i) => ({W:'#e9e1c4', U:'#2f6fb0', B:'#2a2530', R:'#b8402c', G:'#2f7a45'})[c[i]||c[0]];
 const opAll = () => B.op.opened.every(Boolean) && (B.op.promo || !V.kit.promo);
 function opSortIn(){ if(B.op.showing>=0) B.op.showing=-1; }
 function opOpen(i){ if(B.op.opened[i]) return; opSortIn(); B.op.opened[i]=1; B.op.showing=i; saveBuild(); render(); }
@@ -1071,13 +1117,14 @@ function kitHTML(){
   const n=op.opened.filter(Boolean).length, covers=img && img.boosters.length ? img.boosters : null;
   const promo=K.promo ? U.get(K.promo) : null, all=opAll();
   let h=`<div class="kit">${img && img.kit && isPre(V.set) ? `<img class="kitbox" src="${DBASE}packs/${esc(V.set)}/${esc(img.kit)}" alt="${esc(setName(V.set))} Prerelease Pack">` : ''}
-    <div class="packs">${(kc=>K.packs.map((p,i)=>{ const cv=covers ? covers[kc[i]] : '';
-      return `<button class="pk${cv?'':' drawn'}" data-pack="${i}"${op.opened[i]?' disabled':''} aria-label="Pack ${i+1}${op.opened[i]?', opened':''}">${cv ? `<img src="${DBASE}packs/${esc(V.set)}/${esc(cv)}" alt="">` : `<span class="pt">${esc(setName(V.set))}</span>`}<span class="pn">${i+1}</span></button>`; }).join(''))(covers ? kitCovers(K, covers.length) : [])}</div>
-    ${K.promo ? `<div class="promo">${op.promo && promo ? cardHTML(promo) : `<button class="cardback${op.opened.every(Boolean)?' ready':''}" id="promoBtn" aria-label="Turn over the promo card"><img src="${BACK_IMG}" alt=""></button>`}<span class="sec" style="margin:0">Foil promo</span></div>` : ''}
+    <div class="packs">${(kc=>K.packs.map((p,i)=>{ const sd=seedIx(K)===i, cv=covers && !sd ? covers[kc[i]] : '', cl=sd ? clanOf(V.set, K.clan) : null;
+      if(sd) return `<button class="pk drawn seed" data-pack="${i}"${op.opened[i]?' disabled':''} style="--sa:${clanHue(cl.c,0)};--sb:${clanHue(cl.c,1)};--sc:${clanHue(cl.c,2)}" aria-label="${esc(cl.n)} seeded booster${op.opened[i]?', opened':''}"><span class="gpips">${[...cl.c].map(manaSym).join('')}</span><span class="pt"><b>${esc(cl.n)}</b>seeded booster</span><span class="pn">${i+1}</span></button>`;
+      return `<button class="pk${cv?'':' drawn'}" data-pack="${i}"${op.opened[i]?' disabled':''} aria-label="Pack ${i+1}${op.opened[i]?', opened':''}">${cv ? `<img src="${DBASE}packs/${esc(V.set)}/${esc(cv)}" alt="">` : `<span class="pt">${esc(setName(V.set))}</span>`}<span class="pn">${i+1}</span></button>`; }).join(''))(covers ? kitCovers(seedIx(K)>=0 ? {packs:K.packs.slice(0, seedIx(K))} : K, covers.length) : [])}</div>
+    ${K.promo ? `<div class="promo">${op.promo && promo ? cardHTML(promo) : `<button class="cardback${op.opened.every(Boolean)?' ready':''}" id="promoBtn" aria-label="Turn over the promo card"><img src="${BACK_IMG}" alt=""></button>`}<span class="sec" style="margin:0">${K.clan ? `${esc((clanOf(V.set, K.clan)||{}).n||'')} promo` : 'Foil promo'}</span></div>` : ''}
     <div class="kitside"><div class="row"><button class="go" id="openNext"${n===KIT_PACKS?' disabled':''}>Open next pack</button><button id="openAll"${all?' disabled':''}>Open everything</button></div>
       <span class="hint">${n} of ${KIT_PACKS} packs opened${K.promo ? (op.promo ? ' · promo revealed' : ' · promo face down') : ''}</span></div></div>`;
   if(op.showing>=0){ const cards=K.packs[op.showing].map(u=>U.get(u)).filter(Boolean);
-    h+=`<div class="reveal"><div class="bar"><h3>Pack ${op.showing+1} of ${KIT_PACKS}</h3><span style="margin-left:auto"></span><button class="go" id="sortIn">Sort into my pool</button></div>
+    h+=`<div class="reveal"><div class="bar"><h3>${seedIx(K)===op.showing ? `${esc((clanOf(V.set, K.clan)||{}).n||'')} seeded booster` : `Pack ${op.showing+1} of ${KIT_PACKS}`}</h3><span style="margin-left:auto"></span><button class="go" id="sortIn">Sort into my pool</button></div>
       <div class="fan">${cards.map((c,j)=>{ const d=CARDS[c.id], hit=d && ['rare','mythic','special'].includes(d.r); return cardHTML(c, hit?'hit':'').replace('class="c ', `style="animation-delay:${j*70}ms" class="c `); }).join('')}</div></div>`; }
   const pool=[]; K.packs.forEach((p,i)=>{ if(op.opened[i] && i!==op.showing) for(const u of p){ const c=U.get(u); if(c) pool.push(c); } });
   if(promo && op.promo) pool.push(promo);
@@ -1092,6 +1139,7 @@ $('#main').addEventListener('change', e=>{ if(e.target && e.target.id==='grpSel'
 $('#main').addEventListener('click', e=>{
   if(!V) return;
   const t=e.target, card=t.closest('.c'), id=t.closest('button') && t.closest('button').id;
+  { const cb=t.closest('[data-clan]'); if(cb && V.phase==='lobby'){ act({t:'clan', k:cb.dataset.clan}); return; } }
   if(V.phase==='draft'){
     if(card && card.closest('#pack')){ const u=+card.dataset.u; if(sel===u && e.detail>1){ act({t:'pick', u}); sel=null; } else { sel=u; render(); } return; }
     if(id==='takeBtn' && sel!=null){ act({t:'pick', u:sel}); sel=null; return; }
@@ -1183,32 +1231,61 @@ const GUIDE_DATA = {};
 let GUIDE = null;   // {code, sel: colors chosen in the filter}
 let LSEL = '';      // v0.29: the color filter of the guide shown in the lobby while players wait
 const GLOAD = {};
-/* loads a cube's guide once (shared by the window and the lobby), then looks up its key cards so the hover enlargement works */
+/* v0.36: set guides too (draft/guides/<code>-archetypes.json, same format plus about (format notes), s (signpost cards), p (players' note),
+   r (players' ranking) and src [{t, u}] (sources, listed at the bottom)). A set's key cards point at that set's own printing (lowest collector
+   number, from the built-in card file, GKID) so the hover enlargement shows it; a cube's are looked up by name (n|Name) as before. */
+const GKID = {};
+const gdir = code => isCubeSet(code) ? 'cubes/' : 'guides/';
+const gNames = a => [...(a.s||[]), ...a.k];
+const gkId = (code, n) => (GKID[code] && GKID[code][nameKey(n)]) || 'n|'+n;
+async function guideIds(code){ if(GKID[code] || isCubeSet(code)) return;
+  const B=await loadBaked(code), m={}, num=id=>parseInt(id.split(':')[1],10)||99999;
+  if(B && B.ids) for(const [id, n] of Object.entries(B.ids)){ if(!/^[^:]+:\d+a?$/.test(id)) continue; for(const k of new Set([nameKey(n), nameKey(n.split(' // ')[0])])) if(!m[k] || num(id)<num(m[k])) m[k]=id; }
+  GKID[code]=m; }
+/* loads a guide once (shared by the window and the lobby), then looks up its key cards so the hover enlargement works */
 function loadGuide(code){
   if(GUIDE_DATA[code]) return Promise.resolve(GUIDE_DATA[code]);
-  return GLOAD[code] || (GLOAD[code] = fetch(DBASE+'cubes/'+code+'-archetypes.json').then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); })
-    .then(d=>{ GUIDE_DATA[code]=d; if(!V || V.set===code){ useCache(code); ensure(d.list.flatMap(a=>a.k).map(n=>'n|'+n)).then(()=>{ if(GUIDE) paintGuide(); if(V && V.phase==='lobby') render(); }); } return d; })
+  return GLOAD[code] || (GLOAD[code] = fetch(DBASE+gdir(code)+code+'-archetypes.json').then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); })
+    .then(async d=>{ await guideIds(code).catch(()=>{}); GUIDE_DATA[code]=d; if(!V || V.set===code){ useCache(code); ensure(d.list.flatMap(a=>gNames(a).map(n=>gkId(code, n)))).then(()=>{ if(GUIDE) paintGuide(); if(V && V.phase==='lobby') render(); }); } return d; })
     .catch(e=>{ delete GLOAD[code]; throw e; }));
 }
+/* key cards of the guide for the event's set that aren't in CARDS yet (the host may have looked at other sets in between); asked at most every 20 s */
+const GASK = {};
+function guideEnsure(code){ const G=GUIDE_DATA[code]; if(!G || !V || V.set!==code) return; useCache(code);
+  const want=G.list.flatMap(a=>gNames(a).map(n=>gkId(code, n))).filter(i=>!CARDS[i]); const k=code+'|'+cardSet;
+  if(!want.length || Date.now()-(GASK[k]||0)<20000) return; GASK[k]=Date.now();
+  ensure(want).then(()=>{ if(GUIDE) paintGuide(); render(); }); }
+/* the player's cards they have actually seen: in a sealed event still being opened, only the opened packs (and the promo once turned over) */
+function seenPool(){ if(!V || V.mode!=='sealed' || !V.kit) return V ? V.pool : [];
+  loadBuild(); const op=B && B.op; if(!op) return []; if(op.built || opAll()) return V.pool;
+  const U=byU(), out=[]; V.kit.packs.forEach((p,i)=>{ if(op.opened[i]) for(const u of p){ const c=U.get(u); if(c) out.push(c); } });
+  if(op.promo && V.kit.promo && U.get(V.kit.promo)) out.push(U.get(V.kit.promo)); return out; }
+/* names of the cards in a list of cards (full name and front face), to mark key cards already picked or in the pack being looked at */
+function namesIn(cards){ const out=new Set(); for(const c of cards||[]){ const d=CARDS[c.id]; if(!d) continue; out.add(nameKey(d.n)); out.add(nameKey(d.n.split(' // ')[0])); } return out; }
 const gPips = c => c ? `<span class="gpips">${[...c].map(manaSym).join('')}</span>` : '<span class="gany">Any colors</span>';
 function guideFilt(sel, attr){ return `<div class="gfilt"><span class="hint">Show decks with</span>${[...'WUBRG'].map(k=>`<button class="pipbtn${sel.includes(k)?' on':''}" data-${attr}="${k}" aria-pressed="${sel.includes(k)}" title="${{W:'White',U:'Blue',B:'Black',R:'Red',G:'Green'}[k]}">${manaSym(k)}</button>`).join('')}<button class="ghost sm" data-${attr}=""${sel?'':' disabled'}>All</button></div>`; }
 function guideGrid(code, sel){
   const G=GUIDE_DATA[code]; if(!G) return '<p class="hint">Loading the archetypes…</p>';
-  const mine=new Set(V && V.set===code ? (V.pool||[]).map(c=>c.id) : []), shown=G.list.filter(a=>!a.c || [...sel].every(k=>a.c.includes(k)));
-  return `<p class="hint gnote">${esc(G.credit)} Point at a card name to see the card${mine.size ? '; ✓ marks key cards already in your picks' : ''}.</p>
-    <div class="ggrid">${shown.map(a=>`<article class="garch"><div class="gtop"><h3>${esc(a.n)}</h3>${gPips(a.c)}</div><p>${esc(a.d)}</p>${a.k.length ? `<div class="gkeys">${a.k.map(n=>`<span class="gk${mine.has('n|'+n)?' mine':''}" data-zid="${esc('n|'+n)}">${mine.has('n|'+n)?'✓ ':''}${esc(n)}</span>`).join('')}</div>` : ''}</article>`).join('')}</div>
-    ${shown.length ? '' : '<p class="hint">No archetype uses all of those colors.</p>'}`;
+  const here=V && V.set===code, mine=here ? namesIn(seenPool()) : new Set(), pack=here && V.phase==='draft' ? namesIn(V.pack) : new Set();
+  const shown=G.list.filter(a=>!a.c || [...sel].every(k=>a.c.includes(k)));
+  const chip=(n, cls)=>{ const k=nameKey(n), m=mine.has(k), pk=pack.has(k); return `<span class="gk${cls}${m?' mine':''}${pk?' inpk':''}" data-zid="${esc(gkId(code, n))}">${m?'✓ ':''}${esc(n)}${pk?' <i>in this pack</i>':''}</span>`; };
+  const row=(label, list, cls)=>list && list.length ? `<div class="gkeys">${label ? `<span class="gl">${label}</span>` : ''}${list.map(n=>chip(n, cls)).join('')}</div>` : '';
+  return `<p class="hint gnote">${esc(G.credit)} Point at a card name to see the card${mine.size ? '; ✓ marks key cards already in your picks' : ''}${pack.size ? '; cards in the pack in front of you say so' : ''}.</p>
+    ${G.about ? `<p class="gabout">${esc(G.about)}</p>` : ''}
+    <div class="ggrid">${shown.map(a=>`<article class="garch"><div class="gtop"><h3>${esc(a.n)}</h3>${gPips(a.c)}</div>${a.r ? `<span class="grank">${esc(a.r)}</span>` : ''}<p>${esc(a.d)}</p>${a.p ? `<p class="gp"><span class="gl">Players say</span> ${esc(a.p)}</p>` : ''}<div class="gfoot">${row(G.sl||'Signposts', a.s, ' sp')}${row(a.s ? 'Key cards' : '', a.k, '')}</div></article>`).join('')}</div>
+    ${shown.length ? '' : '<p class="hint">No archetype uses all of those colors.</p>'}
+    ${G.src && G.src.length ? `<p class="hint gsrc">Sources: ${G.src.map(x=>`<a href="${esc(x.u)}" target="_blank" rel="noopener">${esc(x.t)}</a>`).join(' · ')}</p>` : ''}`;
 }
 /* v0.29: the guide inline in the lobby (setup or waiting for the host), so players who have joined can read it while they wait */
 function lobbyGuideHTML(){
   if(!V || !GUIDES.includes(V.set)) return '';
-  const G=GUIDE_DATA[V.set]; if(!G) loadGuide(V.set).then(()=>render()).catch(()=>{});
-  return `<section class="lguide"><div class="bar"><h3>Archetypes in this cube${G ? ` <b style="color:var(--brass)">${G.list.length}</b>` : ''}</h3><span class="hint">look them over while everyone joins</span>${guideFilt(LSEL, 'lgc')}<button class="ghost sm" data-guide="${esc(V.set)}">Open larger</button></div>${guideGrid(V.set, LSEL)}</section>`;
+  const G=GUIDE_DATA[V.set]; if(!G) loadGuide(V.set).then(()=>render()).catch(()=>{}); else setTimeout(()=>guideEnsure(V.set), 0);
+  return `<section class="lguide"><div class="bar"><h3>Archetypes in ${isCubeSet(V.set) ? 'this cube' : esc(setName(V.set))}${G ? ` <b style="color:var(--brass)">${G.list.length}</b>` : ''}</h3><span class="hint">look them over while everyone joins</span>${guideFilt(LSEL, 'lgc')}<button class="ghost sm" data-guide="${esc(V.set)}">Open larger</button></div>${guideGrid(V.set, LSEL)}</section>`;
 }
 async function openGuide(code){
   GUIDE={code, sel:(GUIDE && GUIDE.code===code) ? GUIDE.sel : (V && V.phase==='lobby' ? LSEL : '')}; paintGuide();
   try{ await loadGuide(code); }catch(e){ if(GUIDE && GUIDE.code===code){ closeGuide(); toast('Could not load the archetypes. Check your connection and try again.'); } return; }
-  if(GUIDE && GUIDE.code===code) paintGuide();
+  if(GUIDE && GUIDE.code===code){ paintGuide(); guideEnsure(code); }
 }
 function closeGuide(){ GUIDE=null; const g=$('#guide'); g.hidden=true; g.innerHTML=''; hideZoom(); }
 function paintGuide(){
@@ -1217,7 +1294,7 @@ function paintGuide(){
   const scroll=$('.gscroll', g) ? $('.gscroll', g).scrollTop : 0;
   g.innerHTML=`<div class="gpanel" role="dialog" aria-label="Archetypes">
     <div class="ghead"><div style="min-width:0"><h2>Archetypes</h2><p class="hint" style="margin:0">${esc(G ? G.name : setName(GUIDE.code))}${G ? ` · ${G.list.length} archetypes` : ''}</p></div>
-      ${guideFilt(sel, 'gc')}
+      ${guideFilt(sel, 'gc')}${(mc=>mc ? `<button class="ghost sm" data-gc="=${mc}" title="Show the archetypes in the two colors you've picked most">My colors ${mc.split('').map(manaSym).join('')}</button>` : '')(V && V.set===GUIDE.code && seenPool().length>=4 ? (mainColors(seenPool())||[]).join('') : '')}
       <button class="ghost sm" id="guideX" aria-label="Close">✕</button></div>
     <div class="gscroll">${guideGrid(GUIDE.code, sel)}</div></div>`;
   g.hidden=false; const sc=$('.gscroll', g); if(sc) sc.scrollTop=scroll;
@@ -1227,7 +1304,7 @@ document.addEventListener('click', e=>{
   const l=e.target.closest('#main [data-lgc]'); if(l){ const k=l.dataset.lgc; LSEL = !k ? '' : LSEL.includes(k) ? LSEL.replace(k,'') : LSEL+k; render(); return; }
   if(!GUIDE) return;
   if(e.target.id==='guide' || e.target.closest('#guideX')){ closeGuide(); return; }
-  const b=e.target.closest('#guide [data-gc]'); if(b){ const k=b.dataset.gc; GUIDE.sel = !k ? '' : GUIDE.sel.includes(k) ? GUIDE.sel.replace(k,'') : GUIDE.sel+k; paintGuide(); }
+  const b=e.target.closest('#guide [data-gc]'); if(b){ const k=b.dataset.gc; GUIDE.sel = !k ? '' : k[0]==='=' ? k.slice(1) : GUIDE.sel.includes(k) ? GUIDE.sel.replace(k,'') : GUIDE.sel+k; paintGuide(); }
 });
 document.addEventListener('keydown', e=>{ if(e.key==='Escape' && GUIDE){ e.stopImmediatePropagation(); closeGuide(); } }, true);
 $('#guideBtn').onclick=()=>{ if(V && GUIDES.includes(V.set)) openGuide(V.set); };
@@ -1483,7 +1560,7 @@ function frontPage(){
     host.hidden=true; sealedB.hidden=true;
     host.insertAdjacentHTML('beforebegin', sw('gn', esc(nightTitle()), 'Up to 8 players, three Swiss rounds. Lock in any tournament deck or one of your own; matches are played on the Modern Table.', 'Hosted here', '', 'nightBtn')
       + sw('dt', 'Host a draft', 'Booster draft from real pack odds. Bots fill empty seats.', 'Draft Table: straight to setup', '../draft/?host=1')
-      + sw('st', 'Host a sealed event', 'Six packs each (a prerelease kit for Reality Fracture); build 40 cards, three rounds.', 'Sealed Table: straight to setup', '../sealed/?host=1')
+      + sw('st', 'Host a sealed event', 'Six packs each (prerelease kits for Reality Fracture and Khans of Tarkir); build 40 cards, three rounds.', 'Sealed Table: straight to setup', '../sealed/?host=1')
       + sw('ct', 'Host a cube draft', 'Draft a curated cube of singletons.', 'Cube Table: straight to setup', '../cube/?host=1'));
     $('#nightBtn').onclick=()=>beginHost(null, 'modern');
     $('#codeIn').closest('.choice').querySelector('b').textContent='Join a Game Night';

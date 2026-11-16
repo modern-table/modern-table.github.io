@@ -91,16 +91,25 @@ print(f'built index.html: {len(html)//1024} KB, {len(out)} decks, {bad} dropped,
 dsrc=open('src/draft.src.html', encoding='utf-8').read()
 sets=json.load(open('draft/sets/index.json', encoding='utf-8'))
 assert '/*__SETS__*/[]' in dsrc and sets
-# cube archetype guides (Draft v0.28): draft/cubes/<code>-archetypes.json; warn about key cards that aren't in the cube's list
+# archetype guides (Draft v0.28 cubes: draft/cubes/<code>-archetypes.json; v0.36 sets: draft/guides/<code>-archetypes.json);
+# warn about signposts and key cards that aren't in the cube's list / the set's built-in card file (draft/cards/<code>.json)
+import unicodedata
+def _nk(n): return unicodedata.normalize('NFD', n.lower()).encode('ascii', 'ignore').decode().strip()
 guides=[]
 for s_ in sets:
-    gp=f"draft/cubes/{s_['code']}-archetypes.json"
+    code=s_['code']; cube=s_.get('group')=='Cubes'
+    gp=f"draft/cubes/{code}-archetypes.json" if cube else f"draft/guides/{code}-archetypes.json"
     if not os.path.exists(gp): continue
-    g_=json.load(open(gp, encoding='utf-8')); guides.append(s_['code'])
-    cube_names={l.strip().lower() for l in open(f"draft/cubes/{s_['code']}.txt", encoding='utf-8') if l.strip() and not l.startswith('#')} if os.path.exists(f"draft/cubes/{s_['code']}.txt") else set()
+    g_=json.load(open(gp, encoding='utf-8')); guides.append(code)
+    if cube:
+        names={_nk(l.strip()) for l in open(f"draft/cubes/{code}.txt", encoding='utf-8') if l.strip() and not l.startswith('#')} if os.path.exists(f"draft/cubes/{code}.txt") else set()
+    else:
+        cf=f"draft/cards/{code}.json"; names=set()
+        if os.path.exists(cf):
+            for n in json.load(open(cf, encoding='utf-8')).get('ids', {}).values(): names.update({_nk(n), _nk(n.split(' // ')[0])})
     for a in g_['list']:
-        for k in a['k']:
-            if k.lower() not in cube_names: print(f"WARNING: {gp}: key card {k!r} ({a['n']}) is not in the cube's list")
+        for k in a.get('s', [])+a['k']:
+            if names and _nk(k) not in names: print(f"WARNING: {gp}: card {k!r} ({a['n']}) is not in the {'cube' if cube else 'set'}'s list")
 assert '/*__GUIDES__*/[]' in dsrc
 dsrc=dsrc.replace('/*__GUIDES__*/[]', json.dumps(guides))
 dhtml=dsrc.replace('/*__SETS__*/[]', json.dumps(sets,separators=(',',':'),ensure_ascii=False))

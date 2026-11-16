@@ -1,0 +1,221 @@
+{
+ "name": "Modern Horizons",
+ "credit": "Archetypes and signpost uncommons as Wizards of the Coast showed them on Weekly MTG (listed on the MTG Wiki). Players' notes and key cards from Card Kingdom's archetype guide, Hipsters of the Coast, Limited Level-Ups and Star City Games, reworded.",
+ "about": "Players rate it one of the deepest and hardest draft formats. The archetypes are loose, with a lot of cross-synergy, and many pairs have a second way to build. It is a format of one-, two- and four-mana creatures; boards stall, so mass pumps and removal matter. Changelings are strong early picks because they fit many decks. White was the weakest color. Snow is much better in draft than in sealed.",
+ "src": [
+  {
+   "t": "Modern Horizons (MTG Wiki)",
+   "u": "https://mtg.wiki/page/Modern_Horizons"
+  },
+  {
+   "t": "Modern Horizons Limited archetypes (Card Kingdom)",
+   "u": "https://blog.cardkingdom.com/?p=3732"
+  },
+  {
+   "t": "Modern Horizons draft tips (Hipsters of the Coast)",
+   "u": "https://www.hipstersofthecoast.com/2019/07/modern-horizons-draft-tips/"
+  },
+  {
+   "t": "Modern Horizons draft guide (Limited Level-Ups)",
+   "u": "https://limitedlevelups.blogspot.com/2019/06/modern-horizons-draft-guide-part-3.html"
+  },
+  {
+   "t": "The Definitive Modern Horizons Draft Guide (Star City Games)",
+   "u": "https://articles.starcitygames.com/magic-the-gathering/premium/the-definitive-modern-horizons-draft-guide/"
+  }
+ ],
+ "list": [
+  {
+   "n": "Blink",
+   "c": "WU",
+   "d": "Creatures with enter-the-battlefield abilities, and ways to flicker them for more.",
+   "s": [
+    "Soulherder"
+   ],
+   "k": [
+    "Ephemerate",
+    "String of Disappearances",
+    "Settle Beyond Reality",
+    "Answered Prayers",
+    "Vesperlark",
+    "Pondering Mage",
+    "Watcher for Tomorrow",
+    "Man-o'-War"
+   ],
+   "p": "In practice it is less about forcing blink than playing good white-blue cards and picking up value from the occasional flicker."
+  },
+  {
+   "n": "Ninjas",
+   "c": "UB",
+   "d": "Sneak Ninjas in with ninjutsu by returning an unblocked attacker.",
+   "s": [
+    "Ingenious Infiltrator"
+   ],
+   "k": [
+    "Moonblade Shinobi",
+    "Twisted Reflection",
+    "Smoke Shroud"
+   ],
+   "p": "Prioritize evasive creatures to carry ninjutsu. With no other creature around, just cast the Ninja."
+  },
+  {
+   "n": "Goblins",
+   "c": "BR",
+   "d": "Flood the board with Goblins and sacrifice them for value.",
+   "s": [
+    "Munitions Expert"
+   ],
+   "k": [
+    "Goblin War Party",
+    "Sling-Gang Lieutenant",
+    "Goblin Matron",
+    "Venomous Changeling",
+    "Mob",
+    "Bogardan Dragonheart",
+    "Carrion Feeder",
+    "Silumgar Scavenger",
+    "Rank Officer",
+    "Warteye Witch",
+    "Goatnap",
+    "Feaster of Fools"
+   ],
+   "p": "Goatnap plus Feaster of Fools is a strong pair."
+  },
+  {
+   "n": "Lands in the Graveyard",
+   "c": "RG",
+   "d": "Cycle and sacrifice lands, then get paid for the lands in your graveyard.",
+   "s": [
+    "Ruination Rioter"
+   ],
+   "k": [
+    "Igneous Elemental",
+    "Ore-Scale Guardian",
+    "Murasa Behemoth",
+    "Lava Dart",
+    "Excavating Anurid",
+    "Nantuko Cultivator",
+    "Winding Way",
+    "Lesser Masticore",
+    "Savage Swipe",
+    "Pyrophobia",
+    "Magmatic Sinkhole"
+   ],
+   "p": "Keep count of enablers against payoffs, and use removal and tricks to reach the late game."
+  },
+  {
+   "n": "Creaturefall",
+   "c": "GW",
+   "d": "Rewards for creatures entering the battlefield; tokens count.",
+   "s": [
+    "Good-Fortune Unicorn"
+   ],
+   "k": [
+    "Saddled Rimestag",
+    "Zhalfirin Decoy",
+    "Bellowing Elk",
+    "Squirrel Nest",
+    "Twin-Silk Spider",
+    "Trumpeting Herd",
+    "Mother Bear",
+    "Battle Screech",
+    "Scale Up",
+    "Stirring Address",
+    "Savage Swipe"
+   ],
+   "p": "Boards often stall, so value the mass pumps highly."
+  },
+  {
+   "n": "Changelings",
+   "c": "WB",
+   "d": "Changelings, which count as every creature type, and cards that reward one chosen type.",
+   "s": [
+    "Etchings of the Chosen"
+   ],
+   "k": [
+    "Valiant Changeling",
+    "King of the Pride"
+   ],
+   "p": "Changelings work best supporting other decks, especially in sealed."
+  },
+  {
+   "n": "Draw Two",
+   "c": "UR",
+   "d": "Cards that reward drawing your second card each turn, fed by cycling and card draw.",
+   "s": [
+    "Thundering Djinn"
+   ],
+   "k": [
+    "Eyekite",
+    "Spinehorn Minotaur",
+    "Oneirophage",
+    "Everdream",
+    "Fists of Flame",
+    "Rain of Revelation",
+    "Scour All Possibilities",
+    "Phantasmal Form"
+   ],
+   "p": "The real tempo deck: cycle something every turn to power up your attackers. You need few payoffs, since the draw effects alone out-card the opponent."
+  },
+  {
+   "n": "Creatures in the Graveyard",
+   "c": "BG",
+   "d": "Fill your graveyard with creature cards, then exile or reanimate them for value.",
+   "s": [
+    "Rotwidow Pack"
+   ],
+   "k": [
+    "Ransack the Lab",
+    "Winding Way",
+    "Rank Officer",
+    "Lesser Masticore",
+    "Mother Bear",
+    "First-Sphere Gargantua",
+    "Krosan Tusker",
+    "Webweaver Changeling",
+    "Nimble Mongoose",
+    "Return from Extinction",
+    "Unearth",
+    "Graveshifter"
+   ],
+   "p": "Ransack the Lab and Winding Way get it going fast."
+  },
+  {
+   "n": "Slivers",
+   "c": "RW",
+   "d": "Slivers share their abilities with each other: go wide and buff the whole team.",
+   "s": [
+    "Lavabelly Sliver"
+   ],
+   "k": [
+    "Lancer Sliver",
+    "Cleaving Sliver",
+    "First Sliver's Chosen",
+    "Bladeback Sliver",
+    "Impostor of the Sixth Pride",
+    "Irregular Cohort",
+    "Volatile Claws",
+    "Goblin War Party",
+    "Goatnap"
+   ],
+   "p": "A black splash adds Smiting Helix and Etchings of the Chosen."
+  },
+  {
+   "n": "Snow",
+   "c": "GU",
+   "d": "Snow permanents, snow-covered lands included, power up snow payoffs.",
+   "s": [
+    "Abominable Treefolk"
+   ],
+   "k": [
+    "Blizzard Strix",
+    "Winter's Rest",
+    "Frostwalla",
+    "Conifer Wurm",
+    "Rime Tender",
+    "Springbloom Druid"
+   ],
+   "p": "One of the strongest draft decks. Take snow-covered lands early and often; it is much weaker in sealed."
+  }
+ ]
+}
