@@ -728,7 +728,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v4.135';
+const VERSION = 'v4.136';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -744,6 +744,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v4.136','Nov 16',"The three Marches. March of Otherworldly Light only lets you aim at something with mana value X or less. March of Reckless Joy lets you play just two of the cards it exiles: once you have, the rest can't be played. Paying less by exiling cards from your hand already worked for all three."],
   ['v4.135','Nov 16',"This week's new tournament cards play themselves. Bloodghast comes back from your graveyard when a land enters, can't block, and has haste once your opponent is at 10 life or less. Bonecrusher Giant deals 2 damage to whoever targets it with a spell. Case of the Crimson Pulse is solved at your end step when your hand is empty, and then refills your hand each upkeep. Kataki makes you pay {1} for each artifact every upkeep or sacrifice it. Path of Peril can be cast with cleave. Also: Extract the Truth, Genesis Device's big ability, Nourishing Shoal, Quirion Ranger (once a turn), Rakdos Charm's third mode, and Spikefield Hazard now exiles what it kills."],
   ['v4.134','Nov 15',"Captain James T. Kirk's enter and attack trigger asks for its mode as it goes on the stack, and lets you pick one or more when your hand is empty. Winota triggers whenever a non-Human creature you control attacks: you look at the top six and may put a Human onto the battlefield tapped, attacking and indestructible. Mardu Ascendancy's Goblin comes in tapped and attacking. Sokenzan already worked, legendary discount included."],
   ['v4.133','Nov 14',"Eleven cards now play themselves. Valki reveals your opponent's hand and exiles a creature until Valki leaves (it goes back to their hand), and his {X} copies it. Tibalt gives you his emblem, and the cards he exiles get a Play it / Cast it button that takes mana of any color. Battle cry works, including Reckless Pyrosurfer's landfall. Reckless Bushwhacker has its surge cost. Ghor-Clan Rampager's bloodrush asks for its {R}{G}. Gallia triggers when you attack with three or more creatures. The Naked Time's chapter II puts a counter and haste on each creature that enters that turn. MACO Strike Team and Leyline of Combustion trigger when your friend targets your things. Atarka's Command and Burning-Tree Emissary already worked."],
@@ -1460,7 +1461,8 @@ function move(id, zone, o={}){
   if(zone!=='st') delete c.clv;   /* v4.135: cast with cleave */
   if(zone!=='bf'){ delete c.solved; delete c.aoT; }   /* v4.135: a Case's solved mark, once-each-turn abilities used */
   if(zone!=='st'){ delete c.ovl; delete c.md; delete c.half; delete c.sacMV; delete c.sacTp; delete c.addPaid; delete c.gift; delete c.nm; delete c.unc; delete c.pc; } if(zone!=='st' && zone!=='bf'){ delete c.ev; delete c.spent; delete c.dash; delete c.hst; delete c.surge; } if(zone!=='bf') delete c.exEnd;
-  m[from].splice(f.i,1); if(from==='ex'){ delete c.plot; delete c.offer; delete c.by; delete c.warp; delete c.pl; delete c.plFree; delete c.fl; delete c.advOK; } if(zone!=='st') delete c.adv; if(zone!=='st') delete c.bt;
+  m[from].splice(f.i,1); if(from==='ex' && c.pl && c.plg && (zone==='st' || zone==='bf')){ const g=c.plg, left=m.ex.filter(x=>x.plg && x.plg.id===g.id && x.pl); if(g.n-left.length>=g.cap && left.length){ for(const x of left){ delete x.pl; delete x.plg; } addLog(`${g.by}: ${g.cap} of the exiled cards have been played, so ${left.map(cname).join(', ')} can't be played any more.`,'s'); } }   /* v4.136 March of Reckless Joy: "play up to two of those cards" */
+  if(from==='ex'){ delete c.plg; delete c.plot; delete c.offer; delete c.by; delete c.warp; delete c.pl; delete c.plFree; delete c.fl; delete c.advOK; } if(zone!=='st') delete c.adv; if(zone!=='st') delete c.bt;
   if(from==='bf' && zone!=='bf' && /phase out until this (?:enchantment|artifact|creature|permanent) leaves the battlefield/i.test(frontText(c)||'')){ const by=cdata(c).n; setTimeout(()=>{ phaseInBy(c.id, by); if(G.opp) send({t:'phasein', src:c.id, by}); }, 0); }
   ZLOG.push({c, from, to:zone, at:++ZSEQ}); if(ZLOG.length>300) ZLOG.splice(0, ZLOG.length-300);   // v4.14: what an effect did "this way"
   if(from==='lib' && zone==='gy'){ if(!m.mill || m.mill.t!==G.turn.n) m.mill={t:G.turn.n, k:0}; m.mill.k++; }
@@ -3523,8 +3525,8 @@ async function simpleEffects(c, text, srcId){
     // Legion Leadership: "Until end of turn, double target creature's power and it gains first strike."
     if(/^until end of turn, double target creature(?:'|’)s power and it gains ([a-z ]+)\.?$/i.test(sen)){ const kw=sen.match(/gains ([a-z ]+)\.?$/i)[1].trim().toLowerCase(); for(const t of tg.filter(x=>x!=='p1' && x!=='p2')){ const a=findAny(t); if(!a) continue; const p=a.mine ? powerOf(a.c) : powerAny(a); if(a.mine) applyMod(a.c, {p, kw:[kw]}); else send({t:'mod', id:t, o:{p, kw:[kw]}, by, who:m.name}); log(`${by}: ${cname(a.c)}'s power is doubled (+${p}) and it gains ${kw} until end of turn.`); } changed(); continue; }
     // March of Reckless Joy: "Exile the top X cards of your library. You may play up to two of those cards until the end of your next turn."
-    if(/^exile the top X cards of your library\.?$/i.test(sen) && /You may play up to (two|\w+) of those cards until the end of your next turn/i.test(text)){ const x=c.x||0; if(x>0) exilePlayable(x); else log(`${by}: X is 0.`); changed(); continue; }
-    if((r=sen.match(/^you may play up to (two|\w+) of those cards until the end of your next turn\.?$/i))){ log(`${by}: only ${r[1]} of them may be played.`); continue; }
+    if(/^exile the top X cards of your library\.?$/i.test(sen) && /You may play up to (two|\w+) of those cards until the end of your next turn/i.test(text)){ const x=c.x||0, cap=NUMW2[String(text).match(/You may play up to (two|\w+) of those cards/i)[1].toLowerCase()]||2; if(x>0){ const cs=exilePlayable(x)||[], g={id:'pg'+Date.now()+Math.floor(Math.random()*1e4), cap, n:cs.length, by:String(by).split(':')[0]}; if(cs.length>cap) for(const e of cs) e.plg=Object.assign({}, g); } else log(`${by}: X is 0.`); changed(); continue; }   // v4.136: e.plg = the group and its cap (read by move())
+    if((r=sen.match(/^you may play up to (two|\w+) of those cards until the end of your next turn\.?$/i))){ log(`${by}: up to ${r[1]} of them may be played; once ${r[1]} have been, the rest can't be.`); continue; }
     // Press the Enemy: "You may cast an instant or sorcery spell with equal or lesser mana value from your hand without paying its mana cost."
     if(/^you may cast an instant or sorcery spell with equal or lesser mana value from your hand without paying its mana cost\.?$/i.test(sen)){ const mv=(G.tgMV||[]).find(v=>v!=null); const cs=m.hand.filter(x=>!x.fd && isSpell(x) && (mv==null || manaValue(x)<=mv)); if(!cs.length){ log(`${by}: ${m.name} has no instant or sorcery with mana value ${mv==null?'':mv+' or less'} in hand.`); continue; }
       waited=true; const p=await pickP(`${by}: cast an instant or sorcery with mana value ${mv==null?'':mv+' or less'} for free`, cs, "Don't"); if(p) castSpell(p.id, {nm:true, silent:true}, ()=>log(`${by}: ${m.name} casts ${cname(p)} without paying its mana cost.`)); continue; }
@@ -5885,9 +5887,9 @@ const smanaHTML = (p, mine) => { const L=p.smana||[]; if(!L.length) return ''; c
    'next' becomes 'this' when my turn starts; 'this' is dropped when the turn number changes. The card stays in exile throughout. */
 function expirePlayable(){ let ch=false; for(const c of G.me.ex) if(c.pl==='this'){ delete c.pl; delete c.plFree; ch=true; } return ch; }
 function exilePlayable(n, pl){ pl=pl||'next';
-  const m=G.me, got=[]; for(let i=0;i<n && m.lib.length;i++){ const c=m.lib[0]; move(c.id,'ex',{silent:true}); c.pl=pl; got.push(cname(c)); }
-  if(!got.length){ toast('Your library is empty.'); return; }
-  log(`${m.name} exiles the top ${got.length===1?'card':got.length+' cards'} of their library: ${got.join(', ')}. ${got.length===1?'It':'They'} may be played until the end of ${pl==='this' ? 'this turn' : m.name+"'s next turn"}.`);
+  const m=G.me, got=[], cs=[]; for(let i=0;i<n && m.lib.length;i++){ const c=m.lib[0]; move(c.id,'ex',{silent:true}); c.pl=pl; got.push(cname(c)); cs.push(c); }
+  if(!got.length){ toast('Your library is empty.'); return []; }
+  log(`${m.name} exiles the top ${got.length===1?'card':got.length+' cards'} of their library: ${got.join(', ')}. ${got.length===1?'It':'They'} may be played until the end of ${pl==='this' ? 'this turn' : m.name+"'s next turn"}.`); return cs;
 }
 function playExiled(id, tapped){
   const f=find(id); if(!f || f.z!=='ex') return; const c=f.c;
@@ -8086,7 +8088,7 @@ function tgtNextSlot(md, skip){ const sl=md && md.type==='arrow' && tgtSlotsOf(m
   for(let j=k+1;j<sl.length;j++){ G.mode={type:'arrow', from:md.from, slot:j}; const sp=tgtSpec(f.c, j); toast(`${srcName(f.c)}: now click ${sp ? sp.phrase : 'its next target'}${sp && sp.upto || sl[j].upto ? ' (Esc for none)' : ''}.`); return true; }
   return false; }
 function tgtSpec(c, slot){ if(!c) return null; let txt = c.ab || c.ch ? ((c.cu && c.cu.o) || '') : (stackText(c) || '');
-  txt=String(txt).replace(/\([^)]*\)/g,''); if(c.ab && c.cu && /Activated ability/.test(c.cu.t||'') && /:/.test(txt)) txt=txt.slice(txt.indexOf(':')+1);
+  txt=String(txt).replace(/\([^)]*\)/g,'').replace(/\bwith mana value X or (less|greater)\b/i, (z,w)=>{ const xv=c.x!=null ? c.x : c.xc!=null ? c.xc : (c.ab && c.ab.x!=null ? c.ab.x : null); return xv!=null ? `with mana value ${xv} or ${w}` : z; });   /* v4.136 March of Otherworldly Light: the spell's X */  if(c.ab && c.cu && /Activated ability/.test(c.cu.t||'') && /:/.test(txt)) txt=txt.slice(txt.indexOf(':')+1);
   if(slot==null) slot = G.mode && G.mode.type==='arrow' && G.mode.from===c.id && G.mode.slot || 0; let pre='';
   if(slot>0){ const sl=tgtSlots(c); if(!sl || !sl[slot]) return null; const from=sl[slot].i, nq=tgtNoQuote(txt); pre=nq.slice(Math.max(0, from-12), from);
     if(/^any target\b/i.test(nq.slice(Math.max(0,from-4)))) return {alts:[['creature'],['player'],['planeswalker'],['battle']], phrase:'any target (a creature, player, planeswalker or battle)', ctl:'', other:false, src:c, upto:sl[slot].upto};

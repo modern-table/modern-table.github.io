@@ -77,7 +77,8 @@ JS = r"""(items) => {
       const s = s0.replace(/^(?!This\b)[A-Z][\w'’ -]{1,30} — (?=This spell|This ability)/, '');   // ability word: "Domain — This spell costs …"
       let r = null, q;
       const res = (ok, how) => { r = {card: it.card, face: it.n, line: s, ok, how}; };
-      if((q = s.match(/^This spell costs \{(\d+)\} less to cast for each ([^.]+?)\.$/i))){ const n = costCount(q[2], G.myId, c.id); n==null ? res('phrase', `costCount doesn't know "${q[2]}"`) : res('ok', `costCount("${q[2]}") = ${n}`); }
+      if(/^This spell costs \{\d+\} less to cast for each card exiled this way\.$/i.test(s) && typeof exileForLess==='function' && exileForLess(c)){ const e=exileForLess(c); res('ok', `exileForLess (exile ${e.desc} cards from the hand as it is cast, {${e.n}} less each)`); }   /* the Marches: castSpellNow asks, so costCount never sees it */
+      else if((q = s.match(/^This spell costs \{(\d+)\} less to cast for each ([^.]+?)\.$/i))){ const n = costCount(q[2], G.myId, c.id); n==null ? res('phrase', `costCount doesn't know "${q[2]}"`) : res('ok', `costCount("${q[2]}") = ${n}`); }
       else if((q = s.match(/^This spell costs \{X\} less to cast, where X is ([^.]+?)\.$/i))){ const n = xNum(q[1], c); n==null ? res('phrase', `xNum doesn't know "${q[1]}"`) : res('ok', `xNum("${q[1]}") = ${n}`); }
       else if(/^This spell costs \{\d+\} less to cast if it targets an? [^.]+\.$/i.test(s)){ m.hand.push(c); const t = targetDiscount(c); m.hand = []; t ? res('ok', 'targetDiscount (cheaper cast in the hand menu)') : res('no', 'targetDiscount gives nothing'); }
       else if((q = s.match(/^This spell costs \{(\d+)\} less to cast if ([^.]+?)\.$/i))){ const v = condTrue(q[2], c); v==null ? res('phrase', `condTrue can't judge "${q[2]}"`) : res('ok', `condTrue("${q[2]}") = ${v}`); }
