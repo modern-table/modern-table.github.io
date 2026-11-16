@@ -2,6 +2,7 @@
 # the weekly refresh drops them. build.py adds the current decks' cards on every build; commit this file with the rebuilt pages.
 Abandoned Air Temple
 Abhorrent Oculus
+Abrade
 Abrupt Decay
 Abstergo Entertainment
 Aether Vial
@@ -49,11 +50,13 @@ Blazing Rootwalla
 Bleachbone Verge
 Blood Crypt
 Blood Moon
+Bloodghast
 Bloodstained Mire
 Blooming Marsh
 Boggart Trawler
 Bojuka Bog
 Boltwave
+Bonecrusher Giant
 Boomerang Basics
 Boromir, Warden of the Tower
 Boros Charm
@@ -66,6 +69,7 @@ Bridgeworks Battle
 Brotherhood's End
 Burning Inquiry
 Carrion Feeder
+Case of the Crimson Pulse
 Castle Ardenvale
 Castle Garenbrig
 Castle Vantress
@@ -98,6 +102,7 @@ Containment Priest
 Cool but Rude
 Cori Mountain Monastery
 Cori-Steel Cutter
+Corrupted Conviction
 Counterspell
 Cranial Plating
 Craterhoof Behemoth
@@ -171,6 +176,7 @@ Explosive Prodigy
 Expressive Iteration
 Extinguisher Battleship
 Extirpate
+Extract the Truth
 Fable of the Mirror-Breaker
 Fade from History
 Faerie Macabre
@@ -209,6 +215,7 @@ Galvanic Discharge
 Geier Reach Sanitarium
 Gemstone Caverns
 Generous Ent
+Genesis Device
 Get Lost
 Ghalta, Stampede Tyrant
 Giant's Boulder
@@ -275,6 +282,7 @@ Kaito, Bane of Nightmares
 Kappa Cannoneer
 Karn, Argent Defender
 Karn, the Great Creator
+Kataki, War's Wage
 Keen-Eyed Curator
 Ketramose, the New Dawn
 Ketria Triome
@@ -303,6 +311,7 @@ Lorien Revealed
 Lotus Bloom
 Lush Portico
 Magebane Lizard
+Magus of the Moon
 Malevolent Rumble
 Manamorphose
 Marauding Mako
@@ -337,6 +346,7 @@ Mwonvuli Acid-Moss
 Mystic Gate
 Mystical Dispute
 Narset, Parter of Veils
+Natural State
 Nature's Claim
 Nature's Rhythm
 Necrodominance
@@ -348,6 +358,7 @@ Nihil Spellbomb
 Nishoba Brawler
 Nissa, Resurgent Animist
 No More Lies
+Nourishing Shoal
 Null Elemental Blast
 Nurturing Peatland
 Ob Nixilis, the Adversary
@@ -369,6 +380,7 @@ Overlord of the Balemurk
 Ox of Agonas
 Pact of Negation
 Past in Flames
+Path of Peril
 Path to Exile
 Persist
 Pest Control
@@ -395,8 +407,10 @@ Pyretic Ritual
 Pyrite Spellbomb
 Pyroclasm
 Quantum Riddler
+Quirion Ranger
 Ragavan, Nimble Pilferer
 Raise the Past
+Rakdos Charm
 Ral, Monsoon Mage
 Ranger-Captain of Eos
 Raph & Mikey, Troublemakers
@@ -462,6 +476,7 @@ Skewer the Critics
 Skullcrack
 Skyclave Apparition
 Skyline Cascade
+Skysovereign, Consul Flagship
 Slickshot Show-Off
 Smash to Smithereens
 Snapcaster Mage
@@ -477,8 +492,10 @@ Spara's Headquarters
 Spell Pierce
 Spell Snare
 Spelunking
+Spikefield Hazard
 Spirebluff Canal
 Springleaf Drum
+Spymaster's Vault
 Starfield Shepherd
 Static Prison
 Steam Vents
@@ -514,6 +531,7 @@ Swamp
 Swan Song
 Sylvan Safekeeper
 Tale's End
+Talisman of Conviction
 Talisman of Curiosity
 Talisman of Resilience
 Tameshi, Reality Architect
@@ -588,6 +606,7 @@ Verdant Catacombs
 Vesuva
 Vexing Bauble
 Vibrance
+Village Rites
 Vindicate
 Violent Outburst
 Violent Urge
