@@ -363,9 +363,10 @@ a.btnlink{text-decoration:none}
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v0.36';
+const VERSION = 'v0.37';
 /* What's new on the front page (v0.19, like the Modern Table's NEWS): newest first, written for players. Add a line with every version bump. */
 const DNEWS = [
+  ['v0.37','Nov 16',"Sealed: the Khans of Tarkir, Modern Horizons and Modern Horizons 2 pack wrappers are cleaned up. Every cover of a set is now the same size and shape, with clean edges (no white specks or see-through spots)."],
   ['v0.36','Nov 15',"Archetype guides for every set: Reality Fracture, Final Fantasy, Modern Horizons 1 and 2 and Khans of Tarkir. Each shows the official archetypes and signpost cards plus notes and key cards from players' draft guides. Read them while choosing a set, while everyone joins, and in a window during the draft (Archetypes in the top bar or next to Take). Khans of Tarkir prereleases now work like the real one: pick a clan, then open five packs plus a seeded booster of your clan's colors with a foil clan promo."],
   ['v0.35','Nov 11',"Card text is now built into the site, so drafts and cube drafts keep working when Scryfall's card lookups are down, and a card whose picture can't load shows its text instead of a blank."],
   ['v0.34','Nov 11',"Sealed: Modern Horizons 2 packs now show their real wrapper art, all three covers. Every sealed set has real packs now."],
