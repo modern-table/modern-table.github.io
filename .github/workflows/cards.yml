@@ -85,7 +85,7 @@ jobs:
       - name: Commit and push if anything changed
         id: push
         run: |
-          if git diff --quiet -- src/cards.json index.html draft/cards && [ -z "$(git status --porcelain -- src/cards.json draft/cards)" ]; then
+          if git diff --quiet -- src/cards.json index.html draft/cards night/decks.json && [ -z "$(git status --porcelain -- src/cards.json draft/cards night/decks.json)" ]; then
             echo "Card data unchanged."; exit 0
           fi
           echo "changed=1" >> "$GITHUB_OUTPUT"
