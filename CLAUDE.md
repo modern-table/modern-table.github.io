@@ -16,9 +16,9 @@ Repository `modern-table/modern-table.github.io` (the `modern-table` GitHub orga
 - `draft/sets/*.json`, `tools/make_draft_sets.py`: booster odds per set for the Draft Table.
 
 ## Versioning
-`const VERSION = 'v4.NN'` in `src/app.src.html` (v4.0 on 2026-10-21: the table runs the match, with game losses, a round clock, a sideboarding timer and end-of-round turns; v3.0 on 2026-10-15 brought auto-pay from the mana pool, v3 ran to v3.78; v2.0 on 2026-10-14 marked the table resolving rules itself, v2 ran to v2.06; v1 ran to v1.99). Bump NN by one for any feature or behaviour change: v4.0 → v4.01 → v4.02 … Do NOT bump it for a decks-only refresh.
+`const VERSION = 'v5.NN'` in `src/app.src.html` (v5.0 on 2026-11-17: the table passes priority, with stops; v4.0 on 2026-10-21: the table runs the match, with game losses, a round clock, a sideboarding timer and end-of-round turns, v4 ran to v4.137; v3.0 on 2026-10-15 brought auto-pay from the mana pool, v3 ran to v3.78; v2.0 on 2026-10-14 marked the table resolving rules itself, v2 ran to v2.06; v1 ran to v1.99). Bump NN by one for any feature or behaviour change: v5.0 → v5.01 → v5.02 … Do NOT bump it for a decks-only refresh. `.github/scripts/announce.py` compares versions number by number, so v5.01 counts as later than v4.137.
 
-With every version bump, add one line at the top of the `NEWS` array in `src/app.src.html` (`['v4.NN','Mon D','what changed']`). It feeds the "What's new" list on the front page and in the table menu, and is written for players: plain language, no function names.
+With every version bump, add one line at the top of the `NEWS` array in `src/app.src.html` (`['v5.NN','Mon D','what changed']`). It feeds the "What's new" list on the front page and in the table menu, and is written for players: plain language, no function names.
 
 ## Draft Table (`/draft/`)
 Booster draft for up to 8 players; bots fill empty seats. Its own version: `const VERSION = 'v0.NN'` in `src/draft.src.html`, bumped the same way. With every bump add a line at the top of `DNEWS` (same file, right under `VERSION`; `['v0.NN','Mon D','what changed']`, written for players): it fills the front page's What's new column (latest six, "See all changes" shows the rest in place). Draft lines don't go to Discord.

@@ -494,6 +494,44 @@ body.nomo .kc.won{animation:none}
 #shown h3{font-size:20px;max-width:320px}
 #next{margin:8px 10px 10px;padding:12px;font-size:16px;border-radius:99px}
 #next:disabled{background:#1c3238;border-color:var(--line);color:var(--dim);cursor:default}
+/* v5.0 priority: the blue OK button, OK all, the hint line under the button, and the marks on stack cards (only ever drawn at a table that passes priority) */
+#okAll{margin:8px 10px 0;padding:9px;font-size:14px;border-radius:99px;background:transparent;border-color:var(--opp);color:var(--opp);font-weight:800}
+#next.ok{background:var(--opp);border-color:#cfe2ff;color:#06162b;animation:btnpulse 1.4s ease-in-out infinite}
+#next.any{background:transparent;border-color:var(--brass);color:var(--brass)}
+@keyframes btnpulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--opp) 65%,transparent)}50%{box-shadow:0 0 22px 7px color-mix(in srgb,var(--opp) 55%,transparent)}}
+#prihint{margin:-4px 12px 8px;font-size:11px;line-height:1.3;color:var(--dim);text-align:center}
+body.pri #stack{padding:8px 6px}
+body.pri #stack .card.opp:last-child{box-shadow:0 0 0 2px var(--opp)}
+body.pri #stack:empty::after{content:"Empty. Spells wait here for the other player’s OK."}
+#stack .card.askme{box-shadow:0 0 0 2px var(--opp),0 0 14px 4px color-mix(in srgb,var(--opp) 70%,transparent)!important;animation:okpulse 1.4s ease-in-out infinite}
+@keyframes okpulse{50%{box-shadow:0 0 0 2px var(--opp),0 0 24px 9px color-mix(in srgb,var(--opp) 45%,transparent)}}
+body.nomo #next.ok,body.nomo #stack .card.askme{animation:none;box-shadow:0 0 0 2px var(--opp),0 0 18px 6px color-mix(in srgb,var(--opp) 55%,transparent)!important}
+#stack .own{position:absolute;right:4%;bottom:19%;font:800 calc(var(--cw)*.07)/1 var(--ui);letter-spacing:.1em;padding:2px 3px;border-radius:2px;background:#000c;pointer-events:none}
+#stack .own.mine{color:var(--brass)}#stack .own.theirs{color:var(--opp)}
+#stack .band{position:absolute;left:0;right:0;top:36%;text-align:center;font:800 calc(var(--cw)*.078)/1.15 var(--ui);letter-spacing:.1em;padding:3px 0;box-shadow:0 2px 6px #0009;pointer-events:none}
+#stack .band.ask{color:#06162b;background:var(--opp)}
+#stack .band.waitb{color:#cfd8d8;background:#000d;border-block:1px solid #fff5}
+#stack .band.okd{color:#1a1408;background:var(--brass)}
+#ctx .stops{width:352px;max-width:calc(100vw - 24px);padding:6px 6px 2px}
+#ctx .stops h5{margin:0 0 2px;font:800 11px var(--ui);letter-spacing:.14em;color:var(--brass)}
+#ctx .stops p{margin:0 0 8px;font-size:12px;color:var(--dim)}
+.sgrid{display:grid;grid-template-columns:1fr 92px 108px;align-items:center;font-size:13px;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.sgrid>div{padding:3px 8px;border-top:1px solid var(--line);min-height:28px;display:flex;align-items:center;gap:6px}
+.sgrid>div.h{border-top:0;font:800 10px var(--ui);letter-spacing:.1em;text-transform:uppercase;color:var(--dim);background:#0f1c20}
+.sgrid>div.h.me{color:var(--brass)}.sgrid>div.h.op{color:var(--opp)}
+.sgrid small{color:var(--dim);font-size:10.5px;line-height:1.15}
+#ctx .sgrid .box{flex:none;display:grid;place-items:center;width:18px;height:18px;border-radius:3px;border:1.5px solid var(--dim);background:#0c181b;padding:0;font:800 13px/1 var(--ui);color:#06162b;gap:0}
+#ctx .sgrid .box.me.on{background:var(--brass);border-color:var(--brass)}
+#ctx .sgrid .box.op.on{background:var(--opp);border-color:var(--opp)}
+#ctx .sgrid .box.lock{opacity:.5;cursor:default;border-style:dashed}
+#ctx .stops .legend{font-size:11px;line-height:1.35;color:var(--dim);margin:6px 2px 4px}
+#ctx .stops [data-usual]{margin-inline:-6px;width:calc(100% + 12px)}
+.phases button{position:relative}
+.phases button i.sd{position:absolute;left:50%;width:16px;height:4px;margin-left:-8px;border-radius:1px;pointer-events:none}
+.phases button i.sd.a{top:-7px;--mc:var(--opp)}.phases button i.sd.b{bottom:-7px;--mc:var(--brass)}
+.phases button i.sd.on{background:var(--mc);box-shadow:0 0 5px color-mix(in srgb,var(--mc) 70%,transparent)}
+.phases button i.sd.fx{background:color-mix(in srgb,var(--mc) 38%,#0b1417)}
+.phases button i.sd.off{border:1px solid color-mix(in srgb,var(--mc) 50%,transparent)}
 #arrows{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:20}
 #banner{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:25;background:#0b1417ee;border:1px solid var(--brass);border-radius:10px;padding:16px 20px;display:flex;flex-direction:column;gap:10px;align-items:center;text-align:center;max-width:min(420px,90vw)}
 #banner h3{font-size:22px}#banner button{text-transform:uppercase;letter-spacing:.06em;font-size:12px;font-weight:800}#banner .st{font-size:12.5px;color:var(--dim);display:block}#banner .st b{color:var(--ink)}#banner div{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
@@ -679,7 +717,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
     <div id="oppBack" class="row opp"></div>
     <div id="oppFront" class="row front opp"></div>
     <div id="mid">
-      <button id="turnlbl" title="Turn menu: pause your opponent, give control, take the turn"><span class="tlt"></span><span class="tlp" hidden></span><span class="tlc" aria-hidden="true">▾</span></button><span id="stormTag" hidden></span>
+      <button id="turnlbl" title="Turn menu: stops, pauses, give control, take the turn"><span class="tlt"></span><span class="tlp" hidden></span><span class="tlc" aria-hidden="true">▾</span></button><span id="stormTag" hidden></span>
       <div class="phases" id="phases"></div>
       <div class="tools">
         <button id="undoBtn" title="Undo your last action (Ctrl+Z)">↶ <span>Undo</span></button>
@@ -703,7 +741,9 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
     <div id="logwrap"><h4>Game log</h4><div id="log"></div><div id="unlBox" hidden></div><div id="camWrap" class="cw fr-brass" hidden><div class="cfr"><div id="camBox" class="cvid"><video id="camVid" autoplay muted playsinline></video><div id="camMsg"></div><button id="camSet" title="Streamer mode settings" aria-label="Streamer mode settings">⚙</button></div></div><div class="cname"><span class="cn"></span><span class="cdeck"></span><span class="csc" title="Games won this match"></span></div></div><input id="chat" placeholder="Say something…" maxlength="200" aria-label="Chat"></div>
     <div class="avatar me" id="myAv"></div>
     <button id="drawBtn" hidden>Draw a card</button>
+    <button id="okAll" hidden></button>
     <button id="next" class="go"></button>
+    <div id="prihint" hidden></div>
   </aside>
   <svg id="arrows"><defs>
     <marker id="ahA" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#d9b25f"/></marker>
@@ -720,7 +760,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v4.137';
+const VERSION = 'v5.0';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -736,6 +776,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.0','Nov 17',"The table passes priority. At a table with a friend, a spell or ability now waits for the other player: their big button turns blue and says OK (Space works too), and once they OK it, it resolves by itself. To respond, cast your own spell instead of pressing OK; it then waits for their OK. If your friend has stepped away, Resolve anyway unlocks after 20 seconds. OK all answers a pile of triggers at once, and right-clicking one on the stack lets you always OK it. New in the turn menu (click the turn): stops. The game waits for your OK before your opponent attacks and before their end step, and you can add or remove stops there; small dashes on the phase bar show them, and your opponent never sees yours. Priority is on at every table. The player who opened the table can turn it off under ☰ Settings, and it turns itself off while either player's page is still an older version (reload to update). Practice games are unchanged."],
   ['v4.137','Nov 16',"Playing a land from exile (Reckless Impulse, Wrenn's Resolve, March of Reckless Joy and the like) now uses your land for the turn, like playing one from your hand. If you've already played one, the table asks first. You can also drag a playable exiled land onto the battlefield."],
   ['v4.136','Nov 16',"The three Marches. March of Otherworldly Light only lets you aim at something with mana value X or less. March of Reckless Joy lets you play just two of the cards it exiles: once you have, the rest can't be played. Paying less by exiling cards from your hand already worked for all three."],
   ['v4.135','Nov 16',"This week's new tournament cards play themselves. Bloodghast comes back from your graveyard when a land enters, can't block, and has haste once your opponent is at 10 life or less. Bonecrusher Giant deals 2 damage to whoever targets it with a spell. Case of the Crimson Pulse is solved at your end step when your hand is empty, and then refills your hand each upkeep. Kataki makes you pay {1} for each artifact every upkeep or sacrifice it. Path of Peril can be cast with cleave. Also: Extract the Truth, Genesis Device's big ability, Nourishing Shoal, Quirion Ranger (once a turn), Rakdos Charm's third mode, and Spikefield Hazard now exiles what it kills."],
@@ -1204,7 +1245,7 @@ const cname = c => c.fd ? 'a face-down card' : '[['+(cdata(c).n||'a card')+'|'+(
 function pub(){
   const m=G.me, p = c => c.fd ? Object.assign({}, c, {k:null, cu:null, note:''}) : c;
   return { name:m.name, lgs:m.lgs||'', deck:m.deck, life:m.life, ctr:m.ctr, libN:m.lib.length, handN:m.hand.length, sideN:m.side.length,
-    hand:(m.reveal || m.ctl) ? m.hand : null, noMax:!!m.noMax, ptest:m.ptest||'', comp:m.side.filter(c=>c.comp), compDone:!!m.compDone, deckReady:m.deckReady!==false, skipRoll:!!m.skipRoll, wonGame:m.wonGame||0, btm:m.btm||0, ctl:!!m.ctl, ctlNext:!!m.ctlNext, city:!!m.city, sbing:!!m.sbing, bf:m.bf.map(p), ph:(m.ph||[]).map(p), gy:m.gy, ex:m.ex.map(p), st:m.st.filter(x=>!isHeldTrig(x)).map(p), arrows:m.arrows, mull:m.mull, drn:m.drn||null, wins:m.wins||0, roll:m.roll||null, dealt:!!m.dealt, kept:!!m.kept, mana:m.mana||noMana(), smana:m.smana||[], energySeen:!!m.energySeen, monarch:!!m.monarch, mill:m.mill||null, nt:m.nt||null, hasteNext:m.hasteNext||0, lp:m.lp||null, lpx:m.lpx||null, poisonSeen:!!m.poisonSeen, poisonSrc:!!m.poisonSrc, cast:m.cast||{n:0,is:0}, cares:m.cares||null, emb:m.emb||[], gtg:m.gtg||[], baub:m.baub||[], trk:pubTrk(m.trk), mistT:m.mistT||0, mistBy:m.mistBy||'' };
+    hand:(m.reveal || m.ctl) ? m.hand : null, noMax:!!m.noMax, ptest:m.ptest||'', comp:m.side.filter(c=>c.comp), compDone:!!m.compDone, deckReady:m.deckReady!==false, skipRoll:!!m.skipRoll, wonGame:m.wonGame||0, btm:m.btm||0, ctl:!!m.ctl, ctlNext:!!m.ctlNext, city:!!m.city, sbing:!!m.sbing, bf:m.bf.map(p), ph:(m.ph||[]).map(p), gy:m.gy, ex:m.ex.map(p), st:m.st.filter(x=>!isHeldTrig(x)).map(p), arrows:m.arrows, mull:m.mull, drn:m.drn||null, wins:m.wins||0, roll:m.roll||null, dealt:!!m.dealt, kept:!!m.kept, mana:m.mana||noMana(), smana:m.smana||[], energySeen:!!m.energySeen, monarch:!!m.monarch, mill:m.mill||null, nt:m.nt||null, hasteNext:m.hasteNext||0, lp:m.lp||null, lpx:m.lpx||null, poisonSeen:!!m.poisonSeen, poisonSrc:!!m.poisonSrc, cast:m.cast||{n:0,is:0}, cares:m.cares||null, emb:m.emb||[], gtg:m.gtg||[], baub:m.baub||[], trk:pubTrk(m.trk), mistT:m.mistT||0, mistBy:m.mistBy||'', aim:priAim() };
 }
 /* undo: a snapshot of my own side is kept before each change. Shuffles and anything that crosses to the other player close the history. */
 const UNDO=[]; let lastSnap=null, lastLogi=0;
@@ -1230,8 +1271,8 @@ function lifeGuard(){ const m=G.me; if(!m || !G.turn) return; const n=G.turn.n;
   if(m.lifeLock && m.lifeLock.n===n && m.life!==m.lifeLock.v){ const d=m.life-m.lifeLock.v; m.life=m.lifeLock.v; fix(d); addLog(`${m.name}'s life total can't change this turn (${d>0?'+':''}${d} undone).`,'s'); send({t:'log', text:`${m.name}'s life total can't change this turn.`}); }
   else if(m.noGain===n && m.lastL!=null && m.life>m.lastL){ const d=m.life-m.lastL; m.life=m.lastL; fix(d); addLog(`${m.name} can't gain life this turn (+${d} undone).`,'s'); send({t:'log', text:`${m.name} can't gain life this turn.`}); }
   m.lastL=m.life; }
-function changed(){ if(DSW) return; dedupeIds(); lossCheck(); clearTimeout(G.sbaT); G.sbaT=setTimeout(sbaDeaths, 150); legendCheck(); lifeGuard(); try{ scalesWatch(); }catch(e){} try{ tapWatch(); }catch(e){} try{ ctrWatch(); }catch(e){} try{ kaitoWatch(); }catch(e){} if(G.me.ctr.energy>0) G.me.energySeen=true; if((G.me.ctr.poison||0)>0) G.me.poisonSeen=true; checkHeld(); if(dummy()) asDummy(()=>checkHeld()); pruneGtg(); pruneArrows(); warpPrune(); for(const x of G.me.bf) if(x.tok && x.tokT==null) x.tokT=G.turn.n||0;   /* every token knows the turn it entered (Ocelot Pride's copies) */ checkpoint(); render(); clearTimeout(syncT); syncT=setTimeout(()=>{ send({t:'state', s:pub()}); save(); }, 40); }
-function save(){ if(DSW) return; if(G.code || G.solo) store.set('mt_session', {code:G.code, solo:G.solo, myId:G.myId, me:G.me, dum:(G.opp&&G.opp.dummy)?G.opp:null, turn:G.turn, idc:G.idc, mt:mtWire(), mtEnd:(G.mt&&G.mt.end)||null, at:Date.now()}); }
+function changed(){ if(DSW) return; dedupeIds(); lossCheck(); clearTimeout(G.sbaT); G.sbaT=setTimeout(sbaDeaths, 150); legendCheck(); lifeGuard(); try{ scalesWatch(); }catch(e){} try{ tapWatch(); }catch(e){} try{ ctrWatch(); }catch(e){} try{ kaitoWatch(); }catch(e){} if(G.me.ctr.energy>0) G.me.energySeen=true; if((G.me.ctr.poison||0)>0) G.me.poisonSeen=true; checkHeld(); if(dummy()) asDummy(()=>checkHeld()); pruneGtg(); pruneArrows(); warpPrune(); for(const x of G.me.bf) if(x.tok && x.tokT==null) x.tokT=G.turn.n||0;   /* every token knows the turn it entered (Ocelot Pride's copies) */ try{ priWatch(); }catch(e){} checkpoint(); render(); clearTimeout(syncT); syncT=setTimeout(()=>{ send({t:'state', s:pub()}); save(); }, 40); }
+function save(){ if(DSW) return; if(G.code || G.solo) store.set('mt_session', {code:G.code, solo:G.solo, myId:G.myId, me:G.me, dum:(G.opp&&G.opp.dummy)?G.opp:null, turn:G.turn, idc:G.idc, mt:mtWire(), mtEnd:(G.mt&&G.mt.end)||null, pri:priWire(), at:Date.now()}); }
 function log(text, cls){ addLog(text, cls||'m'); send({t:'log', text}); if(G.me && G.turn && G.turn.n && /\bsacrific(?:es|ed)\b/i.test(text) && String(text).includes(G.me.name) && !/sacrifices nothing|nothing is sacrificed/i.test(text)) G.me.sacT=G.turn.n; }
 /* Vehicles: crewed this turn (c.crew = turn), or "As long as you control eight or more permanents named X, this Vehicle is an artifact creature" (Phoenix Fleet Airship) */
 function vehicleCre(c){ if(!c || c.fd || (!c.k && !c.cu)) return false; const t=faceType(c); if(!/\bVehicle\b/.test(t)) return false; if(c.crew && G.turn && c.crew===G.turn.n) return true;
@@ -1274,18 +1315,18 @@ function connect(){
   });
   function dial(){ if(peer.destroyed || peer.disconnected) return; wire(peer.connect(PREFIX+G.code, {reliable:true, serialization:'json'})); }
   function wire(c){
-    c.on('open', () => { G.conn=c; setNet('connected'); if(host) gcEvent('friend-joined', 'Friend joined a table (two-player game)', 'fj_'+G.code); send({t:'hello', n:G.turn.n}); send({t:'state', s:pub()}); if(host || G.turn.n>0) send({t:'turn', turn:G.turn, hello:true}); if(host) setTimeout(mtSend, 600); });
+    c.on('open', () => { G.conn=c; setNet('connected'); if(host) gcEvent('friend-joined', 'Friend joined a table (two-player game)', 'fj_'+G.code); send({t:'hello', n:G.turn.n, pv:PRI_PV, pri:isHostSide() ? priSet() : null}); send({t:'state', s:pub()}); if(host || G.turn.n>0) send({t:'turn', turn:G.turn, hello:true}); if(host) setTimeout(mtSend, 600); });
     c.on('data', onMsg);
-    c.on('close', () => { if(G.conn===c){ G.conn=null; setNet(host ? 'waiting' : 'joining'); if(!host) setTimeout(()=>{ if(peer===G.peer && !G.conn) dial(); }, 2000); } });
+    c.on('close', () => { if(G.conn===c){ G.conn=null; G.oppHello=false; G.oppPv=0; setNet(host ? 'waiting' : 'joining'); if(!host) setTimeout(()=>{ if(peer===G.peer && !G.conn) dial(); }, 2000); } });
     c.on('error', e => console.warn('conn error', e));
   }
 }
 function onMsg(m){
   if(!m || typeof m!=='object') return;
-  if(m.t==='state'){ const first=!G.opp, pl=G.opp ? G.opp.life : null; G.opp=m.s; if(pl!=null && m.s && m.s.life<pl) G.oppLost=G.turn.n; if(checkHeld() | pruneArrows() | bestowCheck() | oppTgtWatch()){ changed(); } const need=[]; for(const z of ['bf','gy','ex','st','hand']) for(const c of (G.opp[z]||[])){ if(c.k) need.push(c.k); if(c.cp && c.cp.k) need.push(c.cp.k); } ensureCards(need).then(render); if(first) addLog((G.opp.name||'Opponent')+' sat down at the table.','s'); render(); }
+  if(m.t==='state'){ const first=!G.opp, pl=G.opp ? G.opp.life : null; G.opp=m.s; if(pl!=null && m.s && m.s.life<pl) G.oppLost=G.turn.n; if(checkHeld() | pruneArrows() | bestowCheck() | oppTgtWatch() | priWatch()){ changed(); } const need=[]; for(const z of ['bf','gy','ex','st','hand']) for(const c of (G.opp[z]||[])){ if(c.k) need.push(c.k); if(c.cp && c.cp.k) need.push(c.cp.k); } ensureCards(need).then(render); if(first) addLog((G.opp.name||'Opponent')+' sat down at the table.','s'); render(); }
   else if(m.t==='turn'){
     if(m.hello && G.turn.n > m.turn.n) return;
-    const prev=G.turn; G.turn = m.turn; if(m.turn && m.turn.hold && m.turn.hold.pid===G.myId) delete G.me.pauseAsk;
+    const prev=G.turn; G.turn = m.turn; if(m.turn && m.turn.hold && m.turn.hold.pid===G.myId && !m.turn.hold.ok) delete G.me.pauseAsk;
     if(m.fresh && G.turn.active===G.myId) startMyTurn(); else if(turnCleanup(prev, m.turn)) changed(); else { render(); save(); }
   }
   else if(m.t==='log'){ addLog(String(m.text).slice(0,400), m.chat ? 'co' : 'o'); const ks=[...String(m.text).matchAll(/\[\[[^|\]]*\|([^\]]*)\]\]/g)].map(x=>x[1]).filter(Boolean); if(ks.length) ensureCards(ks); }
@@ -1304,7 +1345,7 @@ function onMsg(m){
   else if(m.t==='cdmg'){ G.noUndo=true; takeCombat(m); }
   else if(m.t==='pause'){ const at=['up','pre','post'].includes(m.at) ? m.at : null; if(at) G.me.pauseReq={at}; else delete G.me.pauseReq;
     const t=G.turn; if(at==='up' && t.active===G.myId && !t.passed && t.n && t.phase===0 && !t.hold){ setTurn({...t, hold:pauseHold('up')}); } changed(); }
-  else if(m.t==='resume'){ resumePause(); }
+  else if(m.t==='resume'){ resumePause(m.at); }
   else if(m.t==='reveal'){ const src=String(m.src||'').slice(0,80), by=String(m.by||'Opponent').slice(0,40); log(`${src}: ${G.me.name} reveals their hand to ${by}: ${G.me.hand.map(cname).join(', ') || 'no cards'}.`); send({t:'handshow', src, who:G.me.name, cards:G.me.hand.map(c=>({id:c.id, k:c.k, cu:c.cu||null}))}); }
   else if(m.t==='handshow' || m.t==='handview'){ const cards=(Array.isArray(m.cards)?m.cards:[]).slice(0,40), who=String(m.who||'Opponent').slice(0,40), src=String(m.src||'').slice(0,80);
     ensureCards(cards.map(c=>c.k).filter(Boolean)).then(()=>{ if(m.t==='handshow'){ const info=G.pendRv || {src, desc:'', wc:''}; G.pendRv=null; openReveal(cards, oppId(), who, info); }
@@ -1418,6 +1459,10 @@ function onMsg(m){
   else if(m.t==='newmatch'){ toast((G.opp&&G.opp.name||'Opponent')+' started a new match.'); newMatch(true); }
   else if(m.t==='setroll'){ G.me.roll=+m.v||null; changed(); }
   else if(m.t==='newgame'){ toast((G.opp&&G.opp.name||'Opponent')+' started a new game.'); newGame(true); }
+  else if(m.t==='hello'){ priHello(m); }   /* v5.0: which pages pass priority, and the host's switch */
+  else if(m.t==='ok'){ priGotOK(Array.isArray(m.ids) ? m.ids.slice(0,300).map(String) : []); }
+  else if(m.t==='pri'){ if(!isHostSide()){ const was=priSet(); if(m.on===false) G.pri=false; else delete G.pri; if(was!==priSet()){ priChanged(); changed(); if(settingsModal.refresh) settingsModal.refresh(); } } }   /* only the host's page sends it; the host's own page ignores it */
+  else if(m.t==='stops'){ const s=m.s||{}; G.oppStops={up:!!s.up, draw:!!s.draw, m1:!!s.m1, atk:!!s.atk, m2:!!s.m2}; }
   else if(m.t==='full'){ $('#lobbyMsg').textContent='That table already has two players.'; setNet('full'); }
 }
 function renderNet(){
@@ -1535,7 +1580,7 @@ function lpTipShow(el){ let tip=$('#lpTip'); if(!tip){ tip=document.createElemen
 document.addEventListener('mouseover', e=>{ const t=e.target && e.target.closest ? e.target : null; const c=t && t.closest('.lpc'), k=t && t.closest('[data-lpk]');
   if(c) lpTipShow(c); else { const tip=$('#lpTip'); if(tip) tip.hidden=true; }
   if(k) lpHot(k.dataset.lpk, c); else if(document.querySelector('.lphot')) lpHot(null); });
-function resolve(id){ const f=find(id); if(!f) return; const c=f.c; if(!c.ab && !c.ch && c.x!=null) c.xc=c.x;
+function resolve(id){ const f=find(id); if(!f) return; const c=f.c; if(f.z==='st' && priGate(c)) return; delete c.okd;   /* v5.0: the other player's OK first */ if(!c.ab && !c.ch && c.x!=null) c.xc=c.x;
   if(c.pact){ pactPanel(id); return; }
   gyResolve(c); blinkResolve(c);
   if(c.ch || c.ab){ G.me.st.splice(f.i,1); const s=c.ch && find(c.ch.id); log(`${cname(c)} resolves.`); { const ab=c.ab||{}; if(!(ab.rbc||ab.copy||ab.eb||ab.ebret||ab.peek||ab.later||ab.bdraw||ab.cyc||ab.dealt||ab.flret||ab.gyall||ab.amu||ab.und||ab.trig||ab.storm||ab.sacend||ab.exend||ab.warpx||ab.casc!=null||c.pact)) autoResolve(c, (c.cu&&c.cu.o)||'', ab.id || (c.ch && c.ch.id)); } if(c.ab && c.ab.copy) applyCopy(c.ab.id, c.ab.copy); if(c.ab && c.ab.eb) earthResolve(c); if(c.ab && c.ab.ebret){ const r=find(c.ab.ebret); if(r && (r.z==='gy' || r.z==='ex')){ move(r.c.id,'bf',{silent:true, tap:true}); log(`${cname(r.c)} returns to the battlefield tapped.`); } else log('The earthbent card is no longer in the graveyard or exile, so it does not return.'); } if(c.ab && (c.ab.peek || c.ab.later)) peekResolve(c); if(c.ab && c.ab.bdraw) draw(1); if(c.ab && c.ab.cyc){ const by=srcName(c); if(c.ab.cyc==='draw') draw(1); else { const k=c.ab.cyc; setTimeout(()=>searchGate(()=>cycleSearch(k, by), by), 0); } } if(c.ab && c.ab.dealt && /search your library for up to that many land cards, put them onto the battlefield tapped/i.test((c.cu&&c.cu.o)||'')) setTimeout(()=>searchGate(()=>landSearch(c.ab.dealt, srcName(c)), srcName(c)), 0); if(c.ab && c.ab.flret){ const r=find(c.ab.flret); if(r && r.z==='ex' && r.c.fl){ r.c.fl.trig=null; flReturn(r.c); } } if(c.ab && 'evsac' in c.ab) evokeResolve(c); if(c.ab && c.ab.rbc) rbResolve(c); if(c.ab && c.ab.sacend) sacEndResolve(c); if(c.ab && c.ab.warpx) warpResolve(c); if(c.ab && c.ab.exend){ const e=c.ab.exend, g=find(e.id); if(g && g.z==='bf' && (g.c.ent||'')===e.ent){ move(e.id,'ex',{silent:true}); log(`${cname(g.c)} is exiled.`); } else log(`${cdata(c).n.replace(/: delayed trigger$/,'')}: that creature is no longer the same object on the battlefield, so nothing is exiled.`); } if(c.ab && c.ab.casc!=null) setTimeout(()=>cascade(c.ab.id, c.ab.casc, cdata(c).n.replace(/: cascade$/,'')), 0); if(c.ab && c.ab.gyall) exileAllGy(cdata(c).n.replace(/: trigger$/,'')); if(c.ab && c.ab.und){ const g=find(c.ab.id); if(g && g.z==='gy'){ move(c.ab.id,'bf',{silent:true}); const h=find(c.ab.id); if(h && h.z==='bf'){ h.c.c=c.ab.und; log(`${cname(h.c)} returns to the battlefield with a ${c.ab.und>0?'+1/+1':'-1/-1'} counter.`); } } else log(`${cdata(c).n.replace(/: (undying|persist)$/,'')} is no longer in the graveyard, so it doesn't return.`); }
@@ -6389,11 +6434,12 @@ function turnDraw(){ const m=G.me, n=G.turn.n; if(m.drew===n) return; m.drew=n; 
   if(m.lib.length) draw(1,false,true); }
 /* leaving the upkeep with auto-draw on: into the draw step, draw, on to the first main phase (unless a pause stops it) */
 function enterDraw(){ if(pauseAt('pre')){ setTurn({...G.turn, phase:1, hold:pauseHold('pre')}); changed(); return; }
-  turnDraw(); if(pauseAt('post')){ setTurn({...G.turn, phase:1, hold:pauseHold('post')}); changed(); return; }
+  turnDraw(); { const ds=priDrawStop(); if(ds && ds.hold){ setTurn({...G.turn, phase:1, hold:ds.hold}); changed(); return; } if(ds){ priOwnLog('draw step'); setTurn({...G.turn, phase:1}); changed(); return; } }
   setTurn({...G.turn, phase:2}); changed(); }
-function resumePause(){ const t=G.turn; if(!t.hold || t.active!==G.myId) return; const at=t.hold.at, nt={...t}; delete nt.hold;
+function resumePause(at0){ const t=G.turn; if(!t.hold || t.active!==G.myId) return; if(t.hold.ok){ if(at0===t.hold.at) priRelease(); return; }   /* v5.0: a standing stop's OK */ const at=t.hold.at, nt={...t}; delete nt.hold;
+  { const k={up:'up', post:'draw'}[at]; if(k && priLive()) nt.okd=Object.assign({}, nt.okd, {[k]:1}); }   /* a one-time pause here also answers the standing stop at the same point */
   if(at==='up' && S.autoDraw && !G.me.st.length && G.me.drew!==t.n){ G.turn=nt; enterDraw(); return; }
-  if(at==='pre' && S.autoDraw){ G.turn=nt; turnDraw(); if(pauseAt('post')){ setTurn({...G.turn, phase:1, hold:pauseHold('post')}); changed(); return; } setTurn({...G.turn, phase:2}); changed(); return; }
+  if(at==='pre' && S.autoDraw){ G.turn=nt; turnDraw(); { const ds=priDrawStop(); if(ds && ds.hold){ setTurn({...G.turn, phase:1, hold:ds.hold}); changed(); return; } if(ds){ priOwnLog('draw step'); setTurn({...G.turn, phase:1}); changed(); return; } } setTurn({...G.turn, phase:2}); changed(); return; }
   if(at==='post' && S.autoDraw){ setTurn({...nt, phase:2}); changed(); return; }
   setTurn(nt); changed(); }
 function askPause(at){ const on=G.opp?G.opp.name:'your opponent';
@@ -6404,7 +6450,8 @@ function pauseItems(){ const on=G.opp?G.opp.name:'Opponent', a=G.me.pauseAsk&&G.
 /* v4.86 (Ben): the Turn menu, opened from the turn label: Pause (was a tools-bar button), Give control (was in ☰, without "(Emrakul)"), Take the turn (was in ☰). */
 function turnMenu(){ const b=$('#turnlbl'), r=b.getBoundingClientRect(), t=G.turn, m=G.me, pa=m.pauseAsk&&m.pauseAsk.at, on=G.opp?G.opp.name:'Opponent';
   const ctl = !G.opp ? null : (m.ctl||m.ctlNext) ? ['Take back control of my turn', ()=>giveControl()] : [t.n&&t.active===G.myId&&!t.passed ? 'Give opponent control of this turn' : 'Give opponent control of my next turn', ()=>giveControl()];
-  menu(r.left, r.bottom+4, [ ...pauseItems(), '-', ctl,
+  const al=[...PRI.aok], pri = priTable() ? [{html:stopsHTML(), cls:'stops', wire:stopsWire}, '-', [`Always OK: ${al.length ? al.join(', ') : 'nothing yet'}`, ()=>{ if(al.length){ PRI.aok.clear(); toast('Always OK list cleared.'); save(); render(); } else toast('Right-click a spell or trigger of theirs on the stack to always OK it.'); }, al.length ? 'click to clear' : 'right-click a stack item'], '-'] : [];
+  menu(r.left, r.bottom+4, [ ...pri, ...pauseItems(), '-', ctl,
     ['Take the turn', ()=>{ setTurn({active:G.myId, phase:2, n:Math.max(1,G.turn.n)}); }, 'fix a mix-up'] ]);
   b.classList.add('open'); const el=$('#ctx'), off=()=>{ if(el.hidden){ b.classList.remove('open'); clearInterval(iv); } }, iv=setInterval(off, 150); }
 /* v4.36 Choke: "Islands don't untap during their controllers' untap steps" on either battlefield */
@@ -6418,11 +6465,12 @@ function startMyTurn(){
   G.noUndo=true; checkpoint();
   clearDamage(); warpTick({n:G.turn.n-1, phase:0}, {n:G.turn.n, phase:G.turn.phase}); flTick({n:G.turn.n-1, phase:0}, {n:G.turn.n, phase:G.turn.phase});
   emptyPool(); for(const c of m.ex) delete c.offer; for(const c of m.bf) if(c.anim){ c.anim=false; c.row=null; } clearBoosts(); for(const c of m.gy) delete c.fbk; m.cast={n:0,is:0}; expirePlayable(); endCopies(); pactTick(); for(const c of m.ex) if(c.pl==='next') c.pl='this'; for(const c of m.ex) if(c.brynBy && m.bf.some(x=>x.id===c.brynBy)) c.pl='this';
-  delete m.gate; const oppDue=baubDue(G.opp&&G.opp.baub, G.turn.n).length>0; baubTick(G.turn.n); const upT=phaseTrigs('upkeep', true) | katakiTick() | rbTick() | suspendTick() | upkSacTick() | vanishTick(); const selfP=!!m.pauseSelf; delete m.pauseSelf; const bHeld=oppDue || m.st.some(c=>c.ab && c.ab.bdraw), held=m.st.some(c=>c.pact) || bHeld || upT || selfP;
+  delete m.gate; const oppDue=baubDue(G.opp&&G.opp.baub, G.turn.n).length>0; baubTick(G.turn.n); const upT=phaseTrigs('upkeep', true) | katakiTick() | rbTick() | suspendTick() | upkSacTick() | vanishTick(); const selfP=!!m.pauseSelf || priMine('up'); delete m.pauseSelf; const bHeld=oppDue || m.st.some(c=>c.ab && c.ab.bdraw), held=m.st.some(c=>c.pact) || bHeld || upT || selfP;
   const pz = vsReal() && m.pauseReq ? m.pauseReq.at : null;
-  if(S.autoDraw && !held && !pz) setTimeout(paradigmAsk, 0);
-  if(S.autoDraw && !held && pz!=='up'){ if(pz==='pre'){ G.turn.phase=1; G.turn.hold=pauseHold('pre'); } else { turnDraw(); if(pauseAt('post')){ G.turn.phase=1; G.turn.hold=pauseHold('post'); } else { G.turn.phase=2; sagaTick(G.turn.n); main1Trigs(); } } }
-  else { G.turn.phase=0; if(pz==='up') G.turn.hold=pauseHold('up'); if(held){ const t=`${m.name}'s turn stops in the upkeep: ${m.st.some(c=>c.pact) ? 'the pact trigger must be dealt with before the draw' : bHeld ? "Mishra's Bauble's delayed draw trigger is on the stack" : upT ? 'an upkeep trigger is on the stack' : 'they asked to stop here'}.`; addLog(t,'s'); send({t:'log', text:t}); } }
+  const su = S.autoDraw && !held && !pz && priStd('up'), sd = S.autoDraw && !held && !pz && !su && (priMine('draw') || priStd('draw'));   /* v5.0 standing stops: the other player's Upkeep stop; a Draw stop (mine or theirs) */
+  if(S.autoDraw && !held && !pz && !su && !sd) setTimeout(paradigmAsk, 0);
+  if(S.autoDraw && !held && pz!=='up' && !su){ if(pz==='pre'){ G.turn.phase=1; G.turn.hold=pauseHold('pre'); } else { turnDraw(); const ds=priDrawStop(); if(ds && ds.hold){ G.turn.phase=1; G.turn.hold=ds.hold; } else if(ds){ G.turn.phase=1; priOwnLog('draw step'); } else { G.turn.phase=2; sagaTick(G.turn.n); main1Trigs(); } } }
+  else { G.turn.phase=0; if(pz==='up') G.turn.hold=pauseHold('up'); else if(su) G.turn.hold=priHold('up'); if(held){ const t=`${m.name}'s turn stops in the upkeep: ${m.st.some(c=>c.pact) ? 'the pact trigger must be dealt with before the draw' : bHeld ? "Mishra's Bauble's delayed draw trigger is on the stack" : upT ? 'an upkeep trigger is on the stack' : 'they asked to stop here'}.`; addLog(t,'s'); send({t:'log', text:t}); } }
   send({t:'turn', turn:G.turn}); changed();
 }
 /* combat steps (G.turn.cs while in Combat): attackers are declared (no cs) → 'blk' the defender blocks (click a creature, then the attacker;
@@ -6639,6 +6687,185 @@ function combatDamage(){ const t=G.turn, m=G.me, oa=(G.opp&&G.opp.arrows)||[], p
 function doneBlocking(force){ if(!force){ const iss=blockSetIssues(); if(iss.length){ modal('These blocks may break the rules', `<ul style="margin:0;padding-left:18px;line-height:1.5">${iss.map(x=>`<li>${esc(unlink(x))}</li>`).join('')}</ul><span class="hint">The table can misread a card, so you decide.</span>`, [['Go back',()=>closeModal(),'ghost'],['Finish anyway',()=>{ closeModal(); log(`${G.me.name} keeps blocks the table flagged: ${iss.join('; ')}.`); doneBlocking(true); },'go']]); return; } }
   const bl=G.me.arrows.filter(a=>a.blk).map(a=>{ const f=find(a.a), g=findAny(a.b); return `${f?cname(f.c):'a creature'} blocks ${g?cname(g.c):'an attacker'}`; });
   log(`${G.me.name} is done blocking${bl.length ? ': '+bl.join('; ') : ' (no blocks)'}.`); setTurn(Object.assign({}, G.turn, {cs:'blkd'})); changed(); }
+/* ===== v5.0: the table passes priority =====
+   A table setting, on by default, that only the host (p1, the player who opened the table) can change (priToggle; message 'pri'). It runs
+   only at a real two-player table where both pages know it (hello carries pv), never in practice, never while a turn is controlled.
+   With it off, or with the other player on an older page, nothing in this block changes anything: the table is v4.137.
+   THE STACK. Each player still owns their own stack items. The top of the combined stack waits on the OTHER player: their big button turns
+   blue ("OK: <card> resolves", Space works) and sends {t:'ok', ids}. The controller's page marks the item c.okd and, unless that player set
+   "I press Resolve" (S.priRes), resolves it by itself (priPump). resolve() refuses an item without its OK (priGate); after PRI_MS the
+   controller's button offers Resolve anyway (logged). There is no Respond button: to respond you cast, and your item waits on the other
+   player. A new item on the stack takes back every earlier OK (priWatch), so the item underneath is asked about again when it is back on
+   top. OK all N answers a run of the other player's items; "Always OK <name>" (right-click their stack item) answers by itself.
+   STOPS. Standing stops are the pause mechanism (G.turn.hold) re-armed each turn: hold = {pid, at, ok:1} with at = up | draw | m1 | atk | m2.
+   Each player's own choices are in S.stops ({mine:{up,draw}, opp:{up,draw,m1,atk,m2}}); the opp half is sent to the other page ('stops'),
+   which stops its own turn there and never shows it. The holder's blue button sends the old {t:'resume'}; the active player gets
+   Go on anyway after PRI_MS. The one-time pauses (hold without ok) are untouched. */
+const PRI_PV=1, PRI_MS=20000, PRI_BEAT=320, PRI_SENT_MS=3000;
+const PRI={sig:'', since:0, sent:{}, seen:null, aok:new Set(), title:document.title, pumpT:0, aokT:0, aim:'null', had:false, oldLog:''};
+const PRI_LEAVE={0:'up', 1:'draw', 2:'m1', 4:'m2'};
+const PHOK={up:'leaves upkeep', draw:'leaves the draw step', m1:'leaves Main 1', atk:'declares attackers', m2:'goes to the end step'};
+const priOn = () => (G.opp && G.opp.name) || 'your opponent';
+const priSet = () => G.pri!==false;                                                             /* the table setting, as this page knows it */
+const priBoth = () => vsReal() && !!(G.conn && G.conn.open) && (G.oppPv||0)>=PRI_PV;             /* a friend is connected, on a page that passes priority */
+const priOld = () => vsReal() && !!(G.conn && G.conn.open) && !!G.oppHello && !((G.oppPv||0)>=PRI_PV);
+const priTable = () => priSet() && priBoth();
+const priLive = () => priTable() && !!G.turn.n && !G.go && !G.me.ctl && !G.opp.ctl && !matchDone();
+const priNeeds = c => !c.pact;                                                                   /* the pact trigger keeps its own window */
+const priName = c => c.fd || (!c.k && !c.cu) ? 'a face-down spell' : (cdata(c).n||'a spell').replace(/: (?=\S)/, ' ');
+const priWire = () => ({on:priSet(), aok:[...PRI.aok]});
+function priFromWire(w){ PRI.aok=new Set(w && Array.isArray(w.aok) ? w.aok.map(String).slice(0,60) : []); if(w && w.on===false && isHostSide()) G.pri=false; else delete G.pri; }
+function priReset(){ delete G.pri; G.oppPv=0; G.oppHello=false; G.oppStops=null; PRI.aok=new Set(); PRI.sent={}; PRI.seen=null; PRI.sig=''; PRI.oldLog=''; }
+/* the combined stack, bottom to top: by ts, the host's items first on a tie, so both pages agree on what is on top */
+function priStack(){ const o=G.opp, mine=G.me.st.filter(c=>!isHeldTrig(c)).map(c=>({c, mine:true})), theirs=((o&&o.st)||[]).map(c=>({c, mine:false}));
+  return (isHostSide() ? [...mine, ...theirs] : [...theirs, ...mine]).sort((a,b)=>(a.c.ts||0)-(b.c.ts||0)); }
+function priTop(){ const s=priStack(); return s.length ? s[s.length-1] : null; }
+/* the other player's items waiting on me, from the top down to my first item */
+function priRun(){ const s=priStack(), out=[]; for(let i=s.length-1; i>=0 && !s[i].mine && !s[i].c.okd && priNeeds(s[i].c); i--) out.push(s[i].c); return out; }
+/* my stack items that are still getting their target: the other player is not asked until the arrow is drawn (published as aim) */
+function priAim(){ if(!priTable()) return null; const out=[], md=G.mode;
+  if(md && md.from && md.type==='arrow'){ const f=find(md.from); if(f && f.z==='st') out.push(md.from); }
+  for(const c of G.me.st){ if(isHeldTrig(c) || out.includes(c.id)) continue;
+    const arrow = ((c.ab && trigTq(c)) || (c.tq && !c.nt)) && !G.me.arrows.some(a=>a.a===c.id), auto = c.ab && c.ab.auto && !c.ab.nt && !(c.bt && c.bt.length);   /* a trigger still waiting for its arrow; a Phelia-style prompt still up */
+    if(arrow || auto) out.push(c.id); }
+  return out.length ? out : null; }
+/* Keeps the order honest and takes back stale OKs. Called before every checkpoint (changed) and when the other player's state arrives.
+   A new item of mine goes above everything I can see (the two computers' clocks may differ); my item that points at one of theirs
+   (an arrow, Chalice's "counter that spell") goes above it; any new item takes back the OKs given so far. Returns true if it changed my side. */
+function priWatch(){ if(!priTable() || !G.turn.n){ PRI.seen=null; return false; }
+  let ch=false; const mine=G.me.st.filter(c=>!isHeldTrig(c)), theirs=(G.opp.st||[]), all=[...mine, ...theirs], seen=PRI.seen;
+  if(seen){ const nwMine=mine.filter(c=>!seen.has(c.id)), nw=all.filter(c=>!seen.has(c.id));
+    if(nwMine.length){ const mx=all.filter(c=>!nwMine.includes(c)).reduce((a,c)=>Math.max(a, c.ts||0), 0), mn=nwMine.reduce((a,c)=>Math.min(a, c.ts||0), Infinity);
+      if(mn<=mx){ const d=mx+1-mn; for(const c of nwMine) c.ts=(c.ts||0)+d; ch=true; } }
+    if(nw.length){ for(const c of mine) if(c.okd && seen.has(c.id)){ delete c.okd; ch=true; G.noUndo=true; } PRI.sent={}; } }
+  for(const s of mine){ const ids=G.me.arrows.filter(a=>a.a===s.id).map(a=>a.b); if(s.ab && s.ab.csp) ids.push(s.ab.csp);
+    for(const id of ids){ const tg=theirs.find(c=>c.id===id); if(tg && (s.ts||0)<=(tg.ts||0)){ s.ts=(tg.ts||0)+1; ch=true; } } }
+  PRI.seen=new Set(all.map(c=>c.id)); return ch; }
+/* Who the table is waiting on. kind 'stack': the top item needs the OK of the player who doesn't control it (me = it is my OK).
+   'aim': its controller is still choosing the target. 'okd': it has its OK and its controller resolves it (me = I do).
+   'stop': a standing stop (me = I hold it and give the OK). null: nothing is waiting. */
+function priWait(){ const t=G.turn;
+  if(priLive()){ const top=priTop();
+    if(top && priNeeds(top.c)){ const c=top.c;
+      if(c.okd) return {kind:'okd', me:top.mine, top:c};
+      const aim = top.mine ? (priAim()||[]).includes(c.id) : ((G.opp.aim||[]).includes(c.id));
+      if(aim) return {kind:'aim', me:false, mine:top.mine, top:c};
+      return {kind:'stack', me:!top.mine, top:c}; } }
+  if(t.n && t.hold && t.hold.ok && !t.passed && vsReal()) return {kind:'stop', me:t.hold.pid===G.myId, at:t.hold.at};
+  return null; }
+function priElapsed(w){ const s = w ? w.kind+(w.top ? w.top.id : w.at)+(w.me?1:0) : ''; if(s!==PRI.sig){ PRI.sig=s; PRI.since=Date.now(); } return Date.now()-PRI.since; }
+const priSentNow = id => !!PRI.sent[id] && Date.now()-PRI.sent[id] < PRI_SENT_MS;
+/* what the big button says while something is waiting: {text, dis, cls, hint}, or null for the button's usual text */
+function priLabel(){ const w=priWait(), el=priElapsed(w), on=priOn(); if(!w) return null;
+  if(w.kind==='aim') return w.mine ? {text:'Choose its target first', dis:true, hint:`${on} is asked for an OK once the target is chosen (Esc: no target).`} : {text:`${on} is choosing a target`, dis:true, hint:''};
+  if(w.kind==='okd') return w.me ? {text:`Resolve ${priName(w.top)}`, hint:`${on} OK'd it. You have priority back: cast something first if you want to.`} : {text:`Waiting for ${on}`, dis:true, hint:`You OK'd it. ${on} resolves it.`};
+  const st=w.kind==='stack';
+  if(w.me){ if(priSentNow(st ? w.top.id : 'stop:'+G.turn.n+':'+w.at)) return {text:`Waiting for ${on}`, dis:true, hint:''};
+    return {text: st ? `OK: ${priName(w.top)} resolves` : `OK: ${on} ${PHOK[w.at]||'moves on'}`, cls:'ok', hint:'Space works too. To respond instead, cast a spell from your hand.'}; }
+  const left=Math.ceil((PRI_MS-el)/1000);
+  if(left>0) return {text:`Waiting for ${on}'s OK`, dis:true, hint:`${st?'Resolve':'Go on'} anyway unlocks in ${left} s.`};
+  return {text: st ? 'Resolve anyway' : 'Go on anyway', cls:'any', hint:`No answer from ${on} yet. You can also keep waiting.`}; }
+/* paints the button, OK all, the hint line and the tab title; returns the label it used (null = the button keeps its usual text) */
+function priPaint(){ const L=priLabel(), nb=$('#next'), oa=$('#okAll'), hi=$('#prihint'), w=priWait(); let hint = L ? (L.hint||'') : '';
+  if(w && w.kind==='okd' && w.me) priPump(); priAlways();
+  nb.classList.toggle('ok', !!(L && L.cls==='ok')); nb.classList.toggle('any', !!(L && L.cls==='any'));
+  if(L){ nb.disabled=!!L.dis; if(nb.textContent!==L.text) nb.textContent=L.text; }
+  const n = w && w.kind==='stack' && w.me && !priSentNow(w.top.id) ? priRun().length : 0;
+  oa.hidden = n<2; if(n>=2){ oa.textContent=`OK all ${n}`; hint='Right-click a trigger on the stack to always OK it.'; }
+  if(priOld() && priSet()){ const txt=`Priority is off at this table: ${priOn()}'s page is an older version. It turns on when they reload the page.`; if(!L) hint=txt; if(PRI.oldLog!==G.code){ PRI.oldLog=G.code; addLog(txt, 's'); } }
+  hi.hidden=!hint; if(hi.textContent!==hint) hi.textContent=hint;
+  const mineOK = !!(w && w.me && (w.kind==='stack' || w.kind==='stop')), ti = mineOK ? '● Your OK needed · '+PRI.title : PRI.title; if(document.title!==ti) document.title=ti;
+  document.body.classList.toggle('pri', priTable()); PRI.had=!!L; return L; }
+/* the big button or Space while something is waiting; true = the press was used here */
+function priPress(){ const w=priWait(); if(!w) return false; const on=priOn();
+  if(w.kind==='aim') return true;
+  if(w.kind==='okd'){ if(w.me) resolve(w.top.id); else toast(`You OK'd it. ${on} resolves it.`); return true; }
+  if(w.me){ priOK(false); return true; }
+  if(priElapsed(w)>=PRI_MS) priAnyway(w); else toast(`Waiting for ${on}'s OK.`); return true; }
+function priOK(all){ const w=priWait(); if(!w || !w.me) return; const on=priOn();
+  if(w.kind==='stop'){ const k='stop:'+G.turn.n+':'+w.at; if(priSentNow(k)) return; PRI.sent[k]=Date.now(); send({t:'resume', at:w.at}); log(`${G.me.name} OKs: ${on} ${PHOK[w.at]||'moves on'}.`); render(); return; }
+  if(w.kind!=='stack' || priSentNow(w.top.id)) return;
+  const ids = all ? priRun().map(c=>c.id) : [w.top.id]; if(!ids.length) return; for(const id of ids) PRI.sent[id]=Date.now();
+  send({t:'ok', ids}); log(all && ids.length>1 ? `${G.me.name} OKs all ${ids.length} on the stack.` : `${G.me.name} OKs ${cname(w.top)}.`); render(); }
+/* the other player's OK arrives: it counts only for my items in the run on top of the stack (a late OK for something now covered is dropped) */
+function priGotOK(ids){ if(!priLive()) return; const s=priStack(), run=new Set(); for(let i=s.length-1; i>=0 && s[i].mine; i--) run.add(s[i].c.id);
+  let n=0; for(const id of ids){ const f=find(id); if(f && f.z==='st' && run.has(id) && !f.c.okd && priNeeds(f.c)){ f.c.okd=1; n++; } }
+  if(n){ G.noUndo=true; changed(); } }
+const priBusy = () => !!(G.mode || PAY || G.trigHold || !$('#modal').hidden);
+/* after an OK my spell resolves by itself (unless I chose to press Resolve), once nothing else is open on my screen */
+function priPump(){ if(PRI.pumpT) return; PRI.pumpT=setTimeout(()=>{ PRI.pumpT=0; if((S.priRes||'auto')!=='auto') return; const w=priWait(); if(!w || w.kind!=='okd' || !w.me) return; if(priBusy()){ priPump(); return; } resolve(w.top.id); }, 160); }
+/* resolve() asks here first: true = not yet (no OK from the other player) */
+function priGate(c){ if(!priLive() || !priNeeds(c) || c.okd || isHeldTrig(c)) return false; const top=priTop();
+  toast(top && top.c.id===c.id ? `Waiting for ${priOn()}'s OK.` : `${priName(c)} resolves after what is above it on the stack.`); return true; }
+function priAnyway(w){ const on=priOn();
+  if(w.kind==='stop'){ if(G.turn.active!==G.myId) return; log(`${G.me.name} goes on anyway: no answer from ${on}.`); priRelease(); return; }
+  const f=find(w.top.id); if(!f || f.z!=='st') return; log(`${G.me.name} resolves ${cname(f.c)} anyway: no answer from ${on}.`); f.c.okd=1; resolve(f.c.id); }
+/* "Always OK <name>": the table answers for me after a short beat */
+function priAlways(){ if(PRI.aokT || !PRI.aok.size) return; const w=priWait(); if(!w || w.kind!=='stack' || !w.me || priSentNow(w.top.id) || !PRI.aok.has(priName(w.top))) return; const id=w.top.id;
+  PRI.aokT=setTimeout(()=>{ PRI.aokT=0; const v=priWait(); if(!v || v.kind!=='stack' || !v.me || v.top.id!==id || priSentNow(id)) return; PRI.sent[id]=Date.now(); send({t:'ok', ids:[id]}); log(`${G.me.name} OKs ${cname(v.top)} (always OK).`); render(); }, PRI_BEAT); }
+function priAlwaysMenu(c, x, y){ const nm=priName(c), has=PRI.aok.has(nm);
+  menu(x, y, [[`${has ? 'Stop always OK’ing' : 'Always OK'} ${nm}`, ()=>{ if(has) PRI.aok.delete(nm); else PRI.aok.add(nm); toast(has ? `${nm}: you are asked again.` : `${nm}: the table OKs it for you from now on (turn menu to clear).`); save(); render(); }], arrowsOn(c.id) && ['Clear targets', ()=>clearTargets(c.id)]]); }
+/* a click on the other player's stack card: the top one waiting on me takes my OK */
+function priClickOpp(id){ const w=priWait(); if(!w || w.kind!=='stack' || !w.me || w.top.id!==id) return false; priOK(false); return true; }
+/* a click on my own stack card that already has its OK: with "I press Resolve" the button resolves it, not the click */
+function priClickMine(id){ if(!priLive() || (S.priRes||'auto')==='auto') return false; const f=find(id); if(!f || f.z!=='st' || !f.c.okd) return false; toast('It has its OK: press Resolve on your button when you are ready.'); return true; }
+/* the stack card's marks: whose it is, and who the top item is waiting on */
+function priBand(c, mine){ if(!PRIW) return null; const w=PRIW.w, top=PRIW.top===c.id, nm=String(mine ? G.me.name : priOn()).toUpperCase().slice(0,12); let cls='', b=`<span class="own ${mine?'mine':'theirs'}">${esc(nm)}</span>`;
+  if(top && w && w.kind==='stack'){ if(w.me){ cls=' askme'; b+='<span class="band ask">WAITING FOR<br>YOUR OK</span>'; } else b+=`<span class="band waitb">WAITING<br>FOR ${esc(priOn().toUpperCase().slice(0,14))}</span>`; }
+  else if(top && w && w.kind==='okd') b+='<span class="band okd">OK’D</span>';
+  return {cls, b}; }
+let PRIW=null;
+/* the host's switch. A change takes effect at once, is logged, and releases any wait in progress. */
+function priToggle(on){ on=!!on; if(!isHostSide() || G.solo || priSet()===on) return false; if(on) delete G.pri; else G.pri=false; send({t:'pri', on});
+  log(`${G.me.name} turned Priority ${on?'on':'off'} for this table.`); priChanged(); changed(); return true; }
+function priChanged(){ PRI.sig=''; PRI.sent={}; PRI.seen=null; if(priSet()) return;
+  for(const c of G.me.st) delete c.okd; const t=G.turn; if(t.n && t.hold && t.hold.ok && t.active===G.myId && !t.passed) priRelease(); }
+function priHello(m){ const was=priSet(); G.oppHello=true; G.oppPv=+m.pv||0; if(!isHostSide()){ if(m.pri===false) G.pri=false; else delete G.pri; if(was!==priSet()) priChanged(); }
+  priSendStops(); render(); }
+function pressNext(){ if(priPress()) return; nextPhase(); }
+setInterval(()=>{ if(!$('#table').hidden && (PRI.had || priWait())){ const L=priPaint(); if(!L) render(); } }, 250);
+/* ---- v5.0 stops: standing stops on the pause mechanism ---- */
+const stopsUsual = () => ({mine:{up:false, draw:false}, opp:{up:false, draw:false, m1:false, atk:true, m2:true}});
+function myStops(){ const u=stopsUsual(), s=S.stops||{}; return {mine:Object.assign(u.mine, s.mine||{}), opp:Object.assign(u.opp, s.opp||{})}; }
+function priSendStops(){ if(!G.solo && G.conn && G.conn.open){ try{ G.conn.send({t:'stops', s:myStops().opp}); }catch(e){} } }   /* straight down the connection: at hello the other player's state may not be here yet */
+function setStops(st){ S.stops=st; store.set('mt_settings', S); priSendStops(); render(); }
+const priStd = key => priLive() && !!(G.oppStops && G.oppStops[key]) && !(G.turn.okd && G.turn.okd[key]);   /* the other player's standing stop here, not yet OK'd this turn */
+const priMine = key => priLive() && !!myStops().mine[key];                                                 /* my own turn stops here */
+function priHold(key, quiet){ const on=priOn(), me=G.me.name; if(!quiet) setTimeout(()=>log(`${me} is ready to move on. Waiting for ${on}'s OK.`), 0); return {pid:oppId(), at:key, ok:1}; }
+function priOwnLog(where){ const t=`${G.me.name}'s turn stops in the ${where}: they asked to stop here.`; addLog(t,'s'); send({t:'log', text:t}); }
+/* after the turn's draw: a one-time pause first, then my own Draw stop (I act, then press Next), then the other player's standing Draw stop */
+function priDrawStop(){ if(pauseAt('post')) return {hold:pauseHold('post')}; if(priMine('draw')) return {own:1}; if(priStd('draw')) return {hold:priHold('draw')}; return null; }
+/* the active player is about to leave the current phase: true = the turn now waits for the other player's OK */
+function priStopGate(){ const t=G.turn; if(t.active!==G.myId || t.passed || t.hold) return false; const k=PRI_LEAVE[t.phase]; if(!k || !priStd(k)) return false; setTurn({...t, hold:priHold(k)}); changed(); return true; }
+/* entering combat: the Before attackers stop holds the beginning of combat (again = an additional combat phase asks again) */
+function priAtk(nt, again){ if(nt.phase!==3 || nt.hold || !priLive() || !(G.oppStops && G.oppStops.atk) || (!again && nt.okd && nt.okd.atk)) return nt; return {...nt, hold:priHold('atk', true)}; }
+/* a click on a later phase chip by the active player stops at the first standing stop on the way */
+function priChip(to){ const t=G.turn; if(!priLive() || t.active!==G.myId || t.passed || t.hold || !(to>t.phase)) return false;
+  for(let i=t.phase; i<to; i++){ const k=PRI_LEAVE[i]; if(k && priStd(k)){ setTurn({...t, phase:i, passed:false, hold:priHold(k)}); changed(); return true; } }
+  if(to===3 && priStd('atk')){ log(`${G.me.name} moves to combat.`); setTurn({...t, phase:3, passed:false, hold:priHold('atk', true)}); changed(); return true; }
+  return false; }
+/* the OK arrived (or Go on anyway, or the host turned priority off): the stop is passed for this turn and the turn moves on */
+function priRelease(){ const t=G.turn; if(!t.hold || !t.hold.ok || t.active!==G.myId || t.passed) return; const at=t.hold.at, nt={...t, okd:Object.assign({}, t.okd, {[at]:1})}; delete nt.hold;
+  if(at==='atk' || priStack().length){ setTurn(nt); changed(); return; }
+  G.turn=nt; nextPhase(); if(G.turn===nt){ setTurn(nt); changed(); } }
+/* the grid in the turn menu: rows by phase, My turn / <opponent>'s turn. Dashed boxes are the waits that are always there. */
+function stopsHTML(){ const st=myStops(), on=esc(priOn());
+  const box=(side, key, lock)=>{ if(lock!=null) return `<span class="box ${side} on lock" title="Always">✓</span><small>${lock}</small>`; const v=st[side==='me'?'mine':'opp'][key]; return `<button class="box ${side}${v?' on':''}" data-stop="${side}:${key}" aria-label="Stop" aria-pressed="${!!v}">${v?'✓':''}</button>`; };
+  const rows=[ ['Upkeep', box('me','up'), box('op','up')], ['Draw', box('me','draw'), box('op','draw')], ['Main 1', box('me',null,'Next'), box('op','m1')], ['Before attackers', box('me',null,'Next'), box('op','atk')],
+    ['Blocks', '<small>their turn only</small>', box('op',null,'Done blocking')], ['Main 2', box('me',null,'Next'), box('op','m2')], ['End step', box('me',null,'End turn'), box('op',null,'Start my turn')] ];
+  return `<h5>STOPS</h5><p>Where the game waits for your OK before the turn moves on.</p>
+    <div class="sgrid"><div class="h">Before leaving</div><div class="h me">My turn</div><div class="h op">${on}'s turn</div>${rows.map(r=>`<div>${r[0]}</div><div>${r[1]}</div><div>${r[2]}</div>`).join('')}</div>
+    <div class="legend">Dashed boxes are always there and stay as they are. On the phase bar, blue dashes above are ${on}'s turn and gold dashes below are yours: bright is a stop you added, muted is always there, empty is not set. ${on} can't see any of them.</div>
+    <button data-usual><span><b>Back to the usual stops</b></span><kbd>before attackers, Main 2</kbd></button>`; }
+function stopsWire(d){ d.onclick=e=>{ const sb=e.target.closest('[data-stop]');
+  if(sb){ const [side,key]=sb.dataset.stop.split(':'), st=myStops(), h=side==='me'?'mine':'opp'; st[h][key]=!st[h][key]; setStops(st); d.innerHTML=stopsHTML(); return; }
+  if(e.target.closest('[data-usual]')){ setStops(stopsUsual()); d.innerHTML=stopsHTML(); } }; }
+/* the dashes on a phase chip: blue above = my stops on the other player's turn, gold below = my own turn; on = a stop I added, fx = always there, off = not set */
+const PRI_DK={0:'up', 1:'draw', 2:'m1', 3:'atk', 4:'m2'};
+function priDash(i){ if(!priTable()) return {h:'', tip:''}; const st=myStops(), on=priOn();
+  const a = st.opp[PRI_DK[i]] ? 'on' : (i===3||i===5) ? 'fx' : 'off', b = (i===0&&st.mine.up)||(i===1&&st.mine.draw) ? 'on' : i>=2 ? 'fx' : 'off';
+  const TA={on:'a stop you added: you are asked for an OK here', fx: i===3 ? 'you declare blocks, as always' : 'you press Start my turn, as always', off:'no stop set'}, TB={on:'a stop you added: your turn stops here', fx:'you press Next, as always', off:'no stop set'};
+  return {h:`<i class="sd a ${a}"></i><i class="sd b ${b}"></i>`, tip:`${on}'s turn: ${TA[a]}. Your turn: ${TB[b]}. Stops are set in the turn menu.`}; }
 function nextPhase(){ if(waitMull()) return;
   const t=G.turn; if(!t.n){ return; }
   if(t.hold && !t.passed && t.active!==G.myId){ if(t.hold.pid===G.myId){ send({t:'resume'}); log(`${G.me.name} passes priority back to ${G.opp?G.opp.name:'their opponent'}.`); } return; }
@@ -6649,11 +6876,12 @@ function nextPhase(){ if(waitMull()) return;
   if(t.phase===0 && G.me.st.some(c=>c.pact)){ leaveUpkeep(); return; }
   if(G.me.gate && t.phase===1){ toast(`Waiting for ${G.opp?G.opp.name:'your opponent'} to answer about the pact trigger.`); return; }
   if(t.hold){ toast(`Paused: ${G.opp?G.opp.name:'your opponent'} has priority and passes it back when done.`); return; }
+  if(priStopGate()) return;   /* v5.0: the other player's standing stop before this phase is left */
   if(t.phase<=1 && S.autoDraw && t.n>1 && G.me.drew!==t.n){ enterDraw(); return; }   // the turn stopped in the upkeep (a trigger, a pause): its draw still happens
   if(t.phase===0 && !S.autoDraw && pauseAt('pre')){ setTurn({...t, phase:1, hold:pauseHold('pre')}); changed(); return; }
   if(t.phase===3 && combatStep()) return;
-  if(t.phase===3 && G.me.xcomb===t.n){ delete G.me.xcomb; G.me.bf.forEach(c=>c.atk=false); G.me.arrows=G.me.arrows.filter(a=>!a.atk && !a.blk); const nt={...t, phase:3}; delete nt.cs; log(`${G.me.name} begins an additional combat phase.`); setTurn(nt); changed(); return; }
-  if(t.phase < PH.length-1){ const p=t.phase+1; if(p===3){ log(`${G.me.name} moves to combat.`); const ma=mustAttack(); if(ma.length){ log(`Must attack this combat if able: ${ma.join(', ')}.`); toast(unlink(`${ma.join(', ')} ${ma.length>1?'attack':'attacks'} this combat if able.`)); } } setTurn({...t, phase:p}); return; }
+  if(t.phase===3 && G.me.xcomb===t.n){ delete G.me.xcomb; G.me.bf.forEach(c=>c.atk=false); G.me.arrows=G.me.arrows.filter(a=>!a.atk && !a.blk); const nt={...t, phase:3}; delete nt.cs; log(`${G.me.name} begins an additional combat phase.`); setTurn(priAtk(nt, true)); changed(); return; }
+  if(t.phase < PH.length-1){ const p=t.phase+1; if(p===3){ log(`${G.me.name} moves to combat.`); const ma=mustAttack(); if(ma.length){ log(`Must attack this combat if able: ${ma.join(', ')}.`); toast(unlink(`${ma.join(', ')} ${ma.length>1?'attack':'attacks'} this combat if able.`)); } } setTurn(priAtk({...t, phase:p})); return; }
   G.me.bf.forEach(c=>c.atk=false); G.me.arrows=[]; G.noUndo=true;
   if(G.me.ctl){ G.me.ctl=false; log(`The controlled turn ends. ${G.me.name} takes an extra turn under their own control.`); G.turn={active:G.myId, phase:0, n:t.n+1}; startMyTurn(); return; }
   if((!vsReal() || (G.me.xturns||0)>0) && G.me.hand.length>handMax(G.me.bf) && !noMaxMe() && !G.cleanDone){ cleanupDiscard(()=>{ G.cleanDone=1; nextPhase(); G.cleanDone=0; }); return; }
@@ -7198,6 +7426,7 @@ function cardHTML(c, z, mine, cls=''){
     if(hk){ cls+=' hk'; lkA = lkA ? lkA.replace(/"$/, ' '+hk+'"') : ` data-lk="${hk}"`; } }
   if(z==='bf' && LPID.has(c.id)) lkA+=` data-lpk="${esc(c.id)}"`;
   if(z==='st' && mine && !isHeldTrig(c) && ((c.ab && trigTq(c)) || (c.tq && !c.nt)) && !G.me.arrows.some(a=>a.a===c.id)){ const now=G.mode && G.mode.type==='arrow' && G.mode.from===c.id; cls+=now?' tqnow':' tqnext'; b+=now?'<span class="tqban">CHOOSE TARGET</span>':'<span class="tqtag" title="Asks for its target next">NEXT</span>'; }   /* v4.111: which trigger on my stack is asking for its target now, and which are still waiting */   /* v4.109: played this turn: linked to its land-for-turn circle (lpHot) */
+  if(z==='st'){ const pb=priBand(c, mine); if(pb){ cls+=pb.cls; b+=pb.b; } }   /* v5.0 */
   if(z==='bf' && c.cp){ b+=`<span class="cpban" title="${esc(c.cp.orig)}, copying ${esc((cdata(c).n)||'a card')}${c.cp.until?' until end of turn':''}">${esc(c.cp.orig)}</span>`; }
   if(z==='bf' && c.dmg && !backUp){ const T=toughNow(c, mine?G.myId:oppId()), le=T!=null && c.dmg>=T; if(le) cls+=' dmglethal'; b+=`<span class="badge dmg${le?' lethal':''}" title="Damage marked this turn">${c.dmg} dmg${le?'<small>LETHAL</small>':''}</span>`; }
   if(z==='bf' && c.eb && !backUp) b+='<span class="ebban" title="Earthbent: a creature with haste that is still a land">EARTHBENT</span>';
@@ -7402,7 +7631,7 @@ function render(){
   $('#myAv').innerHTML = avatarHTML(m, G.myId, true);
   $('#myAv').className = 'avatar me'+(G.turn.n&&G.turn.active===G.myId?' active':'')+(G.mode?' tgt':'')+((TGS && !tgtCheck(TGS, G.myId).ok) || (G.mode && G.mode.type==='atktgt') ? ' ntg' : ''); $('#myAv').dataset.pl=G.myId;
   const st = [...m.st.filter(c=>!isHeldTrig(c)).map(c=>[c,true]), ...((o&&o.st)||[]).map(c=>[c,false])].sort((a,b)=>(a[0].ts||0)-(b[0].ts||0));
-  { const se=$('#stack'), keep=se.scrollLeft; se.innerHTML = st.map(([c,mine])=>cardHTML(c,'st',mine)).join(''); $('#stackN').textContent = st.length>1 ? '· '+st.length : '';
+  { const se=$('#stack'), keep=se.scrollLeft; PRIW = priLive() ? {w:priWait(), top:(priTop()||{c:{}}).c.id} : null; se.innerHTML = st.map(([c,mine])=>cardHTML(c,'st',mine)).join(''); PRIW=null; $('#stackN').textContent = st.length>1 ? '· '+st.length : '';
     if(st.length>(render.stN||0)) se.scrollLeft=se.scrollWidth; else se.scrollLeft=keep; render.stN=st.length;
     { const nw=se.querySelector('.tqnow'); if(nw){ const r=nw.getBoundingClientRect(), R=se.getBoundingClientRect(); if(r.left<R.left || r.right>R.right) se.scrollLeft += (r.left-R.left) - (R.width-r.width)/2; } } }   // v4.117: the trigger asking for its target is scrolled into view   // something new on the stack: show the top
   const myOff=m.ex.filter(offerLive), opOff=((o&&o.ex)||[]).filter(offerLive), on=o?o.name:'Opponent';
@@ -7428,7 +7657,7 @@ function render(){
   { const tp=tl.querySelector('.tlp'), pa=m.pauseAsk&&m.pauseAsk.at, txt = pa ? `⏸ ${o&&o.name||'Opponent'}: ${PAUSE_SHORT[pa]}` : (m.pauseSelf ? '⏸ my upkeep' : ''); tp.hidden=!txt; tp.textContent=txt; }
   const stg=$('#stormTag'), showStorm=!!(t.n && ((m.cares&&m.cares.storm) || (o&&o.cares&&o.cares.storm)));
   stg.hidden=!showStorm; if(showStorm){ const mine_n=(m.cast&&m.cast.n)||0, opp_n=(o&&o.cast&&o.cast.n)||0; stg.innerHTML=`<small>STORM</small><b>${mine_n+opp_n}</b>`; stg.title=`Spells cast this turn: ${mine_n} by you${o?`, ${opp_n} by ${o.name}`:''}. Click to add one of yours, right-click to take one off.`; }
-  $('#phases').innerHTML = PH.map((p,i)=>`<button data-ph="${i}" class="${t.n&&t.phase===i?'on':''}">${p}</button>`).join('');
+  $('#phases').innerHTML = PH.map((p,i)=>{ const sd=priDash(i); return `<button data-ph="${i}" class="${t.n&&t.phase===i?'on':''}"${sd.tip?` title="${esc(sd.tip)}"`:''}>${p}${sd.h}</button>`; }).join('');
   const gate=m.gate && t.active===G.myId ? m.gate : null, gateOld = gate && Date.now()-gate.at >= GATE_MS;
   $('#drawBtn').hidden = gate ? false : !(t.n>1 && t.active===G.myId && !S.autoDraw && t.phase===1 && m.drew!==t.n && m.lib.length);
   $('#drawBtn').textContent = gate ? (gateOld ? 'Draw anyway' : `Waiting for ${o?o.name:'opponent'}…`) : 'Draw a card'; $('#drawBtn').disabled = !!gate && !gateOld;
@@ -7439,8 +7668,10 @@ function render(){
   { const lb=$('#loopBtn'); const ok=!blockStep() && (!!loopSpec() || !!samSpec()); if(ok){ lb.hidden=false; const fr=$('#myFront'), mid=$('#mid'); lb.style.top=Math.max(mid.offsetTop + mid.offsetHeight + 8, fr.offsetTop + 8)+'px'; } else if(!lb.hidden) lb.hidden=true; }
   markOverflow();
   { const pr=$('#practiceBtn'); if(pr) pr.hidden=!dummy(); }
-  const nb=$('#next');
-  if(!t.n){ nb.textContent='Waiting to start'; nb.disabled=true; }
+  const nb=$('#next'), PL=priPaint();   /* v5.0: an OK that is waiting goes in front of the button's usual text */
+  { const a=JSON.stringify(priAim()); if(a!==PRI.aim){ PRI.aim=a; clearTimeout(syncT); syncT=setTimeout(()=>{ send({t:'state', s:pub()}); save(); }, 40); } }
+  if(PL){ }
+  else if(!t.n){ nb.textContent='Waiting to start'; nb.disabled=true; }
   else if(t.passed){ nb.disabled=mine; nb.textContent = mine ? `Waiting for ${o&&o.name||'opponent'}` : 'Start my turn'; }
   else if(t.hold){ const me=t.hold.pid===G.myId; nb.disabled=!me; nb.textContent = me ? 'Pass priority back' : `Paused: ${o&&o.name||'opponent'} has priority`; }
   else if(iControl()){ nb.disabled=false; nb.textContent = (t.phase<PH.length-1 ? 'Next: '+PH[t.phase+1] : 'End their turn'); }
@@ -7528,6 +7759,7 @@ window.addEventListener('resize', ()=>{ drawArrows(); for(const el of [$('#pactP
 /* ================= menus, modals, zoom ================= */
 function menuFill(el, items){ el.innerHTML='';
   for(const it of items){ if(!it) continue; if(it==='-'){ el.appendChild(document.createElement('hr')); continue; }
+    if(it.html){ const d=document.createElement('div'); d.className=it.cls||''; d.innerHTML=it.html; if(it.wire) it.wire(d); el.appendChild(d); continue; }   /* v5.0: a block of its own inside a menu */
     const b=document.createElement('button');
     if(Array.isArray(it[1])){ b.className='sub'; b.innerHTML=`<span>${esc(it[0])}</span><kbd>${cmStyle()==='swap'?'›':'▸'}</kbd>`; b.onclick=()=>subMenu(b, it[1], items); b.onmouseenter=()=>{ if(cmStyle()!=='swap') subMenu(b, it[1], items); }; }
     else { b.innerHTML=`<span>${esc(it[0])}</span>${it[2]?`<kbd>${it[2]}</kbd>`:''}`; if(it[3]) b.classList.add(it[3]); b.onclick=()=>{ closeMenu(); it[1](); }; if(el.id==='ctx') b.onmouseenter=()=>{ const s=$('#ctx2'); if(s){ s.hidden=true; el.querySelectorAll('.sub.open').forEach(x=>x.classList.remove('open')); } }; }
@@ -7812,9 +8044,14 @@ function tableMenu(x,y){   /* v4.86 (Ben's layout B): this game · view and sett
     ['Leave the table',()=>confirmBox('Leave this table?','Your seat is kept on this computer, so you can come back from the front page.',()=>{ save(); location.href=location.pathname+location.search; })] ]);
 }
 /* v4.86: every table setting in one window. Each row writes S and runs the same apply step its old single window did (those windows stay for the ⚙ on the camera box and anything else that calls them). */
+function priRowHint(){ const what="The table waits for the other player's OK before a spell or ability resolves, and at the stops each player sets in the turn menu.";
+  if(G.solo) return what+' Practice games never use it.';
+  return what + (isHostSide() ? ' You opened this table, so you choose for both players.' : ` Only ${priOn()}, who opened this table, can change it.`) + (priOld() ? ` Not running right now: ${priOn()}'s page is an older version.` : ''); }
 const SETROWS = [
+  {g:'This table', k:'pri', l:'Priority', h:()=>priRowHint(), o:{on:'On', off:'Off'}, get:()=>priSet()?'on':'off', set:v=>{ priToggle(v==='on'); }, dis:()=>!!G.solo || !isHostSide()},
   {g:'Playing', k:'draw', l:'Auto-draw', h:'Draw for the turn without stopping in your upkeep.', o:{on:'On', off:'Off'}, get:()=>S.autoDraw?'on':'off', set:v=>{ S.autoDraw = v==='on'; }},
   {g:'Playing', k:'pay', l:'Auto-pay', h:'Spells and abilities take their cost from your mana pool.', o:{on:'On', off:'Off'}, get:()=>S.autoPay!==false?'on':'off', set:v=>{ S.autoPay = v==='on'; }},
+  {g:'Playing', k:'prires', l:'My spells, after an OK', h:'At a table with a friend, once they OK your spell. I press Resolve keeps it on the stack until you press the big button.', o:{auto:'Resolve by themselves', click:'I press Resolve'}, get:()=>(S.priRes||'auto')==='auto'?'auto':'click', set:v=>{ S.priRes=v; }},
   {g:'Playing', k:'cm', l:'Card menus', h:'Short shows what a known card does, with Manual handling for the rest.', o:{fly:'Short, side', swap:'Short, same', full:'Full'}, get:()=>cmStyle(), set:v=>{ S.cmenu=v; }},
   {g:'Look', k:'tap', l:'Tapped cards', h:'Only on your screen; your opponent picks their own.', o:{'18':'18°', '90':'90°', '90r':'90° with room'}, get:()=>S.tap||TAP_DEF, set:v=>{ S.tap=v; applyTapStyle(); setTimeout(()=>{ render(); drawArrows(); }, 200); }},
   {g:'Look', k:'anim', l:'Animations', h:()=>RMOT.matches ? 'This computer asks apps for less motion.' : 'Cards turning, the hand opening a gap, piles spreading.', o:{on:'On', off:'Off', auto:'Follow my computer'}, get:()=>S.anim||'on', set:v=>{ S.anim=v; applyMotion(); }},
@@ -7822,14 +8059,15 @@ const SETROWS = [
 function settingsModal(){
   const html=()=>{ let g='', out='';
     for(const r of SETROWS){ if(r.g!==g){ if(g) out+='</div>'; g=r.g; out+=`<div class="setg"><h5>${esc(g)}</h5>`; }
-      const cur=r.get(), h=typeof r.h==='function'?r.h():r.h;
-      out+=`<div class="setrow"><div class="sl">${esc(r.l)}<small>${esc(h)}${r.more&&r.more()?' '+r.more():''}</small></div><div class="segs" role="group" aria-label="${esc(r.l)}">${Object.entries(r.o).map(([v,l])=>`<button data-set="${r.k}" data-v="${v}" class="${v===cur?'on':''}" aria-pressed="${v===cur}">${esc(l)}</button>`).join('')}</div></div>`; }
+      const cur=r.get(), h=typeof r.h==='function'?r.h():r.h, dis=!!(r.dis && r.dis());
+      out+=`<div class="setrow"><div class="sl">${esc(r.l)}<small>${esc(h)}${r.more&&r.more()?' '+r.more():''}</small></div><div class="segs" role="group" aria-label="${esc(r.l)}">${Object.entries(r.o).map(([v,l])=>`<button data-set="${r.k}" data-v="${v}" class="${v===cur?'on':''}" aria-pressed="${v===cur}"${dis?' disabled':''}>${esc(l)}</button>`).join('')}</div></div>`; }
     return out+'</div>'; };
   const el=modal('Settings', `<div id="setBody">${html()}</div>`, [['Done',()=>closeModal(),'go']], {width:620});
   const body=$('#setBody', el);
   body.onclick=e=>{ const mb=e.target.closest('[data-more]'); if(mb){ closeModal(); streamModal(); return; }
-    const bt=e.target.closest('[data-set]'); if(!bt) return; const r=SETROWS.find(x=>x.k===bt.dataset.set); if(!r || r.get()===bt.dataset.v) return;
+    const bt=e.target.closest('[data-set]'); if(!bt) return; const r=SETROWS.find(x=>x.k===bt.dataset.set); if(!r || r.get()===bt.dataset.v || (r.dis && r.dis())) return;
     r.set(bt.dataset.v); store.set('mt_settings',S); toast(`${r.l}: ${r.o[bt.dataset.v]}.`); body.innerHTML=html(); render(); };
+  settingsModal.refresh=()=>{ if(document.body.contains(body)) body.innerHTML=html(); };   /* v5.0: the host changed Priority while this window was open */
 }
 function confirmBox(title, text, yes){ modal(title, `<span class="hint">${esc(text)}</span>`, [['Cancel',()=>closeModal(),'ghost'],['Yes',()=>{ closeModal(); yes(); },'go']]); }
 /* The tour (v4.27, Ben): a spotlight on the real screen with a short note and Back / Next / Skip. From the front page it walks the front page,
@@ -7863,11 +8101,12 @@ const TOUR_STEPS = {
     {sel:'#midRail', t:'Wins and the clock', p:['Games won this match. At a two-player table a 50-minute round clock runs here too, with end-of-round turns, like a tournament.']},
     {sel:'#oppAv', t:'Your opponent', p:['Their life, mana and counters. At a real table, the code to send your friend waits here until they join.']},
     {sel:'#myAv', t:'You', p:['Your life: − and + change it (Shift-click for 5). Tapping lands fills your mana pool, and spells pay from it by themselves.']},
-    {sel:'#stackwrap', t:'The stack', p:['Spells and abilities wait here so both players can respond. Click the top one to resolve it.']},
+    {sel:'#stackwrap', t:'The stack', p:['Spells and abilities wait here so both players can respond. In a practice game, click the top one to resolve it. With a friend, yours resolves once they OK it.']},
     {sel:'#logwrap', t:'Game log and chat', p:['Everything either player does is written here. When something surprises you, look here first. Chat at the bottom.']},
-    {sel:'#turnlbl', t:'The turn menu', p:['Whose turn it is. Click it for the turn menu: <b>Pause</b> stops your opponent\'s next turn in their upkeep or draw step so you can act, <b>Give control</b> hands your turn to your opponent (Mindslaver, Emrakul), and <b>Take the turn</b> fixes a mix-up over whose turn it is.']},
-    {sel:'#phases', t:'The turn', p:['The steps of the turn. The table untaps and draws for you. In combat, a bar helps you choose attackers, and your opponent declares blocks with theirs.']},
+    {sel:'#turnlbl', t:'The turn menu', p:['Whose turn it is. Click it for the turn menu: with a friend, <b>Stops</b> choose where the turn waits for your OK; <b>Pause</b> stops your opponent\'s next turn in their upkeep or draw step so you can act, <b>Give control</b> hands your turn to your opponent (Mindslaver, Emrakul), and <b>Take the turn</b> fixes a mix-up over whose turn it is.']},
+    {sel:'#phases', t:'The turn', p:['The steps of the turn. The table untaps and draws for you. In combat, a bar helps you choose attackers, and your opponent declares blocks with theirs.','With a friend, small dashes mark your stops: blue above a step for your opponent\'s turn, gold below for your own.']},
     {sel:'#next', t:'The big button', p:['Moves the turn along: next step, combat damage, end of turn. Space does the same.']},
+    {sel:'#next', t:'Passing priority', p:['With a friend at the table, nothing resolves until the other player has had their say. When their spell or ability is on top of the stack, this button turns <b>blue</b>: <b>OK</b> lets it resolve. To respond, cast your own spell instead; it then waits for their OK.','The same blue OK comes up at your <b>stops</b>: before your opponent attacks and before their end step, unless you change them in the turn menu. Practice games skip all of this.']},
     {sel:'#mid .tools', t:'Tools', p:['<b>Undo</b> your last action · <b>Token / card</b> makes tokens or adds any card · <b>Roll</b> dice and coins · <b>Hand</b> discard, reveal, mulligan · <b>Practice</b> sets up your practice opponent.']},
     {sel:'#undoBtn', t:'Nothing is final', p:['Undo steps back your own last action (Ctrl+Z).','Beyond that, anything can be put back by hand: drag cards, change life, add or remove counters, until the table matches what you both agree happened.']},
     {t:'Automatic first, by hand always', p:['Your cards should work by themselves: triggers go on the stack, targets are asked for, searches open, damage is dealt.','If a card doesn\'t do what it should, use <b>Send feedback</b> (in the ☰ menu) to say what you did and what you expected; that\'s how it gets fixed. Meanwhile you can always make it happen yourself with right-click and drag.']},
@@ -7940,7 +8179,9 @@ const EXPLORE = [
   {sel:'#turnlbl', tour:'#turnlbl'},
   {sel:'#stormTag', t:'Storm count', p:['Spells cast this turn by both players. Click to add one of yours, right-click to take one off.']},
   {sel:'#phases', tour:'#phases'},
-  {sel:'#next', tour:'#next'},
+  {sel:'#okAll', t:'OK all', p:['Several of your opponent\'s spells or triggers are waiting for your OK: this answers all of them at once. Right-click one on the stack to always OK that kind.']},
+  {sel:'#prihint', t:'What the button is waiting for', p:['A line about the big button while an OK is waiting: what Space does, when Resolve anyway unlocks, or why priority is off at this table.']},
+  {sel:'#next', t:'The big button', p:['Moves the turn along: next step, combat damage, end of turn. Space does the same.','With a friend it also passes priority: it turns blue when your OK is needed, for their spell on the stack or at one of your stops.']},
   {sel:'#undoBtn', t:'Undo', p:["Steps back your own last action, one at a time (Ctrl+Z). It stops at a shuffle, the end of a turn, and anything that reached your opponent's side."]},
   {sel:'#tokBtn', t:'Token / card', p:['Make a token, or add any card to the game.']},
   {sel:'#diceBtn', t:'Roll', p:['Roll dice or flip a coin. The result goes in the game log for both of you.']},
@@ -7977,8 +8218,8 @@ function helpModal(){
   const k=(a,b)=>`<div><kbd class="k">${a}</kbd> ${b}</div>`;
   const g=(h, ...l)=>`<h5>${h}</h5>${l.map(x=>`<div>${x}</div>`).join('')}`;
   const el=modal('How the table works', `<div class="hrule"><b>Automatic first, by hand always.</b> Your cards work by themselves wherever the table can manage it. Anything else is in a right-click menu (on a card, a pile, your hand or library) or a drag away. The table warns before plays that look against the rules; you and your opponent decide. A card not working as it should? <b>Send feedback</b> with what you did and what you expected.</div>
-  <div class="two help"><div><h4>Mouse</h4>${g('Playing cards','Click a card in your hand: lands enter play, spells go to the stack (Shift-click: land tapped).','Right-click it for other ways to cast it (evoke, cycling, warp, its other side). Drag cards between zones.')}${g('The stack','Click a spell or ability to resolve it; a window asks when there is a choice. Right-click a permanent to use its abilities.')}${g('Targets','Right-drag from a card to its target to draw an arrow. Right-click either end to clear it.')}${g('Library and graveyard','Click your library to draw, right-click it to search, scry, mill or shuffle. Click a graveyard or exile pile to look through it.')}${g('Mana','Tap lands for mana. Spells and abilities pay from the pool; a window waits if it is short (auto-pay is in ☰ Settings).')}${g('Turns and combat','The big button moves to the next step. In combat, choose attackers on the attack bar; your opponent blocks with theirs; then apply damage. Your opponent clicks Start my turn when you pass.')}${g('Life and the match','− and + beside a player (Shift-click for 5). The table notices a lost game and records the win. Two-player tables have a 50-minute round clock.')}${g('Mistakes','Undo steps back your own last action (not past a shuffle or the end of a turn). Anything else can be put back by hand.')}</div>
-  <div><h4>Keys, with the pointer over your card</h4>${k('T','tap or untap')}${k('A','attack: taps and gets a gold border')}${k('V','attack with vigilance: gold border, stays untapped')}${k('B','block: then click the attacker')}${k('R','target: then click a card or player')}${k('C','add a counter')}${k('X','remove a counter')}${k('−','mark 1 damage (works on your opponent\'s creatures too)')}${k('=','remove 1 damage')}${k('F','transform')}${k('G','graveyard')}${k('E','exile')}${k('H','hand')}<h4 style="margin-top:10px">Anywhere</h4>${k('D','draw a card')}${k('S','shuffle')}${k('Ctrl+Z','undo your last action')}${k('Space','next phase')}${k('Esc','cancel')}${g('Practice','Practice alone gives you an opponent called Practice. The ⚑ Practice button gives it a deck, puts creatures and planeswalkers on its side, and lets it take turns.')}${g('Menus','☰: new game, change deck, concede, full screen, Settings, help. Click the turn to pause, give control or take the turn.')}</div></div>`, [...($('#table').hidden ? [] : [['Explore the table',()=>exploreStart(),'ghost']]), ['Take the tour',()=>{ closeModal(); tourStart('table'); },'ghost'], ["What's new",()=>{ closeModal(); newsModal(); },'ghost'], ['Send feedback',()=>{ closeModal(); openFeedback(); },'ghost'], ['Got it',()=>closeModal(),'go']]);
+  <div class="two help"><div><h4>Mouse</h4>${g('Playing cards','Click a card in your hand: lands enter play, spells go to the stack (Shift-click: land tapped).','Right-click it for other ways to cast it (evoke, cycling, warp, its other side). Drag cards between zones. Right-click a permanent for its abilities.')}${g('The stack','With a friend, a spell waits for their OK (your button turns blue when the OK is yours); to respond, cast something. In practice, click it to resolve.')}${g('Targets','Right-drag from a card to its target to draw an arrow. Right-click either end to clear it.')}${g('Library and graveyard','Click your library to draw, right-click it to search, scry, mill or shuffle. Click a graveyard or exile pile to look through it.')}${g('Mana','Tap lands for mana. Spells and abilities pay from the pool; a window waits if it is short (auto-pay is in ☰ Settings).')}${g('Turns and combat','The big button moves to the next step. In combat, choose attackers on the attack bar; your opponent blocks with theirs; then apply damage. Your opponent clicks Start my turn when you pass.')}${g('Life and the match','− and + beside a player (Shift-click for 5). The table notices a lost game and records the win. Two-player tables have a 50-minute round clock.')}${g('Mistakes','Undo steps back your own last action (not past a shuffle or the end of a turn). Anything else can be put back by hand.')}</div>
+  <div><h4>Keys, with the pointer over your card</h4>${k('T','tap or untap')}${k('A','attack: taps and gets a gold border')}${k('V','attack with vigilance: gold border, stays untapped')}${k('B','block: then click the attacker')}${k('R','target: then click a card or player')}${k('C','add a counter')}${k('X','remove a counter')}${k('−','mark 1 damage (works on your opponent\'s creatures too)')}${k('=','remove 1 damage')}${k('F','transform')}${k('G','graveyard')}${k('E','exile')}${k('H','hand')}<h4 style="margin-top:10px">Anywhere</h4>${k('D','draw a card')}${k('S','shuffle')}${k('Ctrl+Z','undo your last action')}${k('Space','next phase, or OK')}${k('Esc','cancel')}${g('Practice','Practice alone gives you an opponent called Practice. The ⚑ Practice button gives it a deck, puts creatures and planeswalkers on its side, and lets it take turns.')}${g('Menus','☰: new game, change deck, concede, full screen, Settings, help. Click the turn for stops, pauses, give control or take the turn.')}</div></div>`, [...($('#table').hidden ? [] : [['Explore the table',()=>exploreStart(),'ghost']]), ['Take the tour',()=>{ closeModal(); tourStart('table'); },'ghost'], ["What's new",()=>{ closeModal(); newsModal(); },'ghost'], ['Send feedback',()=>{ closeModal(); openFeedback(); },'ghost'], ['Got it',()=>closeModal(),'go']]);
 }
 /* sideboarding: the main deck laid out like a library search (Draft Table style), the sideboard as one overlapping column on the right,
    sorted by type (creatures, other spells, lands), color (W U B R G, multicolored, colorless) and mana value; a click moves one card across */
@@ -8189,8 +8430,8 @@ document.addEventListener('pointerup', e=>{
   if(e.button!==0) return;
   if(G.mode){ G.clkShift=!!e.shiftKey; finishMode(d.id); G.clkShift=false; return; }
   if(G.atkSel && d.mine && d.z==='bf' && atkStep()){ atkToggle(d.id); return; }
-  if(!d.mine){ if(iControl()) remoteClick(d.id, d.z, e.clientX, e.clientY); return; }
-  if(d.z==='hand'){ const f=find(d.id); if(f && mdfcLand(f.c) && !G.me.ctl){ /* v4.85: modal double-faced spell/land: menu, or Shift = land side tapped */ if(e.shiftKey) playLandSide(d.id,'tapped'); else mdfcMenu(d.id, e.clientX, e.clientY); return; } if(e.shiftKey && f && isLand(f.c)){ move(d.id,'bf',{tap:true}); changed(); } else playFromHand(d.id); } else if(d.z==='bf'){ const f=find(d.id); if(blockStep() && f && isCreature(f.c) && !f.c.tap){ startMode('block', d.id); return; } toggleTap(d.id, e.clientX, e.clientY); } else if(d.z==='st') resolve(d.id);
+  if(!d.mine){ if(iControl()) remoteClick(d.id, d.z, e.clientX, e.clientY); else if(d.z==='st') priClickOpp(d.id); return; }
+  if(d.z==='hand'){ const f=find(d.id); if(f && mdfcLand(f.c) && !G.me.ctl){ /* v4.85: modal double-faced spell/land: menu, or Shift = land side tapped */ if(e.shiftKey) playLandSide(d.id,'tapped'); else mdfcMenu(d.id, e.clientX, e.clientY); return; } if(e.shiftKey && f && isLand(f.c)){ move(d.id,'bf',{tap:true}); changed(); } else playFromHand(d.id); } else if(d.z==='bf'){ const f=find(d.id); if(blockStep() && f && isCreature(f.c) && !f.c.tap){ startMode('block', d.id); return; } toggleTap(d.id, e.clientX, e.clientY); } else if(d.z==='st'){ if(!priClickMine(d.id)) resolve(d.id); }
   else if(d.z==='side'){ const f=find(d.id); if(f && f.c.comp && d.el.closest('.playbox')) menu(e.clientX, e.clientY, compItems(f.c, d.id)); }
   else if(d.z==='ex'){ const f=find(d.id); if(f && f.c.pl && d.el.closest('.playbox')) menu(e.clientX, e.clientY, playItems(f.c, d.id)); else if(f && f.c.plot && d.el.closest('.playbox')) menu(e.clientX, e.clientY, [['Cast it without paying its mana cost',()=>plotCast(d.id)]]); }
 });
@@ -8199,6 +8440,7 @@ function cardContext(card, x, y){
   if(card.dataset.o==='me' && card.dataset.z!=='search') cardMenu(id, x, y);
   else if(card.dataset.o==='opp' && iControl()){ remoteMenu(id, x, y); }
   else if(card.dataset.o==='opp'){ const a=findAny(id), cr=a && a.z==='bf' && !a.c.fd && isCreature(a.c);
+    if(a && a.z==='st' && priLive()){ priAlwaysMenu(a.c, x, y); return; }   /* v5.0: Always OK <name> */
     if(cr){ aboutCard(id, x, y); return; }   // v4.64: an opponent's creature: how big it is right now (Mark damage and Clear targets sit at the bottom)
     const items=[ arrowsOn(id)&&['Clear targets',()=>clearTargets(id)], cr&&['Mark damage…',async()=>{ const n=await askN('Mark damage', 1); if(n>0) damage(id, n); },'−'], cr&&a.c.dmg&&['Remove damage',()=>damage(id, -a.c.dmg)] ].filter(Boolean);
     if(items.length) menu(x, y, items); }
@@ -8278,8 +8520,9 @@ document.addEventListener('click', e=>{
   const chip=t.closest('[data-ctr]'); if(chip){ adjCtr(chip.dataset.pl, chip.dataset.ctr, 1); return; }
   if(t.closest('#stormTag')){ adjCast(1); return; }
   const av=t.closest('.avatar'); if(av && G.mode && G.mode.type!=='attach'){ finishMode(av.dataset.pl); return; }
+  if(t.closest('[data-ph]') && G.turn.n && G.turn.hold && G.turn.hold.ok && !G.turn.passed){ toast(G.turn.hold.pid===G.myId ? `Press OK when ${priOn()} can move on.` : `Waiting for ${priOn()}'s OK.`); return; }   /* v5.0 */
   const ph=t.closest('[data-ph]'); if(ph && G.turn.n && G.turn.hold && !G.turn.passed){ toast(G.turn.hold.pid===G.myId ? 'You have priority: press Pass priority back when you are done.' : `Paused: ${G.opp?G.opp.name:'your opponent'} has priority.`); return; }
-  if(ph && G.turn.n){ if(G.turn.active===G.myId && G.turn.phase===0 && +ph.dataset.ph>0 && G.me.st.some(c=>c.pact)){ leaveUpkeep(); return; } setTurn({...G.turn, phase:+ph.dataset.ph, passed:false}); return; }
+  if(ph && G.turn.n){ if(G.turn.active===G.myId && G.turn.phase===0 && +ph.dataset.ph>0 && G.me.st.some(c=>c.pact)){ leaveUpkeep(); return; } if(priChip(+ph.dataset.ph)) return; setTurn({...G.turn, phase:+ph.dataset.ph, passed:false}); return; }
   const fb=t.closest('[data-first]'); if(fb){ if(fb.disabled) return; const v=fb.dataset.first; if(v==='mullgo'){ G.mullGo=true; log(`${G.me.name} starts without waiting for ${G.opp?G.opp.name:'the opponent'} to finish their mulligans.`); changed(); } else if(v==='sideboard') sideboardModal(); else if(v==='mull') mulligan(); else if(v==='roll') highRoll(); else if(v==='deal') drawOpening(); else if(v==='keep') keepHand(); else if(v==='me' && !G.turn.n) takeFirst(G.myId); else if(v==='rollboth') rollBoth(); else if(v==='skip') skipRoll(); else if(v==='comp') compDecide(fb.dataset.id); else if(v==='nocomp') compDecide(null); else if((v==='play'||v==='draw') && !G.turn.n) chooseFirst(v==='play'); return; }
   const pile=t.closest('.pile'); if(pile){ const z=pile.dataset.pile, mine=pile.dataset.o==='me';
     if(z==='gy' && G.mode && G.mode.type==='arrow' && find(G.mode.from) && find(G.mode.from).z==='st'){ const src=G.mode.from; G.mode=null; render(); openTargetGy(src, mine ? G.myId : oppId()); return; }
@@ -8289,7 +8532,7 @@ document.addEventListener('click', e=>{
     else if((z==='gy'||z==='ex') && G.opp) zoneModal(`${G.opp.name}'s ${ZN[z]}`, ()=>G.opp[z]||[], z, false);
     return; }
 });
-$('#next').onclick=()=>nextPhase();
+$('#next').onclick=()=>pressNext(); $('#okAll').onclick=()=>priOK(true);
 $('#drawBtn').onclick=()=>{ if(G.me.gate){ if(Date.now()-G.me.gate.at < GATE_MS) return; log(`${G.me.name} goes ahead with the draw without an answer from ${G.opp?G.opp.name:'their opponent'}.`); releaseGate(); return; } if(draw(1,false,true)) G.me.drew=G.turn.n; if(G.turn.active===G.myId && G.turn.phase===1 && !G.turn.hold && pauseAt('post')) setTurn({...G.turn, hold:pauseHold('post')}); changed(); };
 $('#fsBtn').onclick=()=>fsExit();
 $('#menuBtn').onclick=e=>{ const r=e.currentTarget.getBoundingClientRect(); tableMenu(r.left, r.bottom+4); };
@@ -8307,7 +8550,7 @@ document.addEventListener('keydown', e=>{
   if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='z' && !/INPUT|TEXTAREA/.test(document.activeElement.tagName) && !$('#table').hidden && $('#modal').hidden){ e.preventDefault(); undo(); return; }
   if(/INPUT|TEXTAREA/.test(document.activeElement.tagName) || $('#table').hidden || !$('#modal').hidden || e.ctrlKey || e.metaKey || e.altKey) return;
   const k=e.key.toLowerCase();
-  if(k===' '){ e.preventDefault(); nextPhase(); return; }
+  if(k===' '){ e.preventDefault(); if(!e.repeat || !priTable()) pressNext(); return; }
   if(k==='d'){ draw(1); changed(); return; }
   if(k==='s'){ shuffleLib(); changed(); return; }
   if((k==='-' || k==='=' || k==='+') && G.hover){ const a=findAny(G.hover); if(a && a.z==='bf' && !(a.c.fd && !a.mine) && isCreature(a.c)){ e.preventDefault(); damage(G.hover, k==='-' ? 1 : -1); } return; }
@@ -8612,7 +8855,7 @@ $('#lgsField').hidden=!AFF_ON; $('#lglStore').hidden=!AFF_ON;
 $('#news').innerHTML = `<h4>What's new</h4>${NEWS.slice(0,6).map(newsRow).join('')}<a href="#" id="newsAll">See all changes</a>`; $('#newsAll').onclick=e=>{ e.preventDefault(); newsModal(); };
 function begin(role, code){
   S.name=(nameIn.value.trim()||'Player').slice(0,20); S.lgs = lgsOf($('#lgsIn').value) ? $('#lgsIn').value : ''; store.set('mt_settings',S);
-  G.solo = role==='solo'; G.myId = role==='guest' ? 'p2' : 'p1'; G.code=code||''; G.me=newPlayer(); G.opp = G.solo ? newDummy() : null; G.turn={active:null,phase:2,n:0}; G.idc=0;
+  G.solo = role==='solo'; G.myId = role==='guest' ? 'p2' : 'p1'; G.code=code||''; G.me=newPlayer(); G.opp = G.solo ? newDummy() : null; G.turn={active:null,phase:2,n:0}; G.idc=0; priReset();
   connect(); save(); showDecks();
   if(role==='solo') gcEvent('practice-started', 'Practice game started'); else if(role==='host') gcEvent('table-opened', 'Table opened');
 }
@@ -8623,7 +8866,7 @@ $('#soloBtn').onclick=()=>begin('solo');
 const sess=store.get('mt_session',null);
 if(sess && sess.me && Date.now()-sess.at < 864e5){
   $('#resumeBtn').hidden=false; $('#resumeTxt').textContent = (sess.solo ? 'Practice table' : 'Table '+sess.code) + (sess.me.deck ? ' · '+sess.me.deck : '');
-  $('#resumeBtn').onclick=()=>{ G.solo=sess.solo; G.myId=sess.myId; G.code=sess.code; G.me=Object.assign(newPlayer(), sess.me); G.opp = sess.dum ? Object.assign(newDummy(), sess.dum) : G.solo ? newDummy() : null; G.turn=sess.turn; G.idc=sess.idc||0; G.mt=mtFromWire(sess.mt); if(G.mt && sess.mtEnd) G.mt.end=sess.mtEnd; S.name=G.me.name; if(G.turn.n && sess.me.kept===undefined){ G.me.dealt=true; G.me.kept=true; }
+  $('#resumeBtn').onclick=()=>{ G.solo=sess.solo; G.myId=sess.myId; G.code=sess.code; G.me=Object.assign(newPlayer(), sess.me); G.opp = sess.dum ? Object.assign(newDummy(), sess.dum) : G.solo ? newDummy() : null; G.turn=sess.turn; G.idc=sess.idc||0; G.mt=mtFromWire(sess.mt); if(G.mt && sess.mtEnd) G.mt.end=sess.mtEnd; priReset(); priFromWire(sess.pri); S.name=G.me.name; if(G.turn.n && sess.me.kept===undefined){ G.me.dealt=true; G.me.kept=true; }
     connect(); const ks=[]; for(const z of Object.keys(ZN)) for(const c of (G.me[z]||[])) if(c.k) ks.push(c.k); ensureCards(ks).then(()=>{ if(!G.me.cares && G.me.deck){ setCares(); changed(); } else render(); });
     if(G.me.deck) showTable(); else showDecks(); };
 }
