@@ -368,7 +368,7 @@ body.nomo .kc.won{animation:none}
 .compban{position:absolute;left:0;right:0;top:44%;text-align:center;font:800 calc(var(--cw)*.1)/1.15 var(--ui);letter-spacing:.1em;color:#06202c;background:#7fd6ff;border-top:1px solid #e6f8ff;border-bottom:1px solid #1d5a73;padding:2px 0;pointer-events:none}
 .playbox .compban{display:none}
 .badge.note{left:4%;bottom:6%;right:30%;border-radius:4px;color:var(--ink);border-color:var(--line);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.badge.ctl{right:4%;top:4%;border-color:var(--opp);color:var(--opp)}
+.ctlflag{position:absolute;left:-3%;bottom:6%;max-width:80%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:800 calc(var(--cw)*.078)/1 var(--ui);letter-spacing:.08em;text-transform:uppercase;padding:calc(var(--cw)*.03) calc(var(--cw)*.1) calc(var(--cw)*.03) calc(var(--cw)*.045);clip-path:polygon(0 0,100% 0,88% 50%,100% 100%,0 100%);pointer-events:none;box-shadow:0 1px 3px #0008}.ctlflag.theirs{background:var(--opp);color:#0b1f3a}.ctlflag.mine{background:var(--brass);color:#2a1f08}
 #ghost{position:fixed;z-index:60;pointer-events:none;opacity:.85;transform:translate(-50%,-50%) rotate(-3deg)}
 
 #right{display:flex;flex-direction:column;background:var(--rail);border-left:1px solid var(--line);min-height:0}
@@ -760,7 +760,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.06';
+const VERSION = 'v5.07';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -776,6 +776,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.07','Nov 17',"A card you control that belongs to your opponent no longer says \"borrowed\". It now has a small flag on its left edge with its owner's name (BOB'S) in their color, and on their screen the same card reads YOURS."],
   ['v5.06','Nov 17',"When a later trigger in a batch sits waiting for your OK for 10 seconds with no sign of you, its chime now plays at full volume, since it's the first sound you hear for it. The second chime for the same spell or trigger stays quieter."],
   ['v5.05','Nov 17',"The stack chime is smarter: a pile of triggers chimes once, not once per trigger, and the reminder only plays when you've gone quiet. If you're moving your mouse or using the keyboard at the table, it stays silent; if anything sits waiting for your OK for 10 seconds with no sign of you, it chimes once more, quieter."],
   ['v5.04','Nov 17',"The table now chimes when your opponent's spell or trigger is waiting for your OK, so you won't miss it in another tab or window. If you still haven't answered after 10 seconds, it chimes once more, quieter. Turn it down or off in Settings (Stack alert)."],
@@ -7504,6 +7505,10 @@ function pkShow(el){
   const {list, im}=pkHolder(card.dataset.id); if(list.length) pkGroups(list, c=> c.id===im ? 'IMPRINTED' : 'HELD'); }
 document.addEventListener('mouseover', e=>{ const t=e.target && e.target.closest ? e.target : null; if(!t){ if(PKK) pkClear(); return; } if(t.closest('.pkfan')) return; pkShow(t); });
 document.addEventListener('mousedown', ()=>{ if(PKK) pkClear(); }, true);
+/* v5.07 (Ben): a permanent under the other player's control gets a square pennant on its left edge with its owner's name, in the owner's colour
+   (the pill "borrowed" badge is gone): on my battlefield, the opponent's card reads "BOB'S" (blue); on theirs, my card reads "YOURS" (brass). */
+function ctlFlag(mine){ const on=String((G.opp&&G.opp.name)||'Opponent').slice(0,12);
+  return mine ? `<span class="ctlflag theirs" title="${esc(on)}'s card, under your control">${esc(on)}'s</span>` : `<span class="ctlflag mine" title="Your card, under ${esc(on)}'s control">YOURS</span>`; }
 function cardHTML(c, z, mine, cls=''){
   const d=cdata(c), hidden = !c.k && !c.cu, backUp = hidden || (c.fd && !mine);
   let inner;
@@ -7518,7 +7523,7 @@ function cardHTML(c, z, mine, cls=''){
     + (z==='bf' && !backUp ? kcsHTML(c, mine) : '')
     + (z==='bf' && !backUp && (cls+=(dpt=dynPT(c, mine?G.myId:oppId())) ? ' hasdpt' : '', dpt) ? `<span class="badge dpt${dpt.t<=0 && !dpt.printed?' dead':''}" title="Current power/toughness">${dpt.p}/${dpt.t}</span>` : '')
     + (z==='bf' && !backUp && spellTracker(c) ? `<span class="badge spl" title="Instants and sorceries cast this turn"><small>SPELLS</small><b>${(cast&&cast.is)||0}</b></span>` : '') + (z==='st' && c.xr ? '<span class="badge xa">Exiled after</span>' : '') + (z==='bf' && c.gainLtb ? `<span class="badge gl" title="When this creature leaves the battlefield, ${esc(c.gainLtb)}">Leaves: ${esc(c.gainLtb.replace(/^target opponent draws a card\.?$/i,'opponent draws').replace(/\.$/,''))}</span>` : '') + (z==='st' && !backUp && (c.x!=null || (c.ab && c.ab.x!=null)) ? `<span class="badge xv">X=${c.x!=null?c.x:c.ab.x}</span>` : '') + (z==='st' && !backUp && c.ovl ? '<span class="badge mdb">Overload</span>' : '') + (z==='st' && !backUp && c.md && c.md.length ? `<span class="badge mdb">${c.md.length>1?'Modes':'Mode'} ${c.md.join('+')}</span>` : '') + (z==='bf' && (c.tp||c.tt) ? `<span class="badge tmp" title="Until end of turn">${boostText(c)}</span>` : '') + (z==='bf' && c.exert ? `<span class="wpban exban" title="Exerted: it won't untap during its controller's next untap step">EXERTED<small>SKIPS NEXT UNTAP</small></span>` : '') + (z==='bf' && AURABC[c.id] && AURABC[c.id].ban ? `<span class="wpban nabban" title="It has lost all abilities for as long as ${esc(AURABC[c.id].src)} remains on the battlefield">NO ABILITIES<small>${esc(String(AURABC[c.id].src).split(',')[0].replace(/^The /,'').toUpperCase())}</small></span>` : '') +   /* v4.102: The Wondrous Wasp */ (z==='bf' && c.stun>0 ? `<span class="badge zz">Stun ${c.stun}</span>` : '') + (c.ch ? `<span class="badge chap">Chapter ${roman(c.ch.n)}</span>` : c.pact ? '<span class="badge chap pact">Pact</span>' : c.ab ? `<span class="badge chap">${c.ab.gyall||c.ab.trig||c.ab.flret||c.ab.dealt||c.ab.bdraw||c.ab.etb||c.ab.ph||c.ab.tr||c.ab.rbc?'Trigger':'Ability'}</span>` : c.imp && (z==='bf'||z==='st') ? '<span class="badge tok" style="border-color:var(--brass);color:var(--brass)">impending</span>' : c.anim ? '<span class="badge tok" style="border-color:var(--brass);color:var(--brass)">creature</span>' : c.tok ? (/\bToken\b/.test(cdata(c).t||'') ? '' : '<span class="badge tok" title="A token copy of a card">token</span>') : c.made ? '<span class="crfold" title="Created from outside the game: it isn\'t part of your deck"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.2 6.6L21 11l-6.8 2.4L12 20l-2.2-6.6L3 11l6.8-2.4z" fill="#2b1d04"/></svg></span>' : '') + (c.fd && c.fdk && z==='bf' ? `<span class="badge note" style="border-color:var(--brass);color:var(--brass);right:4%">${esc(c.fdk)} · 2/2</span>` : c.note ? `<span class="badge note">${esc(c.note)}</span>` : '')
-    + (z==='bf' && c.o && c.o !== (mine?G.myId:oppId()) ? '<span class="badge ctl">borrowed</span>' : '');
+    + (z==='bf' && c.o && c.o !== (mine?G.myId:oppId()) ? ctlFlag(mine) : '');
   if(z==='bf' && !backUp){ const lt=landTypes(c, mine?G.myId:oppId(), FX||landEffects()); if(lt) b+=landBanner(lt); }
   if(z==='bf' && !backUp){ const im=impOf(c), hl=im ? [] : heldList(c.id);   // v4.113: the imprinted card's name on its holder; v4.115: HOLDING + the held card's name (first one, "+N MORE"), in place of the "holds N" badge
     if(im){ const nm = cdata(im).n||'A card'; b+=`<span class="wpban impban" title="Exiled with ${esc(cdata(c).n||'it')}: ${esc(nm)}"><small>IMPRINTED</small>${esc(nm)}</span>`; }
