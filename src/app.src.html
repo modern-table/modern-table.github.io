@@ -760,7 +760,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.04';
+const VERSION = 'v5.05';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -776,6 +776,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.05','Nov 17',"The stack chime is smarter: a pile of triggers chimes once, not once per trigger, and the reminder only plays when you've gone quiet. If you're moving your mouse or using the keyboard at the table, it stays silent; if anything sits waiting for your OK for 10 seconds with no sign of you, it chimes once more, quieter."],
   ['v5.04','Nov 17',"The table now chimes when your opponent's spell or trigger is waiting for your OK, so you won't miss it in another tab or window. If you still haven't answered after 10 seconds, it chimes once more, quieter. Turn it down or off in Settings (Stack alert)."],
   ['v5.03','Nov 17',"In the panel for ordering triggers, the cards now overlap a little, each one laid over the one to its left, so it's easy to see which are on top and will resolve first."],
   ['v5.02','Nov 17',"You choose the order of triggers that happen at the same time. With priority on, when two or more of your triggers go off together (say, at the beginning of your end step), a panel opens: drag them into the order you want, then Add to stack, and your opponent OKs them from the top. Add to stack and remember this order skips the panel the next time the same triggers happen together (forget it in the turn menu). It works for both players: your opponent's triggers on your turn go on top and resolve first, as the rules say."],
@@ -6827,14 +6828,17 @@ function priPaint(){ const L=priLabel(), nb=$('#next'), oa=$('#okAll'), hi=$('#p
   hi.hidden=!hint; if(hi.textContent!==hint) hi.textContent=hint;
   const mineOK = !!(w && w.me && (w.kind==='stack' || w.kind==='stop')), ti = mineOK ? '● Your OK needed · '+PRI.title : PRI.title; if(document.title!==ti) document.title=ti;
   document.body.classList.toggle('pri', priTable()); PRI.had=!!L; sndWatch(w); return L; }
-/* v5.04, the stack alert (Ben): a short shimmer when the other player's spell or trigger is waiting for my OK (any kind, one sound), and once
-   more at half volume if it is still waiting after SND_AGAIN. Made by the browser (Web Audio, no sound files). Waits PRI_BEAT+150 ms first so
-   an Always OK answer (priAlways) never chimes. S.snd: off | low | mid (default) | high, row "Stack alert" in Settings, which plays a preview.
-   The tab title ("● Your OK needed") comes from priPaint. */
-const SND={ac:null, key:'', t1:0, t2:0}, SND_VOL={low:0.25, mid:0.55, high:1}, SND_AGAIN=10000;
+/* v5.04, the stack alert (Ben): a short shimmer when the other player's spell or trigger is waiting for my OK (any kind, one sound). Made by
+   the browser (Web Audio, no sound files). Waits PRI_BEAT+150 ms first so an Always OK answer (priAlways) never chimes. S.snd: off | low |
+   mid (default) | high, row "Stack alert" in Settings, which plays a preview. The tab title ("● Your OK needed") comes from priPaint.
+   v5.05 (Ben): one chime per batch: the next item of the same run (it starts waiting on me within SND_RUN of the last one, or replaces the
+   top while I'm still being asked) doesn't chime. The reminder (half volume, once per item) plays only after SND_AGAIN with no sign of me on
+   the page: SND.act = the last pointer move, click, key or wheel here, so moving the mouse keeps it quiet, and a hidden tab never moves it. */
+const SND={ac:null, key:'', t1:0, t2:0, act:0, runEnd:0}, SND_VOL={low:0.25, mid:0.55, high:1}, SND_AGAIN=10000, SND_RUN=4000;
 function sndCtx(){ if(SND.ac) return SND.ac; const A=window.AudioContext||window.webkitAudioContext; if(!A) return null; try{ SND.ac=new A(); }catch(e){ return null; } return SND.ac; }
 function sndUnlock(){ if((S.snd||'mid')==='off') return; const ac=sndCtx(); if(ac && ac.state==='suspended') ac.resume().catch(()=>{}); }
 document.addEventListener('pointerdown', sndUnlock, true); document.addEventListener('keydown', sndUnlock, true);
+for(const ev of ['pointermove','pointerdown','keydown','wheel']) document.addEventListener(ev, ()=>{ SND.act=Date.now(); }, {capture:true, passive:true});
 function stackChime(scale){ const lv=S.snd||'mid'; if(lv==='off') return; const ac=sndCtx(); if(!ac) return; SND.n=(SND.n||0)+1;
   try{ if(ac.state==='suspended') ac.resume().catch(()=>{});
     const out=ac.createGain(), t=ac.currentTime+0.03; out.gain.value=Math.pow(SND_VOL[lv]||0.55, 1.6)*(scale||1); out.connect(ac.destination);
@@ -6842,11 +6846,14 @@ function stackChime(scale){ const lv=S.snd||'mid'; if(lv==='off') return; const 
       o.type='sine'; o.frequency.value=f; o.detune.value=d; g.gain.setValueAtTime(0.0001,st); g.gain.exponentialRampToValueAtTime(0.12,st+0.008); g.gain.exponentialRampToValueAtTime(0.0001,st+0.45);
       o.connect(g); g.connect(out); o.start(st); o.stop(st+0.5); }));
   }catch(e){} }
+function sndStill(id){ const v=priWait(); return SND.key===id && v && v.kind==='stack' && v.me && v.top && v.top.id===id && !PRI.sent[id]; }
+function sndIdle(id, since){ const quiet=Date.now()-Math.max(since, SND.act||0);
+  SND.t2=setTimeout(()=>{ if(!sndStill(id)) return; if(Date.now()-Math.max(since, SND.act||0) >= SND_AGAIN-30) stackChime(0.5); else sndIdle(id, since); }, Math.max(200, SND_AGAIN-quiet)); }
 function sndWatch(w){ const id = w && w.kind==='stack' && w.me && w.top ? w.top.id : '';
-  if(id===SND.key) return; SND.key=id; clearTimeout(SND.t1); clearTimeout(SND.t2); if(!id) return;
-  const still=()=>{ const v=priWait(); return SND.key===id && v && v.kind==='stack' && v.me && v.top && v.top.id===id && !PRI.sent[id]; };
-  SND.t1=setTimeout(()=>{ if(still()) stackChime(1); }, PRI_BEAT+150);
-  SND.t2=setTimeout(()=>{ if(still()) stackChime(0.5); }, SND_AGAIN); }
+  if(id===SND.key) return; const prev=SND.key, now=Date.now(); SND.key=id; clearTimeout(SND.t1); clearTimeout(SND.t2);
+  if(!id){ if(prev) SND.runEnd=now; return; }
+  if(!prev && now-SND.runEnd > SND_RUN) SND.t1=setTimeout(()=>{ if(sndStill(id)) stackChime(1); }, PRI_BEAT+150);
+  sndIdle(id, now); }
 /* the big button or Space while something is waiting; true = the press was used here */
 function priPress(){ const w=priWait(); if(!w) return false; const on=priOn();
   if(w.kind==='aim' || w.kind==='ord') return true;

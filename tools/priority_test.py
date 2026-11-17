@@ -37,8 +37,9 @@ The tests, by name:
   oldpage   one player on the v4.137 page (either seat): no priority, said on screen; it starts when they reload
   reload    a reload in the middle of a stack wait (either player) and of a stop
   fullgame  a match from the roll to "wins the match 2-0" with Priority on, played with the real controls
-  sound     v5.04: the stack alert chimes once for the player asked (not the caster, not while aiming), again after 10 s,
-            not after an OK, not for Always OK, not when Off; the Settings row plays a preview
+  sound     v5.04/v5.05: the stack alert chimes once for the player asked (not the caster, not while aiming), once per
+            batch of items, again after 10 s with no mouse or key on the page (never while the mouse moves), not after
+            an OK, not for Always OK, not when Off; the Settings row plays a preview
   night     a Game Night match tab: priority runs there, and the table's host (not the event's) has the switch
   practice  a practice game is untouched
   pages     Settings rows, the help page still fits 1500x900, the tour and Explore know the new parts, NEWS
@@ -1296,6 +1297,9 @@ async def t_pages(env, A):
 async def t_sound(env, A):
     a, b = await table(env)
     n = lambda p: ev(p, 'SND.n||0')
+    async def wiggle(p, secs):
+        for i in range(int(secs / 1.5)):
+            await p.mouse.move(300 + (i % 2) * 40, 300); await p.wait_for_timeout(1500)
     ck('the Stack alert defaults to Normal', await ev(b, "S.snd||'mid'") == 'mid')
     await ev(a, "T.cast('Lightning Bolt')"); await a.wait_for_timeout(900)
     ck('no chime while the caster is still choosing a target', await n(a) == 0 and await n(b) == 0, (await n(a), await n(b)))
@@ -1306,35 +1310,48 @@ async def t_sound(env, A):
     await b.wait_for_timeout(3000)
     ck('no repeat while the reminder time runs', await n(b) == 1, await n(b))
     await b.wait_for_timeout(6800)
-    ck('after 10 s it chimes once more', await n(b) == 2, await n(b))
+    ck('after 10 s with no sign of the player it chimes once more', await n(b) == 2, await n(b))
     await b.wait_for_timeout(3000)
     ck('and only once more', await n(b) == 2, await n(b))
     await press(b, 900)
     ck('the OK resolves it; no chime from that', await ev(a, 'G.me.st.length') == 0 and await n(b) == 2, (await ev(a, 'G.me.st.length'), await n(b)))
-    # answered quickly: no reminder
+    # v5.05: the player is at the table (mouse moving): no reminder; once they go quiet, 10 s later it comes
+    await b.wait_for_timeout(4500)
     await ev(a, "T.cast('Lightning Bolt','opp')"); await a.wait_for_timeout(1000)
-    ck('a new spell chimes again', await n(b) == 3, await n(b))
-    await press(b, 900); await b.wait_for_timeout(10000)
-    ck('OK given before 10 s: no reminder', await n(b) == 3, await n(b))
+    ck('a new spell (a new wait) chimes again', await n(b) == 3, await n(b))
+    await wiggle(b, 13.5)
+    ck('v5.05: mouse moving on the table for 13 s: no reminder', await n(b) == 3, await n(b))
+    await b.mouse.move(360, 320)
+    await b.wait_for_timeout(8500)
+    ck('8.5 s after the mouse stopped: still quiet', await n(b) == 3, await n(b))
+    await b.wait_for_timeout(2200)
+    ck('10 s after the mouse stopped: the reminder', await n(b) == 4, await n(b))
+    await press(b, 900)
+    # v5.05: a batch of triggers chimes once; the next one waits silently, then reminds after 10 quiet seconds
+    await b.wait_for_timeout(4500); nb = await n(b)
+    await ev(a, "T.trig('Amulet of Vigor', 3)"); await a.wait_for_timeout(1000)
+    ck('v5.05: three triggers at once: one chime', await n(b) == nb + 1, await n(b) - nb)
+    await press(b, 1500); ib = await info(b)
+    ck('after OKing the top one, the next waits on the player', ib['cls'] == ['ok'] and len(ib['ost']) == 2, (ib['cls'], ib['ost']))
+    ck('v5.05: the next trigger of the batch does not chime', await n(b) == nb + 1, await n(b) - nb)
+    await b.wait_for_timeout(9500)
+    ck('v5.05: left unattended 10 s, it chimes (half volume)', await n(b) == nb + 2, await n(b) - nb)
+    await settle(a, b)
+    ck('the batch is done', await ev(a, 'G.me.st.length') == 0 and await n(b) == nb + 2, (await ev(a, 'G.me.st.length'), await n(b) - nb))
     # a response: the caster is asked about it
+    await b.wait_for_timeout(4500)
     bolt = await ev(a, "T.cast('Lightning Bolt','opp')"); await a.wait_for_timeout(900)
     await ev(b, "(id)=>T.cast('Counterspell', id)", bolt); await b.wait_for_timeout(1000)
     ck("the other player's response chimes for the active player", await n(a) == 1, await n(a))
-    await press(a, 900); await a.wait_for_timeout(600)
-    if (await info(b))['cls'] == ['ok'] or (await info(a))['cls'] == ['ok']:
-        for p in (a, b):
-            if (await info(p))['cls'] == ['ok']: await press(p, 900)
     await settle(a, b)
-    # triggers chime too; Always OK doesn't
-    nb = await n(b)
-    await ev(a, "T.trig('Amulet of Vigor')"); await a.wait_for_timeout(1000)
-    ck('a trigger chimes too', await n(b) == nb + 1, await n(b))
-    await press(b, 900)
+    # Always OK doesn't chime
+    await b.wait_for_timeout(4500)
     await ev(b, "PRI.aok.add('Amulet of Vigor trigger')"); nb = await n(b)
     await ev(a, "T.trig('Amulet of Vigor')"); await a.wait_for_timeout(1500)
     ck('Always OK answers it without a chime', await n(b) == nb and await ev(a, 'G.me.st.length') == 0, (await n(b), await ev(a, 'G.me.st.length')))
     await ev(b, 'PRI.aok.clear()')
     # Off
+    await b.wait_for_timeout(4500)
     await ev(b, "(()=>{ S.snd='off'; })()"); nb = await n(b)
     await ev(a, "T.cast('Lightning Bolt','opp')"); await a.wait_for_timeout(1000)
     ck('Off: no chime', await n(b) == nb, await n(b))
@@ -1348,7 +1365,6 @@ async def t_sound(env, A):
     await b.click('[data-set=snd][data-v=off]'); await b.wait_for_timeout(200)
     ck('choosing Off plays nothing', await ev(b, 'S.snd') == 'off' and await n(b) == nb + 1, (await ev(b, 'S.snd'), await n(b)))
     ck('the audio was really made (an AudioContext exists)', await ev(b, '!!SND.ac'))
-
 
 TESTS = [('stack', t_stack), ('stops', t_stops), ('order', t_order), ('auto', t_auto), ('waits', t_waits), ('match', t_match), ('toggle', t_toggle), ('oldpage', t_oldpage), ('reload', t_reload),
          ('fullgame', t_fullgame), ('sound', t_sound), ('night', t_night), ('practice', t_practice), ('pages', t_pages)]
