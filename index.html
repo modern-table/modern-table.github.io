@@ -768,7 +768,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.05';
+const VERSION = 'v5.06';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -784,6 +784,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.06','Nov 17',"When a later trigger in a batch sits waiting for your OK for 10 seconds with no sign of you, its chime now plays at full volume, since it's the first sound you hear for it. The second chime for the same spell or trigger stays quieter."],
   ['v5.05','Nov 17',"The stack chime is smarter: a pile of triggers chimes once, not once per trigger, and the reminder only plays when you've gone quiet. If you're moving your mouse or using the keyboard at the table, it stays silent; if anything sits waiting for your OK for 10 seconds with no sign of you, it chimes once more, quieter."],
   ['v5.04','Nov 17',"The table now chimes when your opponent's spell or trigger is waiting for your OK, so you won't miss it in another tab or window. If you still haven't answered after 10 seconds, it chimes once more, quieter. Turn it down or off in Settings (Stack alert)."],
   ['v5.03','Nov 17',"In the panel for ordering triggers, the cards now overlap a little, each one laid over the one to its left, so it's easy to see which are on top and will resolve first."],
@@ -6847,7 +6848,7 @@ function sndCtx(){ if(SND.ac) return SND.ac; const A=window.AudioContext||window
 function sndUnlock(){ if((S.snd||'mid')==='off') return; const ac=sndCtx(); if(ac && ac.state==='suspended') ac.resume().catch(()=>{}); }
 document.addEventListener('pointerdown', sndUnlock, true); document.addEventListener('keydown', sndUnlock, true);
 for(const ev of ['pointermove','pointerdown','keydown','wheel']) document.addEventListener(ev, ()=>{ SND.act=Date.now(); }, {capture:true, passive:true});
-function stackChime(scale){ const lv=S.snd||'mid'; if(lv==='off') return; const ac=sndCtx(); if(!ac) return; SND.n=(SND.n||0)+1;
+function stackChime(scale){ const lv=S.snd||'mid'; if(lv==='off') return; const ac=sndCtx(); if(!ac) return; SND.n=(SND.n||0)+1; SND.ls=scale||1;
   try{ if(ac.state==='suspended') ac.resume().catch(()=>{});
     const out=ac.createGain(), t=ac.currentTime+0.03; out.gain.value=Math.pow(SND_VOL[lv]||0.55, 1.6)*(scale||1); out.connect(ac.destination);
     [784,1047].forEach((f,i)=>[-6,6].forEach(d=>{ const o=ac.createOscillator(), g=ac.createGain(), st=t+i*0.06;
@@ -6855,13 +6856,13 @@ function stackChime(scale){ const lv=S.snd||'mid'; if(lv==='off') return; const 
       o.connect(g); g.connect(out); o.start(st); o.stop(st+0.5); }));
   }catch(e){} }
 function sndStill(id){ const v=priWait(); return SND.key===id && v && v.kind==='stack' && v.me && v.top && v.top.id===id && !PRI.sent[id]; }
-function sndIdle(id, since){ const quiet=Date.now()-Math.max(since, SND.act||0);
-  SND.t2=setTimeout(()=>{ if(!sndStill(id)) return; if(Date.now()-Math.max(since, SND.act||0) >= SND_AGAIN-30) stackChime(0.5); else sndIdle(id, since); }, Math.max(200, SND_AGAIN-quiet)); }
+function sndIdle(id, since, vol){ const quiet=Date.now()-Math.max(since, SND.act||0);
+  SND.t2=setTimeout(()=>{ if(!sndStill(id)) return; if(Date.now()-Math.max(since, SND.act||0) >= SND_AGAIN-30) stackChime(vol||0.5); else sndIdle(id, since, vol); }, Math.max(200, SND_AGAIN-quiet)); }
 function sndWatch(w){ const id = w && w.kind==='stack' && w.me && w.top ? w.top.id : '';
   if(id===SND.key) return; const prev=SND.key, now=Date.now(); SND.key=id; clearTimeout(SND.t1); clearTimeout(SND.t2);
   if(!id){ if(prev) SND.runEnd=now; return; }
-  if(!prev && now-SND.runEnd > SND_RUN) SND.t1=setTimeout(()=>{ if(sndStill(id)) stackChime(1); }, PRI_BEAT+150);
-  sndIdle(id, now); }
+  const fresh = !prev && now-SND.runEnd > SND_RUN; if(fresh) SND.t1=setTimeout(()=>{ if(sndStill(id)) stackChime(1); }, PRI_BEAT+150);
+  sndIdle(id, now, fresh ? 0.5 : 1); }   /* v5.06 (Ben): an item that never chimed (the next one of a batch) reminds at full volume */
 /* the big button or Space while something is waiting; true = the press was used here */
 function priPress(){ const w=priWait(); if(!w) return false; const on=priOn();
   if(w.kind==='aim' || w.kind==='ord') return true;

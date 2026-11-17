@@ -1310,7 +1310,7 @@ async def t_sound(env, A):
     await b.wait_for_timeout(3000)
     ck('no repeat while the reminder time runs', await n(b) == 1, await n(b))
     await b.wait_for_timeout(6800)
-    ck('after 10 s with no sign of the player it chimes once more', await n(b) == 2, await n(b))
+    ck('after 10 s with no sign of the player it chimes once more, at half volume', await n(b) == 2 and await ev(b, 'SND.ls') == 0.5, (await n(b), await ev(b, 'SND.ls')))
     await b.wait_for_timeout(3000)
     ck('and only once more', await n(b) == 2, await n(b))
     await press(b, 900)
@@ -1335,7 +1335,7 @@ async def t_sound(env, A):
     ck('after OKing the top one, the next waits on the player', ib['cls'] == ['ok'] and len(ib['ost']) == 2, (ib['cls'], ib['ost']))
     ck('v5.05: the next trigger of the batch does not chime', await n(b) == nb + 1, await n(b) - nb)
     await b.wait_for_timeout(9500)
-    ck('v5.05: left unattended 10 s, it chimes (half volume)', await n(b) == nb + 2, await n(b) - nb)
+    ck('v5.05: left unattended 10 s, it chimes; v5.06: at full volume (its first sound)', await n(b) == nb + 2 and await ev(b, 'SND.ls') == 1, (await n(b) - nb, await ev(b, 'SND.ls')))
     await settle(a, b)
     ck('the batch is done', await ev(a, 'G.me.st.length') == 0 and await n(b) == nb + 2, (await ev(a, 'G.me.st.length'), await n(b) - nb))
     # a response: the caster is asked about it
