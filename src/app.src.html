@@ -129,6 +129,7 @@ textarea#paste{width:100%;min-height:300px;font-family:ui-monospace,Menlo,Consol
 .piles{display:flex;flex-direction:column;gap:5px}
 .railh{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:var(--cw)}.railh b{color:var(--opp);font-weight:800}.railh.me b{color:var(--brass)}
 .pile.still{cursor:default}
+#left .pile{height:var(--pileh,calc(var(--ch)*.55))}
 .pile{position:relative;width:var(--cw);height:calc(var(--ch)*.55);border-radius:6px;border:1px dashed var(--line);overflow:hidden;cursor:pointer}
 .pile .card{position:absolute;top:0;left:0;width:100%;pointer-events:none;box-shadow:none}
 .pile label{position:absolute;left:0;right:0;bottom:0;background:#000b;font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:2px 5px;display:flex;justify-content:space-between;pointer-events:none}
@@ -760,7 +761,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.07';
+const VERSION = 'v5.08';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -776,6 +777,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.08','Nov 17',"When the left column gets crowded (the round clock, the keyword list, a short window), the library, graveyard, exile and sideboard boxes now shrink to make room, so nothing in the middle of the column gets cut off."],
   ['v5.07','Nov 17',"A card you control that belongs to your opponent no longer says \"borrowed\". It now has a small flag on its left edge with its owner's name (BOB'S) in their color, and on their screen the same card reads YOURS."],
   ['v5.06','Nov 17',"When a later trigger in a batch sits waiting for your OK for 10 seconds with no sign of you, its chime now plays at full volume, since it's the first sound you hear for it. The second chime for the same spell or trigger stays quieter."],
   ['v5.05','Nov 17',"The stack chime is smarter: a pile of triggers chimes once, not once per trigger, and the reminder only plays when you've gone quiet. If you're moving your mouse or using the keyboard at the table, it stays silent; if anything sits waiting for your OK for 10 seconds with no sign of you, it chimes once more, quieter."],
@@ -7705,6 +7707,18 @@ function tapStyleModal(){ const cur=S.tap||TAP_DEF;
 /* Ragavan-style "until end of turn, you may cast that card" (v4.31, Ben): c.offer holds the turn number it was exiled on; it can be cast only during that turn, before it is passed. The owner's turn cleanup still clears the flag, but the check doesn't depend on it (Practice never runs one). */
 const offerLive = c => !!c.offer && (c.offer===true || (c.offer===G.turn.n && !G.turn.passed));
 let NMW=null, CHAL=[];   /* name of a card that cares whether mana was spent, set each render */
+/* v5.08 (Ben): when the left column gets crowded (round clock, keyword key, city's blessing on a short window), the pile boxes shrink
+   evenly before anything in the middle is cut off, down to PILE_MIN (the label plus a sliver of the top card); roomier windows keep full piles.
+   #midRail is the part that shrinks (min-height 0), so the amount it is clipped by is what the piles give up. Runs after each render (once per frame) and on resize. */
+const PILE_MIN=26; let FITL=0;
+function fitLeft(){ FITL=0; const L=$('#left'), mr=$('#midRail'); if(!L || !mr || !L.offsetParent) return;
+  const piles=[...L.querySelectorAll('.piles .pile')]; if(!piles.length) return;
+  const was=L.style.getPropertyValue('--pileh'); L.style.removeProperty('--pileh');
+  const full=piles[0].offsetHeight, over=mr.scrollHeight-mr.clientHeight;
+  const h = over>0 ? Math.max(PILE_MIN, Math.floor(full - over/piles.length)) : 0;
+  if(h && h<full) L.style.setProperty('--pileh', h+'px'); else if(was) L.style.removeProperty('--pileh'); }
+function fitLeftSoon(){ if(!FITL) FITL=requestAnimationFrame(fitLeft); }
+addEventListener('resize', fitLeftSoon);
 function render(){
   if(DSW) return; if($('#table').hidden) return; LPID=lpIds(); holdDrop(); if(CO && !CO.drag) setTimeout(()=>coPaint(),0); const TS0=tapSnap(); autoArm(); paintUnl(); TGS=tgtSrcSpec();
   auraBC(); camText(); NMW=noManaWatch(); CHAL=chaliceWatch(); trackGain(); if(checkCity()) setTimeout(changed, 0); if(delneyWatch() | oppLandWatch() | ctrLockWatch() | norinWatch() | selfTgtWatch()) setTimeout(changed, 0);   /* v4.55: ascend is checked again at every render (the call had been lost) */ if(G.opp && typeof G.opp.life==='number'){ if(G.oppLastLife!=null && G.opp.life<G.oppLastLife && G.turn.n) G.oppLost=G.turn.n; G.oppLastLife=G.opp.life; }   // v4.37: spectacle sees any loss of life (Practice too)
@@ -7797,6 +7811,7 @@ function render(){
   { const seen=new Map(); for(const [bf,pid] of [[m.bf,G.myId],[(o&&o.bf)||[],oppId()]]) for(const c of bf){ if(c.fd) continue; for(const k of (c.kw||[])) if(!seen.has(k)) seen.set(k,false); for(const g of grantedKw(c, pid)) seen.set(g.k, seen.get(g.k)===false ? false : true); }
     const kk=$('#kwKey'), order=[...KW, ...[...seen.keys()].filter(k=>/walk$/.test(k) && ICON[k])].filter(k=>seen.has(k)); kk.hidden=!order.length;
     kk.innerHTML = order.length ? `<h6>KEYWORDS</h6>${order.map(k=>`<div class="kr"><span class="kc${seen.get(k)?' gr':''}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[k]||''}</svg></span>${esc(k[0].toUpperCase()+k.slice(1))}</div>`).join('')}${[...seen.values()].some(v=>v) ? '<div class="kn">Gold ring: from another card</div>' : ''}` : ''; }
+  fitLeftSoon();
   if(G.mt && G.mt.over){ bn.hidden=false; bn.innerHTML = `<h3>${esc(G.mt.over)}</h3><span class="hint">Time was called on the round clock.</span><div><button data-newmatch class="go">Start a new match</button></div>`; }
   else if(mw>=2 || ow>=2){ bn.hidden=false; bn.innerHTML = `<h3>${esc(mw>=2 ? m.name : o.name)} wins the match ${Math.max(mw,ow)}–${Math.min(mw,ow)}</h3><span class="hint">Marked by mistake? Right-click the win circle to take it back.</span><div><button data-newmatch class="go">Start a new match</button></div>`; }
   else if(m.deck && !(t.n && mullDone(m) && !oppMulling())){
