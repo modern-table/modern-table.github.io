@@ -22,6 +22,8 @@ The tests, by name:
             can't resolve, Resolve anyway, resolves by itself, "I press Resolve", the band, the tab title, OK all N,
             Always OK, targets first, animations off
   stops     the grid, the defaults, the dashes, each stop, Go on anyway, own-turn stops, chips, privacy
+  order     v5.02: two or more triggers at once open the ordering panel for their controller (either player), both
+            buttons wait, the order holds, remembered orders skip the panel, identical triggers don't ask, APNAP
   auto      v5.01: Before attackers only when the active player can attack, Next skipping an empty combat on your own
             turn, Main 2 on Auto (an end-step card turns it on, with a note), the Main 2 box's cycle, the old saved
             stops moved to Auto, the grid's checkmarks centred
@@ -508,6 +510,82 @@ async def t_stops(env, A):
     ck('one-time pause: gold "Pass priority back", as before', ia['turn'].get('hold') == {'pid': 'p2', 'at': 'up'} and ib['text'] == 'Pass priority back' and ib['cls'] == [] and ia['text'] == 'Paused: Bob has priority' and ia['dis'], (ia['turn'], ib['text'], ia['text']))
     await press(b, 600); ia = await info(a)
     ck('passing it back continues the turn', ia['turn']['phase'] == 2 and 'hold' not in ia['turn'], ia['turn'])
+
+
+# ----------------------------------------------------------------------------------------------- order (v5.02)
+TRIGS_JS = """(L)=>{ const out=[]; for(const [n,o] of L){ const t=mk(null,{tok:true, ts:Date.now(), ab:{id:'x', tr:true}, cu:{n:n+': trigger', t:'Triggered ability', o, img:''}}); G.me.st.push(t); out.push(t.id); } changed(); return out; }"""
+PANEL_JS = """(()=>{ const el=document.querySelector('#coPanel'); if(!el || el.hidden) return null; return {head:(el.querySelector('header b')||{}).textContent, cards:[...el.querySelectorAll('#coTr .card[data-id]')].map(x=>x.dataset.id), btns:[...el.querySelectorAll('[data-co]')].map(x=>x.textContent)}; })()"""
+PAIR = [['Test Ocelot', 'You gain 1 life.'], ['Test Haliya', 'You gain 2 life.']]
+
+
+async def drag_last_to_front(p):
+    """Drag the rightmost card of the panel's row to the far left (the bottom of the stack)."""
+    cs = p.locator('#coTr .card[data-id]'); n = await cs.count()
+    a = await cs.nth(n - 1).bounding_box(); b = await cs.nth(0).bounding_box()
+    await p.mouse.move(a['x'] + a['width'] / 2, a['y'] + a['height'] / 2); await p.mouse.down()
+    for k in range(1, 9):
+        await p.mouse.move(a['x'] + a['width'] / 2 + (b['x'] + 4 - a['x'] - a['width'] / 2) * k / 8, a['y'] + a['height'] / 2); await p.wait_for_timeout(20)
+    await p.mouse.up(); await p.wait_for_timeout(200)
+
+
+async def t_order(env, A):
+    a, b = await table(env); await stage(a, b)
+    ids = await ev(a, TRIGS_JS, PAIR); await a.wait_for_timeout(500); ia, ib = await info(a), await info(b); pa = await ev(a, PANEL_JS)
+    ck('two triggers at once: the ordering panel opens for their controller', pa and pa['head'] == 'Order your triggers' and pa['cards'] == ids and pa['btns'] == ['Add to stack and remember this order', 'Add to stack'], pa)
+    ck('meanwhile they are not on the stack for either player (held in the panel)', await ev(a, "document.querySelectorAll('#stack .card').length") == 0 and ib['ost'] == [] and await ev(a, 'priStack().length') == 0, (ia['st'], ib['ost']))
+    ck('both big buttons wait', ia['text'] == 'Order your triggers' and ia['dis'] and ib['text'] == 'Ann is ordering triggers' and ib['dis'], (ia['text'], ib['text']))
+    t0 = ia['turn']; await b.keyboard.press('Space'); await a.keyboard.press('Space'); await a.wait_for_timeout(300)
+    ck('Space does nothing while ordering', (await info(a))['turn'] == t0)
+    await drag_last_to_front(a)
+    ck('dragging reorders the row', (await ev(a, PANEL_JS))['cards'] == [ids[1], ids[0]], await ev(a, PANEL_JS))
+    await a.click('#coPanel [data-co="add"]'); await a.wait_for_timeout(600); ia, ib = await info(a), await info(b)
+    ck('Add to stack: on the stack in that order (Ocelot on top)', ia['st'] == ['Test Haliya: trigger', 'Test Ocelot: trigger'] and ib['text'] == 'OK: Test Ocelot trigger resolves' and await ev(a, PANEL_JS) is None, (ia['st'], ib['text']))
+    ck('logged for both', any('in the order they chose (top: Test Ocelot)' in l for l in ib['log']), ib['log'])
+    l0 = ia['life']; await press(b, 700); ia = await info(a)
+    ck('the top one resolves first', ia['life'] == l0 + 1 and ia['st'] == ['Test Haliya: trigger'], (ia['life'], ia['st']))
+    await settle(a, b); ia = await info(a)
+    ck('then the other', ia['life'] == l0 + 3 and ia['st'] == [], ia['life'])
+    # remember
+    ids = await ev(a, TRIGS_JS, PAIR); await a.wait_for_timeout(500); await drag_last_to_front(a)
+    await a.click('#coPanel [data-co="addmem"]'); await a.wait_for_timeout(500); await settle(a, b)
+    ck('Add and remember: the order is kept for the table', await ev(a, 'PRI.tord.length') == 1 and any('the order is remembered' in l for l in (await info(b))['log']))
+    ids = await ev(a, TRIGS_JS, PAIR); await a.wait_for_timeout(500); ia = await info(a)
+    ck('next time: no panel, the remembered order at once', await ev(a, PANEL_JS) is None and ia['st'] == ['Test Haliya: trigger', 'Test Ocelot: trigger'] and any('in the remembered order (top: Test Ocelot)' in l for l in ia['log']), (ia['st'], ia['log']))
+    await settle(a, b)
+    await a.click('#turnlbl'); await a.wait_for_timeout(200)
+    row = await ev(a, "[...document.querySelectorAll('#ctx > button')].map(x=>x.textContent).find(x=>/^Trigger orders/.test(x))")
+    ck('the turn menu lists it, in resolving order', row == 'Trigger orders: Test Ocelot first, then Test Haliyaclick to forget', row)
+    await a.locator('#ctx > button', has_text='Trigger orders').click(); await a.wait_for_timeout(200)
+    ck('a click forgets it', await ev(a, 'PRI.tord.length') == 0)
+    await ev(a, TRIGS_JS, [PAIR[0], PAIR[0]]); await a.wait_for_timeout(500)
+    ck('the same trigger twice: no panel', await ev(a, PANEL_JS) is None and len((await info(a))['st']) == 2)
+    await settle(a, b)
+    # the other player's triggers on Ann's turn
+    bids = await ev(b, TRIGS_JS, [['Bob Spark', 'You gain 1 life.'], ['Bob Glow', 'You gain 2 life.']]); await b.wait_for_timeout(500); ia, ib = await info(a), await info(b)
+    ck('the non-active player gets the panel too', (await ev(b, PANEL_JS) or {}).get('cards') == bids and ib['text'] == 'Order your triggers' and ia['text'] == 'Bob is ordering triggers', (ia['text'], ib['text']))
+    t0 = ia['turn']; await press(a); ck("the active player's Next waits", (await info(a))['turn'] == t0)
+    await b.click('#coPanel [data-co="add"]'); await b.wait_for_timeout(600); ia = await info(a)
+    ck("Bob's go on the stack, Ann is asked", ia['ost'] == ['Bob Spark: trigger', 'Bob Glow: trigger'] and ia['text'] == 'OK: Bob Glow trigger resolves', (ia['ost'], ia['text']))
+    await settle(a, b)
+    # both at once (APNAP): whoever finishes ordering first, Bob's (the non-active player's) end up on top
+    for first in ('ann', 'bob'):
+        await ev(a, TRIGS_JS, PAIR); await ev(b, TRIGS_JS, [['Bob Spark', 'You gain 1 life.'], ['Bob Glow', 'You gain 2 life.']]); await a.wait_for_timeout(600)
+        order = (a, b) if first == 'ann' else (b, a)
+        for p in order:
+            await p.click('#coPanel [data-co="add"]'); await p.wait_for_timeout(700)
+        stk = await ev(a, "priStack().map(x=>cdata(x.c).n.replace(': trigger',''))"); stb = await ev(b, "priStack().map(x=>cdata(x.c).n.replace(': trigger',''))")
+        ck('both order at once, %s first: Bob\'s on top of Ann\'s, the same on both screens' % ('Ann' if first == 'ann' else 'Bob'), stk == ['Test Ocelot', 'Test Haliya', 'Bob Spark', 'Bob Glow'] and stb == stk, (stk, stb))
+        await settle(a, b, limit=20)
+    # a real end step: two end-step permanents trigger together
+    await ev(a, PERM_JS, ['End Cat', 'Enchantment', '', 'At the beginning of your end step, you gain 1 life.'])
+    await ev(a, PERM_JS, ['End Warp', 'Enchantment', '', 'At the beginning of your end step, you gain 2 life.']); await a.wait_for_timeout(500)
+    for _ in range(4):
+        if (await info(a))['turn']['phase'] == 5: break
+        await press(a, 400); await settle(a, b)
+    await a.wait_for_timeout(500); pa = await ev(a, PANEL_JS)
+    ck('at the beginning of the end step, both end-step triggers open the panel', (await info(a))['turn']['phase'] == 5 and pa and len(pa['cards']) == 2, ((await info(a))['turn'], pa))
+    await a.click('#coPanel [data-co="add"]'); await a.wait_for_timeout(500); n = await settle(a, b)
+    ck('and resolve after the OKs', n >= 2 and (await info(a))['st'] == [], n)
 
 
 # ----------------------------------------------------------------------------------------------- auto (v5.01)
@@ -1151,6 +1229,9 @@ async def t_practice(env, A):
     ck('a spell: the button is unchanged, no band', i['text'] == SKIP and i['bands'] == [] and i['owns'] == [], i)
     await p.click('#stack .card'); await p.wait_for_timeout(400)
     ck('a click resolves it', (await info(p))['st'] == [] and (await info(p))['olife'] == 17)
+    await ev(p, TRIGS_JS, PAIR); await p.wait_for_timeout(400)
+    ck('two triggers at once in practice: no ordering panel (click whichever you like)', await ev(p, PANEL_JS) is None and await ev(p, '!G.ordHold') and len((await info(p))['st']) == 2)
+    await ev(p, "(()=>{ G.me.st.length=0; changed(); })()")
     await p.click('#turnlbl'); await p.wait_for_timeout(200)
     ck('the turn menu is the old one', await ev(p, "!document.querySelector('#ctx .sgrid') && [...document.querySelectorAll('#ctx > button')].map(x=>x.textContent)[0]==='Pause on my next upkeep (my turn stops there)'"))
     await p.keyboard.press('Escape')
@@ -1208,7 +1289,7 @@ async def t_pages(env, A):
     ck('the tour runs to its end', not await ev(p, '!!TOUR') and len(seen) >= 12, seen)
 
 
-TESTS = [('stack', t_stack), ('stops', t_stops), ('auto', t_auto), ('waits', t_waits), ('match', t_match), ('toggle', t_toggle), ('oldpage', t_oldpage), ('reload', t_reload),
+TESTS = [('stack', t_stack), ('stops', t_stops), ('order', t_order), ('auto', t_auto), ('waits', t_waits), ('match', t_match), ('toggle', t_toggle), ('oldpage', t_oldpage), ('reload', t_reload),
          ('fullgame', t_fullgame), ('night', t_night), ('practice', t_practice), ('pages', t_pages)]
 
 
