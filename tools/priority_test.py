@@ -37,6 +37,8 @@ The tests, by name:
   oldpage   one player on the v4.137 page (either seat): no priority, said on screen; it starts when they reload
   reload    a reload in the middle of a stack wait (either player) and of a stop
   fullgame  a match from the roll to "wins the match 2-0" with Priority on, played with the real controls
+  sound     v5.04: the stack alert chimes once for the player asked (not the caster, not while aiming), again after 10 s,
+            not after an OK, not for Always OK, not when Off; the Settings row plays a preview
   night     a Game Night match tab: priority runs there, and the table's host (not the event's) has the switch
   practice  a practice game is untouched
   pages     Settings rows, the help page still fits 1500x900, the tour and Explore know the new parts, NEWS
@@ -1248,7 +1250,9 @@ async def t_pages(env, A):
     a, b = await table(env)
     await ev(a, 'settingsModal()'); await a.wait_for_timeout(250)
     rows = await ev(a, "[...document.querySelectorAll('#setBody .setrow')].map(r=>r.querySelector('.sl').childNodes[0].textContent+': '+[...r.querySelectorAll('button')].map(x=>x.textContent+(x.classList.contains('on')?'*':'')).join(' / '))")
-    ck('Settings: Priority row first, "My spells, after an OK" under Playing, the old rows unchanged', rows == ['Priority: On* / Off', 'Auto-draw: On* / Off', 'Auto-pay: On / Off*', 'My spells, after an OK: Resolve by themselves* / I press Resolve', 'Card menus: Short, side* / Short, same / Full', 'Tapped cards: 18° / 90°* / 90° with room', 'Animations: On* / Off / Follow my computer', 'Streamer mode: Off* / Camera space / My camera'], rows)
+    ck('Settings: Priority row first, "My spells, after an OK" under Playing, the old rows unchanged', rows == ['Priority: On* / Off', 'Auto-draw: On* / Off', 'Auto-pay: On / Off*', 'My spells, after an OK: Resolve by themselves* / I press Resolve', 'Card menus: Short, side* / Short, same / Full', 'Tapped cards: 18° / 90°* / 90° with room', 'Animations: On* / Off / Follow my computer', 'Stack alert: Off / Quiet / Normal* / Loud', 'Streamer mode: Off* / Camera space / My camera'], rows)
+    fit = await ev(a, "(()=>{ const m=document.querySelector('#modal .box')||document.querySelector('#modal'), r=m.getBoundingClientRect(); return [Math.round(r.top), Math.round(r.bottom), innerHeight, m.scrollHeight<=m.clientHeight+1]; })()")
+    ck('the Settings window fits the screen with the Stack alert row (v5.04)', fit[0] >= 0 and fit[1] <= fit[2] and fit[3], fit)
     await a.click('#setBody [data-set="prires"][data-v="click"]'); await a.wait_for_timeout(200)
     ck('the Resolve setting is kept in my settings', await ev(a, "JSON.parse(localStorage.getItem('mt_settings')).priRes") == 'click')
     await a.click('#setBody [data-set="prires"][data-v="auto"]'); await ev(a, 'closeModal()')
@@ -1289,8 +1293,65 @@ async def t_pages(env, A):
     ck('the tour runs to its end', not await ev(p, '!!TOUR') and len(seen) >= 12, seen)
 
 
+async def t_sound(env, A):
+    a, b = await table(env)
+    n = lambda p: ev(p, 'SND.n||0')
+    ck('the Stack alert defaults to Normal', await ev(b, "S.snd||'mid'") == 'mid')
+    await ev(a, "T.cast('Lightning Bolt')"); await a.wait_for_timeout(900)
+    ck('no chime while the caster is still choosing a target', await n(a) == 0 and await n(b) == 0, (await n(a), await n(b)))
+    await ev(a, 'finishMode(oppId())'); await a.wait_for_timeout(250)
+    ck('not at once (an Always OK answer gets its moment first)', await n(b) == 0, await n(b))
+    await a.wait_for_timeout(500)
+    ck('one chime for the player asked, none for the caster', await n(b) == 1 and await n(a) == 0, (await n(a), await n(b)))
+    await b.wait_for_timeout(3000)
+    ck('no repeat while the reminder time runs', await n(b) == 1, await n(b))
+    await b.wait_for_timeout(6800)
+    ck('after 10 s it chimes once more', await n(b) == 2, await n(b))
+    await b.wait_for_timeout(3000)
+    ck('and only once more', await n(b) == 2, await n(b))
+    await press(b, 900)
+    ck('the OK resolves it; no chime from that', await ev(a, 'G.me.st.length') == 0 and await n(b) == 2, (await ev(a, 'G.me.st.length'), await n(b)))
+    # answered quickly: no reminder
+    await ev(a, "T.cast('Lightning Bolt','opp')"); await a.wait_for_timeout(1000)
+    ck('a new spell chimes again', await n(b) == 3, await n(b))
+    await press(b, 900); await b.wait_for_timeout(10000)
+    ck('OK given before 10 s: no reminder', await n(b) == 3, await n(b))
+    # a response: the caster is asked about it
+    bolt = await ev(a, "T.cast('Lightning Bolt','opp')"); await a.wait_for_timeout(900)
+    await ev(b, "(id)=>T.cast('Counterspell', id)", bolt); await b.wait_for_timeout(1000)
+    ck("the other player's response chimes for the active player", await n(a) == 1, await n(a))
+    await press(a, 900); await a.wait_for_timeout(600)
+    if (await info(b))['cls'] == ['ok'] or (await info(a))['cls'] == ['ok']:
+        for p in (a, b):
+            if (await info(p))['cls'] == ['ok']: await press(p, 900)
+    await settle(a, b)
+    # triggers chime too; Always OK doesn't
+    nb = await n(b)
+    await ev(a, "T.trig('Amulet of Vigor')"); await a.wait_for_timeout(1000)
+    ck('a trigger chimes too', await n(b) == nb + 1, await n(b))
+    await press(b, 900)
+    await ev(b, "PRI.aok.add('Amulet of Vigor trigger')"); nb = await n(b)
+    await ev(a, "T.trig('Amulet of Vigor')"); await a.wait_for_timeout(1500)
+    ck('Always OK answers it without a chime', await n(b) == nb and await ev(a, 'G.me.st.length') == 0, (await n(b), await ev(a, 'G.me.st.length')))
+    await ev(b, 'PRI.aok.clear()')
+    # Off
+    await ev(b, "(()=>{ S.snd='off'; })()"); nb = await n(b)
+    await ev(a, "T.cast('Lightning Bolt','opp')"); await a.wait_for_timeout(1000)
+    ck('Off: no chime', await n(b) == nb, await n(b))
+    await press(b, 900); await ev(b, "(()=>{ S.snd='mid'; })()")
+    # the Settings row
+    await ev(b, 'settingsModal()'); await b.wait_for_timeout(200); nb = await n(b)
+    labels = await ev(b, "[...document.querySelectorAll('[data-set=snd]')].map(x=>x.textContent)")
+    ck('Settings has a Stack alert row: Off / Quiet / Normal / Loud', labels == ['Off', 'Quiet', 'Normal', 'Loud'], labels)
+    await b.click('[data-set=snd][data-v=low]'); await b.wait_for_timeout(200)
+    ck('choosing Quiet saves it and plays a preview', await ev(b, 'S.snd') == 'low' and await n(b) == nb + 1, (await ev(b, 'S.snd'), await n(b)))
+    await b.click('[data-set=snd][data-v=off]'); await b.wait_for_timeout(200)
+    ck('choosing Off plays nothing', await ev(b, 'S.snd') == 'off' and await n(b) == nb + 1, (await ev(b, 'S.snd'), await n(b)))
+    ck('the audio was really made (an AudioContext exists)', await ev(b, '!!SND.ac'))
+
+
 TESTS = [('stack', t_stack), ('stops', t_stops), ('order', t_order), ('auto', t_auto), ('waits', t_waits), ('match', t_match), ('toggle', t_toggle), ('oldpage', t_oldpage), ('reload', t_reload),
-         ('fullgame', t_fullgame), ('night', t_night), ('practice', t_practice), ('pages', t_pages)]
+         ('fullgame', t_fullgame), ('sound', t_sound), ('night', t_night), ('practice', t_practice), ('pages', t_pages)]
 
 
 async def main():

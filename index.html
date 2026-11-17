@@ -768,7 +768,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.03';
+const VERSION = 'v5.04';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -784,6 +784,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.04','Nov 17',"The table now chimes when your opponent's spell or trigger is waiting for your OK, so you won't miss it in another tab or window. If you still haven't answered after 10 seconds, it chimes once more, quieter. Turn it down or off in Settings (Stack alert)."],
   ['v5.03','Nov 17',"In the panel for ordering triggers, the cards now overlap a little, each one laid over the one to its left, so it's easy to see which are on top and will resolve first."],
   ['v5.02','Nov 17',"You choose the order of triggers that happen at the same time. With priority on, when two or more of your triggers go off together (say, at the beginning of your end step), a panel opens: drag them into the order you want, then Add to stack, and your opponent OKs them from the top. Add to stack and remember this order skips the panel the next time the same triggers happen together (forget it in the turn menu). It works for both players: your opponent's triggers on your turn go on top and resolve first, as the rules say."],
   ['v5.01','Nov 17',"Smarter stops. The table no longer stops before attackers when the player whose turn it is has nothing that can attack, and on your own turn Next goes straight from Main 1 to Main 2 when none of your creatures can attack. Main 2 on your opponent's turn is now set to Auto: it turns on by itself (and tells you) while they have a card with an “at the beginning of your end step” trigger, so you get your OK before it happens. Click the box in the turn menu to set it to Off or Always. Also fixed: the checkmarks in the stops grid sit in the middle of their boxes."],
@@ -6833,7 +6834,27 @@ function priPaint(){ const L=priLabel(), nb=$('#next'), oa=$('#okAll'), hi=$('#p
   if(priOld() && priSet()){ const txt=`Priority is off at this table: ${priOn()}'s page is an older version. It turns on when they reload the page.`; if(!L) hint=txt; if(PRI.oldLog!==G.code){ PRI.oldLog=G.code; addLog(txt, 's'); } }
   hi.hidden=!hint; if(hi.textContent!==hint) hi.textContent=hint;
   const mineOK = !!(w && w.me && (w.kind==='stack' || w.kind==='stop')), ti = mineOK ? '● Your OK needed · '+PRI.title : PRI.title; if(document.title!==ti) document.title=ti;
-  document.body.classList.toggle('pri', priTable()); PRI.had=!!L; return L; }
+  document.body.classList.toggle('pri', priTable()); PRI.had=!!L; sndWatch(w); return L; }
+/* v5.04, the stack alert (Ben): a short shimmer when the other player's spell or trigger is waiting for my OK (any kind, one sound), and once
+   more at half volume if it is still waiting after SND_AGAIN. Made by the browser (Web Audio, no sound files). Waits PRI_BEAT+150 ms first so
+   an Always OK answer (priAlways) never chimes. S.snd: off | low | mid (default) | high, row "Stack alert" in Settings, which plays a preview.
+   The tab title ("● Your OK needed") comes from priPaint. */
+const SND={ac:null, key:'', t1:0, t2:0}, SND_VOL={low:0.25, mid:0.55, high:1}, SND_AGAIN=10000;
+function sndCtx(){ if(SND.ac) return SND.ac; const A=window.AudioContext||window.webkitAudioContext; if(!A) return null; try{ SND.ac=new A(); }catch(e){ return null; } return SND.ac; }
+function sndUnlock(){ if((S.snd||'mid')==='off') return; const ac=sndCtx(); if(ac && ac.state==='suspended') ac.resume().catch(()=>{}); }
+document.addEventListener('pointerdown', sndUnlock, true); document.addEventListener('keydown', sndUnlock, true);
+function stackChime(scale){ const lv=S.snd||'mid'; if(lv==='off') return; const ac=sndCtx(); if(!ac) return; SND.n=(SND.n||0)+1;
+  try{ if(ac.state==='suspended') ac.resume().catch(()=>{});
+    const out=ac.createGain(), t=ac.currentTime+0.03; out.gain.value=Math.pow(SND_VOL[lv]||0.55, 1.6)*(scale||1); out.connect(ac.destination);
+    [784,1047].forEach((f,i)=>[-6,6].forEach(d=>{ const o=ac.createOscillator(), g=ac.createGain(), st=t+i*0.06;
+      o.type='sine'; o.frequency.value=f; o.detune.value=d; g.gain.setValueAtTime(0.0001,st); g.gain.exponentialRampToValueAtTime(0.12,st+0.008); g.gain.exponentialRampToValueAtTime(0.0001,st+0.45);
+      o.connect(g); g.connect(out); o.start(st); o.stop(st+0.5); }));
+  }catch(e){} }
+function sndWatch(w){ const id = w && w.kind==='stack' && w.me && w.top ? w.top.id : '';
+  if(id===SND.key) return; SND.key=id; clearTimeout(SND.t1); clearTimeout(SND.t2); if(!id) return;
+  const still=()=>{ const v=priWait(); return SND.key===id && v && v.kind==='stack' && v.me && v.top && v.top.id===id && !PRI.sent[id]; };
+  SND.t1=setTimeout(()=>{ if(still()) stackChime(1); }, PRI_BEAT+150);
+  SND.t2=setTimeout(()=>{ if(still()) stackChime(0.5); }, SND_AGAIN); }
 /* the big button or Space while something is waiting; true = the press was used here */
 function priPress(){ const w=priWait(); if(!w) return false; const on=priOn();
   if(w.kind==='aim' || w.kind==='ord') return true;
@@ -8138,6 +8159,7 @@ const SETROWS = [
   {g:'Playing', k:'cm', l:'Card menus', h:'Short shows what a known card does, with Manual handling for the rest.', o:{fly:'Short, side', swap:'Short, same', full:'Full'}, get:()=>cmStyle(), set:v=>{ S.cmenu=v; }},
   {g:'Look', k:'tap', l:'Tapped cards', h:'Only on your screen; your opponent picks their own.', o:{'18':'18°', '90':'90°', '90r':'90° with room'}, get:()=>S.tap||TAP_DEF, set:v=>{ S.tap=v; applyTapStyle(); setTimeout(()=>{ render(); drawArrows(); }, 200); }},
   {g:'Look', k:'anim', l:'Animations', h:()=>RMOT.matches ? 'This computer asks apps for less motion.' : 'Cards turning, the hand opening a gap, piles spreading.', o:{on:'On', off:'Off', auto:'Follow my computer'}, get:()=>S.anim||'on', set:v=>{ S.anim=v; applyMotion(); }},
+  {g:'Sound', k:'snd', l:'Stack alert', h:'A short chime when your opponent\'s spell or trigger is waiting for your OK, and once more, quieter, if it\'s still waiting after 10 seconds.', o:{off:'Off', low:'Quiet', mid:'Normal', high:'Loud'}, get:()=>S.snd||'mid', set:v=>{ S.snd=v; if(v!=='off') stackChime(1); }},
   {g:'Streaming', k:'stream', l:'Streamer mode', h:'A camera box at the bottom of the game log. Nothing is sent to your opponent.', o:{off:'Off', space:'Camera space', cam:'My camera'}, get:()=>S.stream||'off', set:v=>{ S.stream=v; applyStream(); }, more:()=>(S.stream||'off')!=='off' ? '<button class="lk" data-more="stream">Frame and camera…</button>' : ''} ];
 function settingsModal(){
   const html=()=>{ let g='', out='';
