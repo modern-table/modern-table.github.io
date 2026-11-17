@@ -22,6 +22,9 @@ The tests, by name:
             can't resolve, Resolve anyway, resolves by itself, "I press Resolve", the band, the tab title, OK all N,
             Always OK, targets first, animations off
   stops     the grid, the defaults, the dashes, each stop, Go on anyway, own-turn stops, chips, privacy
+  auto      v5.01: Before attackers only when the active player can attack, Next skipping an empty combat on your own
+            turn, Main 2 on Auto (an end-step card turns it on, with a note), the Main 2 box's cycle, the old saved
+            stops moved to Auto, the grid's checkmarks centred
   waits     one scripted game through every older wait (mulligans, Done blocking, Start my turn, the cleanup discard,
             one-time pauses, the pact draw, turn control), run three times: on two v4.137 pages, on two new pages
             with Priority off, and with Priority on. The first two traces must be identical; the third must match
@@ -76,6 +79,22 @@ def old_page(path):
 
 
 SEED_JS = """(()=>{ let s=%d; Math.random=()=>{ s=(Math.imul(s,1664525)+1013904223)>>>0; return s/4294967296; }; })()"""
+
+# v5.01 changed two defaults: Before attackers asks only when the active player has something that can attack, and
+# Main 2 on the opponent's turn is Auto (on while they have an "at the beginning of your end step" card). Most tests
+# below were written for v5.0's stops, so stage() gives both players a creature that can attack and, on new pages,
+# sets Main 2 to Always for both (v5.0's default). The 'auto' test checks the new defaults themselves.
+STAGE_JS = "(m2)=>{ if(m2 && typeof setStops==='function'){ const st=myStops(); st.opp.m2=true; setStops(st); } return T.perm('Test Ox','Creature — Ox','2/2'); }"
+PERM_JS = "(a)=>{ const c=mk(null,{cu:{n:a[0], t:a[1], pt:a[2]||'', o:a[3]||'', img:'', cl:[]}}); if(a[4]) c.sick=true; G.me.bf.push(c); changed(); return c.id; }"
+BEACON = ['Test Beacon', 'Artifact', '', 'At the beginning of your end step, you gain 1 life.']
+SKIP = 'Next: Main 2 (no attackers)'      # v5.01: the button on your own Main 1 when nothing can attack
+
+
+async def stage(a, b, m2=True):
+    for p in (a, b):
+        await p.evaluate(STAGE_JS, m2)
+    await a.wait_for_timeout(400)
+
 
 # helpers put on the page after the game has started; they use only functions v4.137 already had
 T_JS = r"""()=>{ S.autoPay=false; const un=t=>String(t).replace(/\[\[([^|\]]*)\|[^\]]*\]\]/g,'$1');
@@ -399,9 +418,10 @@ async def t_stack(env, A):
 # ----------------------------------------------------------------------------------------------- stops
 async def t_stops(env, A):
     a, b = await table(env)
+    await stage(a, b, m2=False)                  # a creature each; Main 2 stays on Auto (no end-step card out)
     ia = await info(a)
-    ck('dashes at the start: blue bright over Combat and Main 2, muted over End; gold muted under the Next phases', ia['dash'] == ['a off/b off', 'a off/b off', 'a off/b fx', 'a on/b fx', 'a on/b fx', 'a fx/b fx'], ia['dash'])
-    ck("the other page holds my stops (it stops its own turn there)", await ev(a, 'G.oppStops') == {'up': False, 'draw': False, 'm1': False, 'atk': True, 'm2': True})
+    ck('dashes at the start: blue bright over Combat, empty over Main 2 (Auto, nothing out), muted over End; gold muted under the Next phases', ia['dash'] == ['a off/b off', 'a off/b off', 'a off/b fx', 'a on/b fx', 'a off/b fx', 'a fx/b fx'], ia['dash'])
+    ck("the other page holds my stops (it stops its own turn there)", await ev(a, 'G.oppStops') == {'up': False, 'draw': False, 'm1': False, 'atk': True, 'm2': False, 'ea': True}, await ev(a, 'G.oppStops'))
     await press(a); ia, ib = await info(a), await info(b)
     ck('before attackers: the turn holds at the start of combat', ia['turn']['phase'] == 3 and ia['turn'].get('hold') == {'pid': 'p2', 'at': 'atk', 'ok': 1} and not ia['atkBar'], ia['turn'])
     ck('the other player: "OK: Ann declares attackers"', ib['text'] == 'OK: Ann declares attackers' and ib['cls'] == ['ok'] and ib['title'].startswith('● Your OK needed'), ib)
@@ -410,6 +430,11 @@ async def t_stops(env, A):
     ck('a phase chip does not get past the stop', ia['turn']['phase'] == 3 and "Waiting for Bob's OK" in ia['toast'], ia)
     await press(b); ia = await info(a)
     ck('the OK releases it: the attack bar is there', 'hold' not in ia['turn'] and ia['turn'].get('okd') == {'atk': 1} and ia['atkBar'] and ia['text'] == 'Next: Main 2' and any('Bob OKs: Ann declares attackers.' in l for l in ia['log']), ia)
+    await b.click('#turnlbl'); await b.wait_for_timeout(200)
+    for _ in range(2):
+        await b.click('#ctx [data-stop="op:m2"]'); await b.wait_for_timeout(120)
+    await b.keyboard.press('Escape'); await b.wait_for_timeout(300)
+    ck('Bob sets Main 2 to Always: Auto → Off → Always', await ev(a, 'G.oppStops.m2') is True and await ev(b, 'myStops().opp.m2') is True)
     await press(a); await press(a); ia, ib = await info(a), await info(b)
     ck('Main 2: holds before the end step begins', ia['turn']['phase'] == 4 and ia['turn']['hold']['at'] == 'm2' and ib['text'] == 'OK: Ann goes to the end step' and any("Ann is ready to move on. Waiting for Bob's OK." in l for l in ib['log']), (ia['turn'], ib['text'], ib['log']))
     await b.keyboard.press('Space'); await b.wait_for_timeout(450); ia = await info(a)
@@ -427,10 +452,10 @@ async def t_stops(env, A):
     await a.click('#turnlbl'); await a.wait_for_timeout(250)
     grid = await ev(a, "(()=>{ const g=document.querySelector('#ctx .sgrid'); return g ? {head:[...g.querySelectorAll('.h')].map(x=>x.textContent), rows:[...g.querySelectorAll(':scope > div:nth-child(3n+1):not(.h)')].map(x=>x.textContent), boxes:[...g.querySelectorAll('[data-stop]')].map(x=>x.dataset.stop+'='+x.classList.contains('on')), locks:[...g.querySelectorAll('.lock + small')].map(x=>x.textContent), rest:[...document.querySelectorAll('#ctx > button')].map(x=>x.textContent), usual:document.querySelector('#ctx [data-usual]').textContent} : null; })()")
     ck('turn menu: the grid, rows by phase, My turn / <opponent>’s turn', grid and grid['head'] == ['Before leaving', 'My turn', "Bob's turn"] and grid['rows'] == ['Upkeep', 'Draw', 'Main 1', 'Before attackers', 'Blocks', 'Main 2', 'End step'], grid)
-    ck('defaults: before attackers and Main 2 on the opponent’s turn', grid and grid['boxes'] == ['me:up=false', 'op:up=false', 'me:draw=false', 'op:draw=false', 'op:m1=false', 'op:atk=true', 'op:m2=true'], grid and grid['boxes'])
+    ck('defaults: before attackers on the opponent’s turn; Main 2 on Auto (unlit: nothing out)', grid and grid['boxes'] == ['me:up=false', 'op:up=false', 'me:draw=false', 'op:draw=false', 'op:m1=false', 'op:atk=true', 'op:m2=false'], grid and grid['boxes'])
     ck('already-there waits are shown checked and locked', grid and grid['locks'] == ['Next', 'Next', 'Done blocking', 'Next', 'End turn', 'Start my turn'] and await ev(a, "[...document.querySelectorAll('#ctx .sgrid .lock')].every(x=>x.tagName==='SPAN')"), grid and grid['locks'])
     ck('the one-time pauses and the rest of the menu are still there', grid and [x for x in grid['rest'] if x.startswith('Pause')] == ['Pause on my next upkeep (my turn stops there)', "Pause Bob's next upkeep", "Pause Bob's draw step (before the draw)", "Pause Bob's draw step (after the draw)"] and any('Take the turn' in x for x in grid['rest']) and any('control' in x for x in grid['rest']), grid and grid['rest'])
-    for k in ('op:up', 'op:draw', 'op:m1'):
+    for k in ('op:up', 'op:draw', 'op:m1', 'op:m2', 'op:m2'):
         await a.click('#ctx [data-stop="%s"]' % k); await a.wait_for_timeout(80)
     ck('the menu stays open while boxes are ticked', await ev(a, "!document.querySelector('#ctx').hidden && document.querySelectorAll('#ctx [data-stop].on').length===5"))
     await a.keyboard.press('Escape'); await a.wait_for_timeout(300); ia, ib = await info(a), await info(b)
@@ -455,7 +480,7 @@ async def t_stops(env, A):
     await press(a); await press(b); await press(b); await press(a); await press(b)
     # own-turn stops; back to the usual
     await a.click('#turnlbl'); await a.wait_for_timeout(200); await a.click('#ctx [data-usual]'); await a.wait_for_timeout(150)
-    ck('Back to the usual stops', await ev(a, "[...document.querySelectorAll('#ctx [data-stop]')].map(x=>x.classList.contains('on'))") == [False, False, False, False, False, True, True])
+    ck('Back to the usual stops (Main 2 back on Auto)', await ev(a, "[...document.querySelectorAll('#ctx [data-stop]')].map(x=>x.classList.contains('on'))") == [False, False, False, False, False, True, False] and await ev(a, 'myStops().auto'))
     await a.click('#ctx [data-stop="op:draw"]'); await a.keyboard.press('Escape')
     await b.click('#turnlbl'); await b.wait_for_timeout(200); await b.click('#ctx [data-stop="me:up"]'); await b.click('#ctx [data-stop="me:draw"]'); await b.click('#ctx [data-stop="op:atk"]'); await b.click('#ctx [data-stop="op:m2"]'); await b.keyboard.press('Escape'); await b.wait_for_timeout(200)
     await ev(a, 'T.trim()'); await press(a, 500); ia = await info(a)
@@ -470,8 +495,11 @@ async def t_stops(env, A):
     await press(b, 500); ia, ib = await info(a), await info(b)
     ck("then the other player's Draw stop asks them", ib['turn']['phase'] == 1 and ib['turn']['hold']['at'] == 'draw' and ia['text'] == 'OK: Bob leaves the draw step', (ib['turn'], ia['text']))
     await press(a, 500)
+    bea = await ev(b, PERM_JS, BEACON); await b.wait_for_timeout(600)
+    ck("Ann's Main 2 Auto turns on for Bob's end-step card, with a note to Ann", any('Stop turned on: Main 2 on Bob' in l for l in (await info(a))['log']) and await ev(b, 'G.oppStops.m2'), (await info(a))['log'])
     await b.click('#phases [data-ph="5"]'); await b.wait_for_timeout(400); ia, ib = await info(a), await info(b)
     ck('clicking the End chip from Main 1 stops in Main 2 for the OK', ib['turn']['phase'] == 4 and ib['turn']['hold']['at'] == 'm2' and ia['text'] == 'OK: Bob goes to the end step', (ib['turn'], ia['text']))
+    await ev(b, "(id)=>{ move(id,'gy',{silent:true}); changed(); }", bea); await b.wait_for_timeout(300)     # its end-step trigger isn't part of this test
     await press(a, 500); ib = await info(b)
     ck('and goes on to the end step after it', ib['turn']['phase'] == 5 and 'hold' not in ib['turn'], ib['turn'])
     # a one-time pause is untouched, and answers the standing stop at the same point
@@ -480,6 +508,83 @@ async def t_stops(env, A):
     ck('one-time pause: gold "Pass priority back", as before', ia['turn'].get('hold') == {'pid': 'p2', 'at': 'up'} and ib['text'] == 'Pass priority back' and ib['cls'] == [] and ia['text'] == 'Paused: Bob has priority' and ia['dis'], (ia['turn'], ib['text'], ia['text']))
     await press(b, 600); ia = await info(a)
     ck('passing it back continues the turn', ia['turn']['phase'] == 2 and 'hold' not in ia['turn'], ia['turn'])
+
+
+# ----------------------------------------------------------------------------------------------- auto (v5.01)
+async def t_auto(env, A):
+    a, b = await table(env)
+    ia, ib = await info(a), await info(b)
+    ck('Ann turn 1 Main 1, no creatures: button says Main 2 (no attackers)', ia['turn']['phase'] == 2 and ia['text'] == 'Next: Main 2 (no attackers)', ia['text'])
+    ck("Ann's page holds Bob's stops: atk on, m2 off, Auto on", await ev(a, 'G.oppStops') == {'up': False, 'draw': False, 'm1': False, 'atk': True, 'm2': False, 'ea': True}, await ev(a, 'G.oppStops'))
+    ck('dashes: blue over Combat bright, Main 2 empty', ia['dash'] == ['a off/b off', 'a off/b off', 'a off/b fx', 'a on/b fx', 'a off/b fx', 'a fx/b fx'], ia['dash'])
+    await press(a); ia, ib = await info(a), await info(b)
+    ck('Next goes straight to Main 2, no stop, logged', ia['turn']['phase'] == 4 and 'hold' not in ia['turn'] and ib['cls'] == [] and any('no creature that can attack' in l for l in ia['log']), (ia['turn'], ia['log']))
+    await press(a); ia = await info(a)
+    ck('no Main 2 stop by default: end step', ia['turn']['phase'] == 5 and 'hold' not in ia['turn'], ia['turn'])
+    await press(a); await ev(b, 'T.trim()'); await press(b, 500); ib = await info(b)
+    ck('Bob turn 2 Main 1', ib['turn']['n'] == 2 and ib['turn']['phase'] == 2, ib['turn'])
+    await ev(b, PERM_JS, ['Test Bear', 'Creature — Bear', '2/2']); await b.wait_for_timeout(300); ib = await info(b)
+    ck('with a creature that can attack: Next: Combat', ib['text'] == 'Next: Combat', ib['text'])
+    await press(b); ia, ib = await info(a), await info(b)
+    ck('before attackers stop holds when Bob can attack', ib['turn']['phase'] == 3 and ib['turn'].get('hold', {}).get('at') == 'atk' and ia['text'] == 'OK: Bob declares attackers', (ib['turn'], ia['text']))
+    await press(a); ib = await info(b)
+    ck('OK: attack bar', ib['atkBar'], ib)
+    await ev(b, "atkNone()"); await b.wait_for_timeout(300); await press(b); ib = await info(b)
+    ck('Bob end step (no Main 2 stop)', ib['turn']['phase'] == 5 and 'hold' not in ib['turn'], ib['turn'])
+    await press(b); await ev(a, 'T.trim()'); await press(a, 500)
+    # Ann turn 3: a summoning-sick creature, a defender, a tapped creature
+    await ev(a, PERM_JS, ['Sick Bear', 'Creature — Bear', '2/2', '', 1])
+    await ev(a, PERM_JS, ['Test Wall', 'Creature — Wall', '0/4', 'Defender'])
+    tid = await ev(a, PERM_JS, ['Tapped Bear', 'Creature — Bear', '2/2']); await ev(a, "(id)=>{ find(id).c.tap=true; changed(); }", tid); await a.wait_for_timeout(300)
+    ia = await info(a)
+    ck('sick, defender and tapped creatures are not attackers', ia['text'] == 'Next: Main 2 (no attackers)', ia['text'])
+    land = await ev(a, PERM_JS, ['Test Vault', 'Land', '', '{T}: Add {C}.\n{1}: This land becomes a 2/2 creature with all creature types until end of turn. It\'s still a land.']); await a.wait_for_timeout(250)
+    ck('a land that can become a creature counts', (await info(a))['text'] == 'Next: Combat')
+    await ev(a, "(id)=>{ move(id,'gy',{silent:true}); changed(); }", land)
+    ct = await ev(a, PERM_JS, ['Test Banner', 'Enchantment', '', 'At the beginning of combat on your turn, you gain 1 life.']); await a.wait_for_timeout(250)
+    ck('a beginning-of-combat trigger keeps combat', (await info(a))['text'] == 'Next: Combat')
+    await ev(a, "(id)=>{ move(id,'gy',{silent:true}); changed(); }", ct); await a.wait_for_timeout(250)
+    # the end-step card turns Bob's Main 2 stop on
+    await ev(a, PERM_JS, BEACON); await a.wait_for_timeout(700)
+    ia, ib = await info(a), await info(b)
+    ck("Bob is told the stop turned on", any('Stop turned on: Main 2 on Ann' in l and 'Test Beacon' in l for l in ib['log']) and 'Stop turned on' in ib['toast'], (ib['log'], ib['toast']))
+    ck("Ann's log doesn't say it (private)", not any('Stop turned on' in l for l in ia['log']))
+    ck("Ann's page has Bob's Main 2 on", (await ev(a, 'G.oppStops'))['m2'] is True)
+    ck("Bob's dash over Main 2 is bright", ib['dash'][4].startswith('a on'), ib['dash'])
+    await press(a); ia = await info(a)
+    ck('Ann still skips combat (no attackers)', ia['turn']['phase'] == 4, ia['turn'])
+    await press(a); ia, ib = await info(a), await info(b)
+    ck('Main 2 holds for Bob\'s OK', ia['turn'].get('hold', {}).get('at') == 'm2' and ib['text'] == 'OK: Ann goes to the end step', (ia['turn'], ib['text']))
+    await press(b, 500); ia = await info(a)
+    ck('after the OK: end step', ia['turn']['phase'] == 5 and 'hold' not in ia['turn'], ia['turn'])
+    # Bob's grid: Auto with the card, then the cycle
+    await b.click('#turnlbl'); await b.wait_for_timeout(250)
+    g = lambda: ev(b, "(()=>{ const x=document.querySelector('#ctx [data-stop=\"op:m2\"]'); return [x.className, x.nextElementSibling.textContent]; })()")
+    v = await g(); ck('grid: Main 2 Auto, lit, names the card', 'on' in v[0] and 'auto' in v[0] and v[1] == 'Auto: Test Beacon', v)
+    await b.click('#ctx [data-stop="op:m2"]'); await b.wait_for_timeout(250); v = await g(); s = await ev(a, 'G.oppStops')
+    ck('click: Off (sent: m2 off, Auto off)', 'on' not in v[0].split() and v[1] == 'Off' and s['m2'] is False and s['ea'] is False, (v, s))
+    await b.click('#ctx [data-stop="op:m2"]'); await b.wait_for_timeout(250); v = await g(); s = await ev(a, 'G.oppStops')
+    ck('click: Always', 'on' in v[0].split() and 'auto' not in v[0] and v[1] == 'Always' and s['m2'] is True, (v, s))
+    await b.click('#ctx [data-stop="op:m2"]'); await b.wait_for_timeout(250); v = await g()
+    ck('click: back to Auto', 'auto' in v[0] and v[1] == 'Auto: Test Beacon', v)
+    ck('no "turned on" note for my own clicks', sum('Stop turned on' in l for l in (await info(b))['log']) == 1)
+    # the checkmarks sit in the middle of their boxes
+    off = await ev(b, """(()=>{ const out=[]; for(const x of document.querySelectorAll('#ctx .sgrid .box')){ if(!x.textContent) continue; const r=document.createRange(); r.selectNodeContents(x); const t=r.getBoundingClientRect(), o=x.getBoundingClientRect(); out.push([x.tagName, +(t.left+t.width/2-(o.left+o.width/2)).toFixed(1), +(t.top+t.height/2-(o.top+o.height/2)).toFixed(1)]); } return out; })()""")
+    ck('every ✓ centred within 1.5 px (buttons and locked boxes)', off and all(abs(x[1]) <= 1.5 and abs(x[2]) <= 1.5 for x in off), off)
+    await b.keyboard.press('Escape')
+    # the card leaves: Auto drops the stop again
+    await ev(a, "(()=>{ const c=G.me.bf.find(x=>cdata(x).n==='Test Beacon'); move(c.id,'gy',{silent:true}); changed(); })()"); await a.wait_for_timeout(700)
+    ck("card gone: Ann's page has Main 2 off again", (await ev(a, 'G.oppStops'))['m2'] is False)
+    await auto_saved(env, A)
+
+
+async def auto_saved(env, A):
+    p = await env.ctx('mig')
+    await p.goto(env.url()); await p.wait_for_selector('#hostBtn', timeout=20000)
+    await ev(p, "localStorage.setItem('mt_settings', JSON.stringify({name:'X', stops:{mine:{up:true, draw:false}, opp:{up:false, draw:false, m1:true, atk:true, m2:true}}}))")
+    await p.reload(); await p.wait_for_selector('#hostBtn', timeout=20000); await p.wait_for_timeout(500)
+    s = await ev(p, "JSON.parse(localStorage.getItem('mt_settings')).stops")
+    ck('saved v5.0 stops: Main 2 back to Auto, the rest kept', s['opp']['m2'] is False and s['opp']['m1'] is True and s['mine']['up'] is True and s['v'] == 2 and await ev(p, 'myStops().auto') is True, s)
 
 
 # ----------------------------------------------------------------------------------------------- waits
@@ -601,11 +706,13 @@ async def table_for_waits(env, mode, old):
     await b.click('#banner [data-first="mull"]'); await b.wait_for_timeout(400)
     await a.keyboard.press('Space'); await a.wait_for_timeout(250)
     mw = await ev(a, "({toast:document.querySelector('#toast').textContent, banner:document.querySelector('#banner').textContent, turn:G.turn, btn:document.querySelector('#next').textContent})")
+    mw['btn'] = mw['btn'].replace(SKIP, 'Next: Combat')       # v5.01 names the skip on the button (the board is staged later)
     table_for_waits.mull = mw
     await b.click('#banner [data-first="keep"]'); await b.wait_for_timeout(400)
     await b.locator('#mbGrid .card').first.click(); await b.locator('#modal footer button.go').click(); await b.wait_for_timeout(500)
     for p in (a, b):
         await ev(p, 'closeModal()'); await ev(p, T_JS)
+    await stage(a, b, m2=(mode == 'on'))
     return a, b
 
 
@@ -680,6 +787,7 @@ async def match_run(env, on):
     await b.locator('#modal footer button.go').click(); await b.wait_for_timeout(600)
     await pregame(a, b, first='host')          # the loser (Ann) chooses: play
     await a.wait_for_timeout(300)
+    await stage(a, b)
     R['game2'] = strip((await info(a))['turn'])
     R['live2'] = await ev(a, 'priLive()')
     await ev(a, "T.cast('Lightning Bolt','opp')"); await a.wait_for_timeout(500)
@@ -701,6 +809,7 @@ async def match_run(env, on):
             if await ev(act, 'G.turn.passed') or await ev(a, '!!(G.mt && G.mt.winq)'):
                 break
             await ev(act, 'T.trim()'); await press(act, 250); oks += await settle(a, b)
+        await a.wait_for_timeout(600)      # "Is there a winner?" comes a moment after the last pass: don't start another turn first
         if await ev(a, '!!(G.mt && G.mt.winq)'):
             break
         await ev(oth, 'T.trim()'); await press(oth, 500); oks += await settle(a, b)
@@ -736,7 +845,7 @@ async def t_match(env, A):
 
 # ----------------------------------------------------------------------------------------------- toggle
 async def t_toggle(env, A):
-    a, b = await table(env)
+    a, b = await table(env); await stage(a, b)
     await ev(b, "T.cast('Lightning Bolt','opp')"); await b.wait_for_timeout(500)
     ck('a spell is waiting for the host’s OK', (await info(a))['text'] == 'OK: Lightning Bolt resolves')
     # the guest can't
@@ -798,14 +907,14 @@ async def t_oldpage(env, A):
     # the guest is on the old page
     a, b = await table(env, old_b=A.oldhtml)
     ia = await info(a)
-    ck('guest on v4.137: the page versions', ia['ver'] == 'v5.0' and (await info(b))['ver'] == 'v4.137')
+    ck('guest on v4.137: the page versions', ia['ver'].startswith('v5.') and (await info(b))['ver'] == 'v4.137', ia['ver'])
     ck('the table runs without priority', await ev(a, 'priLive()') is False and await ev(a, 'priSet()') is True and ia['dash'] == [''] * 6, ia['dash'])
     ck('and says so on screen, under the big button and in the log', ia['hint'] == NOTE('Bob') and await ev(a, "G.log.filter(l=>/Priority is off at this table/.test(l.text)).length") == 1, ia['hint'])
     await ev(a, 'settingsModal()'); await a.wait_for_timeout(200)
     h = await ev(a, "document.querySelector('#setBody .setrow small').textContent"); await ev(a, 'closeModal()')
     ck('Settings says so too', "Not running right now: Bob's page is an older version." in h, h)
     await ev(a, "T.cast('Lightning Bolt','opp')"); await a.wait_for_timeout(500); ia, ib = await info(a), await info(b)
-    ck('a spell: no blue button, no band', ia['text'] == 'Next: Combat' and ib['text'] == "Opponent's turn" and ia['bands'] == [] and ia['owns'] == [], (ia['text'], ib['text']))
+    ck('a spell: no blue button, no band', ia['text'] == SKIP and ib['text'] == "Opponent's turn" and ia['bands'] == [] and ia['owns'] == [], (ia['text'], ib['text']))
     await a.click('#stack .card'); await a.wait_for_timeout(500)
     ck('a click resolves it, as in v4.137', (await info(b))['life'] == 17)
     await press(a); await press(a); await press(a); await press(a); ia, ib = await info(a), await info(b)
@@ -817,7 +926,7 @@ async def t_oldpage(env, A):
     await b.reload(); await b.wait_for_selector('#resumeBtn:not([hidden])', timeout=15000); await b.click('#resumeBtn')
     await b.wait_for_function('G.conn && G.conn.open && G.opp', timeout=40000); await ev(b, T_JS); await a.wait_for_timeout(800)
     ia, ib = await info(a), await info(b)
-    ck('when they reload into v5.0, priority starts: the note is gone, the dashes are there', ib['ver'] == 'v5.0' and await ev(a, 'priLive()') and ia['hint'] == '' and ia['dash'][3] == 'a on/b fx', (ib['ver'], ia['hint'], ia['dash']))
+    ck('when they reload into v5.0, priority starts: the note is gone, the dashes are there', ib['ver'].startswith('v5.') and await ev(a, 'priLive()') and ia['hint'] == '' and ia['dash'][3] == 'a on/b fx', (ib['ver'], ia['hint'], ia['dash']))
     await ev(a, 'T.trim()'); await press(a, 500); await ev(a, "T.cast('Lightning Bolt','opp')"); await a.wait_for_timeout(600)
     ck('and a spell waits for the OK', (await info(b))['text'] == 'OK: Lightning Bolt resolves', (await info(b))['text'])
     await env.close_all()
@@ -846,7 +955,7 @@ async def resume(p, other):
 
 
 async def t_reload(env, A):
-    a, b = await table(env)
+    a, b = await table(env); await stage(a, b)
     await ev(a, "T.cast('Lightning Bolt','opp')"); await a.wait_for_timeout(500)
     await resume(a, b); ia, ib = await info(a), await info(b)
     ck('the caster reloads mid-wait: the spell is still waiting', ia['st'] == ['Lightning Bolt'] and ia['text'] == "Waiting for Bob's OK" and ib['text'] == 'OK: Lightning Bolt resolves', (ia['st'], ia['text'], ib['text']))
@@ -878,7 +987,7 @@ async def t_fullgame(env, A):
     a, b = await seat(env)
     await pregame(a, b, first='host')
     for p in (a, b):
-        await ev(p, 'S.autoPay=true')
+        await ev(p, 'S.autoPay=true'); await ev(p, "(()=>{ const st=myStops(); st.opp.m2=true; setStops(st); })()")
     oks = [0]
 
     async def ok():
@@ -985,7 +1094,7 @@ async def t_night(env, A):
     ck('match tabs opened at the same table, one host side, one guest side', sorted(roles) == ['p1', 'p2'] and await h.evaluate('G.code') == await g.evaluate('G.code'), roles)
     ck('they are Game Night match tabs', await h.evaluate('!!NIGHT && nightSeat()') and await g.evaluate('!!NIGHT && nightSeat()'))
     await h.wait_for_function('!document.querySelector("#nightWait") || document.querySelector("#nightWait").hidden', timeout=20000)
-    await pregame(h, g, first='host')
+    await pregame(h, g, first='host'); await stage(h, g)
     hn, gname = await h.evaluate('G.me.name'), await g.evaluate('G.me.name')
     ck('priority runs in the match tabs', await h.evaluate('priLive()') and await g.evaluate('priLive()'))
     await ev(h, "T.cast('Lightning Bolt','opp')"); await h.wait_for_timeout(500)
@@ -1039,13 +1148,13 @@ async def t_practice(env, A):
     i = await info(p)
     ck('practice: priority is not running, no dashes, no hint', await ev(p, 'priLive()') is False and await ev(p, 'priTable()') is False and i['dash'] == [''] * 6 and i['hint'] == '', i)
     await ev(p, "T.cast('Lightning Bolt','opp')"); await p.wait_for_timeout(400); i = await info(p)
-    ck('a spell: the button is unchanged, no band', i['text'] == 'Next: Combat' and i['bands'] == [] and i['owns'] == [], i)
+    ck('a spell: the button is unchanged, no band', i['text'] == SKIP and i['bands'] == [] and i['owns'] == [], i)
     await p.click('#stack .card'); await p.wait_for_timeout(400)
     ck('a click resolves it', (await info(p))['st'] == [] and (await info(p))['olife'] == 17)
     await p.click('#turnlbl'); await p.wait_for_timeout(200)
     ck('the turn menu is the old one', await ev(p, "!document.querySelector('#ctx .sgrid') && [...document.querySelectorAll('#ctx > button')].map(x=>x.textContent)[0]==='Pause on my next upkeep (my turn stops there)'"))
     await p.keyboard.press('Escape')
-    await press(p); await press(p); await press(p); await ev(p, 'T.trim()'); await press(p, 500); i = await info(p)
+    await press(p); await press(p); await ev(p, 'T.trim()'); await press(p, 500); i = await info(p)      # Main 2 (no combat to go through), End, next turn
     ck('stops set at another table do nothing here: the next turn runs to Main 1', i['turn']['n'] == 2 and i['turn']['phase'] == 2 and 'hold' not in i['turn'], i['turn'])
     await ev(p, 'settingsModal()'); await p.wait_for_timeout(200)
     row = await ev(p, "(()=>{ const r=document.querySelector('#setBody .setrow'); return {h:r.querySelector('small').textContent, dis:[...r.querySelectorAll('button')].every(x=>x.disabled)}; })()"); await ev(p, 'closeModal()')
@@ -1082,7 +1191,7 @@ async def t_pages(env, A):
     tx = await ev(a, "document.querySelector('#exCard').textContent")
     ck('Explore: OK all has its own entry', tx.startswith('OK all'), tx)
     await a.keyboard.press('Escape'); await a.click('#okAll'); await b.wait_for_function('G.me.st.length===0', timeout=10000)
-    ck('NEWS: v5.0 on top', await ev(a, "NEWS[0][0]==='v5.0' && /passes priority/.test(NEWS[0][2]) && VERSION==='v5.0'"))
+    ck('NEWS: the current version on top, v5.0 below it', await ev(a, "NEWS[0][0]===VERSION && NEWS.some(n=>n[0]==='v5.0' && /passes priority/.test(n[2]))"))
     await env.close_all()
     # the tour (a practice game): every step of the table tour shows, the new one among them
     p = await env.ctx('tour')
@@ -1099,7 +1208,7 @@ async def t_pages(env, A):
     ck('the tour runs to its end', not await ev(p, '!!TOUR') and len(seen) >= 12, seen)
 
 
-TESTS = [('stack', t_stack), ('stops', t_stops), ('waits', t_waits), ('match', t_match), ('toggle', t_toggle), ('oldpage', t_oldpage), ('reload', t_reload),
+TESTS = [('stack', t_stack), ('stops', t_stops), ('auto', t_auto), ('waits', t_waits), ('match', t_match), ('toggle', t_toggle), ('oldpage', t_oldpage), ('reload', t_reload),
          ('fullgame', t_fullgame), ('night', t_night), ('practice', t_practice), ('pages', t_pages)]
 
 
