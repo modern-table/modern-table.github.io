@@ -155,7 +155,7 @@ textarea#paste{width:100%;min-height:300px;font-family:ui-monospace,Menlo,Consol
 .handrow.opp .hn{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}.handrow.opp .hn b{color:var(--brass);font-size:15px}
 .handrow.opp.shown .card{margin:0 2px;cursor:pointer}
 #myHand .card{width:calc(var(--cw)*1.12);margin:0 var(--hm,-10px);transition:transform .12s,margin .16s ease-out,width .16s ease-out,opacity .16s;flex:none}
-#myHand .card:hover{transform:translateY(-10%);z-index:5}#myHand .card.insb{margin-left:calc(var(--hm,-10px) + var(--cw)*.9)}#myHand .card.insa{margin-right:calc(var(--hm,-10px) + var(--cw)*.9)}#myHand .card.dragsrc{width:0;margin:0;opacity:0;visibility:hidden;border-width:0;overflow:hidden;transform:none;box-shadow:none;transition:width .16s ease-out,margin .16s ease-out}
+#myHand .card:hover{transform:translateY(-10%);z-index:5}#myHand .card.ntime{filter:brightness(.6) saturate(.55)}#myHand .card.ntime:hover{filter:brightness(.8) saturate(.75)}#myHand .card.insb{margin-left:calc(var(--hm,-10px) + var(--cw)*.9)}#myHand .card.insa{margin-right:calc(var(--hm,-10px) + var(--cw)*.9)}#myHand .card.dragsrc{width:0;margin:0;opacity:0;visibility:hidden;border-width:0;overflow:hidden;transform:none;box-shadow:none;transition:width .16s ease-out,margin .16s ease-out}
 #mid{flex:none;height:44px;display:flex;align-items:center;gap:10px;padding:0 10px;border-block:1px solid var(--line);background:#0b1417cc}
 #turnlbl{display:flex;align-items:center;gap:7px;min-width:0;flex:0 1 auto;background:transparent;border:1px solid transparent;padding:3px 8px;font-family:var(--display);font-size:17px;white-space:nowrap}
 #turnlbl .tlt{min-width:0;overflow:hidden;text-overflow:ellipsis}#turnlbl.mine .tlt{color:var(--brass)}#turnlbl:hover,#turnlbl.open{border-color:var(--brass)}
@@ -774,7 +774,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.13';
+const VERSION = 'v5.14';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -790,6 +790,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.14','Nov 18',"The table now knows when things can be played. Sorceries, creatures and other spells without flash, land plays and planeswalker loyalty abilities wait for your main phase with the stack empty, and each planeswalker gets one loyalty ability a turn. Cards in your hand that can't be played right now are dimmed (point at one to see why). Instants, flash, and cards that give flash (Leyline of Anticipation, Teferi) work as before, and split second holds everything else. Playing something at the wrong time opens a window that says why, with a Cast anyway / Play anyway button for fixing mistakes; the log notes it."],
   ['v5.13','Nov 17',"New markers for counters and boosts: square pennants on the right edge of the card. +1/+1 counters are brass and −1/−1 counters are onyx (they stay), a boost until end of turn takes a pale version of the creature's own color, and a shrink until end of turn is dark gray."],
   ['v5.12','Nov 17',"Prowess and other \"whenever you cast a noncreature spell\" boosts (Monastery Swiftspear, Slickshot Show-Off, Chandra's Emberling) now go on the stack as triggers, so your opponent sees them and can respond, instead of landing on the creature right away. Several of them at once don't ask you to put them in order."],
   ['v5.11','Nov 17',"Solarium Sentry now gains you 2 life when your opponent casts a spell with mana value 2 or less. Slickshot Show-Off's plot and Ghor-Clan Rampager's bloodrush now show up in the casting window as other ways to play the card, as well as in the right-click menu."],
@@ -1573,7 +1574,7 @@ function move(id, zone, o={}){
 function draw(n=1, quiet, step){ const m=G.me; let k=0; { const ns=((G.opp&&G.opp.bf)||[]).find(x=>!x.fd && (x.k||x.cu) && /Each opponent can(?:'|’)t draw more than one card each turn/i.test(frontText(x)||'')); if(ns){ if(!m.dn || m.dn.t!==G.turn.n) m.dn={t:G.turn.n, k:0}; const room=Math.max(0, 1-m.dn.k); if(n>room){ if(!quiet) log(`${cdata(ns).n.split(',')[0]}: ${m.name} can't draw more than one card this turn${room?'':', so they draw nothing'}.`); n=room; } m.dn.k+=n; if(!n) return 0; } } if(step && n===1 && !draw.noDredge && m.gy.some(x=>dredgeN(x) && m.lib.length>=dredgeN(x))){ setTimeout(dredgeAsk, 0); return 1; } if(n>0 && m.hand.length<=1){ const rq=m.bf.filter(x=>!x.fd && (x.k||x.cu) && /As long as you have one or fewer cards in hand, if you would draw one or more cards, you draw that many cards plus one instead/i.test(frontText(x)||'')); if(rq.length){ n+=rq.length; if(!quiet) log(`${rq.map(x=>cdata(x).n).join(', ')}: ${m.name} has one or fewer cards in hand, so they draw ${n} instead.`); } } const want=n; while(n-- > 0 && m.lib.length){ m.hand.push(m.lib.shift()); k++; } if(k<want && G.turn.n && m.kept){ if(m.dummy) m.emptyDraw=1; else { G.emptyDraw=true; lossCheck(); } } if(!quiet) log(`${m.name} draws ${k===1?'a card':k+' cards'}.`); if(k && G.turn.n) drawTrigs(k); if(!k && !quiet) toast('Your library is empty.'); if(k && !quiet && G.opp && G.turn.n) send({t:'drew', n:k, first:step?1:0}); return k; }
 function shuffleLib(quiet){ G.noUndo=true; shuffle(G.me.lib); if(!quiet) log(`${G.me.name} shuffles their library.`); }
 const ORDW=['','first','second','third','fourth','fifth','sixth','seventh','eighth','ninth','tenth'];
-function playFromHand(id, ov, tp){ const f=find(id); if(!f) return; if(f.z==='hand' && waitMull()) return; if(isLand(f.c)){ if(ov===undefined) return landGate(id, cdata(f.c).n, a=>playFromHand(id, a, tp)); const m=G.me, n=G.turn.n||0, fz=f.z;   /* v4.137: tp = play it tapped (a playable exiled land's "Play land tapped"); fz 'ex' = from exile (Reckless Impulse, Tibalt), which uses the land play too */ if(!m.lp || m.lp.n!==n) m.lp={n, k:0}; m.lp.k++; if(ov) m.lp.ov=(m.lp.ov||0)+1; (m.lp.pl=m.lp.pl||[]).push({id, ov:!!ov, nm:cdata(f.c).n.split(' // ')[0]}); const k=m.lp.k;
+function playFromHand(id, ov, tp, tmk){ const f=find(id); if(!f) return; if(f.z==='hand' && waitMull()) return; if(isLand(f.c)){ if(ov===undefined && !tmk){ const tw=landTimeWhy(f.c); if(tw) return timeAsk(tw, 'Play', cname(f.c), ()=>playFromHand(id, ov, tp, 1)); }   /* v5.14: land timing */ if(ov===undefined) return landGate(id, cdata(f.c).n, a=>playFromHand(id, a, tp)); const m=G.me, n=G.turn.n||0, fz=f.z;   /* v4.137: tp = play it tapped (a playable exiled land's "Play land tapped"); fz 'ex' = from exile (Reckless Impulse, Tibalt), which uses the land play too */ if(!m.lp || m.lp.n!==n) m.lp={n, k:0}; m.lp.k++; if(ov) m.lp.ov=(m.lp.ov||0)+1; (m.lp.pl=m.lp.pl||[]).push({id, ov:!!ov, nm:cdata(f.c).n.split(' // ')[0]}); const k=m.lp.k;
     move(id,'bf',{silent:true, later:true, tap:!!tp}); log(`${m.name} plays ${cname(f.c)}${fz==='gy' ? ' from their graveyard' : fz==='lib' ? ' from the top of their library' : fz==='ex' ? ' from exile' : ''}${tp && f.c.tap ? ' tapped' : ''}${k>1 ? ', '+(ORDW[k]||k+'th')+' land this turn' : ''}${ov ? ' (an additional land for turn, played anyway)' : ''}.`); entered(f.c); changed(); if(!(tp && f.c.tap)) landEnters(id); } else castSpell(id); }
 /* v4.108: land for turn. One land play a turn, plus one per "You may play an/two/three additional land(s) on each of your turns" on the battlefield (Dryad of the Ilysian Grove, Azusa, Oracle of Mul Daya, Exploration, Wayward Swordtooth), plus each "You may play an additional land this turn" that resolved this turn (Explore, Way of the Paradox's loyalty trigger: m.lpx = {n, s:[source names]}). m.lp = {n, k, ov}: lands played this turn and how many of them were played anyway past the limit. Only playing a land counts (playFromHand, playLandSide, a land dragged from the hand on my turn); lands put onto the battlefield (fetches, Arboreal Grazer, Shift-click) don't. Published as lp / lpx; the tracker (lpTrack) sits in the bottom-left of the active player's hand row on both screens. */
 const LP_NUM={an:1, one:1, two:2, three:3};
@@ -2154,6 +2155,60 @@ function pickSpent(c, cb){ const cs=spentConds(c), sym=k=>`{${k}}{${k}}`; const 
 /* Teferi, Time Raveler: its controller's opponents cast spells only when they could cast a sorcery */
 function timingLock(c){ for(const x of ((G.opp&&G.opp.bf)||[])){ if(x.fd || (!x.k && !x.cu)) continue; if(/Each opponent can cast spells only any time they could cast a sorcery/i.test(frontText(x)||'')){
     const ok=G.turn.active===G.myId && (G.turn.phase===2 || G.turn.phase===4) && !G.me.st.some(y=>y.id!==c.id) && !((G.opp&&G.opp.st)||[]).length; return ok ? null : cdata(x).n; } } return null; }
+/* v5.14: timing (Ben). Spells without flash, lands and loyalty abilities follow sorcery timing: your turn, a main phase, the stack empty. Flash comes from the
+   keyword, from "as though it had flash" lines on my battlefield (Leyline of Anticipation, Vedalken Orrery, Yeva, Shimmer Myr, Teferi, Mage of Zhalfir's
+   "… cards you own that aren't on the battlefield have flash") and from effects that resolved (m.flashT: Borne Upon a Wind, Emergence Zone this turn,
+   Teferi, Time Raveler until my next turn). A split second spell on either stack holds everything else. Loyalty abilities: once per planeswalker per turn
+   (c.lyT, twice with Oath of Teferi), instant speed with Jace's Machinations (m.loyInst) or a static "on any player's turn any time you could cast an instant".
+   The table warns and offers "… anyway" (logged), never refuses; a card cast while another effect resolves (o.res) skips the check. Hand cards that can't be
+   played right now are dimmed (.ntime) with the reason in their title. */
+const TM_TYPES=['Creature','Artifact','Enchantment','Planeswalker','Battle','Kindred','Tribal','Sorcery'];
+function tmOff(){ const t=G.turn; return !t || !t.n || DSW || G.go || G.me.ctl || !!(G.opp && G.opp.ctl) || (typeof oppMulling==='function' && oppMulling()); }
+const kwLineHas = (c, w) => (cdata(c).o||'').replace(/\([^)]*\)/g,'').split('\n').some(l=>l.length<70 && l.trim().toLowerCase().replace(/\.$/,'').split(/,\s*/).includes(w));
+function tmStackOthers(exceptId){ return G.me.st.filter(y=>y.id!==exceptId && !isHeldTrig(y)).length + ((G.opp&&G.opp.st)||[]).length; }
+function splitSecondOn(exceptId){ for(const y of [...G.me.st, ...((G.opp&&G.opp.st)||[])]){ if(y.id===exceptId || y.ab || y.ch || y.fd || (!y.k && !y.cu)) continue; if(kwLineHas(y, 'split second')) return cdata(y).n.split(' // ')[0]; } return null; }
+/* why sorcery timing fails right now, or null */
+function sorcWhy(exceptId){ const t=G.turn; if(t.active!==G.myId) return `it's ${G.opp?G.opp.name:'the opponent'}'s turn`; if(t.phase!==2 && t.phase!==4) return `it's your ${({0:'upkeep',1:'draw step',3:'combat step',5:'end step'})[t.phase]||'turn'}`; if(tmStackOthers(exceptId)) return `the stack isn't empty`; return null; }
+function flashGrants(){ const out=[], n=G.turn.n||0;
+  for(const x of G.me.bf){ if(x.fd || (!x.k && !x.cu)) continue; const t=noRemind(x);
+    for(const r of t.matchAll(/You may cast ([^.\n]*?)spells as though they had flash/gi)) out.push({desc:r[1].trim(), src:cdata(x).n});
+    for(const r of t.matchAll(/(?:^|\n)([A-Za-z ]+?) cards you own that aren(?:'|’)t on the battlefield have flash/gi)) out.push({desc:r[1].trim(), src:cdata(x).n}); }
+  for(const f of (G.me.flashT||[])) if(n<=f.till) out.push(f);
+  return out; }
+/* the type line this cast uses */
+function castFaceType(c, o){ if(o && o.adv) return faceTypeOf(c,1); if(o && o.half!=null && isSplit(c)) return faceTypeOf(c, o.half); return faceType(c); }
+function hasFlashFor(c, o){ const tl=castFaceType(c, o);
+  if(/\bInstant\b/.test(tl) && !(o && o.fuse && /Sorcery/.test(cdata(c).t||''))) return true;
+  if(kwLineHas(c, 'flash')) return true;
+  if(/(?:cast|you may cast) this (?:spell|card) as though it had flash|this (?:card|spell) has flash/i.test(noRemind(c))) return true;   /* conditional self-flash: the table can't judge the condition, so it doesn't warn */
+  return flashGrants().some(g=>!g.desc || matchesDesc(c, g.desc)); }
+/* a spell: why it can't be cast right now, or null. o: castSpell's options (adv, half, fuse, res) */
+function castTimeWhy(c, o){ if(tmOff() || (o && o.res) || !c || c.fd && !(o&&o.morph)) return null; if(!(c.k || c.cu)) return null;
+  const ss=splitSecondOn(c.id); if(ss) return {title:'Split second', why:`${ss} has split second: no other spells can be cast while it is on the stack.`, short:`${ss} (split second) is on the stack`};
+  if(hasFlashFor(c, o)) return null;
+  const w=sorcWhy(c.id); if(!w) return null;
+  const tl=castFaceType(c, o), kind=/\bSorcery\b/.test(tl) ? 'a sorcery' : `a ${(TM_TYPES.find(x=>new RegExp('\\b'+x+'\\b').test(tl))||'').toLowerCase()} spell`.replace('a  spell','a spell').replace(/^a ([aeiou])/,'an $1');
+  return {title:'Sorcery timing', why:`${cdata(c).n.split(' // ')[o&&o.adv?1:0]||cdata(c).n} is ${kind}: cast it in your main phase while the stack is empty. Right now ${w}.`, short:w}; }
+function landTimeWhy(c){ if(tmOff() || !c) return null; const w=sorcWhy(c.id); if(!w) return null;
+  return {title:'Playing a land', why:`Play ${cdata(c).n.split(' // ')[0]} in your main phase while the stack is empty. Right now ${w}.`, short:w}; }
+/* loyalty abilities: timing and once per turn */
+function loyInstant(c){ const n=G.turn.n||0; const li=G.me.loyInst; if(li && li.t===n && (!li.desc || matchesDesc(c, li.desc))) return true;
+  return G.me.bf.some(x=>!x.fd && (x.k||x.cu) && /You may activate (?:the )?loyalty abilities of (?:([A-Za-z ]+?) )?planeswalkers you control on any player(?:'|’)s turn any time you could cast an instant/i.test(noRemind(x)) && (()=>{ const r=noRemind(x).match(/loyalty abilities of (?:([A-Za-z ]+?) )?planeswalkers you control/i); return !r[1] || matchesDesc(c, r[1]); })()); }
+const loyPerTurn = () => G.me.bf.some(x=>!x.fd && (x.k||x.cu) && /activate the loyalty abilities of planeswalkers you control twice each turn/i.test(noRemind(x))) ? 2 : 1;
+const loyUsed = c => (c.lyT && c.lyT.t===G.turn.n && c.lyT.bfx===(c.bfx||0)) ? c.lyT.k : 0;
+function loyWhy(c){ if(tmOff()) return null; const k=loyUsed(c), cap=loyPerTurn(); if(k>=cap) return {title:'Loyalty abilities', why:`${faceName(c,0)} has already activated a loyalty ability this turn${cap>1?' twice':''}. A planeswalker's loyalty abilities can be activated only ${cap>1?'twice':'once'} each turn.`, short:'already used this turn', once:1};
+  const ss=splitSecondOn(null); if(ss) return {title:'Split second', why:`${ss} has split second: abilities that aren't mana abilities can't be activated while it is on the stack.`, short:`${ss} (split second) is on the stack`};
+  if(loyInstant(c)){ return null; } const w=sorcWhy(null); if(!w) return null;
+  return {title:'Loyalty abilities', why:`Activate ${faceName(c,0)}'s loyalty abilities in your main phase while the stack is empty. Right now ${w}.`, short:w}; }
+function loyMark(c){ const n=G.turn.n||0, b=c.bfx||0; if(!c.lyT || c.lyT.t!==n || c.lyT.bfx!==b) c.lyT={t:n, bfx:b, k:0}; c.lyT.k++; }
+/* the window: Don't / … anyway, logged */
+function timeAsk(w, verb, what, go){ modal(w.title, `<span class="hint">${esc(w.why)}<br><br>${verb} anyway only to fix a mistake, or if you have both agreed it's allowed. The log will note it.</span>`, [[`Don't ${verb.toLowerCase()}`,()=>closeModal(),'ghost'], [`${verb} anyway`,()=>{ closeModal(); log(`${G.me.name} ${verb==='Play'?'plays':verb==='Cast'?'casts':'activates'} ${what} anyway, outside the timing rules (${w.short}).`); go(); },'go']]); }
+/* hand dimming: why this hand card can't be played right now (null = it can, or the table can't tell) */
+function handTimeWhy(c){ if(tmOff() || !c || c.fd || (!c.k && !c.cu)) return null;
+  if(isLand(c)) return landTimeWhy(c);
+  const ws=[castTimeWhy(c, {})]; if(cdata(c).lay==='adventure') ws.push(castTimeWhy(c, {adv:1})); if(isSplit(c)) ws.push(castTimeWhy(c, {half:0}), castTimeWhy(c, {half:1}));
+  if(typeof mdfcLand==='function' && mdfcLand(c)) ws.push(landTimeWhy(c));
+  return ws.every(Boolean) ? ws[0] : null; }
 /* hand abilities whose cost discards the card ("Channel — {1}{G}, Discard …: …", "{1}{U}, Discard Waker of Waves: …", "Discard Faerie Macabre: …") */
 function handAbils(c){ if(c.fd || (!c.k && !c.cu)) return []; const nm=faceName(c,0), out=[];
   for(const m of (frontText(c)||'').replace(/\([^)]*\)/g,'').matchAll(new RegExp('(?:^|\\n)(?:(?:Channel|Bloodrush)\\s*[—–-]\\s*)?([^:\\n]*\\bDiscard (?:this card|'+escRe(nm)+'|'+escRe(nm.split(',')[0])+')[^:\\n]*):\\s*([^\\n]+)','gi'))){
@@ -3612,7 +3667,7 @@ async function simpleEffects(c, text, srcId){
     if((r=sen.match(/^you may cast an? ([a-z, ]+?) spell from your graveyard\.?$/i))){ const desc=r[1], cs=m.gy.filter(x=>!x.fd && (x.k||x.cu) && !isLand(x) && matchesDesc(x, desc));
       if(!cs.length){ log(`${by}: ${m.name} has no ${desc} card in their graveyard.`); continue; } waited=true; const p=await pickP(`${by}: cast ${/^[aeiou]/i.test(desc)?'an':'a'} ${desc} spell from your graveyard?`, cs, "Don't cast");
       if(!p || !find(p.id) || find(p.id).z!=='gy'){ log(`${by}: ${m.name} doesn't cast a spell from their graveyard.`); continue; }
-      if(isSpell(p) && /would be put into your graveyard, exile it instead/i.test(text)) p.xrNext=1; log(`${by}: ${m.name} casts ${cname(p)} from their graveyard${p.xrNext?' (it is exiled afterwards)':''}.`); setTimeout(()=>castSpell(p.id), 0); continue; }
+      if(isSpell(p) && /would be put into your graveyard, exile it instead/i.test(text)) p.xrNext=1; log(`${by}: ${m.name} casts ${cname(p)} from their graveyard${p.xrNext?' (it is exiled afterwards)':''}.`); setTimeout(()=>castSpell(p.id, {res:1}), 0); continue; }
     if(/^if an instant or sorcery spell cast this way would be put into your graveyard, exile it instead\.?$/i.test(sen)) continue;
     // Cori-Steel Cutter's flurry: "create a 1/1 white Monk creature token with prowess. You may attach this Equipment to it."
     if(/^you may attach this equipment to (?:it|that token|that creature)\.?$/i.test(sen)){ const tk=(made||[]).find(x=>find(x.id) && find(x.id).z==='bf'), eq=srcC && find(srcC.id);
@@ -3631,7 +3686,7 @@ async function simpleEffects(c, text, srcId){
     if((r=sen.match(/^you may play up to (two|\w+) of those cards until the end of your next turn\.?$/i))){ log(`${by}: up to ${r[1]} of them may be played; once ${r[1]} have been, the rest can't be.`); continue; }
     // Press the Enemy: "You may cast an instant or sorcery spell with equal or lesser mana value from your hand without paying its mana cost."
     if(/^you may cast an instant or sorcery spell with equal or lesser mana value from your hand without paying its mana cost\.?$/i.test(sen)){ const mv=(G.tgMV||[]).find(v=>v!=null); const cs=m.hand.filter(x=>!x.fd && isSpell(x) && (mv==null || manaValue(x)<=mv)); if(!cs.length){ log(`${by}: ${m.name} has no instant or sorcery with mana value ${mv==null?'':mv+' or less'} in hand.`); continue; }
-      waited=true; const p=await pickP(`${by}: cast an instant or sorcery with mana value ${mv==null?'':mv+' or less'} for free`, cs, "Don't"); if(p) castSpell(p.id, {nm:true, silent:true}, ()=>log(`${by}: ${m.name} casts ${cname(p)} without paying its mana cost.`)); continue; }
+      waited=true; const p=await pickP(`${by}: cast an instant or sorcery with mana value ${mv==null?'':mv+' or less'} for free`, cs, "Don't"); if(p) castSpell(p.id, {nm:true, silent:true, res:1}, ()=>log(`${by}: ${m.name} casts ${cname(p)} without paying its mana cost.`)); continue; }
     // Scout for Survivors / Dewdrop Cure: several creature cards from the graveyard to the battlefield
     if((r=sen.match(/^return up to (two|three|\w+) target creature cards (each with mana value (\d+) or less|with total mana value (\d+) or less) from your graveyard to the battlefield\.?$/i))){ const k=NUMW2[r[1].toLowerCase()]||+r[1]||2, each=r[3]!=null ? +r[3] : null, tot=r[4]!=null ? +r[4] : null;
       const cs=m.gy.filter(x=>!x.fd && /\bCreature\b/.test(faceTypeOf(x,0)) && (each==null || manaValue(x)<=each) && (tot==null || manaValue(x)<=tot)); if(!cs.length){ log(`${by}: no creature card in ${m.name}'s graveyard fits.`); made=[]; continue; } waited=true;
@@ -4540,7 +4595,8 @@ async function simpleEffects(c, text, srcId){
     if((r=sen.match(/^you lose (\d+) life for each (\w+) counter on (?:this \w+|[A-Z][^.]*?)\.?$/i)) && srcC){ const k=(+r[1])*(srcC.c||0); if(k){ m.life-=k; log(`${by}: ${m.name} loses ${k} life (now ${m.life}).`); } changed(); continue; }
     // reminders the table doesn't enforce
     if(/^permanents your opponents control lose hexproof and indestructible until end of turn\.?$/i.test(sen)){ log(`${by}: ${G.opp?G.opp.name+"'s":"the opponent's"} permanents lose hexproof and indestructible until end of turn.`); continue; }
-    if(/^until your next turn, you may cast sorcery spells as though they had flash\.?$/i.test(sen)){ log(`${by}: until their next turn, ${m.name} may cast sorcery spells any time they could cast an instant.`); continue; }
+    { const fl=sen.match(/^(until your next turn, )?you may cast ([a-z ,]*?)spells (this turn )?as though they had flash(?: this turn)?\.?$/i); if(fl){ const n=G.turn.n||0, nt=!!fl[1], desc=fl[2].trim(); (m.flashT=(m.flashT||[]).filter(f=>f.till>=n)).push({desc, src:by, till:nt ? n+1 : n}); log(`${by}: ${nt ? 'until their next turn' : 'this turn'}, ${m.name} may cast ${desc ? desc+' ' : ''}spells any time they could cast an instant.`); continue; } }   // v5.14 (Teferi, Time Raveler; Borne Upon a Wind; Emergence Zone): read by flashGrants
+    { const lj=sen.match(/^until end of turn, you may activate loyalty abilities of ([a-z ]*?)planeswalkers you control on any player(?:'|’)s turn any time you could cast an instant\.?$/i); if(lj){ m.loyInst={t:G.turn.n||0, desc:lj[1].trim()}; log(`${by}: until end of turn, ${m.name} may activate loyalty abilities of ${lj[1].trim() ? lj[1].trim()+' ' : ''}planeswalkers any time they could cast an instant.`); continue; } }   // v5.14: Jace's Machinations, read by loyWhy
     // Gideon: "Prevent all damage that would be dealt to him this turn." Maze of Ith: "… combat damage that would be dealt to and dealt by that creature this turn."
     if(/^prevent all damage that would be dealt to (?:him|her|it|this creature|this permanent) this turn\.?$/i.test(sen) && srcC){ srcC.prevT=G.turn.n||1; log(`${by}: all damage that would be dealt to ${cname(srcC)} this turn is prevented.`); changed(); continue; }
     if(/^prevent all combat damage that would be dealt to and dealt by (?:that creature|it) this turn\.?$/i.test(sen)){ const t=tg.find(x=>{ const a=findAny(x); return a && a.z==='bf'; }); if(t) modTarget(t, {maze:true}, by); changed(); continue; }
@@ -4980,16 +5036,16 @@ async function simpleEffects(c, text, srcId){
       else if((r=sen.match(/^if that creature entered from a graveyard or you cast it from a graveyard, (.+)$/i))){ const x=srcC && find(srcC.id); if(x && x.c.id===G.lastEnt5 && (x.c.egy===G.turn.n || x.c.cgy)) await sub(cap(r[1])); /* another creature: the enter hook puts its own trigger */ }
       else if((r=sen.match(/^if the sacrificed permanent was an? ([a-z]+), (.+)$/i)) && G.sacTp!=null){ if(new RegExp('\\b'+r[1]+'\\b','i').test(G.sacTp)) await sub(cap(r[2])); else log(`${by}: it wasn't ${/^[aeiou]/i.test(r[1])?'an':'a'} ${r[1]}.`); }
       else if(/^you may cast target instant or sorcery card from a graveyard, and mana of any type can be spent to cast that spell\.?$/i.test(sen)){ const e=(m.gtg||[]).find(e=>e.s===c.id); if(!e){ log(`${by}: no card was targeted.`); continue; } m.gtg=m.gtg.filter(x=>x!==e); const f=find(e.c);
-        if(f && f.z==='gy'){ waited=true; const ok=await yesNo(by, `Cast ${cdata(f.c).n} from your graveyard (mana of any type; exiled afterwards)?`, 'Cast it', "Don't"); if(ok){ const id=f.c.id; setTimeout(()=>castSpell(id, {xr:1}), 0); log(`${by}: ${m.name} casts ${cname(f.c)} from their graveyard (it is exiled afterwards).`); } }
+        if(f && f.z==='gy'){ waited=true; const ok=await yesNo(by, `Cast ${cdata(f.c).n} from your graveyard (mana of any type; exiled afterwards)?`, 'Cast it', "Don't"); if(ok){ const id=f.c.id; setTimeout(()=>castSpell(id, {xr:1, res:1}), 0); log(`${by}: ${m.name} casts ${cname(f.c)} from their graveyard (it is exiled afterwards).`); } }
         else { const a=findAny(e.c); if(!a || a.z!=='gy'){ log(`${by}: it is no longer in a graveyard.`); continue; } waited=true; const ok=await yesNo(by, `Cast ${cdata(a.c).n} from ${oppName()}'s graveyard (mana of any type; exiled afterwards)?`, 'Cast it', "Don't"); if(!ok) continue; send({t:'yield', id:e.c, gy:1, zone:'hand', by, who:m.name}); const id=e.c;
-          for(let i=0;i<40 && !(find(id) && find(id).z==='hand');i++) await sleep(100); const g=find(id); if(g && g.z==='hand'){ castSpell(id, {xr:1}); log(`${by}: ${m.name} casts ${cname(g.c)} from ${oppName()}'s graveyard (it is exiled afterwards).`); } } }
+          for(let i=0;i<40 && !(find(id) && find(id).z==='hand');i++) await sleep(100); const g=find(id); if(g && g.z==='hand'){ castSpell(id, {xr:1, res:1}); log(`${by}: ${m.name} casts ${cname(g.c)} from ${oppName()}'s graveyard (it is exiled afterwards).`); } } }
       else if(/^copy that spell\.?$/i.test(sen) && /when you next cast an instant or sorcery spell this turn/i.test(text)){ m.howl={t:G.turn.n, n:((m.howl&&m.howl.t===G.turn.n)?m.howl.n:0)+1}; log(`${by}: the next instant or sorcery ${m.name} casts this turn is copied.`); }
       else if(/^when you next cast an instant or sorcery spell this turn, copy that spell an additional time\.?$/i.test(sen)){ m.howl={t:G.turn.n, n:((m.howl&&m.howl.t===G.turn.n)?m.howl.n:0)+1}; log(`${by}: raid, so it is copied ${m.howl.n} times.`); }
       else if(/^choose a card name that hasn(?:'|’)t been chosen from among disenchant, braingeyser, terror, shivan dragon, regrowth, and black lotus\.?$/i.test(sen)){ const f=srcId && find(srcId), all=['Disenchant','Braingeyser','Terror','Shivan Dragon','Regrowth','Black Lotus'], used=(f && f.c.gch) || [], left=all.filter(n=>!used.includes(n));
         if(!left.length){ log(`${by}: every name has been chosen.`); skipS.push(/^create a copy of the card/i, /^you may cast the copy/i); continue; } waited=true; const nm=await choose5(`${by}: choose a card name`, left); if(f) f.c.gch=[...used, nm]; G.garth=nm; log(`${by}: ${m.name} chooses ${nm}.`); }
       else if(/^create a copy of the card with the chosen name\.?$/i.test(sen)){ const nm=G.garth; G.garth=null; if(!nm) continue; const k=nm.toLowerCase(); await ensureCards([k]); if(!DB[k]){ log(`${by}: the table couldn't look up ${nm}; play the copy by hand.`); continue; }
         const cp=mk(k,{tok:true, garth:1}); m.hand.push(cp); G.garthCp=cp.id; log(`${by}: ${m.name} creates a copy of ${cname(cp)} (in their hand to cast now; it disappears at the end of the turn if not cast).`); }
-      else if(/^you may cast the copy\.?$/i.test(sen) && G.garthCp){ const id=G.garthCp; G.garthCp=null; setTimeout(()=>{ if(find(id) && find(id).z==='hand') castSpell(id); }, 0); }
+      else if(/^you may cast the copy\.?$/i.test(sen) && G.garthCp){ const id=G.garthCp; G.garthCp=null; setTimeout(()=>{ if(find(id) && find(id).z==='hand') castSpell(id, {res:1}); }, 0); }
       // other players' libraries and hands
       else if((r=sen.match(/^target opponent exiles the top X cards of their library\.?$/i)) || (r=sen.match(/^exile the top X cards of target opponent(?:'|’)s library\.?$/i))){ const k=c.xc!=null ? +c.xc : (c.ab && c.ab.x!=null ? +c.ab.x : (c.x||0)); if(!(k>0) || !G.opp){ log(`${by}: ${!G.opp ? 'there is no opponent' : 'X is 0'}.`); skipS.push(/^you may (?:cast any number of spells with mana value X or less|play lands and cast spells) from among/i); continue; } waited=true;
         const cs=(await askOpp({kind:'libtop', n:k, exile:1, by, who:m.name}, [])) || []; G.oppEx=cs; await ensureCards(cs.map(x=>x.k).filter(Boolean)); log(`${by}: ${oppName()} exiles the top ${k} card${k===1?'':'s'} of their library${cs.length?': '+cs.map(x=>cname(x)).join(', '):''}.`); }
@@ -5584,6 +5640,8 @@ function activate(id, a, evDone, extra){ if(waitMull()) return;
   if(a && a.kw && /^Crew$/i.test(a.eff)){ crewIt(id, parseInt(a.cost,10)||1); return; }
   { const f0=find(id); if(f0 && f0.z==='bf' && !(extra&&extra.totem) && !totemGate(f0.c, ()=>activate(id, a, evDone, Object.assign({}, extra||{}, {totem:1})))) return; }
   { const f0=find(id); if(f0 && f0.z==='bf'){ const c0=f0.c, ex=extra||{};
+      if(!a.kw && isPW(c0) && /^(?:[+−-]?\d+|[−-]X)$/.test(a.cost||'') && !ex.loyOK){ const lw=loyWhy(c0); if(lw){ timeAsk(lw, 'Activate', `${cname(c0)}'s loyalty ability`, ()=>activate(id, a, evDone, Object.assign({}, ex, {loyOK:1}))); return; } }   // v5.14: loyalty timing, once per turn
+      else if(!ex.ssOK && !ex.loyOK && !/^Add\b/i.test(a.eff||'') && !tmOff()){ const ss=splitSecondOn(null); if(ss){ timeAsk({title:'Split second', why:`${ss} has split second: abilities that aren't mana abilities can't be activated while it is on the stack.`, short:`${ss} (split second) is on the stack`}, 'Activate', `${cname(c0)}'s ability`, ()=>activate(id, a, evDone, Object.assign({}, ex, {ssOK:1}))); return; } }
       if(!a.kw && /^[−-]X$/.test(a.cost) && ex.x==null){ askN(`${faceName(c0,0)}: remove how many loyalty counters (X)?`, Math.min(1, c0.c||0)).then(n=>{ if(n==null || n<0) return; if(n>(c0.c||0)){ toast('It does not have that much loyalty.'); return; } activate(id, a, evDone, Object.assign({}, ex, {x:n})); }); return; }
       if(/Activate only as a sorcery/i.test(a.eff||'') && !ex.sorcOK){ const t=G.turn, ok=t.active===G.myId && (t.phase===2 || t.phase===4) && !G.me.st.length && !((G.opp&&G.opp.st)||[]).length;
         if(!ok){ modal('Activate only as a sorcery', `<span class="hint">${esc(faceName(c0,0))}: this ability can only be activated during your main phase while the stack is empty.<br><br>Activate anyway only if you have both agreed it's allowed.</span>`, [["Don't activate",()=>closeModal(),'ghost'], ['Activate anyway',()=>{ closeModal(); log(`${G.me.name} activates ${cname(c0)} anyway, outside sorcery timing.`); activate(id, a, evDone, Object.assign({}, ex, {sorcOK:1})); },'go']]); return; } }
@@ -5636,7 +5694,7 @@ function activate(id, a, evDone, extra){ if(waitMull()) return;
   else if(syms && G.me.mana && MANA.some(k=>G.me.mana[k]) && payCost(syms)) paid.push('mana from the pool');
   if(/\{T\}/.test(cost)){ c.tap=true; paid.push('tapped'); } if(/\{Q\}/.test(cost)){ c.tap=false; paid.push('untapped'); }
   if(/\bexert\b/i.test(cost)){ c.exert=true; paid.push('exerted'); }
-  if(loy){ c.c=(c.c||0)+(/[−-]/.test(loy[1]) ? -(+loy[2]) : +loy[2]); paid.push('loyalty now '+c.c); G.me.loyT=G.turn.n; }   // v4.123: m.loyT = turn a loyalty ability was last activated (Kiora of Salt and Sand)
+  if(loy){ c.c=(c.c||0)+(/[−-]/.test(loy[1]) ? -(+loy[2]) : +loy[2]); paid.push('loyalty now '+c.c); G.me.loyT=G.turn.n; if(isPW(c)) loyMark(c); }   // v4.123: m.loyT = turn a loyalty ability was last activated (Kiora of Salt and Sand)
   if(rn){ c.c-=rn; paid.push(rn>1 ? rn+' counters removed' : 'a counter removed'); }
   if(life){ G.me.life-=+life[1]; paid.push('paid '+life[1]+' life'); }
   if(/\bpay X \{E\}/i.test(cost) && extra && extra.x!=null){ G.me.ctr.energy=Math.max(0,(G.me.ctr.energy||0)-extra.x); paid.push(`paid ${extra.x} energy (${G.me.ctr.energy} left)`); }
@@ -5775,8 +5833,9 @@ function spellLimit(c){ const k=G.me.cast||{};
   for(const bf of [G.me.bf, (G.opp&&G.opp.bf)||[]]) for(const x of bf){ if(x.fd || (!x.k && !x.cu)) continue; const m=(frontText(x)||'').match(/Each player who has cast a nonartifact spell this turn can't cast additional nonartifact spells/i);
     if(m && (c.fd || !/\bArtifact\b/.test(faceType(c))) && (k.na||0)>=1) return {src:cdata(x).n, nc:false, na:true, rule:m[0]}; }
   return null; }
-function castGate(id, go){
+function castGate(id, go, o){ o=o||{};
   const f=find(id); if(!f || f.z==='st'){ go(); return; }
+  { const tw=!o.tmok && !isLand(f.c) && castTimeWhy(f.c, o); if(tw){ timeAsk(tw, 'Cast', cname(f.c), ()=>castGate(id, go, Object.assign({}, o, {tmok:1}))); return; } }   // v5.14: timing
   if(twoTgt(f.c) && !pidCreatures(G.myId).length && !pidCreatures(oppId()).length){ toast(`${cdata(f.c).n.split(' // ')[0]} needs a creature to target, and there is none on the battlefield.`); return; }
   { const lk=!isLand(f.c) && castLock(f.c, f.z); if(lk){ modal('Can\'t cast', `<span class="hint">${esc(lk)}.<br><br>Cast anyway only if you have both agreed it's allowed.</span>`, [["Don't cast",()=>closeModal(),'ghost'], ['Cast anyway',()=>{ closeModal(); log(`${G.me.name} casts anyway (${lk}).`); go(); },'go']]); return; } }
   { const tl=!isLand(f.c) && timingLock(f.c); if(tl){ modal(tl, `<span class="hint">${esc(G.opp?G.opp.name:'Your opponent')} controls ${esc(tl)}: you can cast spells only when you could cast a sorcery (your main phase, with the stack empty).<br><br>Cast anyway only if you have both agreed it's allowed.</span>`, [["Don't cast",()=>closeModal(),'ghost'], ['Cast anyway',()=>{ closeModal(); log(`${G.me.name} casts a spell at instant speed anyway, with ${G.opp?G.opp.name:'the opponent'}'s ${tl} on the battlefield.`); const lim=spellLimit(f.c); if(lim) go(); else go(); },'go']]); return; } }
@@ -5791,7 +5850,7 @@ const splitFaces = c => (cdata(c).o||'').split('\n\n').map(b=>{ const L=b.split(
 function castSpell(id, o={}, after){ const f=find(id); if(f && f.z!=='st'){ if(o.adv) f.c.adv=1; else delete f.c.adv; }
   if(f && f.z!=='st' && isSplit(f.c) && o.half==null && !o.fuse){ const fs=splitFaces(f.c), mcs=(cdata(f.c).mc||'').split(' // ');
     modal(`Cast ${cdata(f.c).n}`, '<span class="hint">Which half?</span>', [...fs.map((x,i)=>[`${x.n} ${mcs[i]||''}`, ()=>{ closeModal(); castSpell(id, Object.assign({}, o, {half:i}), after); }, 'go']), ['Cancel', ()=>closeModal(), 'ghost']]); return; }
-  castGate(id, ()=>castSpellNow(id, o, after)); }
+  castGate(id, ()=>castSpellNow(id, o, after), o); }
 /* Other ways to cast, in the payment window (v4.32, Ben): a card cast from the hand with auto-pay on lists its alternative costs (warp, impending,
    dash, evoke, overload, spectacle, bestow, morph, "rather than pay this spell's mana cost", Mystical Dispute's discount) as extra rows under the
    normal cost, and optional extra costs (kicker, replicate, gift) as a checkbox or a counter that changes the totals. Such cards always open the
@@ -6367,7 +6426,7 @@ function castAdventure(id){ const f=find(id); if(!f) return; const c=f.c, fs=spl
 /* v4.85: a modal double-faced card whose back is a land. Left-click opens a short menu (cast the front, or play the land side with its entry choice
    already made); Shift-click plays the land side tapped; the hand's right-click menu keeps its own items. */
 const mdfcLand = c => { const d=cdata(c); return !!d.back && d.lay!=='transform' && !/\bLand\b/.test(faceTypeOf(c,0)) && /\bLand\b/.test(faceTypeOf(c,1)); };
-function playLandSide(id, how, ov){ const f=find(id); if(!f) return; if(f.z==='hand' && waitMull()) return; if(ov===undefined) return landGate(id, faceName(f.c,1), a=>playLandSide(id, how, a)); const c=f.c, m=G.me, n=G.turn.n||0, nm=faceName(c,1), le=landEntry(Object.assign({}, c, {flip:true}));
+function playLandSide(id, how, ov, tmk){ const f=find(id); if(!f) return; if(f.z==='hand' && waitMull()) return; if(ov===undefined && !tmk){ const tw=landTimeWhy(f.c); if(tw) return timeAsk(tw, 'Play', faceName(f.c,1), ()=>playLandSide(id, how, ov, 1)); }   /* v5.14: land timing */ if(ov===undefined) return landGate(id, faceName(f.c,1), a=>playLandSide(id, how, a)); const c=f.c, m=G.me, n=G.turn.n||0, nm=faceName(c,1), le=landEntry(Object.assign({}, c, {flip:true}));
   if(!m.lp || m.lp.n!==n) m.lp={n, k:0}; m.lp.k++; if(ov) m.lp.ov=(m.lp.ov||0)+1; (m.lp.pl=m.lp.pl||[]).push({id, ov:!!ov, nm}); const k=m.lp.k; c.flip=true;
   const tap = how==='tapped' || (le && le.kind==='tapped');
   move(id,'bf',{silent:true, later:true, tap}); const g=find(id); if(!g) return;
@@ -7578,7 +7637,8 @@ function cardHTML(c, z, mine, cls=''){
   else if(z==='ex' && c.plot && !backUp){ b+='<span class="plban pltd">PLOTTED</span>'; }
   if(c.phz){ cls+=' phz'; b+='<span class="phban">PHASED OUT</span>'; }
   if(!backUp && (z==='bf' || z==='hand' || z==='st' || z==='lib') && unlearned(c)) extra+='<span class="unlr" title="The table has not learned this card yet: play it by hand through the right-click menu"></span>';   // v4.46
-  return `<div class="card ${mine?'':'opp'} ${c.tap?'tap':''} ${c.atk?'atk':''} ${!mine && c.atk && z==='bf' && blkDim(c) ? 'nblk' : ''} ${tgtDim(c, z)} ${z==='bf' && (mine ? G.atkSel : G.patk) && (mine ? G.atkSel : G.patk).has(c.id) ? 'asel' : ''} ${c.fd&&mine?'fdmine':''} ${cls}" data-id="${c.id}" data-z="${z}" data-o="${mine?'me':'opp'}"${lkA}>${inner}${b}${extra}</div>`;
+  const tmw = mine && z==='hand' && !backUp ? handTimeWhy(c) : null;   // v5.14: dim what can't be played right now
+  return `<div class="card ${tmw?'ntime':''} ${mine?'':'opp'} ${c.tap?'tap':''} ${c.atk?'atk':''} ${!mine && c.atk && z==='bf' && blkDim(c) ? 'nblk' : ''} ${tgtDim(c, z)} ${z==='bf' && (mine ? G.atkSel : G.patk) && (mine ? G.atkSel : G.patk).has(c.id) ? 'asel' : ''} ${c.fd&&mine?'fdmine':''} ${cls}" data-id="${c.id}" data-z="${z}" data-o="${mine?'me':'opp'}"${lkA}${tmw ? ` title="${esc('Not now: '+tmw.short+' (you can still play it: the table will ask)')}"` : ''}>${inner}${b}${extra}</div>`;
 }
 /* marker icons (v4.08, Ben): one drawn style instead of emoji: rounded white outline with filled details; they take the text colour */
 const ICO = (()=>{ const sv=(b)=>`<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">${b}</svg>`;
@@ -8648,6 +8708,7 @@ document.addEventListener('click', e=>{
   const tk=t.closest('[data-take]'); if(tk){ const a=findAny(tk.dataset.take);
     if(a && !a.mine && a.c.offer && isLand(a.c)){ toast(`${cdata(a.c).n} is a land: lands can't be cast.`); return; }   // v4.124: Ragavan-style "you may cast that card"
     if(a && !a.mine && !isLand(a.c) && !tk.dataset.lkok){ const lk=castLock(a.c, a.z); if(lk){ modal('Can\'t cast', `<span class="hint">${esc(lk)}.<br><br>Cast anyway only if you have both agreed it's allowed.</span>`, [["Don't cast",()=>closeModal(),'ghost'], ['Cast anyway',()=>{ closeModal(); log(`${G.me.name} casts anyway (${lk}).`); tk.dataset.lkok='1'; tk.click(); },'go']]); return; } }   /* v4.82: Drannith Magistrate */
+    if(a && !a.mine && !isLand(a.c) && !tk.dataset.tmok){ const tw=castTimeWhy(a.c, {}); if(tw){ timeAsk(tw, 'Cast', cname(a.c), ()=>{ tk.dataset.tmok='1'; tk.click(); }); return; } }   // v5.14: timing for a card cast from the opponent's exile
     if(a && !a.mine && a.c.by && a.c.by.tib && isLand(a.c)){ send({t:'take', id:tk.dataset.take}); tk.disabled=true; return; }   // v4.133: a land exiled with Tibalt is played, not cast
     if(a && !a.mine && a.c.by && a.c.by.tib && autoPayOn() && !/\{X\}/.test(cdata(a.c).mc||'')){ const id=tk.dataset.take, n=anyColorN(a.c); payFor(normSyms(n ? [String(n)] : []), {spell:true, card:a.c}, {title:`Cast ${cdata(a.c).n} (mana of any color)`, verb:'cast', done:()=>send({t:'take', id})}); return; }
     if(a && a.c.by && a.c.by.ns && autoPayOn()){ const n=manaValue(a.c), id=tk.dataset.take; payFor(normSyms(n ? [String(n)] : []), {spell:true, card:a.c}, {title:`Cast ${cdata(a.c).n} (mana of any type)`, verb:'cast', done:()=>send({t:'take', id})}); return; } if(a && !a.mine && !tk.dataset.free && !isLand(a.c) && autoPayOn()){ const id=tk.dataset.take, c=a.c; (async()=>{   // v4.29: casting the opponent's exiled card (Ragavan, Dauthi) pays like any other cast
