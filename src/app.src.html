@@ -761,7 +761,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.11';
+const VERSION = 'v5.12';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -777,6 +777,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.12','Nov 17',"Prowess and other \"whenever you cast a noncreature spell\" boosts (Monastery Swiftspear, Slickshot Show-Off, Chandra's Emberling) now go on the stack as triggers, so your opponent sees them and can respond, instead of landing on the creature right away. Several of them at once don't ask you to put them in order."],
   ['v5.11','Nov 17',"Solarium Sentry now gains you 2 life when your opponent casts a spell with mana value 2 or less. Slickshot Show-Off's plot and Ghor-Clan Rampager's bloodrush now show up in the casting window as other ways to play the card, as well as in the right-click menu."],
   ['v5.10','Nov 17','After blockers are declared, both players get a chance to act before combat damage: when the attacking player moves on to damage, the defending player gets the blue OK first, so either of you can cast a pump spell or removal on an attacker or a blocker. The same happens again before regular damage after first strike.'],
   ['v5.09','Nov 17',"The deck screen's \"Check for newer events\" link now looks on MTGTop8, where the weekly decks come from, instead of MTGGoldfish. MTGO Leagues are left out, and each deck links to its MTGTop8 page."],
@@ -1349,7 +1350,7 @@ function onMsg(m){
     else if(f && f.z==='ex' && f.c.offer && !offerLive(f.c)){ delete f.c.offer; log(`${cname(f.c)} can no longer be cast: that was only until the end of the turn it was exiled.`); changed(); }
     else if(f && f.z==='ex' && f.c.by && f.c.by.tib && f.c.by.pid===oppId() && isLand(f.c)){ G.noUndo=true; const c=f.c; G.me.ex.splice(f.i,1); delete c.by; c.fd=false; send({t:'give', card:c, zone:'hand', vfree:1, playland:1}); log(`${G.opp?G.opp.name:'Opponent'} plays ${cname(c)} from ${G.me.name}'s exile (Tibalt's emblem).`); changed(); }   // v4.133
     else if(f && f.z==='ex' && (f.c.offer || (f.c.by && f.c.by.mode==='play' && f.c.by.pid===oppId()))){ G.noUndo=true; const c=f.c; G.me.ex.splice(f.i,1); delete c.offer; delete c.by; delete c.warp; c.fd=false; if(m.x!=null && isFinite(+m.x)) c.x=Math.max(0,Math.min(99,+m.x)); send({t:'give', card:c, zone:'st'}); log(`${G.opp?G.opp.name:'Opponent'} casts ${cname(c)} from ${G.me.name}'s exile.`); changed(); } }
-  else if(m.t==='give'){ G.noUndo=true; let vdBy=null; if(m.zone==='gy' && m.card && !m.card.tok){ const src=gyReplace(m.card.o||G.myId, m.card); if(src){ m.zone='ex'; ripNote(src, cname(m.card)); } else if((vdBy=voidBy(m.card.o||G.myId))){ m.zone='ex'; voidNote(vdBy.n, cname(m.card)); } } const gc=m.card, play=m.zone==='bf'||m.zone==='st'; if((gc.tok && !play) || (gc.made && !play && m.zone!=='hand')){ render(); return; } if(m.zone==='st') gc.ts=Date.now(); delete gc.lft; delete gc.sick; if(m.zone==='bf' && G.turn.n) gc.sick=true; if(m.zone==='bf') gc.ent=newEnt(); place(m.card, m.zone, m.pos); if(vdBy) gc.by=vdBy; if(m.blink && m.zone==='ex' && !gc.tok){ move(gc.id,'bf',{silent:true}); log(`${String(m.blink).slice(0,80)}: ${cname(gc)} returns to the battlefield under ${G.me.name}'s control.`); } if(m.zone==='gy') noteGy(gc); if(m.zone==='st' && !m.stolen){ noteCast(gc); castTriggers(gc); castTrigs(gc); } if(m.zone==='st' && m.stolen) log(`${G.me.name} now controls ${cname(gc)} on the stack. Right-drag from it to choose new targets.`); if(m.emp && m.zone==='bf'){ gc.fin=1; gc.hst=G.turn.n||1; delete gc.sick; gc.sacEnd=1; gc.sacBy=String(m.emp).slice(0,60); entered(gc); }
+  else if(m.t==='give'){ G.noUndo=true; let vdBy=null; if(m.zone==='gy' && m.card && !m.card.tok){ const src=gyReplace(m.card.o||G.myId, m.card); if(src){ m.zone='ex'; ripNote(src, cname(m.card)); } else if((vdBy=voidBy(m.card.o||G.myId))){ m.zone='ex'; voidNote(vdBy.n, cname(m.card)); } } const gc=m.card, play=m.zone==='bf'||m.zone==='st'; if((gc.tok && !play) || (gc.made && !play && m.zone!=='hand')){ render(); return; } if(m.zone==='st') gc.ts=Date.now(); delete gc.lft; delete gc.sick; if(m.zone==='bf' && G.turn.n) gc.sick=true; if(m.zone==='bf') gc.ent=newEnt(); place(m.card, m.zone, m.pos); if(vdBy) gc.by=vdBy; if(m.blink && m.zone==='ex' && !gc.tok){ move(gc.id,'bf',{silent:true}); log(`${String(m.blink).slice(0,80)}: ${cname(gc)} returns to the battlefield under ${G.me.name}'s control.`); } if(m.zone==='gy') noteGy(gc); if(m.zone==='st' && !m.stolen){ noteCast(gc); castTrigs(gc); } if(m.zone==='st' && m.stolen) log(`${G.me.name} now controls ${cname(gc)} on the stack. Right-drag from it to choose new targets.`); if(m.emp && m.zone==='bf'){ gc.fin=1; gc.hst=G.turn.n||1; delete gc.sick; gc.sacEnd=1; gc.sacBy=String(m.emp).slice(0,60); entered(gc); }
     if(m.vfree && m.zone==='st'){ gc.nm=1; log(`${G.me.name} casts ${cname(gc)} from ${G.opp?G.opp.name+"'s":'the'} exile without paying its mana cost.`); if(!gc.fd && needsTarget(stackText(gc)||'')){ G.mode={type:'arrow', from:gc.id}; setTimeout(()=>toast(`${cdata(gc).n}: click its target (Esc for none).`), 0); } }
     if(m.vfree && m.playland && m.zone==='hand'){ const id=gc.id; setTimeout(()=>{ const g=find(id); if(g && g.z==='hand'){ playFromHand(id); changed(); } }, 0); }
     if(m.card.k) ensureCards([m.card.k]).then(render); changed(); }
@@ -1530,7 +1531,7 @@ function move(id, zone, o={}){
   if(zone==='bf' && from!=='bf'){ c.psw=0; delete c.ptw; c.ent=newEnt(); if(G.turn.n && !o.pre){ c.sick=true; if(from==='hand' && !o.fd && isLand(c)) c.lft=G.turn.n; } c.fd=!!o.fd; c.fdk=o.fd&&o.fdk?o.fdk:null; c.tap=!!o.tap; if(c.tap && isLand(c) && !o.fd && untapLandsBy()){ c.tap=false; o=Object.assign({}, o, {tap:false}); } const d=cdata(c), L=c.flip&&d.back ? d.loy2 : d.loy; if(!c.fd && L && !isNaN(+L)) c.c=+L; }
   if(zone==='bf' && c.dash) delete c.sick;
   if(!['bf','st'].includes(zone)) delete c.wp; else if(zone==='bf' && from!=='bf' && c.wp) c.wp={n:G.turn.n||0, end:G.turn.phase===5};
-  if(zone==='st'){ c.ts=Date.now(); if(from!=='st'){ if(from==='hand') c.fh=1; else delete c.fh; noteCast(c); castTriggers(c); } } else delete c.fh;
+  if(zone==='st'){ c.ts=Date.now(); if(from!=='st'){ if(from==='hand') c.fh=1; else delete c.fh; noteCast(c); } } else delete c.fh;
   if(from==='hand' && z0==='gy') discQ(c);
   if(from==='gy') gyLeaveQ(c);
   if(zone==='ex' && (from==='gy' || from==='bf')) exiledQ(from==='bf' ? c : null);
@@ -1711,7 +1712,7 @@ function boost(c, p, t){ c.tp=(c.tp||0)+p; c.tt=(c.tt||0)+t; if(!c.tp && !c.tt){
 // "Whenever you cast a noncreature spell" triggers on my creatures: prowess, Slickshot Show-Off and the like.
 /* v3.52 trigger engines, each one only for what the older code didn't cover:
    castTrigs: "Whenever you cast a/an artifact/a creature/a noncreature/an instant or sorcery spell [during your turn], …" on any permanent of mine
-     (castTriggers above still does the creature self-pumps, afterCast does "a colorless spell"); Flurry ("your second spell each turn");
+     (since v5.12 also prowess and the creature self-pumps, which castTriggers applied at once before; afterCast does "a colorless spell"); Flurry ("your second spell each turn");
      Vengevine from the graveyard; emblems. oppCast: "Whenever a player casts …" (Magebane Lizard) for the other player's spells.
    drawTrigs: "Whenever you draw a card, …", one per card. discQ: "Whenever you discard one or more cards, …" (Marauding Mako; discardTrigs does "a card") and the
    cycled-or-discarded count (Hollow One). gyLeaveQ: "Whenever an instant or sorcery card leaves your graveyard" (Murktide), "one or more cards leave" (Hardened Academic).
@@ -1730,6 +1731,7 @@ function castTrigs(sp){ const m=G.me; if(!G.turn.n || (!sp.k && !sp.cu && !sp.fd
   const hist=!sp.fd && (art || /\b(?:Legendary|Saga)\b/.test(faceType(sp)));
   const ok={'a':true, 'a noncreature':!cr, 'an instant or sorcery':inst, 'an artifact':art, 'a creature':cr, 'a historic':hist, 'a legendary':!sp.fd && /\bLegendary\b/.test(faceType(sp))};   // v4.102: Reki
   for(const x of trigSrcs()) for(const l of trigLines(x)){ let r;
+    if(!cr && x.id!=='emb' && isCreature(x) && !/^(?:When|Whenever|At)\b/i.test(l) && /(?:^|, )prowess\b/i.test(l)){ out.push(trigPush(x, 'This creature gets +1/+1 until end of turn.', 'prowess')); continue; }   // v5.12: prowess goes on the stack (it was applied at once before)
     if(/^Extort$/i.test(l)){ out.push(trigPush(x, EXTORT_TXT, 'extort')); continue; }   // v4.79: each instance triggers on any spell
     if((r=l.match(/^(?:Flurry — )?Whenever you cast your second spell each turn, (.+)$/i))){ if(n===2) out.push(trigPush(x, r[1], 'flurry')); continue; }
     // Namor the Sub-Mariner (v4.48): "Whenever you cast a noncreature spell with one or more blue mana symbols in its mana cost, create that many 1/1 blue Merfolk creature tokens."
@@ -1738,7 +1740,6 @@ function castTrigs(sp){ const m=G.me; if(!G.turn.n || (!sp.k && !sp.cu && !sp.fd
     if(!(r=l.match(/^Whenever you cast (a|a noncreature|an instant or sorcery|an artifact|a creature|a historic|a legendary) spell( during your turn)?, (.+)$/i))) continue;
     if(!ok[r[1].toLowerCase()] || (r[2] && !mine) || /^if\b/i.test(r[3])) continue;
     if(/This ability triggers only once each turn\.?/i.test(r[3])){ if(x.onceT===G.turn.n) continue; x.onceT=G.turn.n; r[3]=r[3].replace(/\s*This ability triggers only once each turn\.?/i,'').replace(/(?:Basim Ibn Ishaq|this creature) can(?:'|’)t be blocked this turn/i, 'It can\'t be blocked this turn'); }   // v4.36: Basim Ibn Ishaq
-    if(x.id!=='emb' && isCreature(x) && noRemind(x).includes(l) && /noncreature|instant/i.test(r[1]) && !/\b(target|each|another|other|creatures you control)\b/i.test(r[3]) && /gets? [+\-−]\d+\/[+\-−]\d+ until end of turn|put (?:a|one|two|three) \+1\/\+1 counters? on/i.test(r[3])) continue;   // castTriggers did it
     out.push(trigPush(x, r[3].replace(/you may exile (\w+)\. If you do, return/i, 'you may exile $1, then return'))); }
   out.push(...chaliceTrigs(sp.id, stackMV(sp)));
   if(cr && /\bEldrazi\b/.test(faceType(sp)) && manaValue(sp)>=7) for(const x of m.gy){ if(x.fd || (!x.k && !x.cu)) continue; const l=noRemind(x).match(/(?:^|\n)Whenever you cast an Eldrazi creature spell with mana value 7 or greater, (you may exile this card from your graveyard\. If you do, this card deals \d+ damage to each creature\.?)/i); if(l) out.push(trigPush(x, l[1], 'from the graveyard')); }   // v4.36: Kozilek's Return
@@ -1803,24 +1804,7 @@ function exiledTrig(){ const out=[], gone=XQS.splice(0); if(Date.now()-(G.exdAt|
 function oppPhase(kind){ const re = kind==='up' ? /^At the beginning of (?:each opponent's upkeep|each upkeep|each player's upkeep), (.+)$/i : /^At the beginning of each opponent's draw step, (.+)$/i, out=[];
   for(const x of trigSrcs()) for(const l of trigLines(x)){ const r=l.match(re); if(r) out.push(trigPush(x, l)); }
   if(out.length) log(`${G.opp?G.opp.name+"'s":"The opponent's"} ${kind==='up'?'upkeep':'draw step'}: ${out.join(', ')}'s trigger${out.length>1?'s go':' goes'} on ${G.me.name}'s stack.`); return out.length>0; }
-function castTriggers(sp){
-  if(sp.fd || !cdata(sp).t || isCreature(sp) || isLand(sp)) return;
-  const inst=isSpell(sp), NUM={a:1,one:1,two:2,three:3}, out=[];
-  for(const c of G.me.bf){
-    if(c.fd || c.imp || !isCreature(c)) continue;
-    const o=(cdata(c).o||'').replace(/\([^)]*\)/g,''); let p=0, t=0, k=0;
-    if(/(^|\n|, )prowess\b/i.test(o)){ p++; t++; }
-    for(const m of o.matchAll(/Whenever you cast (?:or copy )?(a noncreature|an instant or sorcery) spell, ([^.\n]*)/gi)){
-      if(/instant/i.test(m[1]) && !inst) continue;
-      const e=m[2]; if(/\b(target|each|another|other|creatures you control)\b/i.test(e)) continue;
-      const g=e.match(/gets? ([+\-−]\d+)\/([+\-−]\d+) until end of turn/i), n=e.match(/put (a|one|two|three) \+1\/\+1 counters? on/i);
-      if(g){ p+=parseInt(g[1].replace('−','-'),10); t+=parseInt(g[2].replace('−','-'),10); } else if(n) k+=NUM[n[1].toLowerCase()];
-    }
-    if(p||t){ boost(c,p,t); out.push(`${cname(c)} gets ${sgn(p)}/${sgn(t)} until end of turn`); }
-    if(k){ c.c=(c.c||0)+k; out.push(`${cname(c)} gets ${k>1?k+' +1/+1 counters':'a +1/+1 counter'}`); }
-  }
-  if(out.length) log(out.join('. ')+'.');
-}
+/* v5.12: castTriggers (prowess and "Whenever you cast a noncreature spell, this creature gets …" applied at once, since v1.30) is gone: castTrigs puts them on the stack */
 /* ================= counters (v1.36) =================
    c.c is the one number on a card; what it is called comes from the card: +1/+1 on creatures, loyalty on planeswalkers, lore on Sagas,
    otherwise the counter its own text names (luck, charge, mining, burden...). c.kw lists keyword counters (flying, lifelink...). */
@@ -3183,13 +3167,14 @@ async function colossusLoop(by, tapped){ const m=G.me; G.trigHold={by, before:ne
    triggered and under anything the other player put there meanwhile (their simultaneous triggers resolve first, APNAP); for the other
    player it goes on top as usual. */
 const isTrigM = c => !!(c && c.ab && !c.pact && !c.ab.auto && !c.ab.copy && (c.ab.tr || c.ab.etb || c.ab.warpx || /^(?:Triggered|Chapter) ability$/.test((c.cu&&c.cu.t)||'')));
+const selfPumpM = c => /^(?:this creature gets [+\-−]\d+\/[+\-−]\d+ until end of turn|put (?:a|an|one|two|three) \+1\/\+1 counters? on this creature)\.?$/i.test(String(cdata(c).o||'').trim());
 const trigKey = c => { const d=cdata(c); return String(d.n||'')+'¦'+String(d.o||'').slice(0,160); };
 const trigShort = c => String(cdata(c).n||'a trigger').replace(/: (?:[a-z ]*trigger|landfall.*)$/i,'');
 function ordWatch(){ const st=G.me.st, now=new Set(st.map(c=>c.id)), seen=PRI.tseen; PRI.tseen=now;
   if(!seen || G.trigHold || !priLive()) return;
   const nw=st.filter(c=>!seen.has(c.id) && isTrigM(c));
   if(G.ordHold){ for(const c of nw) G.ordHold.ids.add(c.id); if(nw.length && CO) coPaint(true); return; }
-  if(nw.length<2) return;
+  if(nw.filter(c=>!selfPumpM(c)).length<2) return;   /* v5.12: prowess-style self pumps can be in any order */
   const keys=nw.map(trigKey); if(keys.every(k=>k===keys[0])) return;   /* the same trigger several times: the order can't matter */
   const mem=(PRI.tord||[]).find(o=>keys.every(k=>o.k.includes(k)));
   if(mem){ const ts=nw.map(c=>c.ts||0).sort((a,b)=>a-b), ord=nw.slice().sort((a,b)=>(mem.k.indexOf(trigKey(a))-mem.k.indexOf(trigKey(b))) || ((a.ts||0)-(b.ts||0)));
@@ -3428,7 +3413,7 @@ async function stationIt(id){ const f=find(id); if(!f || f.z!=='bf') return; con
   log(`${G.me.name} stations ${cname(c)}: taps ${cname(p)} and puts ${pw} charge counter${pw===1?'':'s'} on it (${c.c} now${stationN(c) && c.c>=stationN(c) ? ', it is an artifact creature' : ''}).`); if(stationN(c) && c.c>=stationN(c)) c.row='f'; changed(); }
 const prepSpell = c => { const fs=splitFaces(c); return cdata(c).lay==='prepare' && fs[1] ? {n:fs[1].n, o:fs[1].o, mc:((cdata(c).mc||'').split(' // ')[1]||''), t:((cdata(c).t||'').split(' // ')[1]||'Sorcery').trim()} : null; };
 /* a copy cast onto the stack (prepared spells, paradigm): counted as a cast, and "whenever you cast" triggers (prowess) see it */
-function copyCast(cp){ noteCast(cp); castTriggers(cp); castTrigs(cp); }
+function copyCast(cp){ noteCast(cp); castTrigs(cp); }
 /* v4.95: a copy cast onto the stack that needs a target waits for it (cp.tq); autoArm starts the arrow once no window or pay panel is open, one copy after another; Esc = no target (cp.nt) */
 function copyTq(cp){ const tx=stackText(cp)||cdata(cp).o||''; if(needsTarget(tx) && !HANDRE.test(tx)) cp.tq=1; return cp; }
 function castPrepared(id){ const f=find(id); if(!f || f.z!=='bf' || !f.c.prep) return; const c=f.c, sp=prepSpell(c); if(!sp) return;

@@ -22,6 +22,7 @@ The tests, by name:
             can't resolve, Resolve anyway, resolves by itself, "I press Resolve", the band, the tab title, OK all N,
             Always OK, targets first, animations off
   stops     the grid, the defaults, the dashes, each stop, Go on anyway, own-turn stops, chips, privacy
+  prowess   v5.12: prowess and self-pump cast triggers go on the stack, are OK'd, and open no ordering panel
   damage    v5.10: the OK before combat damage (after blocks, and again after first-strike damage), spells cast during
             it by either player, no blocks, Go on anyway, priority turned off during it
   order     v5.02: two or more triggers at once open the ordering panel for their controller (either player), both
@@ -497,6 +498,24 @@ async def t_damage(env, A):
     ck('priority turned off during the stop: the hold goes, no damage by itself', 'hold' not in ib['turn'] and ib['turn'].get('cs') == 'blkd' and ia['life'] == 20 and ib['text'] == 'Apply combat damage', (ib['turn'], ia['life'], ib['text']))
     await press(b, 800); ia, ib = await info(a), await info(b)
     ck('with priority off, Apply combat damage deals it at once', ia['life'] == 18 and ib['turn'].get('cs') == 'dmg' and 'hold' not in ib['turn'], (ia['life'], ib['turn']))
+
+
+# ----------------------------------------------------------------------------------------------- prowess
+async def t_prowess(env, A):
+    """v5.12: prowess and "Whenever you cast a noncreature spell, this creature gets …" go on the stack (no ordering panel for them)."""
+    a, b = await table(env)
+    ids = await ev(a, "(()=>{ const x=mk(keyOf('Monastery Swiftspear')), y=mk(keyOf('Slickshot Show-Off')); G.me.bf.push(x, y); changed(); return [x.id, y.id]; })()"); await a.wait_for_timeout(400)
+    p0 = await ev(a, "(ids)=>ids.map(id=>powerOf(find(id).c))", ids)
+    await ev(a, "T.cast('Lightning Bolt','opp')"); await a.wait_for_timeout(700)
+    ia, ib = await info(a), await info(b)
+    ck('two pump triggers at once: no ordering panel', not await ev(a, "!!G.ordHold") and not ia['text'].startswith('Order'), ia['text'])
+    ck('both triggers are on the stack above the Bolt, nothing applied yet', sorted(ia['st']) == sorted(['Lightning Bolt', 'Monastery Swiftspear: prowess', 'Slickshot Show-Off: trigger']) and await ev(a, "(ids)=>ids.map(id=>powerOf(find(id).c))", ids) == p0, (ia['st'], p0))
+    ck('the opponent is asked: blue OK on the top trigger, OK all 3 (both triggers and the Bolt)', ib['cls'] == ['ok'] and ib['text'].endswith('trigger resolves') or ib['text'].endswith('prowess resolves'), (ib['text'], ib['okAll']))
+    ck('OK all 3', ib['okAll'] == 'OK all 3', ib['okAll'])
+    await press(b, 900); ia = await info(a)
+    ck('one OK: the top trigger resolves by itself, the other two wait', len(ia['st']) == 2 and 'Lightning Bolt' in ia['st'], ia['st'])
+    await settle(a, b); await a.wait_for_timeout(600); ia, ib = await info(a), await info(b)
+    ck('after the OKs: +1 and +2 power, and the Bolt resolved', await ev(a, "(ids)=>ids.map(id=>powerOf(find(id).c))", ids) == [p0[0] + 1, p0[1] + 2] and ia['st'] == [] and ib['life'] == 17, (await ev(a, "(ids)=>ids.map(id=>powerOf(find(id).c))", ids), ia['st'], ib['life']))
 
 
 # ----------------------------------------------------------------------------------------------- stops
@@ -1445,7 +1464,7 @@ async def t_sound(env, A):
     ck('choosing Off plays nothing', await ev(b, 'S.snd') == 'off' and await n(b) == nb + 1, (await ev(b, 'S.snd'), await n(b)))
     ck('the audio was really made (an AudioContext exists)', await ev(b, '!!SND.ac'))
 
-TESTS = [('stack', t_stack), ('stops', t_stops), ('damage', t_damage), ('order', t_order), ('auto', t_auto), ('waits', t_waits), ('match', t_match), ('toggle', t_toggle), ('oldpage', t_oldpage), ('reload', t_reload),
+TESTS = [('stack', t_stack), ('stops', t_stops), ('damage', t_damage), ('prowess', t_prowess), ('order', t_order), ('auto', t_auto), ('waits', t_waits), ('match', t_match), ('toggle', t_toggle), ('oldpage', t_oldpage), ('reload', t_reload),
          ('fullgame', t_fullgame), ('sound', t_sound), ('night', t_night), ('practice', t_practice), ('pages', t_pages)]
 
 
