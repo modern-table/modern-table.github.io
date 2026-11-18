@@ -693,7 +693,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
     </div>
     <p id="lobbyMsg" style="color:var(--go)"></p>
     <p><a href="#" id="fbLink" style="color:var(--brass)">Send feedback</a> <span style="color:var(--dim)">· report a bug or suggest a change</span></p>
-    <p class="legal"><span class="lgl">Modern Table is unofficial Fan Content permitted under the <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Fan Content Policy</a>. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.</span><span class="lgl">Card images and card data from <a href="https://scryfall.com/" target="_blank" rel="noopener">Scryfall</a>. Tournament decklists from <a href="https://www.mtgtop8.com/" target="_blank" rel="noopener">MTGTop8</a>; the live event check reads <a href="https://www.mtggoldfish.com/" target="_blank" rel="noopener">MTGGoldfish</a>. Free to use, with no ads, and not affiliated with any of these sites. Visits and games are counted anonymously with <a href="https://www.goatcounter.com/" target="_blank" rel="noopener">GoatCounter</a>: no cookies, no names.</span><span class="lgl" id="lglStore" hidden>Store names and logos belong to their stores. Players pick one to show where they play; Modern Table isn't affiliated with or endorsed by any of them.</span></p>
+    <p class="legal"><span class="lgl">Modern Table is unofficial Fan Content permitted under the <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Fan Content Policy</a>. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.</span><span class="lgl">Card images and card data from <a href="https://scryfall.com/" target="_blank" rel="noopener">Scryfall</a>. Tournament decklists, and the live event check, from <a href="https://www.mtgtop8.com/" target="_blank" rel="noopener">MTGTop8</a>. Free to use, with no ads, and not affiliated with any of these sites. Visits and games are counted anonymously with <a href="https://www.goatcounter.com/" target="_blank" rel="noopener">GoatCounter</a>: no cookies, no names.</span><span class="lgl" id="lglStore" hidden>Store names and logos belong to their stores. Players pick one to show where they play; Modern Table isn't affiliated with or endorsed by any of them.</span></p>
     </div>
     <aside class="news" id="news" aria-label="What's new"></aside>
   </div>
@@ -761,7 +761,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.08';
+const VERSION = 'v5.09';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -777,6 +777,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.09','Nov 17',"The deck screen's \"Check for newer events\" link now looks on MTGTop8, where the weekly decks come from, instead of MTGGoldfish. MTGO Leagues are left out, and each deck links to its MTGTop8 page."],
   ['v5.08','Nov 17',"When the left column gets crowded (the round clock, the keyword list, a short window), the library, graveyard, exile and sideboard boxes now shrink to make room, so nothing in the middle of the column gets cut off."],
   ['v5.07','Nov 17',"A card you control that belongs to your opponent no longer says \"borrowed\". It now has a small flag on its left edge with its owner's name (BOB'S) in their color, and on their screen the same card reads YOURS."],
   ['v5.06','Nov 17',"When a later trigger in a batch sits waiting for your OK for 10 seconds with no sign of you, its chime now plays at full volume, since it's the first sound you hear for it. The second chime for the same spell or trigger stays quieter."],
@@ -8886,48 +8887,61 @@ function paintEdBody(){ if(!ED) return; const b=$('#edBody'); if(!b) return; con
   b.innerHTML = mode==='list' ? edListHTML() : edCardsHTML(); if(mode==='cards') edFit(); ED.flash=null; }
 window.addEventListener('resize', ()=>{ if(ED) edFit(); });
 
-/* ---------- live tournament decks from MTGGoldfish, read through a public relay ---------- */
-const GF='https://www.mtggoldfish.com';
+/* ---------- live tournament decks from MTGTop8, read through a public relay (v5.09; MTGGoldfish before) ---------- */
+const GF='https://www.mtggoldfish.com', T8='https://www.mtgtop8.com';
 /* A built-in deck's page: MTGTop8 since the 2026-11-09 refresh (event ids in the 90,000s, six-digit deck ids), MTGGoldfish before (tournament ids in the 60,000s). */
-function deckLink(d){ if(!d || !d.id) return null; return (+d.tid||0) >= 80000 ? `https://www.mtgtop8.com/event?e=${encodeURIComponent(d.tid)}&d=${encodeURIComponent(d.id)}&f=MO` : GF+'/deck/'+encodeURIComponent(d.id); }
+const t8Deck=(tid,id)=>`${T8}/event?e=${encodeURIComponent(tid)}&d=${encodeURIComponent(id)}&f=MO`;
+function deckLink(d){ if(!d || !d.id) return null; return (+d.tid||0) >= 80000 ? t8Deck(d.tid, d.id) : GF+'/deck/'+encodeURIComponent(d.id); }
 const RELAYS=[u=>'https://corsproxy.io/?url='+encodeURIComponent(u), u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u), u=>'https://api.codetabs.com/v1/proxy/?quest='+encodeURIComponent(u)];
 { const own=new URLSearchParams(location.search).get('relay'); if(own) RELAYS.unshift(u=>own+encodeURIComponent(u)); }
-const today=()=>{ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
-const LIVE=Object.assign({day:'', tours:null, decks:{}, texts:{}, px:0}, store.get('mt_live_v1',{}), {state:'idle', open:null, busy:null});
+const ymd=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const today=()=>ymd(new Date());
+store.del('mt_live_v1');   // the MTGGoldfish cache (its deck ids mean other decks on MTGTop8)
+const LIVE=Object.assign({day:'', tours:null, decks:{}, texts:{}, px:0}, store.get('mt_live_v2',{}), {state:'idle', open:null, busy:null});
 if(LIVE.day!==today()){ LIVE.decks={}; }
-const saveLive=()=>{ const ids=Object.keys(LIVE.texts); if(ids.length>120) for(const k of ids.slice(0,ids.length-120)) delete LIVE.texts[k]; store.set('mt_live_v1',{day:LIVE.day,tours:LIVE.tours,decks:LIVE.decks,texts:LIVE.texts,px:LIVE.px}); };
-async function gf(path, looksRight){
+const saveLive=()=>{ const ids=Object.keys(LIVE.texts); if(ids.length>120) for(const k of ids.slice(0,ids.length-120)) delete LIVE.texts[k]; store.set('mt_live_v2',{day:LIVE.day,tours:LIVE.tours,decks:LIVE.decks,texts:LIVE.texts,px:LIVE.px}); };
+async function t8(path, looksRight){
   let last;
   for(let i=0;i<RELAYS.length;i++){
     const k=(LIVE.px+i)%RELAYS.length, ac=new AbortController(), tm=setTimeout(()=>ac.abort(),15000);
-    try{ const r=await fetch(RELAYS[k](GF+path),{signal:ac.signal}); if(!r.ok) throw new Error('HTTP '+r.status); const t=await r.text(); if(!looksRight.test(t)) throw new Error('unexpected reply'); LIVE.px=k; return t; }
+    try{ const r=await fetch(RELAYS[k](T8+path),{signal:ac.signal}); if(!r.ok) throw new Error('HTTP '+r.status); const t=await r.text(); if(!looksRight.test(t)) throw new Error('unexpected reply'); LIVE.px=k; return t; }
     catch(e){ last=e; } finally{ clearTimeout(tm); }
   }
   throw last||new Error('no relay');
 }
+/* MTGTop8's Modern page lists events 20 at a time: a link event?e=<id>&f=MO, stars as images and the date as dd/mm/yy in the same row. Read by link and row text only, not by class names. */
 function parseTours(html){
-  const doc=new DOMParser().parseFromString(html,'text/html'), out=[]; let pages=1;
-  for(const a of doc.querySelectorAll('a[href*="/tournament/"]')){ const m=(a.getAttribute('href')||'').match(/\/tournament\/(\d+)/), row=a.closest('tr'); if(!m||!row) continue;
-    const cells=[...row.cells].map(c=>c.textContent.trim()), n=parseInt(cells[cells.length-1],10);
-    out.push({id:m[1], name:a.textContent.trim(), date:(row.textContent.match(/\d{4}-\d{2}-\d{2}/)||[''])[0], n:isNaN(n)?0:n}); }
-  for(const a of doc.querySelectorAll('a[href*="page="]')){ const m=(a.getAttribute('href')||'').match(/[?&]page=(\d+)/); if(m) pages=Math.max(pages,+m[1]); }
-  return {out, pages};
-}
-function parseTourDecks(html){
   const doc=new DOMParser().parseFromString(html,'text/html'), out=[], seen=new Set();
-  for(const a of doc.querySelectorAll('a[href*="/deck/"]')){ const m=(a.getAttribute('href')||'').match(/\/deck\/(\d+)/), row=a.closest('tr'); if(!m||!row||seen.has(m[1])||!a.textContent.trim()) continue; seen.add(m[1]);
-    const pl=row.querySelector('a[href*="/player/"]'); out.push({id:m[1], arch:a.textContent.trim(), place:(row.cells[0]?row.cells[0].textContent.trim():'').slice(0,6), pilot:pl?pl.textContent.trim():''}); }
+  for(const a of doc.querySelectorAll('a[href*="event?e="]')){ const h=a.getAttribute('href')||'', m=h.match(/event\?e=(\d+)/), name=a.textContent.replace(/\s+/g,' ').trim();
+    if(!m || /[?&]d=\d/.test(h) || !name || seen.has(m[1])) continue;
+    const row=a.closest('tr')||a.parentElement; if(!row) continue; const dm=row.textContent.match(/(?:^|\D)(\d{2})\/(\d{2})\/(\d{2})(?!\d)/); if(!dm) continue;
+    seen.add(m[1]); const stars=[...row.querySelectorAll('img')].filter(i=>/star/i.test((i.getAttribute('src')||'')+' '+(i.getAttribute('alt')||''))).length;
+    out.push({id:m[1], name, date:`20${dm[3]}-${dm[2]}-${dm[1]}`, stars}); }
   return out;
+}
+/* An event page: each deck is a link ?e=<event>&d=<deck>&f=MO with its place before it and a player link (search?player=…) after it. */
+function parseTourDecks(html, tid){
+  const doc=new DOMParser().parseFromString(html,'text/html'), out=[], seen=new Set();
+  const deckId=a=>{ const h=a.getAttribute('href')||''; if(/(^|\/)(mtgo|dec)\?/.test(h)) return null; const m=h.match(/[?&]d=(\d+)/); return m && (!tid || new RegExp('[?&]e='+tid+'(&|$)').test(h)) ? m[1] : null; };
+  for(const a of doc.querySelectorAll('a[href*="d="]')){ const id=deckId(a), arch=a.textContent.replace(/\s+/g,' ').trim(); if(!id || !arch || seen.has(id)) continue;
+    let row=a.parentElement;   // climb to the smallest box that holds the player's name, but never one holding a second deck
+    for(let i=0;i<5 && row && row.parentElement;i++){ if(row.querySelector('a[href*="player="]')) break; const up=row.parentElement; if([...up.querySelectorAll('a[href*="d="]')].some(x=>{ const o=deckId(x); return o && o!==id; })) break; row=up; }
+    const pm=(row?row.textContent:'').match(/^\s*(\d+(?:\s*-\s*\d+)?)/); if(!pm) continue;
+    seen.add(id); const pl=row.querySelector('a[href*="player="]');
+    out.push({id, arch, place:pm[1].replace(/\s/g,''), pilot:pl?pl.textContent.trim():''}); }
+  let n=0; if(doc.body){ const w=doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT); while(w.nextNode()){ const pm=w.currentNode.nodeValue.match(/(?:^|\D)(\d+)\s+players\b/i); if(pm){ n=+pm[1]; break; } } }   // its own text node: "44 players - 14/11/26"
+  return {decks:out, n};
 }
 async function loadTours(force){
   if(LIVE.state==='loading') return;
   if(!force && LIVE.day===today() && LIVE.tours && LIVE.tours.length){ LIVE.state='ok'; paintTour(); return; }
   LIVE.state='loading'; paintTour();
   try{
-    const f=d=>String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0')+'/'+d.getFullYear();
-    const q='/tournament_searches/create?commit=Search&tournament_search%5Bname%5D=&tournament_search%5Bformat%5D=modern&tournament_search%5Bdate_range%5D='+encodeURIComponent(f(new Date(Date.now()-14*864e5))+' - '+f(new Date())).replace(/%20/g,'+');
-    const first=parseTours(await gf(q,/\/tournament\/\d+/)); const all=first.out, seen=new Set(all.map(t=>t.id));
-    for(let p=2;p<=Math.min(first.pages,6);p++){ try{ for(const t of parseTours(await gf(q+'&page='+p,/\/tournament\/\d+/)).out) if(!seen.has(t.id)){ seen.add(t.id); all.push(t); } }catch(e){ break; } }
+    const from=ymd(new Date(Date.now()-14*864e5)), all=[], seen=new Set();
+    for(let p=1;p<=4;p++){   // 20 events a page; four pages cover about two weeks
+      let page; try{ page=parseTours(await t8(p===1?'/format?f=MO':'/format?f=MO&meta=54&cp='+p, /event\?e=\d+/)); }catch(e){ if(p===1) throw e; break; }
+      for(const t of page) if(!seen.has(t.id)){ seen.add(t.id); if(t.date>=from && !/\bMTGO League\b/i.test(t.name)) all.push(t); }
+      if(!page.length || page.some(t=>t.date<from)) break; }
     if(!all.length) throw new Error('no events');
     LIVE.tours=all; LIVE.day=today(); LIVE.decks={}; LIVE.state='ok'; saveLive();
   }catch(e){ console.warn('Live decks unavailable', e); LIVE.state='fail'; }
@@ -8935,33 +8949,33 @@ async function loadTours(force){
 }
 async function loadTourDecks(id){
   LIVE.busy=id; paintTour();
-  try{ const ds=parseTourDecks(await gf('/tournament/'+id,/\/deck\/\d+/)); if(ds.length){ LIVE.decks[id]=ds; saveLive(); } }catch(e){ console.warn(e); }
+  try{ const r=parseTourDecks(await t8('/event?e='+id+'&f=MO',/[?&]d=\d+/), id); if(r.decks.length){ LIVE.decks[id]=r.decks; const t=(LIVE.tours||[]).find(x=>x.id===id); if(t && r.n) t.n=r.n; saveLive(); } }catch(e){ console.warn(e); }
   LIVE.busy=null; paintTour();
 }
 async function openLiveDeck(id, tid){
   const t=(LIVE.tours||[]).find(x=>x.id===tid)||{name:''}, d=(LIVE.decks[tid]||[]).find(x=>x.id===id); if(!d) return;
-  picked='L'+id; paintTour(); const v=$('#deckView');
+  picked='L'+id; paintTour(); const v=$('#deckView'), page=t8Deck(tid, id);
   try{
-    if(!LIVE.texts[id]){ v.innerHTML=`<h3>${esc(d.arch)}</h3><p class="hint">Fetching the list from MTGGoldfish…</p>`;
-      let raw=await gf('/deck/arena_download/'+id,/\d+\s+\S/);
-      if(/<textarea|<html|<body/i.test(raw)){ const doc=new DOMParser().parseFromString(raw,'text/html'), ta=doc.querySelector('textarea'); raw = ta ? ta.value||ta.textContent : doc.body.innerText||doc.body.textContent; }
+    if(!LIVE.texts[id]){ v.innerHTML=`<h3>${esc(d.arch)}</h3><p class="hint">Fetching the list from MTGTop8…</p>`;
+      let raw=await t8('/mtgo?d='+id+'&f=MO',/\d+\s+\S/);
+      if(/<html|<body/i.test(raw)) throw new Error('not a list');
       if(deckCount(parseDeck(raw).main)<40) throw new Error('short list'); LIVE.texts[id]=raw; saveLive(); }
-    if(picked==='L'+id) viewDeck(parseDeck(LIVE.texts[id]), d.arch, `${d.place} · ${d.pilot} · ${t.name}`, GF+'/deck/'+id);
-  }catch(e){ console.warn(e); v.innerHTML=`<h3>${esc(d.arch)}</h3><p class="hint">That list would not load just now. You can open it on MTGGoldfish, use Download → Arena, and paste it into the second tab.</p><a href="${GF}/deck/${id}" target="_blank" rel="noopener" style="color:var(--brass)">Open on MTGGoldfish</a>`; }
+    if(picked==='L'+id) viewDeck(parseDeck(LIVE.texts[id]), d.arch, `${d.place} · ${d.pilot} · ${t.name}`, page);
+  }catch(e){ console.warn(e); v.innerHTML=`<h3>${esc(d.arch)}</h3><p class="hint">That list would not load just now. You can open it on MTGTop8, use Export → MTGO, and paste it into the second tab.</p><a href="${page}" target="_blank" rel="noopener" style="color:var(--brass)">Open on MTGTop8</a>`; }
 }
 function paintTour(){
   const dl=$('#dl'); if(!dl || tab!=='tour') return; const q=($('#dfilter').value||'').toLowerCase(), msg=$('#liveMsg'); let s='';
   if(LIVE.state==='ok' && LIVE.tours){
-    msg.innerHTML=`Live from MTGGoldfish: ${LIVE.tours.length} Modern events from the last two weeks. <a href="#" id="liveBack" style="color:var(--brass)">Back to the built-in lists</a>`;
+    msg.innerHTML=`Live from MTGTop8: ${LIVE.tours.length} Modern events from the last two weeks (MTGO Leagues left out). <a href="#" id="liveBack" style="color:var(--brass)">Back to the built-in lists</a>`;
     for(const t of LIVE.tours){ const ds=LIVE.decks[t.id], open=LIVE.open===t.id, tn=t.name.toLowerCase().includes(q), dm=d=>(d.arch+' '+d.pilot).toLowerCase().includes(q);
       if(q && !tn && !(ds||[]).some(dm)) continue;
-      s+=`<button class="drow ${open?'on':''}" data-t="${t.id}"><span class="pl">${open?'▾':'▸'}</span><span>${esc(t.name)}<br><small>${t.n?t.n+' decklists':esc(t.date)}</small></span></button>`;
+      s+=`<button class="drow ${open?'on':''}" data-t="${t.id}"><span class="pl">${open?'▾':'▸'}</span><span>${esc(t.name)}<br><small>${esc(t.date)}${t.stars?' · '+'★'.repeat(Math.min(t.stars,3)):''}${t.n?' · '+t.n+' players':''}</small></span></button>`;
       if(open){ if(!ds) s+=`<p class="hint" style="margin:4px 0 8px 44px">${LIVE.busy===t.id?'Loading decks…':'This event would not load. Click it again to retry.'}</p>`;
         else for(const d of ds){ if(q && !tn && !dm(d)) continue; s+=`<button class="drow ${picked==='L'+d.id?'on':''}" data-ld="${d.id}" data-t2="${t.id}" style="padding-left:26px"><span class="pl">${esc(d.place)}</span><span>${esc(d.arch)}<br><small>${esc(d.pilot)}</small></span></button>`; } }
     }
     dl.innerHTML = s || '<p class="hint">Nothing matches. Open an event first to search its decks.</p>'; return;
   }
-  msg.innerHTML = LIVE.state==='fail' ? 'Could not reach MTGGoldfish just now. These are the built-in lists. <a href="#" id="liveRe" style="color:var(--brass)">Try again</a>' : LIVE.state==='loading' ? 'Checking MTGGoldfish… The built-in lists below still work in the meantime.' : (PACK ? `Deck pack ${esc(PACK.name||'')}${PACK.updated?', updated '+esc(PACK.updated):''}: ${DECKS.length} lists from Modern events, ${deckSpan()}.` : `Built-in lists: ${DECKS.length} top finishers from Modern events, ${deckSpan()}.`) + ' <a href="#" id="liveRe" style="color:var(--brass)">Check MTGGoldfish for newer events</a> (can be slow).';
+  msg.innerHTML = LIVE.state==='fail' ? 'Could not reach MTGTop8 just now. These are the built-in lists. <a href="#" id="liveRe" style="color:var(--brass)">Try again</a>' : LIVE.state==='loading' ? 'Checking MTGTop8… The built-in lists below still work in the meantime.' : (PACK ? `Deck pack ${esc(PACK.name||'')}${PACK.updated?', updated '+esc(PACK.updated):''}: ${DECKS.length} lists from Modern events, ${deckSpan()}.` : `Built-in lists: ${DECKS.length} top finishers from Modern events, ${deckSpan()}.`) + ' <a href="#" id="liveRe" style="color:var(--brass)">Check MTGTop8 for newer events</a> (can be slow).';
   const po=$('#packOff'); if(po) po.hidden=!PACK;
   let last='';
   DECKS.forEach((d,i)=>{ if(q && !(d.arch+' '+d.pilot+' '+d.ev+' '+d.main.map(x=>x[0]).join(' ')).toLowerCase().includes(q)) return;
