@@ -761,7 +761,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.09';
+const VERSION = 'v5.10';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -777,6 +777,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.10','Nov 17','After blockers are declared, both players get a chance to act before combat damage: when the attacking player moves on to damage, the defending player gets the blue OK first, so either of you can cast a pump spell or removal on an attacker or a blocker. The same happens again before regular damage after first strike.'],
   ['v5.09','Nov 17',"The deck screen's \"Check for newer events\" link now looks on MTGTop8, where the weekly decks come from, instead of MTGGoldfish. MTGO Leagues are left out, and each deck links to its MTGTop8 page."],
   ['v5.08','Nov 17',"When the left column gets crowded (the round clock, the keyword list, a short window), the library, graveyard, exile and sideboard boxes now shrink to make room, so nothing in the middle of the column gets cut off."],
   ['v5.07','Nov 17',"A card you control that belongs to your opponent no longer says \"borrowed\". It now has a small flag on its left edge with its owner's name (BOB'S) in their color, and on their screen the same card reads YOURS."],
@@ -6635,7 +6636,7 @@ function atkBarHTML(){ const sel=G.atkSel, any=G.me.bf.some(c=>canAttackNow(c) |
 function combatStep(){ const t=G.turn, atk=G.me.bf.filter(c=>c.atk);
   if(t.cs==='blk'){ toast(`Waiting for ${G.opp?G.opp.name:'your opponent'} to declare blockers.`); return true; }
   if(t.cs==='dmg') return false;
-  if((t.cs==='blkd' || t.cs==='fs') && vsAny()){ applyCombat(t.cs==='fs' ? 'reg' : (combatHasFS() ? 'fs' : 'reg')); return true; }
+  if((t.cs==='blkd' || t.cs==='fs') && vsAny()){ if(priDmgStop(t)) return true; applyCombat(t.cs==='fs' ? 'reg' : (combatHasFS() ? 'fs' : 'reg')); return true; }
   if(!t.cs){ if(!atk.length) return false; if(atkCountTrigs()){ changed(); toast('Attack triggers are on the stack: resolve them, then press Next for blocks.'); return true; }
     if(dummy()){ const can=dummyBlockers().length; log(`${G.me.name} declares attackers: ${atk.map(cname).join(', ')}.${can?' Declare Practice\'s blockers.':' Practice has no creature to block with.'}`); G.opp.arrows=G.opp.arrows.filter(a=>!a.blk); setTurn(Object.assign({}, t, {cs: can ? 'blk' : 'blkd'})); changed(); return true; }
     if(G.opp && !G.solo){ log(`${G.me.name} declares attackers: ${atk.map(cname).join(', ')}. ${G.opp.name} declares blockers.`); setTurn(Object.assign({}, t, {cs:'blk'})); changed(); return true; } }
@@ -6740,7 +6741,7 @@ function combatDamage(){ const t=G.turn, m=G.me, oa=(G.opp&&G.opp.arrows)||[], p
   setTurn(Object.assign({}, t, {cs:'dmg'})); log(`Combat damage: ${parts.join('; ') || 'no attackers'}. Adjust life and creatures by hand.`); for(const id of trig) cdmgTrig(id); changed(); }
 function doneBlocking(force){ if(!force){ const iss=blockSetIssues(); if(iss.length){ modal('These blocks may break the rules', `<ul style="margin:0;padding-left:18px;line-height:1.5">${iss.map(x=>`<li>${esc(unlink(x))}</li>`).join('')}</ul><span class="hint">The table can misread a card, so you decide.</span>`, [['Go back',()=>closeModal(),'ghost'],['Finish anyway',()=>{ closeModal(); log(`${G.me.name} keeps blocks the table flagged: ${iss.join('; ')}.`); doneBlocking(true); },'go']]); return; } }
   const bl=G.me.arrows.filter(a=>a.blk).map(a=>{ const f=find(a.a), g=findAny(a.b); return `${f?cname(f.c):'a creature'} blocks ${g?cname(g.c):'an attacker'}`; });
-  log(`${G.me.name} is done blocking${bl.length ? ': '+bl.join('; ') : ' (no blocks)'}.`); setTurn(Object.assign({}, G.turn, {cs:'blkd'})); changed(); }
+  log(`${G.me.name} is done blocking${bl.length ? ': '+bl.join('; ') : ' (no blocks)'}.`); const nt=Object.assign({}, G.turn, {cs:'blkd'}); if(nt.okd){ nt.okd={...nt.okd}; delete nt.okd.dmg; delete nt.okd.dmg2; } setTurn(nt); changed(); }   /* v5.10: an additional combat's damage is asked about again */
 /* ===== v5.0: the table passes priority =====
    A table setting, on by default, that only the host (p1, the player who opened the table) can change (priToggle; message 'pri'). It runs
    only at a real two-player table where both pages know it (hello carries pv), never in practice, never while a turn is controlled.
@@ -6758,7 +6759,7 @@ function doneBlocking(force){ if(!force){ const iss=blockSetIssues(); if(iss.len
 const PRI_PV=1, PRI_MS=20000, PRI_BEAT=320, PRI_SENT_MS=3000;
 const PRI={sig:'', since:0, sent:{}, seen:null, aok:new Set(), title:document.title, pumpT:0, aokT:0, aim:'null', had:false, oldLog:'', endK:null};
 const PRI_LEAVE={0:'up', 1:'draw', 2:'m1', 4:'m2'};
-const PHOK={up:'leaves upkeep', draw:'leaves the draw step', m1:'leaves Main 1', atk:'declares attackers', m2:'goes to the end step'};
+const PHOK={up:'leaves upkeep', draw:'leaves the draw step', m1:'leaves Main 1', atk:'declares attackers', m2:'goes to the end step', dmg:'goes to combat damage', dmg2:'goes to regular combat damage'};
 const priOn = () => (G.opp && G.opp.name) || 'your opponent';
 const priSet = () => G.pri!==false;                                                             /* the table setting, as this page knows it */
 const priBoth = () => vsReal() && !!(G.conn && G.conn.open) && (G.oppPv||0)>=PRI_PV;             /* a friend is connected, on a page that passes priority */
@@ -6939,6 +6940,11 @@ function priDrawStop(){ if(pauseAt('post')) return {hold:pauseHold('post')}; if(
 function priStopGate(){ const t=G.turn; if(t.active!==G.myId || t.passed || t.hold) return false; const k=PRI_LEAVE[t.phase]; if(!k || !priStd(k)) return false; setTurn({...t, hold:priHold(k)}); changed(); return true; }
 /* entering combat: the Before attackers stop holds the beginning of combat (again = an additional combat phase asks again) */
 function priAtk(nt, again){ if(nt.phase!==3 || nt.hold || !priLive() || !(G.oppStops && G.oppStops.atk) || (!again && nt.okd && nt.okd.atk) || !atkEligible()) return nt; return {...nt, hold:priHold('atk', true)}; }
+/* v5.10 (Ben, CR 509.4 / 510.3): after blocks, and after first-strike damage, the active player has priority first: their press of Apply combat
+   damage passes it, and the other player gets the blue OK before any damage is dealt (time for a pump spell or removal on an attacker or a blocker).
+   Always there, like Done blocking: not in S.stops. Key dmg before the first damage step, dmg2 before regular damage after first strike. */
+function priDmgStop(t){ if(!priLive() || t.active!==G.myId || t.passed || t.hold) return false; const k = t.cs==='fs' ? 'dmg2' : 'dmg'; if(t.okd && t.okd[k]) return false;
+  setTurn({...t, hold:priHold(k)}); changed(); return true; }
 /* a click on a later phase chip by the active player stops at the first standing stop on the way */
 function priChip(to){ const t=G.turn; if(!priLive() || t.active!==G.myId || t.passed || t.hold || !(to>t.phase)) return false;
   for(let i=t.phase; i<to; i++){ const k=PRI_LEAVE[i]; if(k && priStd(k)){ setTurn({...t, phase:i, passed:false, hold:priHold(k)}); changed(); return true; } }
@@ -6946,7 +6952,7 @@ function priChip(to){ const t=G.turn; if(!priLive() || t.active!==G.myId || t.pa
   return false; }
 /* the OK arrived (or Go on anyway, or the host turned priority off): the stop is passed for this turn and the turn moves on */
 function priRelease(){ const t=G.turn; if(!t.hold || !t.hold.ok || t.active!==G.myId || t.passed) return; const at=t.hold.at, nt={...t, okd:Object.assign({}, t.okd, {[at]:1})}; delete nt.hold;
-  if(at==='atk' || priStack().length){ setTurn(nt); changed(); return; }
+  if(at==='atk' || priStack().length || (/^dmg/.test(at) && !priLive())){ setTurn(nt); changed(); return; }   /* v5.10: priority turned off during the damage stop: the attacking player presses Apply combat damage again */
   G.turn=nt; nextPhase(); if(G.turn===nt){ setTurn(nt); changed(); } }
 /* the grid in the turn menu: rows by phase, My turn / <opponent>'s turn. Dashed boxes are the waits that are always there. */
 function stopsHTML(){ const st=myStops(), on=esc(priOn());
@@ -6956,7 +6962,7 @@ function stopsHTML(){ const st=myStops(), on=esc(priOn());
     const tip = mode==='on' ? 'Always stops before their end step. Click: Auto.' : mode==='off' ? 'Never stops here. Click: Always.' : `Auto: stops before their end step while they have a card with an “at the beginning of your end step” trigger${ec.length ? ` (now: ${ec.join(', ')})` : ' (none out now)'}. Click: Off.`;
     return `<button class="box op${lit?' on':''}${mode==='auto'?' auto':''}" data-stop="op:m2" aria-label="Stop" aria-pressed="${!!lit}" title="${esc(tip)}">${lit?'✓':''}</button><small title="${esc(tip)}">${sm}</small>`; };
   const rows=[ ['Upkeep', box('me','up'), box('op','up')], ['Draw', box('me','draw'), box('op','draw')], ['Main 1', box('me',null,'Next'), box('op','m1')], ['Before attackers', box('me',null,'Next'), box('op','atk')+'<small>if they can attack</small>'],
-    ['Blocks', '<small>their turn only</small>', box('op',null,'Done blocking')], ['Main 2', box('me',null,'Next'), m2()], ['End step', box('me',null,'End turn'), box('op',null,'Start my turn')] ];
+    ['Blocks', '<small>their turn only</small>', box('op',null,'Done blocking')], ['Before damage', box('me',null,'Apply damage'), box('op',null,'OK')], ['Main 2', box('me',null,'Next'), m2()], ['End step', box('me',null,'End turn'), box('op',null,'Start my turn')] ];
   return `<h5>STOPS</h5><p>Where the game waits for your OK before the turn moves on.</p>
     <div class="sgrid"><div class="h">Before leaving</div><div class="h me">My turn</div><div class="h op">${on}'s turn</div>${rows.map(r=>`<div>${r[0]}</div><div>${r[1]}</div><div>${r[2]}</div>`).join('')}</div>
     <div class="legend">Dashed boxes are always there and stay as they are. On the phase bar, blue dashes above are ${on}'s turn and gold dashes below are yours: bright is a stop you added, muted is always there, empty is not set. ${on} can't see any of them.</div>
@@ -6970,7 +6976,7 @@ function stopsWire(d){ d.onclick=e=>{ const sb=e.target.closest('[data-stop]');
 const PRI_DK={0:'up', 1:'draw', 2:'m1', 3:'atk', 4:'m2'};
 function priDash(i){ if(!priTable()) return {h:'', tip:''}; const st=myStops(), on=priOn();
   const a = st.opp[PRI_DK[i]] || (i===4 && priAutoM2().length) ? 'on' : (i===3||i===5) ? 'fx' : 'off', b = (i===0&&st.mine.up)||(i===1&&st.mine.draw) ? 'on' : i>=2 ? 'fx' : 'off';
-  const TA={on:'a stop you added: you are asked for an OK here', fx: i===3 ? 'you declare blocks, as always' : 'you press Start my turn, as always', off:'no stop set'}, TB={on:'a stop you added: your turn stops here', fx:'you press Next, as always', off:'no stop set'};
+  const TA={on:'a stop you added: you are asked for an OK here', fx: i===3 ? 'you declare blocks and OK combat damage, as always' : 'you press Start my turn, as always', off:'no stop set'}, TB={on:'a stop you added: your turn stops here', fx:'you press Next, as always', off:'no stop set'};
   return {h:`<i class="sd a ${a}"></i><i class="sd b ${b}"></i>`, tip:`${on}'s turn: ${TA[a]}. Your turn: ${TB[b]}. Stops are set in the turn menu.`}; }
 function nextPhase(){ if(waitMull()) return;
   const t=G.turn; if(!t.n){ return; }

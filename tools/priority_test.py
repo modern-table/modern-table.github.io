@@ -22,6 +22,8 @@ The tests, by name:
             can't resolve, Resolve anyway, resolves by itself, "I press Resolve", the band, the tab title, OK all N,
             Always OK, targets first, animations off
   stops     the grid, the defaults, the dashes, each stop, Go on anyway, own-turn stops, chips, privacy
+  damage    v5.10: the OK before combat damage (after blocks, and again after first-strike damage), spells cast during
+            it by either player, no blocks, Go on anyway, priority turned off during it
   order     v5.02: two or more triggers at once open the ordering panel for their controller (either player), both
             buttons wait, the order holds, remembered orders skip the panel, identical triggers don't ask, APNAP
   auto      v5.01: Before attackers only when the active player can attack, Next skipping an empty combat on your own
@@ -409,7 +411,7 @@ async def t_stack(env, A):
     ck('a spell cast during blocks goes in front: blue OK', ib['text'] == 'OK: Lightning Bolt resolves' and ib['blockBar'], ib)
     await press(b, 700); ib = await info(b)
     ck('after it resolves, Done blocking is back', ib['text'] == 'Done blocking' and ib['life'] == 5, ib)
-    await press(b); await press(a, 500); await press(a); await press(a); await settle(a, b); await press(a)      # done blocking, damage, main 2, (OK) end, pass
+    await press(b); await press(a, 500); await settle(a, b); await press(a); await press(a); await settle(a, b); await press(a)      # done blocking, damage (Bob OKs it, v5.10), main 2, (OK) end, pass
     ia, ib = await info(a), await info(b)
     ck('Start my turn after the pass', ib['text'] == 'Start my turn' and ia['text'] == 'Waiting for Bob' and ia['turn'].get('passed'), (ia['text'], ib['text'], ia['turn']))
     await ev(b, "T.cast('Lightning Bolt','opp')"); await b.wait_for_timeout(500); ia, ib = await info(a), await info(b)
@@ -418,6 +420,83 @@ async def t_stack(env, A):
     ck('then Start my turn is back and works', ib['text'] == 'Start my turn' and ia['life'] == 17, (ib['text'], ia['life']))
     await ev(b, 'T.trim()'); await press(b, 600)
     ck('the next turn starts', (await info(b))['turn']['n'] == 2)
+
+
+# ----------------------------------------------------------------------------------------------- damage
+async def t_damage(env, A):
+    """v5.10: after blocks, and after first-strike damage, the attacking player's press passes priority and the other
+    player gets the blue OK before any combat damage is dealt."""
+    a, b = await table(env)
+    await stage(a, b)                                       # Test Ox 2/2 each, Main 2 Always
+    await b.click('#turnlbl'); await b.wait_for_timeout(200)
+    row = await ev(b, "[...document.querySelectorAll('#ctx .sgrid > div')].map(x=>x.textContent)")
+    ck('the stops grid lists Before damage, always there', 'Before damage' in row and row[row.index('Before damage') + 1:row.index('Before damage') + 3] == ['✓Apply damage', '✓OK'], row)
+    await ev(b, 'closeMenu && closeMenu()'); await b.keyboard.press('Escape')
+    aox = await ev(a, "G.me.bf.find(c=>cdata(c).n==='Test Ox').id"); box = await ev(b, "G.me.bf.find(c=>cdata(c).n==='Test Ox').id")
+    # turn 1 (Ann attacks, Bob blocks and pumps his blocker during the damage stop)
+    await press(a); await settle(a, b)
+    await ev(a, "(id)=>{ G.atkSel=new Set([id]); atkCommit(); }", aox); await a.wait_for_timeout(450)
+    await ev(b, "([w,x])=>{ startMode('block', w); finishMode(x); }", [box, aox]); await b.wait_for_timeout(300)
+    await press(b, 450); ia = await info(a)
+    ck('after Done blocking the attacking player has priority: Apply combat damage', ia['text'] == 'Apply combat damage' and ia['turn'].get('cs') == 'blkd' and 'hold' not in ia['turn'], ia)
+    await press(a, 450); ia, ib = await info(a), await info(b)
+    ck('pressing it passes priority: the turn holds before damage', ia['turn'].get('hold') == {'pid': 'p2', 'at': 'dmg', 'ok': 1} and ia['turn'].get('cs') == 'blkd', ia['turn'])
+    ck('the defending player: "OK: Ann goes to combat damage" (blue)', ib['text'] == 'OK: Ann goes to combat damage' and ib['cls'] == ['ok'] and ib['title'].startswith('● Your OK needed'), ib)
+    ck('the attacking player waits; no damage yet', ia['text'] == "Waiting for Bob's OK" and ia['dis'] and await ev(a, "G.me.bf.some(c=>c.id==='%s')" % aox) and not any('Combat damage' in l for l in ia['log']), ia)
+    await ev(b, "(id)=>T.cast('Mutagenic Growth', id)", box); await b.wait_for_timeout(600); ia = await info(a)
+    ck('the defender casts a pump spell on the blocker: it goes on the stack, the attacker is asked', ia['text'] == 'OK: Mutagenic Growth resolves' and ia['cls'] == ['ok'], ia)
+    await press(a, 800); ia, ib = await info(a), await info(b)
+    ck('it resolves; the defender is asked about damage again', ib['st'] == [] and ib['text'] == 'OK: Ann goes to combat damage' and ia['turn'].get('hold', {}).get('at') == 'dmg', (ib['st'], ib['text']))
+    await ev(a, "(id)=>T.cast('Mutagenic Growth', id)", aox); await a.wait_for_timeout(600); ib = await info(b)
+    ck('the attacking player can still act during the stop (their pump waits on the OK)', ib['text'] == 'OK: Mutagenic Growth resolves', ib['text'])
+    await press(b, 800); ib = await info(b)
+    ck('after it resolves, damage is asked about once more', (await info(a))['st'] == [] and ib['text'] == 'OK: Ann goes to combat damage', ib['text'])
+    await press(b, 900); ia, ib = await info(a), await info(b)
+    ck('the OK deals the damage (4 each: both Oxen die)', ia['turn'].get('cs') == 'dmg' and 'hold' not in ia['turn'] and not await ev(a, "G.me.bf.some(c=>c.id==='%s')" % aox) and not await ev(b, "G.me.bf.some(c=>c.id==='%s')" % box), ia['turn'])
+    ck('logged: Bob OKs: Ann goes to combat damage', any('Bob OKs: Ann goes to combat damage.' in l for l in ia['log']), ia['log'])
+    ck('the turn goes on: Next: Main 2', ia['text'] == 'Next: Main 2', ia['text'])
+    await press(a); await press(a); await settle(a, b); await press(a)          # Main 2, (OK) end, pass
+    await ev(b, 'T.trim()'); await press(b, 600)
+    # turn 2 (Bob attacks unblocked, Ann bolts the attacker during the damage stop)
+    box2 = await ev(b, "T.perm('Test Ox','Creature — Ox','2/2')"); await b.wait_for_timeout(300)
+    await press(b); await settle(a, b)
+    await ev(b, "(id)=>{ G.atkSel=new Set([id]); atkCommit(); }", box2); await b.wait_for_timeout(450)
+    await press(a, 450); await press(b, 450); ia, ib = await info(a), await info(b)
+    ck('no blocks: the stop is still there (the defender may remove an unblocked attacker)', ib['turn'].get('hold') == {'pid': 'p1', 'at': 'dmg', 'ok': 1} and ia['text'] == 'OK: Bob goes to combat damage', (ib['turn'], ia['text']))
+    await ev(a, "(id)=>T.cast('Lightning Bolt', id)", box2); await a.wait_for_timeout(500); await press(b, 900); ia = await info(a)
+    ck('the Bolt kills the attacker; the defender is asked again', not await ev(b, "G.me.bf.some(c=>c.id==='%s')" % box2) and ia['text'] == 'OK: Bob goes to combat damage', ia['text'])
+    await press(a, 900); ia = await info(a)
+    ck('then no damage is dealt', ia['life'] == 20 and (await info(b))['turn'].get('cs') == 'dmg', ia['life'])
+    await press(b); await press(b); await settle(a, b); await press(b)
+    await ev(a, 'T.trim()'); await press(a, 600)
+    # turn 3 (first strike: a stop before each damage step; Go on anyway on the second)
+    kn = await ev(a, PERM_JS, ['Test Knight', 'Creature — Knight', '2/2', 'First strike']); await a.wait_for_timeout(300)
+    await press(a); await settle(a, b)
+    await ev(a, "(id)=>{ G.atkSel=new Set([id]); atkCommit(); }", kn); await a.wait_for_timeout(450)
+    await press(b, 450); ia = await info(a)
+    ck('first strike: the button says first strike damage', ia['text'] == 'Apply first strike damage', ia['text'])
+    await press(a, 450); ib = await info(b)
+    ck('first strike: the stop comes before first-strike damage', ib['text'] == 'OK: Ann goes to combat damage', ib['text'])
+    await press(b, 900); ia, ib = await info(a), await info(b)
+    ck('the OK deals first-strike damage', ib['life'] == 18 and ia['turn'].get('cs') == 'fs' and ia['text'] == 'Apply combat damage', (ib['life'], ia['turn'], ia['text']))
+    await press(a, 450); ia, ib = await info(a), await info(b)
+    ck('and a second stop before regular damage', ia['turn'].get('hold') == {'pid': 'p2', 'at': 'dmg2', 'ok': 1} and ib['text'] == 'OK: Ann goes to regular combat damage', (ia['turn'], ib['text']))
+    await ev(a, 'PRI.since-=20500'); await a.wait_for_timeout(600); ia = await info(a)
+    ck('after 20 s the attacking player gets Go on anyway', ia['text'] == 'Go on anyway' and not ia['dis'], ia['text'])
+    await press(a, 900); ia, ib = await info(a), await info(b)
+    ck('Go on anyway deals regular damage (none from a first striker) and is logged', ia['turn'].get('cs') == 'dmg' and ib['life'] == 18 and any('Ann goes on anyway: no answer from Bob.' in l for l in ib['log']), (ia['turn'], ib['life'], ib['log']))
+    await press(a); await press(a); await settle(a, b); await press(a)
+    await ev(b, 'T.trim()'); await press(b, 600)
+    # turn 4 (the host turns priority off during the damage stop)
+    box3 = await ev(b, "T.perm('Test Ox','Creature — Ox','2/2')"); await b.wait_for_timeout(300)
+    await press(b); await settle(a, b)
+    await ev(b, "(id)=>{ G.atkSel=new Set([id]); atkCommit(); }", box3); await b.wait_for_timeout(450)
+    await press(a, 450); await press(b, 450)
+    ck('the stop is up', (await info(b))['turn'].get('hold', {}).get('at') == 'dmg')
+    await ev(a, 'priToggle(false)'); await a.wait_for_timeout(800); ia, ib = await info(a), await info(b)
+    ck('priority turned off during the stop: the hold goes, no damage by itself', 'hold' not in ib['turn'] and ib['turn'].get('cs') == 'blkd' and ia['life'] == 20 and ib['text'] == 'Apply combat damage', (ib['turn'], ia['life'], ib['text']))
+    await press(b, 800); ia, ib = await info(a), await info(b)
+    ck('with priority off, Apply combat damage deals it at once', ia['life'] == 18 and ib['turn'].get('cs') == 'dmg' and 'hold' not in ib['turn'], (ia['life'], ib['turn']))
 
 
 # ----------------------------------------------------------------------------------------------- stops
@@ -456,9 +535,9 @@ async def t_stops(env, A):
     # the grid
     await a.click('#turnlbl'); await a.wait_for_timeout(250)
     grid = await ev(a, "(()=>{ const g=document.querySelector('#ctx .sgrid'); return g ? {head:[...g.querySelectorAll('.h')].map(x=>x.textContent), rows:[...g.querySelectorAll(':scope > div:nth-child(3n+1):not(.h)')].map(x=>x.textContent), boxes:[...g.querySelectorAll('[data-stop]')].map(x=>x.dataset.stop+'='+x.classList.contains('on')), locks:[...g.querySelectorAll('.lock + small')].map(x=>x.textContent), rest:[...document.querySelectorAll('#ctx > button')].map(x=>x.textContent), usual:document.querySelector('#ctx [data-usual]').textContent} : null; })()")
-    ck('turn menu: the grid, rows by phase, My turn / <opponent>’s turn', grid and grid['head'] == ['Before leaving', 'My turn', "Bob's turn"] and grid['rows'] == ['Upkeep', 'Draw', 'Main 1', 'Before attackers', 'Blocks', 'Main 2', 'End step'], grid)
+    ck('turn menu: the grid, rows by phase, My turn / <opponent>’s turn', grid and grid['head'] == ['Before leaving', 'My turn', "Bob's turn"] and grid['rows'] == ['Upkeep', 'Draw', 'Main 1', 'Before attackers', 'Blocks', 'Before damage', 'Main 2', 'End step'], grid)
     ck('defaults: before attackers on the opponent’s turn; Main 2 on Auto (unlit: nothing out)', grid and grid['boxes'] == ['me:up=false', 'op:up=false', 'me:draw=false', 'op:draw=false', 'op:m1=false', 'op:atk=true', 'op:m2=false'], grid and grid['boxes'])
-    ck('already-there waits are shown checked and locked', grid and grid['locks'] == ['Next', 'Next', 'Done blocking', 'Next', 'End turn', 'Start my turn'] and await ev(a, "[...document.querySelectorAll('#ctx .sgrid .lock')].every(x=>x.tagName==='SPAN')"), grid and grid['locks'])
+    ck('already-there waits are shown checked and locked', grid and grid['locks'] == ['Next', 'Next', 'Done blocking', 'Apply damage', 'OK', 'Next', 'End turn', 'Start my turn'] and await ev(a, "[...document.querySelectorAll('#ctx .sgrid .lock')].every(x=>x.tagName==='SPAN')"), grid and grid['locks'])
     ck('the one-time pauses and the rest of the menu are still there', grid and [x for x in grid['rest'] if x.startswith('Pause')] == ['Pause on my next upkeep (my turn stops there)', "Pause Bob's next upkeep", "Pause Bob's draw step (before the draw)", "Pause Bob's draw step (after the draw)"] and any('Take the turn' in x for x in grid['rest']) and any('control' in x for x in grid['rest']), grid and grid['rest'])
     for k in ('op:up', 'op:draw', 'op:m1', 'op:m2', 'op:m2'):
         await a.click('#ctx [data-stop="%s"]' % k); await a.wait_for_timeout(80)
@@ -1098,7 +1177,7 @@ async def t_fullgame(env, A):
         sw = await ev(a, "G.me.bf.find(c=>cdata(c).n==='Monastery Swiftspear').id")
         await ev(a, "(id)=>{ G.atkSel=new Set([id]); atkCommit(); }", sw); await a.wait_for_timeout(500)
         ck('game %d: Bob is asked to block' % game, (await info(b))['text'] == 'Done blocking')
-        await press(b); await press(a, 600)
+        await press(b); await press(a, 600); await ok()                         # done blocking; damage (v5.10: Bob OKs it)
         ck('game %d: combat damage' % game, (await info(b))['life'] == 19, (await info(b))['life'])
         await press(a); await press(a); await ok(); await press(a)
         ck('game %d: Ann passes' % game, (await info(b))['text'] == 'Start my turn')
@@ -1366,7 +1445,7 @@ async def t_sound(env, A):
     ck('choosing Off plays nothing', await ev(b, 'S.snd') == 'off' and await n(b) == nb + 1, (await ev(b, 'S.snd'), await n(b)))
     ck('the audio was really made (an AudioContext exists)', await ev(b, '!!SND.ac'))
 
-TESTS = [('stack', t_stack), ('stops', t_stops), ('order', t_order), ('auto', t_auto), ('waits', t_waits), ('match', t_match), ('toggle', t_toggle), ('oldpage', t_oldpage), ('reload', t_reload),
+TESTS = [('stack', t_stack), ('stops', t_stops), ('damage', t_damage), ('order', t_order), ('auto', t_auto), ('waits', t_waits), ('match', t_match), ('toggle', t_toggle), ('oldpage', t_oldpage), ('reload', t_reload),
          ('fullgame', t_fullgame), ('sound', t_sound), ('night', t_night), ('practice', t_practice), ('pages', t_pages)]
 
 
