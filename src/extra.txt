@@ -149,3 +149,7 @@ Sideboard
 1 Captain James T. Kirk
 1 Winota, Joiner of Forces
 1 Sokenzan, Crucible of Defiance
+
+# 2026-11-18 (v5.15): asked to work at the table
+1 Snarling Gorehound
+1 Jolted Awake

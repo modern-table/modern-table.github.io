@@ -766,7 +766,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.14';
+const VERSION = 'v5.15';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -782,6 +782,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.15','Nov 18',"Snarling Gorehound and Jolted Awake work. Gorehound surveils 1 whenever another creature with power 2 or less enters under your control, judged as the creature comes in. Jolted Awake lets you choose an artifact or creature card in your graveyard, gives you two energy, and lets you pay energy equal to that card's mana value to return it to the battlefield; it can be cycled for {2}."],
   ['v5.14','Nov 18',"The table now knows when things can be played. Sorceries, creatures and other spells without flash, land plays and planeswalker loyalty abilities wait for your main phase with the stack empty, and each planeswalker gets one loyalty ability a turn. Cards in your hand that can't be played right now are dimmed (point at one to see why). Instants, flash, and cards that give flash (Leyline of Anticipation, Teferi) work as before, and split second holds everything else. Playing something at the wrong time opens a window that says why, with a Cast anyway / Play anyway button for fixing mistakes; the log notes it."],
   ['v5.13','Nov 17',"New markers for counters and boosts: square pennants on the right edge of the card. +1/+1 counters are brass and −1/−1 counters are onyx (they stay), a boost until end of turn takes a pale version of the creature's own color, and a shrink until end of turn is dark gray."],
   ['v5.12','Nov 17',"Prowess and other \"whenever you cast a noncreature spell\" boosts (Monastery Swiftspear, Slickshot Show-Off, Chandra's Emberling) now go on the stack as triggers, so your opponent sees them and can respond, instead of landing on the creature right away. Several of them at once don't ask you to put them in order."],
@@ -2455,6 +2456,8 @@ function satoruNote(c){ const z=ZLOG.slice().reverse().find(e=>e.c===c || (e.c &
     if(any) changed(); }, 0); }
 function othersEnter(c){ const out=[], cr=isCreature(c), art=/\bArtifact\b/.test(faceType(c)), pw=isPW(c), hist=/\b(?:Artifact|Legendary|Saga)\b/.test(faceType(c)); if(!cr && !art && !pw && !hist) return out;
   for(const x of G.me.bf){ if(x.fd || (!x.k && !x.cu)) continue; const nm=faceName(x,0), sn=nm.split(',')[0];
+    { const pm=(frontText(x)||'').match(/Whenever another creature with power (\d+) or less you control enters(?: the battlefield)?, ([^\n]+)/i);   /* v5.15 Snarling Gorehound: power as it enters, counters included */
+      if(pm){ if(x.id!==c.id && cr && powerOf(c)<=+pm[1]) out.push(()=>{ const d=cdata(x); G.me.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:x.id, tr:true, ent:c.id}, cu:{n:`${sn}: trigger`, t:'Triggered ability', o:pm[0], img:d.img||''}})); }); continue; } }
     const m=(frontText(x)||'').match(new RegExp('Whenever (?:(this creature|'+escRe(nm)+'|'+escRe(sn)+') or )?another (nontoken historic permanent|historic permanent|nontoken creature|creature or artifact|creature or planeswalker|creature|artifact) you control enters(?: the battlefield)?, ([^\\n]+)','i'))
       || (x.id!==c.id && (frontText(x)||'').match(/Whenever an? ()(nontoken Equipment|nontoken artifact|nontoken creature|creature or artifact|artifact|creature) you control enters(?: the battlefield)?, ([^\n]+)/i)); if(!m) continue; if(/equipment/i.test(m[2]) && !/\bEquipment\b/.test(faceType(c))) continue;
     const self=x.id===c.id; if(self && !m[1]) continue; if(!self && !((/historic/i.test(m[2]) && hist) || (/creature/i.test(m[2]) && cr) || (/artifact/i.test(m[2]) && art) || (/planeswalker/i.test(m[2]) && pw) || (/equipment/i.test(m[2]) && /\bEquipment\b/.test(faceType(c))))) continue; if(/nontoken/i.test(m[2]) && c.tok) continue;
@@ -5373,7 +5376,7 @@ const myStackSources = () => G.me.st.slice().reverse().filter(c=>!c.pact);
 function pruneGtg(){ const m=G.me; if(!m.gtg || !m.gtg.length) return; const inGy=(e)=> (e.o===G.myId ? m.gy : ((G.opp&&G.opp.gy)||[])).some(x=>x.id===e.c);
   m.gtg=m.gtg.filter(e=>m.st.some(x=>x.id===e.s) && (inGy(e) || (e.o!==G.myId && !G.opp))); }
 /* "Return target <kind> card from your graveyard to …" (Goryo's Vengeance): the target is picked from the graveyard as the spell is cast */
-const gyTargetSpec = c => { if(c.fd || (!c.k && !c.cu) || !isSpell(c)) return null; const t=stackText(c)||frontText(c)||'', m=t.match(/return (?:up to one )?target ([^.]*?) card(?: with mana value (\d+) or less)? from your graveyard to (?:the battlefield|your hand)/i); return m ? {desc:m[1].trim(), mv:m[2]!=null ? +m[2] : null} : null; };
+const gyTargetSpec = c => { if(c.fd || (!c.k && !c.cu) || !isSpell(c)) return null; const t=stackText(c)||frontText(c)||'', m=t.match(/return (?:up to one )?target ([^.]*?) card(?: with mana value (\d+) or less)? from your graveyard to (?:the battlefield|your hand)/i); if(m) return {desc:m[1].trim(), mv:m[2]!=null ? +m[2] : null}; const j=t.match(/choose up to one target ([^.]*?) card in your graveyard\. you get \{E\}/i); return j ? {desc:j[1].trim(), mv:null, upTo:true} : null; };   /* v5.15 Jolted Awake */
 function gyTargetPick(c, gs){ return new Promise(res=>{ const m=G.me, nm=cdata(c).n.split(' // ')[0], cs=m.gy.slice(), ok=x=>matchesDesc(x, gs.desc) && (gs.mv==null || manaValue(x)<=gs.mv), any=cs.some(ok); let sel=null, done=false;
   const fin=v=>{ if(done) return; done=true; closeModal(); res(v); };
   const el=modal(`${nm}: choose its target`, `<span class="hint">${any ? `Click the ${esc(gs.desc)} card to target. Only those are lit.` : `There is no ${esc(gs.desc)} card in your graveyard to target.`}</span><div class="grid" id="gytGrid">${cs.map(x=>cardHTML(x,'gy',true, ok(x)?'':'dim')).join('') || '<span class="hint">Your graveyard is empty.</span>'}</div>`,
@@ -5521,8 +5524,20 @@ function exileAllGy(src){
   const m=G.me, mine=m.gy.length, theirs=(G.opp&&G.opp.gy||[]).length;
   for(const c of [...m.gy]) move(c.id,'ex',{silent:true}); if(G.opp) send({t:'gyall'});
   log(`${src}'s trigger resolves: all graveyards are exiled (${m.name} ${mine}${G.opp?`, ${G.opp.name} ${theirs}`:''}).`); }
+/* v5.15 Jolted Awake: "Choose up to one target artifact or creature card in your graveyard. You get {E}{E}. Then you may pay an amount of {E} equal to that card's mana value. If you do, return it from your graveyard to the battlefield." The energy comes whether or not a card was chosen; a card with mana value 0 returns for nothing. */
+async function joltResolve(c, es){ const m=G.me, by=cname(c), txt=cdata(c).o||stackText(c)||'', k=((txt.match(/You get ((?:\{E\})+)/i)||[])[1]||'').match(/\{E\}/g), n=k ? k.length : 0;
+  if(n){ m.ctr.energy=(m.ctr.energy||0)+n; m.energySeen=true; log(`${by}: ${m.name} gets ${n} energy (${m.ctr.energy}).`); changed(); }
+  for(const e of es){ const f=find(e.c); if(e.o!==G.myId || !f || f.z!=='gy'){ log(`${e.n} is no longer in ${m.name}'s graveyard.`); continue; }
+    const mv=manaValue(f.c);
+    if(mv>0){ if((m.ctr.energy||0)<mv){ log(`${by}: ${e.n} has mana value ${mv} and ${m.name} has ${m.ctr.energy||0} energy, so it stays.`); continue; }
+      const pay=await yesNo(by, `Pay ${'{E}'.repeat(mv)} to return ${e.n} from your graveyard to the battlefield? You have ${m.ctr.energy} energy.`, `Pay ${mv} energy`, `Don't pay`);
+      if(!pay){ log(`${by}: ${m.name} doesn't pay, so ${e.n} stays.`); continue; }
+      m.ctr.energy-=mv; log(`${by}: ${m.name} pays ${mv} energy (${m.ctr.energy} left).`); }
+    move(e.c,'bf',{silent:true}); const g=find(e.c); if(g && g.z==='bf') log(`${by}: ${m.name} returns ${cname(g.c)} from their graveyard to the battlefield.`); changed(); } }
 function gyResolve(c){
-  const m=G.me, es=(m.gtg||[]).filter(e=>e.s===c.id); if(!es.length) return; m.gtg=m.gtg.filter(e=>e.s!==c.id);
+  const m=G.me, es=(m.gtg||[]).filter(e=>e.s===c.id); m.gtg=(m.gtg||[]).filter(e=>e.s!==c.id);
+  if(/choose up to one target [^.]*? card in your graveyard\. you get \{E\}/i.test(cdata(c).o||stackText(c)||'')){ joltResolve(c, es); return; }   /* v5.15 Jolted Awake */
+  if(!es.length) return;
   { const tx=cdata(c).o||stackText(c)||''; if(/Search its owner's graveyard, hand, and library for (?:any number of|all) cards with the same name as that card and exile them/i.test(tx)){ const all=/ for all cards with the same name/i.test(tx); (async()=>{ for(const e of es) await extractSteps(e, e.sn, all); })(); return; } }   // v4.41: step by step
   { const txt=cdata(c).o||'', rt=txt.match(/return target ([^.]*?) card(?: with mana value (?:\d+ or less|X))? from your graveyard to the battlefield( tapped)?/i); if(rt){ const got=[], xq=/card with mana value X from your graveyard/i.test(txt) ? (c.ab && c.ab.x!=null ? c.ab.x : c.x) : null;
       for(const e of es){ const f=find(e.c); if(e.o!==G.myId || !f || f.z!=='gy'){ log(`${e.n} is no longer in ${m.name}'s graveyard.`); continue; } if(!matchesDesc(f.c, rt[1])){ log(`${e.sn}: ${e.n} is not a ${rt[1]} card, so it stays.`); continue; }
