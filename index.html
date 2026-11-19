@@ -774,7 +774,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.15';
+const VERSION = 'v5.16';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -790,6 +790,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.16','Nov 18',"Matoya, Archon Elder draws you a card whenever you scry or surveil, after the scry or surveil is finished."],
   ['v5.15','Nov 18',"Snarling Gorehound and Jolted Awake work. Gorehound surveils 1 whenever another creature with power 2 or less enters under your control, judged as the creature comes in. Jolted Awake lets you choose an artifact or creature card in your graveyard, gives you two energy, and lets you pay energy equal to that card's mana value to return it to the battlefield; it can be cycled for {2}."],
   ['v5.14','Nov 18',"The table now knows when things can be played. Sorceries, creatures and other spells without flash, land plays and planeswalker loyalty abilities wait for your main phase with the stack empty, and each planeswalker gets one loyalty ability a turn. Cards in your hand that can't be played right now are dimmed (point at one to see why). Instants, flash, and cards that give flash (Leyline of Anticipation, Teferi) work as before, and split second holds everything else. Playing something at the wrong time opens a window that says why, with a Cast anyway / Play anyway button for fixing mistakes; the log notes it."],
   ['v5.13','Nov 17',"New markers for counters and boosts: square pennants on the right edge of the card. +1/+1 counters are brass and −1/−1 counters are onyx (they stay), a boost until end of turn takes a pale version of the creature's own color, and a shrink until end of turn is dark gray."],
@@ -2674,6 +2675,8 @@ function fanWire(g){ if(!g || g._fan) return; g._fan=1; const reset=()=>{ for(co
   g.addEventListener('mouseover', e=>{ const cd=e.target.closest('.card'); if(!cd || cd.parentElement!==g) return; const kids=[...g.children], i=kids.indexOf(cd), top=cd.offsetTop, w=cd.offsetWidth;
     kids.forEach((k,j)=>{ const row=k.offsetTop===top; k.style.transform = k===cd ? 'translateY(-7%)' : row && j>i ? `translateX(${Math.round(w*.55)}px)` : row ? `translateX(${-Math.round(w*.08)}px)` : ''; k.style.zIndex = k===cd ? 3 : ''; }); });
   g.addEventListener('mouseleave', reset); }
+/* v5.16 (Ben): "Whenever you scry or surveil, draw a card." (Matoya, Archon Elder) and similar: once a scry or surveil window closes, each of my permanents with that trigger puts one on the stack */
+function scryTrigs(kind){ for(const x of G.me.bf){ const m=(frontText(x)||'').match(/Whenever you (scry or surveil|scry|surveil), ([^\n]+)/i); if(!m || !m[1].toLowerCase().includes(kind)) continue; const d=cdata(x), sn=(d.n||'').split(',')[0]; G.me.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:x.id, tr:true}, cu:{n:`${sn}: trigger`, t:'Triggered ability', o:m[0], img:d.img||''}})); log(`${sn}: its trigger goes on the stack.`); } }
 /* Scry N / surveil N: the top N cards in a window; each is marked Top or Bottom (Graveyard for surveil) and the ones on top can be reordered.
    Resolution waits for it, so "Scry 1. Draw a card." draws after the scry. */
 function scryWin(n, kind, by){ return new Promise(res=>{ const m=G.me, cards=m.lib.slice(0,n), sv=kind==='surveil', ord=kind==='order';   // order: "look at the top N, then put them back in any order" (v4.04)
@@ -2687,7 +2690,7 @@ function scryWin(n, kind, by){ return new Promise(res=>{ const m=G.me, cards=m.l
     m.lib=[...tops, ...m.lib.filter(c=>!ids.has(c.id)), ...(sv ? [] : rest)]; G.noUndo=true;
     G.lastSurv = sv ? rest.map(c=>c.id) : []; if(sv){ m.lib.push(...rest); for(const c of rest) move(c.id,'gy',{silent:true}); }
     if(ord){ log(`${by}: ${m.name} looks at the top ${cards.length} card${cards.length>1?'s':''} of their library and puts them back in an order of their choice.`); changed(); res(); return; }
-    log(`${by}: ${m.name} ${sv?'surveils':'scries'} ${cards.length}: ${tops.length} on top${rest.length ? ', '+(sv ? `${rest.length===1?'':rest.length+' '}into the graveyard (${rest.map(cname).join(', ')})` : rest.length+' on the bottom') : ''}.`); changed(); res(); };
+    log(`${by}: ${m.name} ${sv?'surveils':'scries'} ${cards.length}: ${tops.length} on top${rest.length ? ', '+(sv ? `${rest.length===1?'':rest.length+' '}into the graveyard (${rest.map(cname).join(', ')})` : rest.length+' on the bottom') : ''}.`); scryTrigs(sv?'surveil':'scry'); changed(); res(); };
   const el=modal(ord ? `${by}: top ${cards.length} of your library` : `${by}: ${kind} ${cards.length}`, `<span class="hint">${ord ? 'Put them back in the order you want (◀ ▶ move a card; the leftmost is drawn first).' : `Choose where each card goes${sv?'':', and the order of the ones on top'}.`}</span><div id="scryBox"></div>`, [['Done',done,'go']], {width:Math.max(440, Math.min(1100, cards.length*196+40)), noClose:true});
   paint();
   $('#scryBox', el).onclick=e=>{ const b=e.target.closest('button[data-s]'); if(!b) return; const id=b.closest('.scryt').dataset.id, i=st.findIndex(x=>x.id===id), s=b.dataset.s, x=st[i];
