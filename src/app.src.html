@@ -766,7 +766,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.20';
+const VERSION = 'v5.21';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -782,6 +782,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.21','Nov 19',"Cards returned to the library at the end of a game now start clean, so a surged Reckless Bushwhacker no longer gives the surge trigger when hard-cast in a later game."],
   ['v5.20','Nov 19',"Battle cry is listed in the keyword key on the left, like haste, when a creature has it."],
   ['v5.19','Nov 19',"Resuming a saved game no longer brings back a stale trigger from an earlier game: The Naked Time's delayed trigger is tied to the game it was made in, and a session saved before this fix has its leftover per-turn state cleared on resume."],
   ['v5.18','Nov 19',"Fixed a stale trigger carried into a new game of the same match: The Naked Time's delayed trigger (and other per-turn effects) could fire on a turn with the same number in the next game. Each new game now starts clean."],
@@ -7241,9 +7242,12 @@ function matchDeckAsk(){ const m=G.me, sp=m.deckSpec, on=G.opp?G.opp.name:'your 
   if(!sp || !sp.d || !sp.name){ other(); return; }
   modal('New match', `<p>Play <b>${esc(sp.name)}</b> again? It comes back as you first brought it, with any sideboarding undone.</p><span class="hint">Or pick another deck; ${esc(on)} decides for themselves.</span>`,
     [['Choose another deck', other, 'ghost'], ['Keep this deck', async ()=>{ closeModal(); await loadDeck(sp.d, sp.name); showTable(); changed(); }, 'go']], {noClose:true}); }
+/* v5.21: a card returned to the library is a new object. gather() used to keep surge, battle cry, loyalty-this-turn and similar fields, so a surged copy from one game gave its next-game hard cast the surge trigger. */
+const OBJ_STATE=['surge','spent','ev','dash','hst','ovl','md','half','sacMV','sacTp','addPaid','gift','nm','unc','pc','pcE','egy','cgy','nmE','clv','solved','aoT','adv','bt','bcry','lyT','tkw','ntkw','ncl','nabT','exEnd','xr','xrNext','plg','plot','offer','by','warp','pl','plFree','fl','advOK','gainLtb','dcBy','exDie','fbk','gyc','sick'];
+function clearObjState(c){ for(const k of OBJ_STATE) delete c[k]; }
 function gather(){
   const m=G.me; G.noUndo=true; for(const c of (m.ph||[]).splice(0)){ delete c.phz; m.bf.push(c); }
-  for(const z of ['hand','bf','gy','ex','st']){ for(const c of m[z].splice(0)){ if(c.tok || c.made) continue; if(c.sideOrig && c.o===G.myId){ delete c.sideOrig; Object.assign(c,{tap:false,c:0,att:null,atk:false,fd:false,flip:false,note:'',row:null}); m.side.push(c); continue; } if(c.o!==G.myId){ send({t:'give', card:Object.assign(c,{tap:false,c:0,att:null,atk:false,fd:false,flip:false}), zone:'lib'}); continue; } Object.assign(c,{tap:false,c:0,att:null,atk:false,fd:false,flip:false,note:'',row:null}); m.lib.push(c); } }
+  for(const z of ['hand','bf','gy','ex','st']){ for(const c of m[z].splice(0)){ if(c.tok || c.made) continue; if(c.sideOrig && c.o===G.myId){ delete c.sideOrig; Object.assign(c,{tap:false,c:0,att:null,atk:false,fd:false,flip:false,note:'',row:null}); m.side.push(c); continue; } if(c.o!==G.myId){ send({t:'give', card:Object.assign(c,{tap:false,c:0,att:null,atk:false,fd:false,flip:false}), zone:'lib'}); continue; } Object.assign(c,{tap:false,c:0,att:null,atk:false,fd:false,flip:false,note:'',row:null}); clearObjState(c); m.lib.push(c); } }
   for(const c of m.lib.filter(x=>x.sideOrig)){ m.lib.splice(m.lib.indexOf(c),1); delete c.sideOrig; m.side.push(c); }
   G.mullGo=false; delete m.btm; m.life=20; m.lastLife=20; delete m.para; delete m.paraT; delete m.noMax; delete m.coinCall; delete m.tmpRed; delete m.pauseAsk; delete m.pauseReq; delete m.emb; delete m.monarch; delete m.xturns; delete m.oppT; delete m.dsc; delete m.mayAlways; delete m.gain; delete m.city; delete m.wya; delete m.atkC; delete m.loyT; delete m.lock; delete m.lp; delete m.lpx; m.ctr={poison:0,energy:0}; m.arrows=[]; m.reveal=false; m.mull=0; m.roll=null; m.compDone=false; m.skipRoll=false; m.dealt=false; m.kept=false; delete m.btm; G.mullGo=false; m.mana=noMana(); m.smana=[]; m.energySeen=false; m.poisonSeen=false; m.drew=0; m.ctl=false; m.ctlNext=false; m.cast={n:0,is:0}; m.pacts=[]; m.baub=[]; m.trk=null; for(const c of m.side) delete c.comp; for(const c of m.lib){ delete c.by; delete c.warp; delete c.wp; delete c.fl; delete c.bt; delete c.ent; delete c.offer; delete c.pl; delete c.kw; delete c.lt; delete c.sick; delete c.lft; delete c.cp; }
 }
