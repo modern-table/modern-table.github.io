@@ -766,7 +766,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.18';
+const VERSION = 'v5.19';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -782,6 +782,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.19','Nov 19',"Resuming a saved game no longer brings back a stale trigger from an earlier game: The Naked Time's delayed trigger is tied to the game it was made in, and a session saved before this fix has its leftover per-turn state cleared on resume."],
   ['v5.18','Nov 19',"Fixed a stale trigger carried into a new game of the same match: The Naked Time's delayed trigger (and other per-turn effects) could fire on a turn with the same number in the next game. Each new game now starts clean."],
   ['v5.17','Nov 19',"Ghor-Clan Rampager's left click now matches the timing: in your main phase it offers only the creature cost, and during combat with an attacking creature (either player's) it offers only bloodrush, so you're never asked to pay for a half that can't be played. Battle cry has its own icon, and a second landfall shows as ×2 on the chip."],
   ['v5.16','Nov 18',"Matoya, Archon Elder draws you a card whenever you scry or surveil, after the scry or surveil is finished."],
@@ -1296,7 +1297,7 @@ function lifeGuard(){ const m=G.me; if(!m || !G.turn) return; const n=G.turn.n;
   else if(m.noGain===n && m.lastL!=null && m.life>m.lastL){ const d=m.life-m.lastL; m.life=m.lastL; fix(d); addLog(`${m.name} can't gain life this turn (+${d} undone).`,'s'); send({t:'log', text:`${m.name} can't gain life this turn.`}); }
   m.lastL=m.life; }
 function changed(){ if(DSW) return; dedupeIds(); lossCheck(); clearTimeout(G.sbaT); G.sbaT=setTimeout(sbaDeaths, 150); legendCheck(); lifeGuard(); try{ scalesWatch(); }catch(e){} try{ tapWatch(); }catch(e){} try{ ctrWatch(); }catch(e){} try{ kaitoWatch(); }catch(e){} if(G.me.ctr.energy>0) G.me.energySeen=true; if((G.me.ctr.poison||0)>0) G.me.poisonSeen=true; checkHeld(); if(dummy()) asDummy(()=>checkHeld()); pruneGtg(); pruneArrows(); warpPrune(); for(const x of G.me.bf) if(x.tok && x.tokT==null) x.tokT=G.turn.n||0;   /* every token knows the turn it entered (Ocelot Pride's copies) */ try{ ordWatch(); }catch(e){ console.warn(e); } try{ priWatch(); }catch(e){} checkpoint(); render(); clearTimeout(syncT); syncT=setTimeout(()=>{ send({t:'state', s:pub()}); save(); }, 40); }
-function save(){ if(DSW) return; if(G.code || G.solo) store.set('mt_session', {code:G.code, solo:G.solo, myId:G.myId, me:G.me, dum:(G.opp&&G.opp.dummy)?G.opp:null, turn:G.turn, idc:G.idc, mt:mtWire(), mtEnd:(G.mt&&G.mt.end)||null, pri:priWire(), at:Date.now()}); }
+function save(){ if(DSW) return; if(G.code || G.solo) store.set('mt_session', {code:G.code, solo:G.solo, myId:G.myId, gid:G.gid, me:G.me, dum:(G.opp&&G.opp.dummy)?G.opp:null, turn:G.turn, idc:G.idc, mt:mtWire(), mtEnd:(G.mt&&G.mt.end)||null, pri:priWire(), at:Date.now()}); }
 function log(text, cls){ addLog(text, cls||'m'); send({t:'log', text}); if(G.me && G.turn && G.turn.n && /\bsacrific(?:es|ed)\b/i.test(text) && String(text).includes(G.me.name) && !/sacrifices nothing|nothing is sacrificed/i.test(text)) G.me.sacT=G.turn.n; }
 /* Vehicles: crewed this turn (c.crew = turn), or "As long as you control eight or more permanents named X, this Vehicle is an artifact creature" (Phoenix Fleet Airship) */
 function vehicleCre(c){ if(!c || c.fd || (!c.k && !c.cu)) return false; const t=faceType(c); if(!/\bVehicle\b/.test(t)) return false; if(c.crew && G.turn && c.crew===G.turn.n) return true;
@@ -1918,7 +1919,7 @@ function entered(c){
   if(isCreature(c) && !c.tok && G.me.bf.includes(c)) satoruNote(c);   /* v4.82 */
   { const em=(frontText(c)||'').match(/(?:^|\n)As [^,\n]+ enters, you get an emblem with ["“](.+?)["”]/i); if(em && G.me.bf.includes(c)){ const src=faceName(c, c.flip?1:0); G.me.emb=[...(G.me.emb||[]), {src, o:em[1]}]; log(`${src} enters: ${G.me.name} gets an emblem: "${em[1]}"`); } }   // v4.133 Tibalt, Cosmic Impostor (a replacement, not a trigger)
   if(isLand(c) && G.me.bf.includes(c)) trg.push(['landfall', ()=>landfall(c), 1]);
-  if(isCreature(c) && G.me.bf.includes(c)) for(const e of (G.me.wce||[]).filter(e=>e.n===G.turn.n)) trg.push([`${e.src}'s delayed trigger`, ()=>{ pushTrig(c, e.txt.replace(/\bon it and it gains\b/i,'on this creature and it gains'), `${e.src}`); log(`${cname(c)} enters: ${e.src}'s trigger goes on the stack.`); }, 1]);   // v4.133 The Naked Time II
+  if(isCreature(c) && G.me.bf.includes(c)) for(const e of (G.me.wce||[]).filter(e=>e.n===G.turn.n && e.g===G.gid)) trg.push([`${e.src}'s delayed trigger`, ()=>{ pushTrig(c, e.txt.replace(/\bon it and it gains\b/i,'on this creature and it gains'), `${e.src}`); log(`${cname(c)} enters: ${e.src}'s trigger goes on the stack.`); }, 1]);   // v4.133 The Naked Time II
   if(isLand(c) && G.me.bf.includes(c)) trg.push(['Forest trigger', ()=>forestEnters(c), 1]);
   if(isCreature(c) && G.me.bf.includes(c) && !cardColors(c).length) trg.push(['colorless creature enters', ()=>{ for(const x of G.me.bf){ if(x.id===c.id || x.fd || (!x.k && !x.cu)) continue; const m=(frontText(x)||'').match(/(?:^|\n)Whenever another colorless creature you control enters, ([^\n]+)/i); if(m){ pushTrig(x, m[1]); log(`${cdata(x).n.split(',')[0]}: ${cname(c)} entered, so its trigger goes on the stack.`); } } }, 1]);
   if(ev) trg.push(['evoke sacrifice', ()=>evokeSac(c), 1]);
@@ -4209,7 +4210,7 @@ async function simpleEffects(c, text, srcId){
       if(!cs.length){ log(`${by}: no creature card with mana value ${x} was exiled with it, so it doesn't become a copy.`); continue; } const pk=cs.length===1 ? cs[0] : await pickP(`${by}: choose the card to copy (mana value ${x})`, cs); if(!pk) continue;
       const was=faceName(f.c,0); f.c.cp={k:pk.k, cu:pk.cu||null, orig:(f.c.cp && f.c.cp.orig) || was}; log(`${by}: ${was} becomes a copy of ${cdata(pk).n} (X = ${x}).`); changed(); continue; }
     // v4.133: The Naked Time II ("Whenever a creature you control enters this turn, put a +1/+1 counter on it and it gains haste until end of turn."): m.wce, read by entered()
-    if((r=sen.match(/^whenever a creature you control enters this turn, (.+)$/i))){ (m.wce=(m.wce||[]).filter(e=>e.n===G.turn.n)).push({n:G.turn.n, src:by, txt:r[1].trim()}); log(`${by}: until the end of the turn, whenever a creature ${m.name} controls enters, ${r[1].trim().replace(/\.$/,'')}.`); continue; }
+    if((r=sen.match(/^whenever a creature you control enters this turn, (.+)$/i))){ (m.wce=(m.wce||[]).filter(e=>e.n===G.turn.n && e.g===G.gid)).push({n:G.turn.n, g:G.gid, src:by, txt:r[1].trim()}); log(`${by}: until the end of the turn, whenever a creature ${m.name} controls enters, ${r[1].trim().replace(/\.$/,'')}.`); continue; }
     if(/^put a \+1\/\+1 counter on this creature and it gains haste until end of turn\.?$/i.test(sen) && srcC){ const x=find(srcC.id); if(!x || x.z!=='bf'){ log(`${by}: the creature is no longer on the battlefield.`); continue; } const b=x.c; b.c=(b.c||0)+1; if(!b.tkw || b.tkw.n!==G.turn.n) b.tkw={n:G.turn.n, k:[]}; if(!b.tkw.k.includes('haste')) b.tkw.k.push('haste'); log(`${by}: ${cname(b)} gets a +1/+1 counter and haste until end of turn.`); continue; }
     // v4.133: battle cry gained until end of turn (Reckless Pyrosurfer's landfall); battle cry's own effect
     if((r=sen.match(/^(?:landfall — whenever a land you control enters, )?(.+?) gains battle cry until end of turn\.?$/i)) && srcC){ const x=find(srcC.id); if(x && x.z==='bf'){ const b=x.c; b.bcry = (b.bcry && b.bcry.n===G.turn.n) ? {n:G.turn.n, k:b.bcry.k+1} : {n:G.turn.n, k:1}; if(!b.tkw || b.tkw.n!==G.turn.n) b.tkw={n:G.turn.n, k:[]}; if(!b.tkw.k.includes('battle cry')) b.tkw.k.push('battle cry'); log(`${by}: ${cname(b)} gains battle cry until end of turn${b.bcry.k>1?' ('+b.bcry.k+' instances)':''}.`); } continue; }
@@ -7246,10 +7247,11 @@ function gather(){
   G.mullGo=false; delete m.btm; m.life=20; m.lastLife=20; delete m.para; delete m.paraT; delete m.noMax; delete m.coinCall; delete m.tmpRed; delete m.pauseAsk; delete m.pauseReq; delete m.emb; delete m.monarch; delete m.xturns; delete m.oppT; delete m.dsc; delete m.mayAlways; delete m.gain; delete m.city; delete m.wya; delete m.atkC; delete m.loyT; delete m.lock; delete m.lp; delete m.lpx; m.ctr={poison:0,energy:0}; m.arrows=[]; m.reveal=false; m.mull=0; m.roll=null; m.compDone=false; m.skipRoll=false; m.dealt=false; m.kept=false; delete m.btm; G.mullGo=false; m.mana=noMana(); m.smana=[]; m.energySeen=false; m.poisonSeen=false; m.drew=0; m.ctl=false; m.ctlNext=false; m.cast={n:0,is:0}; m.pacts=[]; m.baub=[]; m.trk=null; for(const c of m.side) delete c.comp; for(const c of m.lib){ delete c.by; delete c.warp; delete c.wp; delete c.fl; delete c.bt; delete c.ent; delete c.offer; delete c.pl; delete c.kw; delete c.lt; delete c.sick; delete c.lft; delete c.cp; }
 }
 /* v5.18: state keyed only by turn number survived into the next game of a match (G.me is kept across games), so a turn-4 entry from game 1 fired on turn 4 of game 2 (The Naked Time II's wce, seen in Practice). Cleared at each new game. */
+const gameId = () => Date.now().toString(36)+Math.random().toString(36).slice(2,6);   /* v5.18: one id per game; turn-keyed entries are tagged with it */
 const PER_GAME_KEYS=['wce','nt','gain','lossT','palm','lp','lpx','flashT','loyInst','wya','endT'];
 function resetPerGame(){ for(const m of [G.me, G.opp]){ if(!m) continue; for(const k of PER_GAME_KEYS) delete m[k]; } G.oppLost=null; G.oppSrch=null; }
 function newGame(remote){
-  gather(); dummyReset(true); resetPerGame(); G.turn={active:null, phase:2, n:0};
+  gather(); dummyReset(true); resetPerGame(); G.gid=gameId(); G.turn={active:null, phase:2, n:0};
   if(!remote){ send({t:'newgame'}); log(`${G.me.name} started a new game.`); }
   changed();
   G.lossSeen={life:false, poison:false}; G.go=null; G.goOpen=false;
@@ -9092,7 +9094,7 @@ $('#lgsField').hidden=!AFF_ON; $('#lglStore').hidden=!AFF_ON;
 $('#news').innerHTML = `<h4>What's new</h4>${NEWS.slice(0,6).map(newsRow).join('')}<a href="#" id="newsAll">See all changes</a>`; $('#newsAll').onclick=e=>{ e.preventDefault(); newsModal(); };
 function begin(role, code){
   S.name=(nameIn.value.trim()||'Player').slice(0,20); S.lgs = lgsOf($('#lgsIn').value) ? $('#lgsIn').value : ''; store.set('mt_settings',S);
-  G.solo = role==='solo'; G.myId = role==='guest' ? 'p2' : 'p1'; G.code=code||''; G.me=newPlayer(); G.opp = G.solo ? newDummy() : null; G.turn={active:null,phase:2,n:0}; G.idc=0; priReset();
+  G.solo = role==='solo'; G.myId = role==='guest' ? 'p2' : 'p1'; G.code=code||''; G.me=newPlayer(); G.opp = G.solo ? newDummy() : null; G.gid=gameId(); G.turn={active:null,phase:2,n:0}; G.idc=0; priReset();
   connect(); save(); showDecks();
   if(role==='solo') gcEvent('practice-started', 'Practice game started'); else if(role==='host') gcEvent('table-opened', 'Table opened');
 }
@@ -9103,7 +9105,7 @@ $('#soloBtn').onclick=()=>begin('solo');
 const sess=store.get('mt_session',null);
 if(sess && sess.me && Date.now()-sess.at < 864e5){
   $('#resumeBtn').hidden=false; $('#resumeTxt').textContent = (sess.solo ? 'Practice table' : 'Table '+sess.code) + (sess.me.deck ? ' · '+sess.me.deck : '');
-  $('#resumeBtn').onclick=()=>{ G.solo=sess.solo; G.myId=sess.myId; G.code=sess.code; G.me=Object.assign(newPlayer(), sess.me); G.opp = sess.dum ? Object.assign(newDummy(), sess.dum) : G.solo ? newDummy() : null; G.turn=sess.turn; G.idc=sess.idc||0; G.mt=mtFromWire(sess.mt); if(G.mt && sess.mtEnd) G.mt.end=sess.mtEnd; priReset(); priFromWire(sess.pri); S.name=G.me.name; if(G.turn.n && sess.me.kept===undefined){ G.me.dealt=true; G.me.kept=true; }
+  $('#resumeBtn').onclick=()=>{ G.solo=sess.solo; G.myId=sess.myId; G.code=sess.code; G.me=Object.assign(newPlayer(), sess.me); G.gid = sess.gid || null; if(!sess.gid) resetPerGame(); G.opp = sess.dum ? Object.assign(newDummy(), sess.dum) : G.solo ? newDummy() : null; G.turn=sess.turn; G.idc=sess.idc||0; G.mt=mtFromWire(sess.mt); if(G.mt && sess.mtEnd) G.mt.end=sess.mtEnd; priReset(); priFromWire(sess.pri); S.name=G.me.name; if(G.turn.n && sess.me.kept===undefined){ G.me.dealt=true; G.me.kept=true; }
     connect(); const ks=[]; for(const z of Object.keys(ZN)) for(const c of (G.me[z]||[])) if(c.k) ks.push(c.k); ensureCards(ks).then(()=>{ if(!G.me.cares && G.me.deck){ setCares(); changed(); } else render(); });
     if(G.me.deck) showTable(); else showDecks(); };
 }
