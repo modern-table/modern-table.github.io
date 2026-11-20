@@ -774,7 +774,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.19';
+const VERSION = 'v5.20';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -790,6 +790,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.20','Nov 19',"Battle cry is listed in the keyword key on the left, like haste, when a creature has it."],
   ['v5.19','Nov 19',"Resuming a saved game no longer brings back a stale trigger from an earlier game: The Naked Time's delayed trigger is tied to the game it was made in, and a session saved before this fix has its leftover per-turn state cleared on resume."],
   ['v5.18','Nov 19',"Fixed a stale trigger carried into a new game of the same match: The Naked Time's delayed trigger (and other per-turn effects) could fire on a turn with the same number in the next game. Each new game now starts clean."],
   ['v5.17','Nov 19',"Ghor-Clan Rampager's left click now matches the timing: in your main phase it offers only the creature cost, and during combat with an attacking creature (either player's) it offers only bloodrush, so you're never asked to pay for a half that can't be played. Battle cry has its own icon, and a second landfall shows as ×2 on the chip."],
@@ -7917,7 +7918,7 @@ function render(){
   { const ts=$('#turnSign'), x=G.mt && G.mt.ext, k = x && G.turn.n ? G.turn.n-x.start : -1; if(ts){ ts.hidden = !(timedTable() && x && k>=0 && k<=5 && !G.mt.winq && !G.mt.over); if(!ts.hidden){ ts.className = G.turn.active===G.myId ? 'me' : 'opp'; ts.innerHTML = `<b>TURN ${k}</b><span>${k===0 ? 'time called' : k===5 ? 'last turn' : 'of 5'}</span>`; } } }
   { const cb=$('#cityBox'); const who=[o&&o.city?o.name:null, m.city?m.name:null].filter(Boolean); cb.hidden=!who.length; cb.innerHTML=who.map(n=>`<div class="city" title="Ascend: ten or more permanents">CITY'S BLESSING<small>${esc(n)}</small></div>`).join(''); }
   { const seen=new Map(); for(const [bf,pid] of [[m.bf,G.myId],[(o&&o.bf)||[],oppId()]]) for(const c of bf){ if(c.fd) continue; for(const k of (c.kw||[])) if(!seen.has(k)) seen.set(k,false); for(const g of grantedKw(c, pid)) seen.set(g.k, seen.get(g.k)===false ? false : true); }
-    const kk=$('#kwKey'), order=[...KW, ...[...seen.keys()].filter(k=>/walk$/.test(k) && ICON[k])].filter(k=>seen.has(k)); kk.hidden=!order.length;
+    const kk=$('#kwKey'), order=[...KW, 'battle cry', ...[...seen.keys()].filter(k=>/walk$/.test(k) && ICON[k])].filter(k=>seen.has(k));   /* v5.20: battle cry (granted by landfall) is listed too */ kk.hidden=!order.length;
     kk.innerHTML = order.length ? `<h6>KEYWORDS</h6>${order.map(k=>`<div class="kr"><span class="kc${seen.get(k)?' gr':''}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[k]||''}</svg></span>${esc(k[0].toUpperCase()+k.slice(1))}</div>`).join('')}${[...seen.values()].some(v=>v) ? '<div class="kn">Gold ring: from another card</div>' : ''}` : ''; }
   fitLeftSoon();
   if(G.mt && G.mt.over){ bn.hidden=false; bn.innerHTML = `<h3>${esc(G.mt.over)}</h3><span class="hint">Time was called on the round clock.</span><div><button data-newmatch class="go">Start a new match</button></div>`; }
