@@ -295,7 +295,7 @@ body.t90r .pilT{margin:0 calc(var(--cw)*.16)}
 @keyframes wglow{50%{box-shadow:0 0 0 1.5px var(--wg),0 0 calc(var(--cw)*.1) calc(var(--cw)*.05) var(--wg),0 0 calc(var(--cw)*.24) calc(var(--cw)*.08) var(--wg)}}
 body.nomo .kc.won{animation:none}
 .kc{width:calc(var(--cw)*.2);height:calc(var(--cw)*.2);border-radius:50%;background:#000;border:1px solid #fff;display:grid;place-items:center;box-shadow:0 1px 3px #000c;flex:none}
-.kc svg{width:74%;height:74%;fill:#fff;display:block}
+.kc svg{width:74%;height:74%;fill:#fff;display:block}.kc{position:relative}.kc .kcn{position:absolute;right:-40%;bottom:-30%;background:var(--brass);color:#1a1408;font:700 9px/1 system-ui,sans-serif;padding:1px 3px;border-radius:6px;pointer-events:none}
 .badge.ctr.nm{display:flex;align-items:center;gap:calc(var(--cw)*.03);padding:1px 7px 1px 1px;border-color:#fff;color:#fff;background:#000}
 .badge.ctr.nm .kc{width:calc(var(--cw)*.17);height:calc(var(--cw)*.17);border:0;box-shadow:none}
 .badge.ctr.lore{padding:1px 8px;font-family:var(--display);font-weight:400;font-size:calc(var(--cw)*.17);letter-spacing:.04em}
@@ -766,7 +766,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.16';
+const VERSION = 'v5.17';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -782,6 +782,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.17','Nov 19',"Ghor-Clan Rampager's left click now matches the timing: in your main phase it offers only the creature cost, and during combat with an attacking creature (either player's) it offers only bloodrush, so you're never asked to pay for a half that can't be played. Battle cry has its own icon, and a second landfall shows as ×2 on the chip."],
   ['v5.16','Nov 18',"Matoya, Archon Elder draws you a card whenever you scry or surveil, after the scry or surveil is finished."],
   ['v5.15','Nov 18',"Snarling Gorehound and Jolted Awake work. Gorehound surveils 1 whenever another creature with power 2 or less enters under your control, judged as the creature comes in. Jolted Awake lets you choose an artifact or creature card in your graveyard, gives you two energy, and lets you pay energy equal to that card's mana value to return it to the battlefield; it can be cycled for {2}."],
   ['v5.14','Nov 18',"The table now knows when things can be played. Sorceries, creatures and other spells without flash, land plays and planeswalker loyalty abilities wait for your main phase with the stack empty, and each planeswalker gets one loyalty ability a turn. Cards in your hand that can't be played right now are dimmed (point at one to see why). Instants, flash, and cards that give flash (Leyline of Anticipation, Teferi) work as before, and split second holds everything else. Playing something at the wrong time opens a window that says why, with a Cast anyway / Play anyway button for fixing mistakes; the log notes it."],
@@ -1841,6 +1842,7 @@ const ICON={
   plainswalk:'<circle cx="12" cy="12" r="4.200"/><path d="M12 2.500v3M12 18.500v3M2.500 12h3M18.500 12h3M5.300 5.300l2.100 2.100M16.600 16.600l2.100 2.100M5.300 18.700l2.100-2.100M16.600 7.400l2.100-2.100" stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none"/>',
   swampwalk:'<path d="M3 19c2-1.500 4-1.500 6 0s4 1.500 6 0 4-1.500 6 0M8 16.500V8.500M16 16.500V10" stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none"/><rect x="6.500" y="3.500" width="3" height="7" rx="1.500"/><rect x="14.500" y="5.500" width="3" height="6.500" rx="1.500"/>',
   mountainwalk:'<path d="M2.500 19.500L9.200 6.500l3.600 6.200 2.400-3.400 6.300 10.200z"/>',
+  'battle cry':'<path d="M3 9h3l10-5v16L6 15H3z"/><path d="M7 15l1.6 5.2h2.6L10.4 15z"/>',
   forestwalk:'<path d="M12 2.500l6 8h-3.200l4.200 5.700h-6v3.800h-2v-3.800H5l4.200-5.700H6z"/>'
 };
 /* keyword chips on a battlefield card: keyword counters, keywords granted by other cards (gold ring), and printed landwalk (v4.51).
@@ -1849,7 +1851,7 @@ const WALKT={plainswalk:'Plains', islandwalk:'Island', swampwalk:'Swamp', mounta
 const walkOn = (k, mine) => !!WALKT[k] && !!G.opp && controlsType(mine ? oppId() : G.myId, WALKT[k]);
 function kcsHTML(c, mine){ const gk=grantedKw(c, mine?G.myId:oppId()), kw=c.kw||[], pw=kwLines(c).filter(k=>WALKT[k] && !kw.includes(k) && !gk.some(o=>o.k===k));
   if(!kw.length && !gk.length && !pw.length) return '';
-  const chip=(k, cls, tip)=>{ const w=WALKT[k], on=w && walkOn(k, mine); return `<span class="kc${cls}${w?' walk-'+w:''}${on?' won':''}" title="${esc(tip+(on ? ` — ${mine?'your opponent controls':'you control'} a${/^[AEIOU]/.test(w)?'n':''} ${w}, so it can't be blocked` : ''))}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[k]||''}</svg></span>`; };
+  const chip=(k, cls, tip)=>{ const w=WALKT[k], on=w && walkOn(k, mine); return `<span class="kc${cls}${w?' walk-'+w:''}${on?' won':''}" title="${esc(tip+(on ? ` — ${mine?'your opponent controls':'you control'} a${/^[AEIOU]/.test(w)?'n':''} ${w}, so it can't be blocked` : ''))}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[k]||''}</svg>${k==='battle cry' && c.bcry && c.bcry.n===G.turn.n && c.bcry.k>1 ? `<b class="kcn">×${c.bcry.k}</b>` : ''}</span>`; };
   return `<span class="kcs">${kw.map(k=>chip(k, '', k+' counter')).join('')}${gk.filter(o=>!kw.includes(o.k)).map(o=>chip(o.k, ' gr', `${o.k} (${o.src})`)).join('')}${pw.map(k=>chip(k, '', k)).join('')}</span>`; }
 const kcHTML = name => `<span class="kc" title="${esc(name)} counter"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[name]||''}</svg></span>`;
 const classCut = (c, t) => { if(!/\bClass\b/.test(cdata(c).t||'')) return t; const lv=c.lvl||1, out=[]; let cur=1;
@@ -2198,7 +2200,7 @@ function loyMark(c){ const n=G.turn.n||0, b=c.bfx||0; if(!c.lyT || c.lyT.t!==n |
 /* the window: Don't / … anyway, logged */
 function timeAsk(w, verb, what, go){ modal(w.title, `<span class="hint">${esc(w.why)}<br><br>${verb} anyway only to fix a mistake, or if you have both agreed it's allowed. The log will note it.</span>`, [[`Don't ${verb.toLowerCase()}`,()=>closeModal(),'ghost'], [`${verb} anyway`,()=>{ closeModal(); log(`${G.me.name} ${verb==='Play'?'plays':verb==='Cast'?'casts':'activates'} ${what} anyway, outside the timing rules (${w.short}).`); go(); },'go']]); }
 /* hand dimming: why this hand card can't be played right now (null = it can, or the table can't tell) */
-function handTimeWhy(c){ if(tmOff() || !c || c.fd || (!c.k && !c.cu)) return null;
+function handTimeWhy(c){ if(tmOff() || !c || c.fd || (!c.k && !c.cu)) return null; if(brIdx(c)>=0) return null;   /* v5.17: bloodrush can be played, so the card isn't dimmed */
   if(isLand(c)) return landTimeWhy(c);
   const ws=[castTimeWhy(c, {})]; if(cdata(c).lay==='adventure') ws.push(castTimeWhy(c, {adv:1})); if(isSplit(c)) ws.push(castTimeWhy(c, {half:0}), castTimeWhy(c, {half:1}));
   if(typeof mdfcLand==='function' && mdfcLand(c)) ws.push(landTimeWhy(c));
@@ -2591,7 +2593,7 @@ function forecast(id, pd){ const f=find(id); if(!f || f.z!=='hand') return; cons
   c.fcT=G.turn.n; const mkr=mk(null,{tok:true, ts:Date.now(), ab:{id, fc:1}, cu:{n:`${nm}: forecast`, t:'Activated ability', o:fc.eff, img:d.img||''}}); G.me.st.push(mkr);
   log(`${G.me.name} reveals ${cname(c)} from their hand and activates its forecast: ${fc.eff} (${pd && pd.text ? pd.text : fc.mana}).`); if(/\btarget\b/i.test(fc.eff)){ G.mode={type:'arrow', from:mkr.id}; toast(`${nm}: click its target.`); } changed(); }
 function channel(id, i, pd){ const f=find(id); if(!f || f.z!=='hand') return; const c=f.c, ch=handAbils(c)[i||0]; if(!ch) return; const d=cdata(c), nm=d.n.split(',')[0], paid=[];
-  if(ch.mana && !pd && autoPayOn()){ payFor(normSyms(costSyms(ch.mana)), {abil:true, card:c, id, from:'hand'}, {title:`${ch.chan?'Channel':'Activate'} ${nm}`, verb:'activate', done:r=>channel(id, i, r)}); return; }
+  if(ch.mana && !pd && autoPayOn()){ payFor(normSyms(costSyms(ch.mana)), {abil:true, card:c, id, from:'hand'}, {title:`${ch.chan?'Channel':ch.br?'Bloodrush':'Activate'} ${nm}`, verb:'activate', done:r=>channel(id, i, r)}); return; }
   if(ch.mana && pd){ paid.push(pd.other ? `${ch.mana} (paid another way)` : pd.text || ch.mana); }
   else if(ch.mana){ const cv=pactCover(ch.mana); if(cv.all){ payCost(cv.syms.join(',')); paid.push(`${ch.mana} from the mana pool`); } else paid.push(`${ch.mana} (not in the pool: pay it by hand)`); }
   if(ch.less) paid.push(`${ch.less} less for legendary creatures`);
@@ -5860,6 +5862,7 @@ const splitFaces = c => (cdata(c).o||'').split('\n\n').map(b=>{ const L=b.split(
 function castSpell(id, o={}, after){ const f=find(id); if(f && f.z!=='st'){ if(o.adv) f.c.adv=1; else delete f.c.adv; }
   if(f && f.z!=='st' && isSplit(f.c) && o.half==null && !o.fuse){ const fs=splitFaces(f.c), mcs=(cdata(f.c).mc||'').split(' // ');
     modal(`Cast ${cdata(f.c).n}`, '<span class="hint">Which half?</span>', [...fs.map((x,i)=>[`${x.n} ${mcs[i]||''}`, ()=>{ closeModal(); castSpell(id, Object.assign({}, o, {half:i}), after); }, 'go']), ['Cancel', ()=>closeModal(), 'ghost']]); return; }
+  { const fb=find(id); if(fb && fb.z==='hand' && !o.brx && !isLand(fb.c)){ const bi=brIdx(fb.c); if(bi>=0 && castTimeWhy(fb.c,{})){ channel(id, bi); return; } } }   /* v5.17: creature half out of timing, bloodrush legal: go straight to bloodrush */
   castGate(id, ()=>castSpellNow(id, o, after), o); }
 /* Other ways to cast, in the payment window (v4.32, Ben): a card cast from the hand with auto-pay on lists its alternative costs (warp, impending,
    dash, evoke, overload, spectacle, bestow, morph, "rather than pay this spell's mana cost", Mystical Dispute's discount) as extra rows under the
@@ -5875,6 +5878,9 @@ function payExtras(c, o){ if(c.fd || !payWinExtras(o)) return []; const X=[];
   return X; }
 const exOpts = (extras, ex) => { const r={}; ex=ex||{}; for(const e of extras||[]) r[e.k] = e.k==='rep' ? (+ex.rep||0) : !!ex[e.k]; return r; };
 const exSyms = (extras, ex) => { let out=[]; ex=ex||{}; for(const e of extras||[]){ if(!e.cost) continue; const n = e.step ? (+ex[e.k]||0) : (ex[e.k] ? 1 : 0); for(let i=0;i<n;i++) out=out.concat(costSyms(e.cost)); } return out; };
+/* v5.17 (Ben): bloodrush is the only way to play a card when its creature half is out of timing and an attacking creature exists (either player's). brIdx = its index in handAbils, or -1 */
+const brReady = () => [...G.me.bf, ...((G.opp&&G.opp.bf)||[])].some(y=>y.atk && isCreature(y));
+const brIdx = c => { if(!c || c.fd || !(c.k||c.cu)) return -1; const i=handAbils(c).findIndex(x=>x.br); return i>=0 && brReady() ? i : -1; };
 function castWays(c, id){ const W=[]; if(isLand(c) || c.fd || G.me.ctl) return W; const nm=cname(c), me=G.me.name;
   const cl=cleaveCost(c); if(cl) W.push({k:'cleave', cost:cl, btn:'cast with cleave', note:'The words in square brackets are removed.', run:()=>castSpell(id, {payCost:cl, clv:1, silent:true}, ()=>log(`${me} casts ${nm} with cleave (${cl}).`))});   // v4.135 Path of Peril
   const ov=overloadCost(c); if(ov) W.push({k:'overload', cost:ov, btn:'cast with overload', note:'"Target" becomes "each".', run:()=>castSpell(id, {payCost:ov, ovl:1, silent:true}, ()=>log(`${me} casts ${nm} with overload (${ov}).`))});
@@ -5891,7 +5897,7 @@ function castWays(c, id){ const W=[]; if(isLand(c) || c.fd || G.me.ctl) return W
   const su=suspendOf(c); if(su) W.push({k:'suspend', cost:su.cost, btn:'suspend it', note:`It is exiled with ${su.n} time counter${su.n>1?'s':''}; one comes off each upkeep, and when the last is gone you cast it free.`, run:()=>suspendCard(id)});   // v4.37
   const mo=morphOf(c); if(mo) W.push({k:'morph', cost:'{3}', btn:'cast it face down', note:`A face-down 2/2. Turn it face up for ${mo.cost}.`, run:()=>morphCast(id)});
   const plc=plotCost(c); if(plc) W.push({k:'plot', cost:plc, btn:'plot it', ok:()=>{ const t=G.turn; return !!t.n && t.active===G.myId && (t.phase===2 || t.phase===4) && !G.me.st.length && !((G.opp&&G.opp.st)||[]).length; }, why:'Plot only as a sorcery: in your main phase with the stack empty.', note:'It is exiled now; cast it without paying its mana cost on a later turn, as a sorcery.', run:()=>plotCard(id)});   // v5.11 Slickshot Show-Off
-  handAbils(c).forEach((x,i)=>{ if(!x.br) return; W.push({k:'bloodrush', cost:x.mana||'', btn:'bloodrush', ok:()=>[...G.me.bf, ...((G.opp&&G.opp.bf)||[])].some(y=>y.atk && isCreature(y)), why:'Only while a creature is attacking.', note:`Discard it: ${x.eff}`, run:()=>channel(id, i)}); });   // v5.11 Ghor-Clan Rampager
+  handAbils(c).forEach((x,i)=>{ if(!x.br || !brReady()) return; W.push({k:'bloodrush', cost:x.mana||'', btn:'bloodrush', ok:()=>[...G.me.bf, ...((G.opp&&G.opp.bf)||[])].some(y=>y.atk && isCreature(y)), why:'Only while a creature is attacking.', note:`Discard it: ${x.eff}`, run:()=>channel(id, i)}); });   // v5.11 Ghor-Clan Rampager
   return W; }
 function castSpellNow(id, o={}, after){ if(G.altEx){ o=Object.assign({}, G.altEx, o); G.altEx=null; } { const fq=find(id); if(fq && o.gift!=null) fq.c.gift=o.gift; } { const fa=find(id); if(fa && fa.z!=='st' && o.addl==null && !fa.c.fd && !G.me.ctl){ const ac=addlCostOf(fa.c); if(ac){ payAddl(id, ac).then(r=>{ if(!r) return; castSpellNow(id, Object.assign({}, o, {addl:r}), after); }); return; } } } { const fb=find(id); if(fb && o.addl){ if(o.addl.sacMV!=null) fb.c.sacMV=o.addl.sacMV; if(o.addl.sacTp!=null) fb.c.sacTp=o.addl.sacTp; if(o.addl.payX!=null) fb.c.x=o.addl.payX; if(o.addl.addPaid) fb.c.addPaid=true; } } { const f0=find(id); if(f0 && o.half!=null) f0.c.half=o.half; }
   { const f0=find(id); if(f0 && f0.z!=='st' && o.x==null && !f0.c.fd && !G.me.ctl && /\{X\}/.test(o.payCost!=null ? o.payCost : ((cdata(f0.c).mc||'').split(' // ')[f0.c.flip?1:0]||''))){ askN(`${cdata(f0.c).n}: X =`, 1).then(n=>{ if(n==null || n<0) return; castSpellNow(id, Object.assign({}, o, {x:n}), after); }); return; } }
