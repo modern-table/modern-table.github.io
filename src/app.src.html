@@ -766,7 +766,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.22';
+const VERSION = 'v5.23';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -782,6 +782,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.23','Nov 20',"Resuming a game saved before v5.19 now clears the practice opponent's leftover per-turn effects too, not just yours."],
   ['v5.22','Nov 20',"More cleanup between games: a card going back to your library is reset completely (not just a list of marks), a spell going on the stack never keeps an old surge or dash mark, every per-turn effect is cleared at a new game, and starting a new match clears them too."],
   ['v5.21','Nov 19',"Cards returned to the library at the end of a game now start clean, so a surged Reckless Bushwhacker no longer gives the surge trigger when hard-cast in a later game."],
   ['v5.20','Nov 19',"Battle cry is listed in the keyword key on the left, like haste, when a creature has it."],
@@ -9113,7 +9114,7 @@ $('#soloBtn').onclick=()=>begin('solo');
 const sess=store.get('mt_session',null);
 if(sess && sess.me && Date.now()-sess.at < 864e5){
   $('#resumeBtn').hidden=false; $('#resumeTxt').textContent = (sess.solo ? 'Practice table' : 'Table '+sess.code) + (sess.me.deck ? ' · '+sess.me.deck : '');
-  $('#resumeBtn').onclick=()=>{ G.solo=sess.solo; G.myId=sess.myId; G.code=sess.code; G.me=Object.assign(newPlayer(), sess.me); G.gid = sess.gid || null; if(!sess.gid) resetPerGame(); G.opp = sess.dum ? Object.assign(newDummy(), sess.dum) : G.solo ? newDummy() : null; G.turn=sess.turn; G.idc=sess.idc||0; G.mt=mtFromWire(sess.mt); if(G.mt && sess.mtEnd) G.mt.end=sess.mtEnd; priReset(); priFromWire(sess.pri); S.name=G.me.name; if(G.turn.n && sess.me.kept===undefined){ G.me.dealt=true; G.me.kept=true; }
+  $('#resumeBtn').onclick=()=>{ G.solo=sess.solo; G.myId=sess.myId; G.code=sess.code; G.me=Object.assign(newPlayer(), sess.me); G.gid = sess.gid || null; G.opp = sess.dum ? Object.assign(newDummy(), sess.dum) : G.solo ? newDummy() : null; if(!sess.gid) resetPerGame();   /* v5.23: after the practice opponent is restored, so its state is cleared too */ G.turn=sess.turn; G.idc=sess.idc||0; G.mt=mtFromWire(sess.mt); if(G.mt && sess.mtEnd) G.mt.end=sess.mtEnd; priReset(); priFromWire(sess.pri); S.name=G.me.name; if(G.turn.n && sess.me.kept===undefined){ G.me.dealt=true; G.me.kept=true; }
     connect(); const ks=[]; for(const z of Object.keys(ZN)) for(const c of (G.me[z]||[])) if(c.k) ks.push(c.k); ensureCards(ks).then(()=>{ if(!G.me.cares && G.me.deck){ setCares(); changed(); } else render(); });
     if(G.me.deck) showTable(); else showDecks(); };
 }
