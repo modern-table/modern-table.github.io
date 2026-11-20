@@ -5892,7 +5892,7 @@ function payExtras(c, o){ if(c.fd || !payWinExtras(o)) return []; const X=[];
   return X; }
 const exOpts = (extras, ex) => { const r={}; ex=ex||{}; for(const e of extras||[]) r[e.k] = e.k==='rep' ? (+ex.rep||0) : !!ex[e.k]; return r; };
 const exSyms = (extras, ex) => { let out=[]; ex=ex||{}; for(const e of extras||[]){ if(!e.cost) continue; const n = e.step ? (+ex[e.k]||0) : (ex[e.k] ? 1 : 0); for(let i=0;i<n;i++) out=out.concat(costSyms(e.cost)); } return out; };
-/* v5.17 (Ben): bloodrush is the only way to play a card when its creature half is out of timing and an attacking creature exists (either player's). brIdx = its index in handAbils, or -1 */
+/* v5.17 (maintainer's call): bloodrush is the only way to play a card when its creature half is out of timing and an attacking creature exists (either player's). brIdx = its index in handAbils, or -1 */
 const brReady = () => [...G.me.bf, ...((G.opp&&G.opp.bf)||[])].some(y=>y.atk && isCreature(y));
 const brIdx = c => { if(!c || c.fd || !(c.k||c.cu)) return -1; const i=handAbils(c).findIndex(x=>x.br); return i>=0 && brReady() ? i : -1; };
 function castWays(c, id){ const W=[]; if(isLand(c) || c.fd || G.me.ctl) return W; const nm=cname(c), me=G.me.name;
