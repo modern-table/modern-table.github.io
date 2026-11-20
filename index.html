@@ -774,7 +774,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.17';
+const VERSION = 'v5.18';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -790,6 +790,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.18','Nov 19',"Fixed a stale trigger carried into a new game of the same match: The Naked Time's delayed trigger (and other per-turn effects) could fire on a turn with the same number in the next game. Each new game now starts clean."],
   ['v5.17','Nov 19',"Ghor-Clan Rampager's left click now matches the timing: in your main phase it offers only the creature cost, and during combat with an attacking creature (either player's) it offers only bloodrush, so you're never asked to pay for a half that can't be played. Battle cry has its own icon, and a second landfall shows as ×2 on the chip."],
   ['v5.16','Nov 18',"Matoya, Archon Elder draws you a card whenever you scry or surveil, after the scry or surveil is finished."],
   ['v5.15','Nov 18',"Snarling Gorehound and Jolted Awake work. Gorehound surveils 1 whenever another creature with power 2 or less enters under your control, judged as the creature comes in. Jolted Awake lets you choose an artifact or creature card in your graveyard, gives you two energy, and lets you pay energy equal to that card's mana value to return it to the battlefield; it can be cycled for {2}."],
@@ -7252,8 +7253,11 @@ function gather(){
   for(const c of m.lib.filter(x=>x.sideOrig)){ m.lib.splice(m.lib.indexOf(c),1); delete c.sideOrig; m.side.push(c); }
   G.mullGo=false; delete m.btm; m.life=20; m.lastLife=20; delete m.para; delete m.paraT; delete m.noMax; delete m.coinCall; delete m.tmpRed; delete m.pauseAsk; delete m.pauseReq; delete m.emb; delete m.monarch; delete m.xturns; delete m.oppT; delete m.dsc; delete m.mayAlways; delete m.gain; delete m.city; delete m.wya; delete m.atkC; delete m.loyT; delete m.lock; delete m.lp; delete m.lpx; m.ctr={poison:0,energy:0}; m.arrows=[]; m.reveal=false; m.mull=0; m.roll=null; m.compDone=false; m.skipRoll=false; m.dealt=false; m.kept=false; delete m.btm; G.mullGo=false; m.mana=noMana(); m.smana=[]; m.energySeen=false; m.poisonSeen=false; m.drew=0; m.ctl=false; m.ctlNext=false; m.cast={n:0,is:0}; m.pacts=[]; m.baub=[]; m.trk=null; for(const c of m.side) delete c.comp; for(const c of m.lib){ delete c.by; delete c.warp; delete c.wp; delete c.fl; delete c.bt; delete c.ent; delete c.offer; delete c.pl; delete c.kw; delete c.lt; delete c.sick; delete c.lft; delete c.cp; }
 }
+/* v5.18: state keyed only by turn number survived into the next game of a match (G.me is kept across games), so a turn-4 entry from game 1 fired on turn 4 of game 2 (The Naked Time II's wce, seen in Practice). Cleared at each new game. */
+const PER_GAME_KEYS=['wce','nt','gain','lossT','palm','lp','lpx','flashT','loyInst','wya','endT'];
+function resetPerGame(){ for(const m of [G.me, G.opp]){ if(!m) continue; for(const k of PER_GAME_KEYS) delete m[k]; } G.oppLost=null; G.oppSrch=null; }
 function newGame(remote){
-  gather(); dummyReset(true); G.turn={active:null, phase:2, n:0};
+  gather(); dummyReset(true); resetPerGame(); G.turn={active:null, phase:2, n:0};
   if(!remote){ send({t:'newgame'}); log(`${G.me.name} started a new game.`); }
   changed();
   G.lossSeen={life:false, poison:false}; G.go=null; G.goOpen=false;
