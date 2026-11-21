@@ -774,7 +774,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.23';
+const VERSION = 'v5.24';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -790,6 +790,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.24','Nov 21',"Thoughtseize, Inquisition and other hand reveals: point at a card in your opponent's revealed hand to see it enlarged. New in Settings: Card enlargement (Small, Normal, Large, Extra large) sets how big a card gets when you point at it."],
   ['v5.23','Nov 20',"Resuming a game saved before v5.19 now clears the practice opponent's leftover per-turn effects too, not just yours."],
   ['v5.22','Nov 20',"More cleanup between games: a card going back to your library is reset completely (not just a list of marks), a spell going on the stack never keeps an old surge or dash mark, every per-turn effect is cleared at a new game, and starting a new match clears them too."],
   ['v5.21','Nov 19',"Cards returned to the library at the end of a game now start clean, so a surged Reckless Bushwhacker no longer gives the surge trigger when hard-cast in a later game."],
@@ -1386,7 +1387,7 @@ function onMsg(m){
   else if(m.t==='reveal'){ const src=String(m.src||'').slice(0,80), by=String(m.by||'Opponent').slice(0,40); log(`${src}: ${G.me.name} reveals their hand to ${by}: ${G.me.hand.map(cname).join(', ') || 'no cards'}.`); send({t:'handshow', src, who:G.me.name, cards:G.me.hand.map(c=>({id:c.id, k:c.k, cu:c.cu||null}))}); }
   else if(m.t==='handshow' || m.t==='handview'){ const cards=(Array.isArray(m.cards)?m.cards:[]).slice(0,40), who=String(m.who||'Opponent').slice(0,40), src=String(m.src||'').slice(0,80);
     ensureCards(cards.map(c=>c.k).filter(Boolean)).then(()=>{ if(m.t==='handshow'){ const info=G.pendRv || {src, desc:'', wc:''}; G.pendRv=null; openReveal(cards, oppId(), who, info); }
-      else G.hvOpen=true, modal(`${src}: ${who} reveals their hand`, `<div class="grid">${cards.map(c=>cardHTML({id:c.id,k:c.k,cu:c.cu},'gy',true)).join('') || '<span class="hint">No cards.</span>'}</div>`, [['OK',()=>{ G.hvOpen=false; closeModal(); },'go']], {wide:true}); }); }
+      else G.hvOpen=true, cards.forEach(c=>PEEK.set(c.id, {id:c.id, k:c.k, cu:c.cu})), modal(`${src}: ${who} reveals their hand`, `<div class="grid rv">${cards.map(c=>cardHTML({id:c.id,k:c.k,cu:c.cu},'gy',true)).join('') || '<span class="hint">No cards.</span>'}</div>`, [['OK',()=>{ G.hvOpen=false; closeModal(); },'go']], {wide:true}); }); }
   else if(m.t==='handdone'){ const who=String(m.who||'Opponent').slice(0,40), src=String(m.src||'').slice(0,80), rest=(Array.isArray(m.rest)?m.rest:[]).slice(0,40).map(x=>({k:String(x.k||'').slice(0,80), n:String(x.n||'').slice(0,80)})), pk=String(m.pick||'').slice(0,80);
     if(G.hvOpen){ G.hvOpen=false; closeModal(); }
     modal(`${src}: ${who}'s hand`, `<span class="hint">${pk ? `${esc(who)} discarded ${esc(pk)}.` : `${esc(who)} chose nothing to discard.`}${rest.length ? ` ${rest.length} card${rest.length>1?'s':''} still there: ${rest.map(x=>esc(x.n)).join(', ')}. A notepad next to your hand can list them; both players can see it.` : ' Their hand is now empty.'}</span>`,
@@ -2869,6 +2870,7 @@ async function handDisrupt(c, text){ const r=text.match(HANDRE); if(!r) return; 
     if(G.opp) send({t:'handview', who:G.me.name, src, cards:cs}); setTimeout(()=>openReveal(cs, G.myId, G.me.name, info), 0); }
   else { G.pendRv=info; send({t:'reveal', src, by:G.me.name}); } }
 function openReveal(cards, pid, who, info){ let pick=null; const own=pid===G.myId, d=x=>({id:x.id, k:x.k, cu:x.cu});
+  for(const x of cards) PEEK.set(x.id, d(x));   /* v5.24: a friend's revealed hand isn't anywhere findAny looks, so the hover enlargement needs it here */
   const legal=x=>revealLegal(d(x), info.desc, info.wc), nLegal=cards.filter(legal).length;
   const el=modal(`${info.src}: ${own?'your':who+"'s"} hand`, `<span class="hint">${info.look ? 'You look at this hand.' : nLegal ? `Choose a ${(info.desc||'').trim()} card${info.wc?' with '+esc(info.wc):''} to ${info.bot?'put on the bottom of its owner\'s library (they draw a card)':info.ex?'exile':'discard'}. Greyed cards can't be chosen.` : 'No card in this hand can be chosen.'}</span><div class="grid rv" id="rvGrid">${cards.map(x=>cardHTML(d(x),'gy',true, legal(x)?'':'dim')).join('')}</div>`,
     [[nLegal ? 'Choose nothing' : 'Continue',()=>after(null),'ghost'], [info.bot?'Put it on the bottom':info.ex?'Exile it':'Discard it',()=>{ if(pick) after(pick); },'go']], {wide:true});
@@ -8094,14 +8096,21 @@ function zoneModal(title, src, zone, mine, footer=[], onClose){
   modalRefresh=paint; paint();
 }
 function hideZoom(){ $('#zoom').hidden=true; }
+const ZOOMW = {s:240, m:300, l:380, xl:460};   /* v5.24 (Ben): Settings → Card enlargement; Normal is the old 300 px */
+const zoomW = () => ZOOMW[S.zoom] || 300;
 function showZoom(d, rect, extra, fan){
   if(!d || (!d.img && !d.o && !d.n) || drag.on) return;
   const z=$('#zoom'); z.innerHTML = (d.img?`<img src="${esc(d.img)}" alt="">`:'') + `<div class="ztxt"><b>${esc(d.n)}</b> ${esc(d.mc||'')}<i>${esc(d.t||'')}${d.pt?' · '+esc(d.pt):''}${d.loy?' · loyalty '+esc(d.loy):''}</i>${esc(d.o||'')}${extra?'\n'+esc(extra):''}</div>`;
-  z.hidden=false; const w=300, h=Math.min(innerHeight-12, 420+150);
+  const w=zoomW(); z.style.width=w+'px'; z.style.maxHeight=''; z.style.overflow=''; z.hidden=false; let h=Math.min(innerHeight-12, w*1.4+150);
   let x = rect.left+rect.width/2 < innerWidth/2 ? rect.right+12 : rect.left-w-12; x=Math.max(6,Math.min(x,innerWidth-w-6));
   let y = Math.max(6, Math.min(rect.top+rect.height/2-h/2, innerHeight-h-6));
-  z.style.left=x+'px'; z.style.top=y+'px'; z.style.maxHeight=''; z.style.overflow='';
-  z.style.width='';
+  z.style.left=x+'px'; z.style.top=y+'px';
+  if(!fan){ const room=innerHeight-12; let w2=w;
+    for(let i=0; i<4 && z.offsetHeight>room && w2>160; i++){ const im=z.querySelector('img'), ih=im ? im.offsetHeight : 0, over=z.offsetHeight-room;   /* too tall for the window: shrink the picture to fit (the text doesn't shrink) */
+      w2=Math.max(160, Math.floor(ih>over ? w2*(ih-over)/ih : w2*room/z.offsetHeight)-1); z.style.width=w2+'px'; }
+    if(w2!==w){ x = rect.left+rect.width/2 < innerWidth/2 ? rect.right+12 : rect.left-w2-12; z.style.left=Math.max(6,Math.min(x,innerWidth-w2-6))+'px'; }
+    h=z.offsetHeight; z.style.top=Math.max(6, Math.min(rect.top+rect.height/2-h/2, innerHeight-h-6))+'px';
+    const im=z.querySelector('img'); if(im && !im.complete) im.onload=()=>{ if(!z.hidden && !im._re){ im._re=1; showZoom(d, rect, extra, fan); } }; }
   if(fan){ // v4.45 (Ben): over a library laid out in rows, the enlargement goes below a card in the upper rows and above one in the lower rows, never over its own row
     const rb=[...fan.children].map(k=>k.getBoundingClientRect()).filter(r=>Math.abs(r.top-rect.top)<rect.height*.35), top=Math.min(rect.top, ...rb.map(r=>r.top)), bot=Math.max(rect.bottom, ...rb.map(r=>r.bottom)), below=(rect.top+rect.bottom)/2 < innerHeight/2;
     const room=(below ? innerHeight-bot : top)-16; if(z.offsetHeight>room){ z.style.width=Math.round(w*Math.max(.5, room/z.offsetHeight))+'px'; }
@@ -8118,7 +8127,7 @@ document.addEventListener('pointerover', e=>{
   if(cr){ const k=cr.dataset.k||cr.dataset.kk; if(k && DB[k]) showZoom(DB[k], cr.getBoundingClientRect()); return; }
   const el=e.target.closest('.card[data-id]'); if(!el){ hideZoom(); G.hover=null; return; }
   G.hover=el.dataset.id; const fan=el.closest('.lfan'), pk=PEEK.get(el.dataset.id);
-  if(pk && (fan || !findAny(el.dataset.id))){ if(pk.k || pk.cu) showZoom(cdata(pk), el.getBoundingClientRect(), '', fan); else hideZoom(); return; }   // v4.45
+  if(pk && (fan || el.closest('.rv') || !findAny(el.dataset.id))){ if(pk.k || pk.cu) showZoom(cdata(pk), el.getBoundingClientRect(), '', fan); else hideZoom(); return; }   // v4.45
   const f=findAny(el.dataset.id); if(!f){ if(el.dataset.id.startsWith('s:')) showZoom(DB[el.dataset.id.slice(2)], el.getBoundingClientRect()); return; }
   const c=f.c; if((!c.k && !c.cu) || (c.fd && !f.mine)) { hideZoom(); return; }
   const d=cdata(c); showZoom((c.flip&&d.back)?{...d,img:d.back}:d, el.getBoundingClientRect(), ctrLine(c)+(c.note?`\nNote: ${c.note}`:'')+(f.z==='bf' && dynPT(c, f.mine?G.myId:oppId()) ? (x=>`\nNow ${x.p}/${x.t}${x.why?' ('+x.why+')':''}`)(dynPT(c, f.mine?G.myId:oppId())) : '')+(f.z==='bf' && c.cp ? `\n${c.cp.orig}, copying ${cdata(c).n}${c.cp.until?' until end of turn':''}` : '')+(f.z==='hand' && f.mine ? (x=>x ? `\nCost now: ${x.cost}${x.delta ? ` (printed ${x.printed}; ${x.why})` : ` (unchanged: ${x.why})`}` : '')(costNow(c)) : '')+(f.z==='bf' && c.eb ? '\nEarthbent: a creature with haste that is still a land; when it dies or is exiled, it returns tapped' : '')+(f.z==='bf' && c.bw && c.att ? '\nBestowed: an Aura while attached; it becomes a creature again if that creature leaves the battlefield' : '')+(f.z==='bf' ? (x=>x?'\n'+x:'')(giftsLine(c, f.mine?G.myId:oppId())) : '')+(f.z==='bf' && c.chosen ? `\nChosen: ${c.chosen}` : '')+(f.z==='bf' && c.dmg ? `\nDamage marked this turn: ${c.dmg}` : '')+(f.z==='bf' && LPID.has(c.id) ? '\nLand played this turn' : '')+(f.z==='bf' && c.wp ? '\nCast for its warp cost: goes to the warp zone at the beginning of the next end step' : '')+(f.z==='ex' && c.warp ? (c.warp===G.turn.n ? '\nIn the warp zone: may be cast again from the next turn on' : '\nIn the warp zone: may be cast from here') : '')+(f.z==='bf' && showSick(c) ? '\nSummoning sick: came under its controller\'s control this turn' : '')+(f.z==='st' && c.md && c.md.length && modesOf(c) ? '\nChosen:\n'+c.md.map(i=>'• '+(modesOf(c).modes[i-1]||'')).join('\n') : ''));
@@ -8295,6 +8304,7 @@ const SETROWS = [
   {g:'Playing', k:'prires', l:'My spells, after an OK', h:'At a table with a friend, once they OK your spell. I press Resolve keeps it on the stack until you press the big button.', o:{auto:'Resolve by themselves', click:'I press Resolve'}, get:()=>(S.priRes||'auto')==='auto'?'auto':'click', set:v=>{ S.priRes=v; }},
   {g:'Playing', k:'cm', l:'Card menus', h:'Short shows what a known card does, with Manual handling for the rest.', o:{fly:'Short, side', swap:'Short, same', full:'Full'}, get:()=>cmStyle(), set:v=>{ S.cmenu=v; }},
   {g:'Look', k:'tap', l:'Tapped cards', h:'Only on your screen; your opponent picks their own.', o:{'18':'18°', '90':'90°', '90r':'90° with room'}, get:()=>S.tap||TAP_DEF, set:v=>{ S.tap=v; applyTapStyle(); setTimeout(()=>{ render(); drawArrows(); }, 200); }},
+  {g:'Look', k:'zoom', l:'Card enlargement', h:'How big a card gets when you point at it, at the table and in windows like Thoughtseize\'s.', o:{s:'Small', m:'Normal', l:'Large', xl:'Extra large'}, get:()=>ZOOMW[S.zoom]?S.zoom:'m', set:v=>{ S.zoom=v; }},
   {g:'Look', k:'anim', l:'Animations', h:()=>RMOT.matches ? 'This computer asks apps for less motion.' : 'Cards turning, the hand opening a gap, piles spreading.', o:{on:'On', off:'Off', auto:'Follow my computer'}, get:()=>S.anim||'on', set:v=>{ S.anim=v; applyMotion(); }},
   {g:'Sound', k:'snd', l:'Stack alert', h:'A short chime when your opponent\'s spell or trigger is waiting for your OK, and once more, quieter, if it\'s still waiting after 10 seconds.', o:{off:'Off', low:'Quiet', mid:'Normal', high:'Loud'}, get:()=>S.snd||'mid', set:v=>{ S.snd=v; if(v!=='off') stackChime(1); }},
   {g:'Streaming', k:'stream', l:'Streamer mode', h:'A camera box at the bottom of the game log. Nothing is sent to your opponent.', o:{off:'Off', space:'Camera space', cam:'My camera'}, get:()=>S.stream||'off', set:v=>{ S.stream=v; applyStream(); }, more:()=>(S.stream||'off')!=='off' ? '<button class="lk" data-more="stream">Frame and camera…</button>' : ''} ];
