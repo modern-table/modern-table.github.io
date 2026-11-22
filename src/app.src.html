@@ -766,7 +766,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.24';
+const VERSION = 'v5.25';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -782,6 +782,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.25','Nov 21',"Cycling is in the payment window: left-click Street Wraith, Troll of Khazad-dûm or any other card with cycling or landcycling and the window offers to cycle it (Street Wraith: Pay 2 life and cycle it) under the normal cost. Clicked when it can't be cast, such as a creature on your opponent's turn, the timing warning offers to cycle it instead. Cards with cycling are no longer dimmed in your hand, since you can always cycle them. Triomes and other lands with cycling: a left click plays the land when that's all you can do, cycles it when you can't play a land right now (the window waits for mana), and when you could do either, the payment window offers both."],
   ['v5.24','Nov 21',"Thoughtseize, Inquisition and other hand reveals: point at a card in your opponent's revealed hand to see it enlarged. New in Settings: Card enlargement (Small, Normal, Large, Extra large) sets how big a card gets when you point at it."],
   ['v5.23','Nov 20',"Resuming a game saved before v5.19 now clears the practice opponent's leftover per-turn effects too, not just yours."],
   ['v5.22','Nov 20',"More cleanup between games: a card going back to your library is reset completely (not just a list of marks), a spell going on the stack never keeps an old surge or dash mark, every per-turn effect is cleared at a new game, and starting a new match clears them too."],
@@ -2205,9 +2206,9 @@ function loyWhy(c){ if(tmOff()) return null; const k=loyUsed(c), cap=loyPerTurn(
   return {title:'Loyalty abilities', why:`Activate ${faceName(c,0)}'s loyalty abilities in your main phase while the stack is empty. Right now ${w}.`, short:w}; }
 function loyMark(c){ const n=G.turn.n||0, b=c.bfx||0; if(!c.lyT || c.lyT.t!==n || c.lyT.bfx!==b) c.lyT={t:n, bfx:b, k:0}; c.lyT.k++; }
 /* the window: Don't / … anyway, logged */
-function timeAsk(w, verb, what, go){ modal(w.title, `<span class="hint">${esc(w.why)}<br><br>${verb} anyway only to fix a mistake, or if you have both agreed it's allowed. The log will note it.</span>`, [[`Don't ${verb.toLowerCase()}`,()=>closeModal(),'ghost'], [`${verb} anyway`,()=>{ closeModal(); log(`${G.me.name} ${verb==='Play'?'plays':verb==='Cast'?'casts':'activates'} ${what} anyway, outside the timing rules (${w.short}).`); go(); },'go']]); }
+function timeAsk(w, verb, what, go, more){ modal(w.title, `<span class="hint">${esc(w.why)}${more && more.length ? '<br><br>'+esc(more.note) : ''}<br><br>${verb} anyway only to fix a mistake, or if you have both agreed it's allowed. The log will note it.</span>`, [[`Don't ${verb.toLowerCase()}`,()=>closeModal(),'ghost'], ...(more||[]), [`${verb} anyway`,()=>{ closeModal(); log(`${G.me.name} ${verb==='Play'?'plays':verb==='Cast'?'casts':'activates'} ${what} anyway, outside the timing rules (${w.short}).`); go(); },'go']]); }
 /* hand dimming: why this hand card can't be played right now (null = it can, or the table can't tell) */
-function handTimeWhy(c){ if(tmOff() || !c || c.fd || (!c.k && !c.cu)) return null; if(brIdx(c)>=0) return null;   /* v5.17: bloodrush can be played, so the card isn't dimmed */
+function handTimeWhy(c){ if(tmOff() || !c || c.fd || (!c.k && !c.cu)) return null; if(brIdx(c)>=0) return null;   /* v5.17: bloodrush can be played, so the card isn't dimmed */ if(cyclingOf(c).length && !splitSecondOn(null)) return null;   /* v5.25 (Ben): cycling is instant speed, so a cycler is never dimmed */
   if(isLand(c)) return landTimeWhy(c);
   const ws=[castTimeWhy(c, {})]; if(cdata(c).lay==='adventure') ws.push(castTimeWhy(c, {adv:1})); if(isSplit(c)) ws.push(castTimeWhy(c, {half:0}), castTimeWhy(c, {half:1}));
   if(typeof mdfcLand==='function' && mdfcLand(c)) ws.push(landTimeWhy(c));
@@ -5259,11 +5260,28 @@ function cyclingOf(c){ if(c.fd || (!c.k && !c.cu)) return []; const out=[];
     const other=cost.replace(/^(\{[^}]+\})+/,'').replace(/,?\s*pay \d+ life/i,'').replace(/^[,\s]+/,'').trim();
     out.push({what, mana:costSyms(cost).length && /^\{/.test(cost) ? cost.match(/^(\{[^}]+\})+/)[0] : '', life:lifeM ? +lifeM[1] : 0, other, label:(what ? what[0].toUpperCase()+what.slice(1) : '')+(what?'cycling':'Cycling')}); }
   return out; }
+/* v5.25: wording for cycling rows (payment window, timing warning): "cycle it", "swampcycle it"; "Discard it: draw a card." */
+const cycVerb = cy => cy.label.toLowerCase().replace(/cycling$/,'cycle')+' it';
+const cycNote = cy => `Discard it: ${cy.what ? 'search your library for a'+(/^[aeiou]/i.test(cy.what)?'n':'')+' '+cy.what+' card' : 'draw a card'}. Cycling works at instant speed.`;
+const cycPays = cy => [cy.mana, cy.life ? cy.life+' life' : ''].filter(Boolean).join(', ');
+/* v5.25: could I pay this cycling cost now? The mana pool plus my untapped mana sources whose ability costs only {T} (creatures not summoning sick), one mana each. */
+function cycCanPay(cy){ if(!cy.mana) return true; const pool=Object.assign(noMana(), G.me.mana||{}), syms=normSyms(costSyms(cy.mana));
+  const srcs=G.me.bf.filter(x=>!x.fd && !x.tap && (x.k||x.cu) && (!isCreature(x) || !x.sick || hasHaste(x))).map(x=>{ let cols=''; try{ cols=manaAbilities(x).filter(a=>!a.cost && !a.tcr && !a.only).map(a=>a.out).join(''); }catch(e){} return cols; }).filter(Boolean), used=srcs.map(()=>false);
+  for(const k of syms.filter(k=>!/^\d+$/.test(k))){ const ks=k.split('/').filter(x=>MANA.includes(x)); const pk=ks.find(x=>pool[x]>0); if(pk){ pool[pk]--; continue; } const j=srcs.findIndex((o,i)=>!used[i] && ks.some(x=>o.includes(x))); if(j<0) return false; used[j]=true; }
+  const gen=syms.filter(k=>/^\d+$/.test(k)).reduce((a,k)=>a+(+k),0), left=Object.values(pool).reduce((a,n)=>a+(+n||0),0)+used.filter(u=>!u).length; return left>=gen; }
+/* v5.25 (Ben): left click on a land with cycling (the Triomes). Land play legal and the cycling payable: the payment window with both (cycle, or play it as
+   a land). Land play legal, cycling not payable: play the land. Land play not legal (timing, or no land play left): cycle it (the window waits for mana). */
+function cycLandClick(id){ const f=find(id); if(!f || f.z!=='hand') return; const c=f.c, cys=cyclingOf(c); if(!cys.length || G.me.ctl || splitSecondOn(null) || waitMull()) return playFromHand(id);
+  const m=G.me, landOK=!landTimeWhy(c) && (DSW || !G.turn.n || G.turn.active!==G.myId || landsPlayed(m)<landSlots(m).length), i=Math.max(0, cys.findIndex(cycCanPay)), cy=cys[i];
+  if(landOK && !cys.some(cycCanPay)) return playFromHand(id);
+  const nm=cdata(c).n, tapped=/\bThis land enters tapped\.|\benters tapped\.(?!\s*unless)/i.test(frontText(c)||''), alts=landOK ? [{k:'land', lbl:'Play it as a land', note:`Your land for the turn${tapped?'; it enters tapped':''}.`, run:()=>playFromHand(id)}] : [];
+  payFor(normSyms(costSyms(cy.mana||'')), {abil:true, card:c, id, from:'hand'}, {title:`${nm}: ${cy.label.toLowerCase()}`, verb:cycVerb(cy)+(cy.life?` (and pay ${cy.life} life)`:''), ask:1, alts, cancelLabel:'Cancel (keep it in hand)',
+    done:r=>startCycle(id, i, {paid: r && r.other ? 'other' : 'paid'})}); }
 let CYC=null;
-function startCycle(id, i){
+function startCycle(id, i, o){ o=o||{};
   const f=find(id); if(!f || f.z!=='hand') return; const c=f.c, cy=cyclingOf(c)[i]; if(!cy) return;
   move(id,'gy',{silent:true}); const g=find(id); log(`${G.me.name} cycles ${cname(c)} (${cy.label}${cy.mana?' '+cy.mana:''}${cy.life?(cy.mana?', ':' — ')+'pay '+cy.life+' life':''}): it goes to ${g && g.z==='ex' ? 'exile' : 'the graveyard'}.`);
-  CYC={id, cy, name:cdata(c).n, img:cdata(c).img||''}; if(autoPayOn() && cy.mana && !cy.life && !cy.other && pactCover(cy.mana).all){ cycAction('pay'); return; } changed(); paintCyc(); }
+  CYC={id, cy, name:cdata(c).n, img:cdata(c).img||''}; if(o.paid){ cycAction(o.paid); return; }   /* v5.25: already paid in the payment window ('paid' | 'other') */ if(!cy.other && (o.now ? (!cy.mana || (autoPayOn() && pactCover(cy.mana).all)) : (autoPayOn() && cy.mana && !cy.life && pactCover(cy.mana).all))){ cycAction('pay'); return; } changed(); paintCyc(); }   /* o.now (v5.25): the player already chose to pay (payment window or timing warning) */
 function paintCyc(){
   const el=$('#pactPanel'); if(!CYC || PACT){ if(!PACT) el.hidden=true; return; } const cy=CYC.cy, cv=cy.mana ? pactCover(cy.mana) : {syms:[], ok:[], all:true}; el.hidden=false; el.classList.add('cyc');
   el.innerHTML=`<h3>${esc(CYC.name)}: ${esc(cy.label.toLowerCase())}</h3>
@@ -5277,7 +5295,7 @@ function paintCyc(){
 function cycAction(k){
   if(!CYC) return; const {id, cy, name, img}=CYC, m=G.me, el=$('#pactPanel'); const close=()=>{ CYC=null; el.hidden=true; el.innerHTML=''; };
   if(k==='cancel'){ close(); const f=find(id); if(f && f.z!=='hand') move(id,'hand',{silent:true}); log(`${m.name} doesn't cycle ${name} after all; it goes back to their hand.`); changed(); return; }
-  if(k==='pay'){ const cv=cy.mana ? pactCover(cy.mana) : {all:true, syms:[]}; if(!cv.all) return; if(cv.syms.length) payCost(cv.syms.join(',')); }
+  if(k==='pay'){ const cv=cy.mana ? pactCover(cy.mana) : {all:true, syms:[]}; if(!cv.all) return; if(cv.syms.length) payCost(cv.syms.join(',')); }   /* 'paid': the payment window took the mana already */
   if(cy.life) m.life-=cy.life; close();
   const kind = cy.what ? (/^basic land$/i.test(cy.what) ? 'basic land' : cy.what.toLowerCase()) : '';
   m.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id, cyc:kind||'draw'}, cu:{n:`${name}: ${cy.label.toLowerCase()}`, t:'Activated ability', o: kind ? `Search your library for a${/^[aeiou]/.test(kind)?'n':''} ${kind} card, reveal it, put it into your hand, then shuffle.` : 'Draw a card.', img}}));
@@ -5855,7 +5873,8 @@ function spellLimit(c){ const k=G.me.cast||{};
   return null; }
 function castGate(id, go, o){ o=o||{};
   const f=find(id); if(!f || f.z==='st'){ go(); return; }
-  { const tw=!o.tmok && !isLand(f.c) && castTimeWhy(f.c, o); if(tw){ timeAsk(tw, 'Cast', cname(f.c), ()=>castGate(id, go, Object.assign({}, o, {tmok:1}))); return; } }   // v5.14: timing
+  { const tw=!o.tmok && !isLand(f.c) && castTimeWhy(f.c, o); if(tw){ const cyc=f.z==='hand' && !splitSecondOn(null) ? cyclingOf(f.c).map((cy,i)=>{ const pays=cycPays(cy); return [pays ? `Pay ${pays} and ${cycVerb(cy)}` : cycVerb(cy)[0].toUpperCase()+cycVerb(cy).slice(1), ()=>{ closeModal(); startCycle(id, i, {now:1}); }, 'go']; }) : []; if(cyc.length) cyc.note=`It can still be cycled: cycling works at instant speed.`;
+      timeAsk(tw, 'Cast', cname(f.c), ()=>castGate(id, go, Object.assign({}, o, {tmok:1})), cyc); return; } }   // v5.14: timing; v5.25: a cycler can be cycled from the warning
   if(twoTgt(f.c) && !pidCreatures(G.myId).length && !pidCreatures(oppId()).length){ toast(`${cdata(f.c).n.split(' // ')[0]} needs a creature to target, and there is none on the battlefield.`); return; }
   { const lk=!isLand(f.c) && castLock(f.c, f.z); if(lk){ modal('Can\'t cast', `<span class="hint">${esc(lk)}.<br><br>Cast anyway only if you have both agreed it's allowed.</span>`, [["Don't cast",()=>closeModal(),'ghost'], ['Cast anyway',()=>{ closeModal(); log(`${G.me.name} casts anyway (${lk}).`); go(); },'go']]); return; } }
   { const tl=!isLand(f.c) && timingLock(f.c); if(tl){ modal(tl, `<span class="hint">${esc(G.opp?G.opp.name:'Your opponent')} controls ${esc(tl)}: you can cast spells only when you could cast a sorcery (your main phase, with the stack empty).<br><br>Cast anyway only if you have both agreed it's allowed.</span>`, [["Don't cast",()=>closeModal(),'ghost'], ['Cast anyway',()=>{ closeModal(); log(`${G.me.name} casts a spell at instant speed anyway, with ${G.opp?G.opp.name:'the opponent'}'s ${tl} on the battlefield.`); const lim=spellLimit(f.c); if(lim) go(); else go(); },'go']]); return; } }
@@ -5906,6 +5925,7 @@ function castWays(c, id){ const W=[]; if(isLand(c) || c.fd || G.me.ctl) return W
   const mo=morphOf(c); if(mo) W.push({k:'morph', cost:'{3}', btn:'cast it face down', note:`A face-down 2/2. Turn it face up for ${mo.cost}.`, run:()=>morphCast(id)});
   const plc=plotCost(c); if(plc) W.push({k:'plot', cost:plc, btn:'plot it', ok:()=>{ const t=G.turn; return !!t.n && t.active===G.myId && (t.phase===2 || t.phase===4) && !G.me.st.length && !((G.opp&&G.opp.st)||[]).length; }, why:'Plot only as a sorcery: in your main phase with the stack empty.', note:'It is exiled now; cast it without paying its mana cost on a later turn, as a sorcery.', run:()=>plotCard(id)});   // v5.11 Slickshot Show-Off
   handAbils(c).forEach((x,i)=>{ if(!x.br || !brReady()) return; W.push({k:'bloodrush', cost:x.mana||'', btn:'bloodrush', ok:()=>[...G.me.bf, ...((G.opp&&G.opp.bf)||[])].some(y=>y.atk && isCreature(y)), why:'Only while a creature is attacking.', note:`Discard it: ${x.eff}`, run:()=>channel(id, i)}); });   // v5.11 Ghor-Clan Rampager
+  cyclingOf(c).forEach((cy,i)=>W.push({k:'cycling', cost:cy.mana, life:cy.life, extra:cy.other, noEx:1, btn:cycVerb(cy), note:cycNote(cy), run:()=>startCycle(id, i, {now:1})}));   // v5.25 (Ben): cycling in the left-click payment window
   return W; }
 function castSpellNow(id, o={}, after){ if(G.altEx){ o=Object.assign({}, G.altEx, o); G.altEx=null; } { const fq=find(id); if(fq && o.gift!=null) fq.c.gift=o.gift; } { const fa=find(id); if(fa && fa.z!=='st' && o.addl==null && !fa.c.fd && !G.me.ctl){ const ac=addlCostOf(fa.c); if(ac){ payAddl(id, ac).then(r=>{ if(!r) return; castSpellNow(id, Object.assign({}, o, {addl:r}), after); }); return; } } } { const fb=find(id); if(fb && o.addl){ if(o.addl.sacMV!=null) fb.c.sacMV=o.addl.sacMV; if(o.addl.sacTp!=null) fb.c.sacTp=o.addl.sacTp; if(o.addl.payX!=null) fb.c.x=o.addl.payX; if(o.addl.addPaid) fb.c.addPaid=true; } } { const f0=find(id); if(f0 && o.half!=null) f0.c.half=o.half; }
   { const f0=find(id); if(f0 && f0.z!=='st' && o.x==null && !f0.c.fd && !G.me.ctl && /\{X\}/.test(o.payCost!=null ? o.payCost : ((cdata(f0.c).mc||'').split(' // ')[f0.c.flip?1:0]||''))){ askN(`${cdata(f0.c).n}: X =`, 1).then(n=>{ if(n==null || n<0) return; castSpellNow(id, Object.assign({}, o, {x:n}), after); }); return; } }
@@ -6035,12 +6055,12 @@ function paintPay(){
   if((o.alts && o.alts.length) || (o.extras && o.extras.length)){ const ex=o.ex||{};
     const exHTML=(o.extras||[]).map(e=> e.step ? `<div class="pxr">${esc(e.label)}: <button data-pay="ex:rep-" aria-label="One fewer">−</button><b>${+ex.rep||0}</b><button data-pay="ex:rep+" aria-label="One more">+</button><span class="hint">${esc(e.note||'')}</span></div>`
       : `<label class="pxr"><input type="checkbox" data-pay="ex:${e.k}" ${ex[e.k]?'checked':''}> ${esc(e.label)}</label>`).join('');
-    const altHTML=(o.alts||[]).map((a,i)=>{ const sy=a.cost ? normSyms(costSyms(a.cost).concat(exSyms(o.extras, ex))) : [], ap=sy.length ? payPlan(sy, ctx, {sp:PAY.ch.sp||[]}) : {ok:true, marks:[]}, off=altOff(a);
+    const altHTML=(o.alts||[]).map((a,i)=>{ const sy=a.cost ? normSyms(costSyms(a.cost).concat(a.noEx ? [] : exSyms(o.extras, ex))) : [], ap=sy.length ? payPlan(sy, ctx, {sp:PAY.ch.sp||[]}) : {ok:true, marks:[]}, off=altOff(a);
       const ch=sy.map((k,j)=>symHTML([k]).replace('class="ms ', `class="ms ${ap.marks[j] && !off?'ok ':''}`)).join(''), pays=[sy.length ? symStr(sy) : '', a.life ? `${a.life} life` : ''].filter(Boolean).join(', ');
-      const label = pays ? `Pay ${pays} and ${a.btn}${a.extra ? ` (${a.extra})` : ''}` : `${a.btn[0].toUpperCase()+a.btn.slice(1)}: ${a.extra || 'free'}`;
+      const label = a.lbl ? a.lbl : pays ? `Pay ${pays} and ${a.btn}${a.extra ? ` (${a.extra})` : ''}` : `${a.btn[0].toUpperCase()+a.btn.slice(1)}: ${a.extra || 'free'}`;
       return `<div class="popt${off?' off':''}"><div class="pcost">${ch}</div><button data-pay="alt:${i}" ${off || !ap.ok ? 'disabled' : ''}>${esc(unlink(label))}</button><span class="pnote ${off?'why':''}">${esc(off ? a.why : a.note || '')}</span></div>`; }).join('');
     el.innerHTML=`<button class="px" data-pay="cancel" title="${esc(cancel)}">✕</button><h3>${esc(o.title)}</h3>
-      <span class="hint">Tap lands; each symbol lights up as your pool covers it. Pick the way you want to cast it.</span>${exHTML ? `<div class="pxs">${exHTML}</div>` : ''}
+      <span class="hint">Tap lands; each symbol lights up as your pool covers it. ${ctx.spell ? 'Pick the way you want to cast it.' : 'Pick what you want to do.'}</span>${exHTML ? `<div class="pxs">${exHTML}</div>` : ''}
       <div class="popt main"><div class="pcost">${chips}</div><button class="go" data-pay="pay" ${pl.ok?'':'disabled'}>Pay ${esc(cost)} and ${o.verb}</button><span class="pnote ${pl.ok?'ok':''}">${pl.ok ? (pl.life || Object.keys(pl.from).length ? esc(payText(pl, `${G.me.life} → ${G.me.life-pl.life}`)) : 'Covered.') : `Not covered yet: ${pl.short} more mana to go.`}</span></div>${rows}${spRowHTML(ctx, ch)}${altHTML}
       <div class="pbtns"><button data-pay="other">Paid another way</button><button class="ghost" data-pay="cancel">${esc(cancel)}</button></div>`;
     placePay(el); return; }
@@ -8675,7 +8695,7 @@ document.addEventListener('pointerup', e=>{
   if(G.mode){ G.clkShift=!!e.shiftKey; finishMode(d.id); G.clkShift=false; return; }
   if(G.atkSel && d.mine && d.z==='bf' && atkStep()){ atkToggle(d.id); return; }
   if(!d.mine){ if(iControl()) remoteClick(d.id, d.z, e.clientX, e.clientY); else if(d.z==='st') priClickOpp(d.id); return; }
-  if(d.z==='hand'){ const f=find(d.id); if(f && mdfcLand(f.c) && !G.me.ctl){ /* v4.85: modal double-faced spell/land: menu, or Shift = land side tapped */ if(e.shiftKey) playLandSide(d.id,'tapped'); else mdfcMenu(d.id, e.clientX, e.clientY); return; } if(e.shiftKey && f && isLand(f.c)){ move(d.id,'bf',{tap:true}); changed(); } else playFromHand(d.id); } else if(d.z==='bf'){ const f=find(d.id); if(blockStep() && f && isCreature(f.c) && !f.c.tap){ startMode('block', d.id); return; } toggleTap(d.id, e.clientX, e.clientY); } else if(d.z==='st'){ if(!priClickMine(d.id)) resolve(d.id); }
+  if(d.z==='hand'){ const f=find(d.id); if(f && mdfcLand(f.c) && !G.me.ctl){ /* v4.85: modal double-faced spell/land: menu, or Shift = land side tapped */ if(e.shiftKey) playLandSide(d.id,'tapped'); else mdfcMenu(d.id, e.clientX, e.clientY); return; } if(e.shiftKey && f && isLand(f.c)){ move(d.id,'bf',{tap:true}); changed(); } else if(f && isLand(f.c) && cyclingOf(f.c).length) cycLandClick(d.id); else playFromHand(d.id); }   /* v5.25: lands with cycling */ else if(d.z==='bf'){ const f=find(d.id); if(blockStep() && f && isCreature(f.c) && !f.c.tap){ startMode('block', d.id); return; } toggleTap(d.id, e.clientX, e.clientY); } else if(d.z==='st'){ if(!priClickMine(d.id)) resolve(d.id); }
   else if(d.z==='side'){ const f=find(d.id); if(f && f.c.comp && d.el.closest('.playbox')) menu(e.clientX, e.clientY, compItems(f.c, d.id)); }
   else if(d.z==='ex'){ const f=find(d.id); if(f && f.c.pl && d.el.closest('.playbox')) menu(e.clientX, e.clientY, playItems(f.c, d.id)); else if(f && f.c.plot && d.el.closest('.playbox')) menu(e.clientX, e.clientY, [['Cast it without paying its mana cost',()=>plotCast(d.id)]]); }
 });
