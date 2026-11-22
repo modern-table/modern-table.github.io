@@ -767,7 +767,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.26';
+const VERSION = 'v5.27';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -783,6 +783,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.27','Nov 22',"Fear of Missing Out: once the first combat is over, the big button reads Next: second combat instead of Next: Main 2 when delirium has given you an additional combat phase."],
   ['v5.26','Nov 21',"Fear of Missing Out: when delirium gives you an additional combat phase, the phase bar shows a second Combat step after the first (dashed until it begins, lit while it's under way), on both players' screens. Moonshadow and any other creature whose only change is counters now shows its current power and toughness at the bottom of the card, like boosted creatures do."],
   ['v5.25','Nov 21',"Cycling is in the payment window: left-click Street Wraith, Troll of Khazad-dûm or any other card with cycling or landcycling and the window offers to cycle it (Street Wraith: Pay 2 life and cycle it) under the normal cost. Clicked when it can't be cast, such as a creature on your opponent's turn, the timing warning offers to cycle it instead. Cards with cycling are no longer dimmed in your hand, since you can always cycle them. Triomes and other lands with cycling: a left click plays the land when that's all you can do, cycles it when you can't play a land right now (the window waits for mana), and when you could do either, the payment window offers both."],
   ['v5.24','Nov 21',"Thoughtseize, Inquisition and other hand reveals: point at a card in your opponent's revealed hand to see it enlarged. New in Settings: Card enlargement (Small, Normal, Large, Extra large) sets how big a card gets when you point at it."],
@@ -7097,6 +7098,8 @@ function priDash(i){ if(!priTable()) return {h:'', tip:''}; const st=myStops(), 
 /* v5.26 (Ben): an additional combat phase (Fear of Missing Out) gets its own Combat chip after the first: dashed while it is still to come,
    lit while it is under way (G.turn.cx = which combat this is, carried in the shared turn), kept for the rest of the turn once it happened */
 function xcombPending(t){ const a = t.active===G.myId ? G.me : G.opp; return !!(t.n && a && a.xcomb===t.n && t.phase<=3) ? (a.xcby||'An effect') : ''; }
+/* v5.27 (Ben): the big button names the coming additional combat ("Next: second combat") instead of Main 2 */
+function nextName(t){ if(t.phase===3 && xcombPending(t)){ const k=(t.cx||1)+1; return (ORDW[k]||k+'th')+' combat'; } return PH[t.phase+1]; }
 function phaseChips(t){ const cx=t.cx||1, pend=xcombPending(t), nC=cx+(pend?1:0), out=[];
   PH.forEach((p,i)=>{ const sd=priDash(i);
     if(i!==3){ out.push(`<button data-ph="${i}" class="${t.n&&t.phase===i?'on':''}"${sd.tip?` title="${esc(sd.tip)}"`:''}>${p}${sd.h}</button>`); return; }
@@ -7424,7 +7427,7 @@ function pracBarHTML(){ if(!dummy()) return ''; const d=G.opp, t=G.turn, top=d.s
     else h+= pAttackers().length ? '<button class="go" data-prb="choose">Choose attackers</button><button data-prb="all">Attack with all</button><button data-prb="none">No attacks</button>' : '<span class="sub">Practice has no untapped creatures</span><button class="go" data-prb="none">No attacks</button>'; }
   else if(t.phase===3 && t.cs==='blk') h+='<span class="sub">Declare your blockers with your blockers bar</span>';
   else if(t.phase===3 && (t.cs==='blkd' || t.cs==='fs')){ let fs=false; if(t.cs==='blkd') asDummy(()=>{ fs=combatHasFS(); }); h+=`<button class="go" data-prb="dmg">${fs ? 'Apply first strike damage' : 'Apply combat damage'}</button>`; }
-  else h+=`<button class="go" data-prb="next">${t.phase < PH.length-1 ? 'Next: '+PH[t.phase+1] : "End Practice's turn"}</button>`;
+  else h+=`<button class="go" data-prb="next">${t.phase < PH.length-1 ? 'Next: '+nextName(t) : "End Practice's turn"}</button>`;
   return h + stk; }
 function dummyDraw(n){ const d=G.opp; let k=0; for(let i=0;i<(n||1);i++){ const c=d.lib.shift(); if(!c) break; d.hand.push(c); k++; } dummySync(); log(k ? `Practice draws ${k===1?'a card':k+' cards'}.` : "Practice's library is empty."); if(k<(n||1) && G.turn.n){ d.emptyDraw=1; dummyLoss(); } changed(); }
 
@@ -7940,10 +7943,10 @@ function render(){
   else if(!t.n){ nb.textContent='Waiting to start'; nb.disabled=true; }
   else if(t.passed){ nb.disabled=mine; nb.textContent = mine ? `Waiting for ${o&&o.name||'opponent'}` : 'Start my turn'; }
   else if(t.hold){ const me=t.hold.pid===G.myId; nb.disabled=!me; nb.textContent = me ? 'Pass priority back' : `Paused: ${o&&o.name||'opponent'} has priority`; }
-  else if(iControl()){ nb.disabled=false; nb.textContent = (t.phase<PH.length-1 ? 'Next: '+PH[t.phase+1] : 'End their turn'); }
+  else if(iControl()){ nb.disabled=false; nb.textContent = (t.phase<PH.length-1 ? 'Next: '+nextName(t) : 'End their turn'); }
   else if(!mine){ if(blockStep()){ nb.disabled=false; nb.textContent='Done blocking'; } else { nb.textContent = dummy() ? "Practice's turn: its controls are on its side" : "Opponent's turn"; nb.disabled=true; } }
   else if(combatLabel()){ const L=combatLabel(); nb.disabled=!!L.wait; nb.textContent=L.text; }
-  else { nb.disabled=false; nb.textContent = skipCombat() ? 'Next: Main 2 (no attackers)' : t.phase<PH.length-1 ? 'Next: '+PH[t.phase+1] : 'End turn'; }
+  else { nb.disabled=false; nb.textContent = skipCombat() ? 'Next: Main 2 (no attackers)' : t.phase<PH.length-1 ? 'Next: '+nextName(t) : 'End turn'; }
   // pre-game banner
   const bn=$('#banner');
   const mw=m.wins||0, ow=(o&&o.wins)||0;
