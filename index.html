@@ -163,6 +163,7 @@ textarea#paste{width:100%;min-height:300px;font-family:ui-monospace,Menlo,Consol
 .phases{display:flex;gap:3px;margin-inline:auto}
 .phases button{padding:4px 9px;font-size:12px;border-radius:99px;background:transparent}
 .phases button.on{background:var(--brass);border-color:var(--brass);color:#1b1205;font-weight:800}
+.phases button.xc{border-style:dashed;border-color:var(--brass);color:var(--brass)}
 .tools{display:flex;gap:4px}#fsBtn{white-space:nowrap}#fsBtn .fs{display:none}@media (max-width:1599px){#fsBtn .fl{display:none}#fsBtn .fs{display:inline}}.tools button{padding:4px 9px;font-size:12px}
 
 .card{position:relative;width:var(--cw);aspect-ratio:488/680;border-radius:4.6%/3.3%;flex:none;background:#243b40;box-shadow:0 2px 6px #0008;transition:transform .15s,filter .15s,margin .15s;cursor:pointer;touch-action:none}
@@ -774,7 +775,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.25';
+const VERSION = 'v5.26';
 /* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -790,6 +791,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.26','Nov 21',"Fear of Missing Out: when delirium gives you an additional combat phase, the phase bar shows a second Combat step after the first (dashed until it begins, lit while it's under way), on both players' screens. Moonshadow and any other creature whose only change is counters now shows its current power and toughness at the bottom of the card, like boosted creatures do."],
   ['v5.25','Nov 21',"Cycling is in the payment window: left-click Street Wraith, Troll of Khazad-dûm or any other card with cycling or landcycling and the window offers to cycle it (Street Wraith: Pay 2 life and cycle it) under the normal cost. Clicked when it can't be cast, such as a creature on your opponent's turn, the timing warning offers to cycle it instead. Cards with cycling are no longer dimmed in your hand, since you can always cycle them. Triomes and other lands with cycling: a left click plays the land when that's all you can do, cycles it when you can't play a land right now (the window waits for mana), and when you could do either, the payment window offers both."],
   ['v5.24','Nov 21',"Thoughtseize, Inquisition and other hand reveals: point at a card in your opponent's revealed hand to see it enlarged. New in Settings: Card enlargement (Small, Normal, Large, Extra large) sets how big a card gets when you point at it."],
   ['v5.23','Nov 20',"Resuming a game saved before v5.19 now clears the practice opponent's leftover per-turn effects too, not just yours."],
@@ -1284,7 +1286,7 @@ const cname = c => c.fd ? 'a face-down card' : '[['+(cdata(c).n||'a card')+'|'+(
 function pub(){
   const m=G.me, p = c => c.fd ? Object.assign({}, c, {k:null, cu:null, note:''}) : c;
   return { name:m.name, lgs:m.lgs||'', deck:m.deck, life:m.life, ctr:m.ctr, libN:m.lib.length, handN:m.hand.length, sideN:m.side.length,
-    hand:(m.reveal || m.ctl) ? m.hand : null, noMax:!!m.noMax, ptest:m.ptest||'', comp:m.side.filter(c=>c.comp), compDone:!!m.compDone, deckReady:m.deckReady!==false, skipRoll:!!m.skipRoll, wonGame:m.wonGame||0, btm:m.btm||0, ctl:!!m.ctl, ctlNext:!!m.ctlNext, city:!!m.city, sbing:!!m.sbing, bf:m.bf.map(p), ph:(m.ph||[]).map(p), gy:m.gy, ex:m.ex.map(p), st:m.st.filter(x=>!isHeldTrig(x)).map(p), arrows:m.arrows, mull:m.mull, drn:m.drn||null, wins:m.wins||0, roll:m.roll||null, dealt:!!m.dealt, kept:!!m.kept, mana:m.mana||noMana(), smana:m.smana||[], energySeen:!!m.energySeen, monarch:!!m.monarch, mill:m.mill||null, nt:m.nt||null, hasteNext:m.hasteNext||0, lp:m.lp||null, lpx:m.lpx||null, poisonSeen:!!m.poisonSeen, poisonSrc:!!m.poisonSrc, cast:m.cast||{n:0,is:0}, cares:m.cares||null, emb:m.emb||[], gtg:m.gtg||[], baub:m.baub||[], trk:pubTrk(m.trk), mistT:m.mistT||0, mistBy:m.mistBy||'', aim:priAim(), ord:!!G.ordHold };
+    hand:(m.reveal || m.ctl) ? m.hand : null, noMax:!!m.noMax, ptest:m.ptest||'', comp:m.side.filter(c=>c.comp), compDone:!!m.compDone, deckReady:m.deckReady!==false, skipRoll:!!m.skipRoll, wonGame:m.wonGame||0, btm:m.btm||0, ctl:!!m.ctl, ctlNext:!!m.ctlNext, city:!!m.city, sbing:!!m.sbing, bf:m.bf.map(p), ph:(m.ph||[]).map(p), gy:m.gy, ex:m.ex.map(p), st:m.st.filter(x=>!isHeldTrig(x)).map(p), arrows:m.arrows, mull:m.mull, drn:m.drn||null, wins:m.wins||0, roll:m.roll||null, dealt:!!m.dealt, kept:!!m.kept, mana:m.mana||noMana(), smana:m.smana||[], energySeen:!!m.energySeen, monarch:!!m.monarch, mill:m.mill||null, nt:m.nt||null, hasteNext:m.hasteNext||0, lp:m.lp||null, lpx:m.lpx||null, poisonSeen:!!m.poisonSeen, poisonSrc:!!m.poisonSrc, cast:m.cast||{n:0,is:0}, cares:m.cares||null, emb:m.emb||[], gtg:m.gtg||[], baub:m.baub||[], trk:pubTrk(m.trk), mistT:m.mistT||0, mistBy:m.mistBy||'', xcomb:m.xcomb||0, xcby:m.xcby||'', aim:priAim(), ord:!!G.ordHold };
 }
 /* undo: a snapshot of my own side is kept before each change. Shuffles and anything that crosses to the other player close the history. */
 const UNDO=[]; let lastSnap=null, lastLogi=0;
@@ -3844,7 +3846,7 @@ async function simpleEffects(c, text, srcId){
     if(/^(?:it|this creature) can(?:'|’)t be blocked this turn\.?$/i.test(sen)){ const b=srcC || (c.ab && find(c.ab.id) && find(c.ab.id).c); if(b){ b.unb=G.turn.n||1; log(`${by}: ${cname(b)} can't be blocked this turn.`); changed(); } continue; }
     // Fear of Missing Out: "if there are four or more card types among cards in your graveyard, untap target creature." / "After this phase, there is an additional combat phase."
     if((r=sen.match(/^if there are four or more card types among cards in your graveyard, (.+)$/i))){ if(gyTypes(m.gy).length<4){ log(`${by}: fewer than four card types in ${m.name}'s graveyard, so nothing happens.`); G.noDel=1; continue; } G.noDel=0; sen=r[1].replace(/^([a-z])/, x=>x.toUpperCase()); }
-    if(/^after this phase, there is an additional combat phase\.?$/i.test(sen)){ if(G.noDel){ G.noDel=0; continue; } m.xcomb=G.turn.n; log(`${by}: after this combat phase, there is an additional combat phase.`); changed(); continue; }
+    if(/^after this phase, there is an additional combat phase\.?$/i.test(sen)){ if(G.noDel){ G.noDel=0; continue; } m.xcomb=G.turn.n; m.xcby=by; log(`${by}: after this combat phase, there is an additional combat phase.`); changed(); continue; }
     if((r=sen.match(/^untap target (creature|permanent|artifact|land)\.?$/i))){ for(const t of tg){ const f=find(t); if(f && f.z==='bf'){ f.c.tap=false; log(`${by}: ${m.name} untaps ${cname(f.c)}.`); } } if(!tg.length) log(`${by}: no target was chosen.`); changed(); continue; }
     // Creeping Chill from the library: "Exile this card from your graveyard."
     if(/^exile this card from your graveyard\.?$/i.test(sen)){ const b=srcC || (c.ab && find(c.ab.id) && find(c.ab.id).c); if(b && find(b.id) && find(b.id).z==='gy'){ move(b.id,'ex',{silent:true}); log(`${by}: ${m.name} exiles ${cname(b)} from their graveyard.`); didIt=true; } else { log(`${by}: it is no longer in the graveyard.`); didIt=false; } changed(); continue; }
@@ -6336,7 +6338,7 @@ function dynPT(c, pid){
     for(const x of sideOf(pid===G.myId ? oppId() : G.myId).bf||[]){ if(x.fd || (!x.k && !x.cu)) continue; for(const g of noRemind(x).matchAll(/(?:^|\n)Creatures your opponents control get ([+\-−]\d+)\/([+\-−]\d+)\./g)) add(x, g[1], g[2]); }
     { const L=lordFx(c, pid); if(L.why.length){ gp+=L.p; gt+=L.t; dyn=true; why.push(...L.why); } }
     for(const e of (sideOf(pid).emb||[])) for(const g of String(e.o||'').matchAll(/(?:^|\n)[Cc]reatures you control get ([+\-−]\d+)\/([+\-−]\d+)\./g)){ gp+=v(g[1]); gt+=v(g[2]); dyn=true; why.push(`${e.src} emblem: ${g[1]}/${g[2]}`); } }   // Ajani Resolute's −10
-  if(!dyn && !c.tp && !c.tt && !c.eb) return null;
+  if(!dyn && !c.tp && !c.tt && !c.eb && !(c.c && !isSaga(c))) return null;   /* v5.26 (Ben): counters alone show the current P/T too (Moonshadow's six −1/−1) */
   if(c.eb && !dyn && !c.tp && !c.tt) return {p:0, t:0, printed:true, why:'earthbent land: 0/0 (counters shown separately)'};   // its printed-style box; counters stay on their own badge   // counters alone show only their badge; text-driven P/T and boosts get the box
   const val=x=>{ x=String(x||'').trim(); if(/\*/.test(x)){ if(n==null) return null; return x.split('+').reduce((a,p)=>a+(p.trim()==='*' ? n : (+p||0)),0); } return /^-?\d+$/.test(x) ? +x : null; };
   const [ps,ts]=(d.pt || (c.eb ? '0/0' : '')).split('/'), bp=val(ps), bt=val(ts); if(bp==null || bt==null) return null;
@@ -7100,6 +7102,16 @@ function priDash(i){ if(!priTable()) return {h:'', tip:''}; const st=myStops(), 
   const a = st.opp[PRI_DK[i]] || (i===4 && priAutoM2().length) ? 'on' : (i===3||i===5) ? 'fx' : 'off', b = (i===0&&st.mine.up)||(i===1&&st.mine.draw) ? 'on' : i>=2 ? 'fx' : 'off';
   const TA={on:'a stop you added: you are asked for an OK here', fx: i===3 ? 'you declare blocks and OK combat damage, as always' : 'you press Start my turn, as always', off:'no stop set'}, TB={on:'a stop you added: your turn stops here', fx:'you press Next, as always', off:'no stop set'};
   return {h:`<i class="sd a ${a}"></i><i class="sd b ${b}"></i>`, tip:`${on}'s turn: ${TA[a]}. Your turn: ${TB[b]}. Stops are set in the turn menu.`}; }
+/* v5.26 (Ben): an additional combat phase (Fear of Missing Out) gets its own Combat chip after the first: dashed while it is still to come,
+   lit while it is under way (G.turn.cx = which combat this is, carried in the shared turn), kept for the rest of the turn once it happened */
+function xcombPending(t){ const a = t.active===G.myId ? G.me : G.opp; return !!(t.n && a && a.xcomb===t.n && t.phase<=3) ? (a.xcby||'An effect') : ''; }
+function phaseChips(t){ const cx=t.cx||1, pend=xcombPending(t), nC=cx+(pend?1:0), out=[];
+  PH.forEach((p,i)=>{ const sd=priDash(i);
+    if(i!==3){ out.push(`<button data-ph="${i}" class="${t.n&&t.phase===i?'on':''}"${sd.tip?` title="${esc(sd.tip)}"`:''}>${p}${sd.h}</button>`); return; }
+    for(let k=1; k<=nC; k++){ const on=t.n && t.phase===3 && k===cx, extra=k>1, todo=extra && k>cx;
+      const tip=[extra ? (todo ? `An additional combat phase is coming (${unlink(pend).replace(/: [a-z ]*(?:trigger|ability)$/,'')}).` : 'The additional combat phase.') : (nC>1 ? 'The first combat phase.' : ''), sd.tip].filter(Boolean).join(' ');
+      out.push(`<button data-ph="3"${todo?' data-xc="1"':''} class="${[on?'on':'', todo?'xc':''].filter(Boolean).join(' ')}"${tip?` title="${esc(tip)}"`:''}>${p}${sd.h}</button>`); } });
+  return out.join(''); }
 function nextPhase(){ if(waitMull()) return;
   const t=G.turn; if(!t.n){ return; }
   if(t.hold && !t.passed && t.active!==G.myId){ if(t.hold.pid===G.myId){ send({t:'resume'}); log(`${G.me.name} passes priority back to ${G.opp?G.opp.name:'their opponent'}.`); } return; }
@@ -7114,7 +7126,7 @@ function nextPhase(){ if(waitMull()) return;
   if(t.phase<=1 && S.autoDraw && t.n>1 && G.me.drew!==t.n){ enterDraw(); return; }   // the turn stopped in the upkeep (a trigger, a pause): its draw still happens
   if(t.phase===0 && !S.autoDraw && pauseAt('pre')){ setTurn({...t, phase:1, hold:pauseHold('pre')}); changed(); return; }
   if(t.phase===3 && combatStep()) return;
-  if(t.phase===3 && G.me.xcomb===t.n){ delete G.me.xcomb; G.me.bf.forEach(c=>c.atk=false); G.me.arrows=G.me.arrows.filter(a=>!a.atk && !a.blk); const nt={...t, phase:3}; delete nt.cs; log(`${G.me.name} begins an additional combat phase.`); setTurn(priAtk(nt, true)); changed(); return; }
+  if(t.phase===3 && G.me.xcomb===t.n){ delete G.me.xcomb; G.me.bf.forEach(c=>c.atk=false); G.me.arrows=G.me.arrows.filter(a=>!a.atk && !a.blk); const nt={...t, phase:3, cx:(t.cx||1)+1}; delete nt.cs; log(`${G.me.name} begins an additional combat phase.`); setTurn(priAtk(nt, true)); changed(); return; }
   if(t.phase < PH.length-1){ const p=t.phase+1; if(p===3 && skipCombat()){ log(`${G.me.name} has no creature that can attack, so the turn goes straight to Main 2.`); setTurn({...t, phase:4}); return; }
     if(p===3){ log(`${G.me.name} moves to combat.`); const ma=mustAttack(); if(ma.length){ log(`Must attack this combat if able: ${ma.join(', ')}.`); toast(unlink(`${ma.join(', ')} ${ma.length>1?'attack':'attacks'} this combat if able.`)); } } setTurn(priAtk({...t, phase:p})); return; }
   G.me.bf.forEach(c=>c.atk=false); G.me.arrows=[]; G.noUndo=true;
@@ -7918,7 +7930,7 @@ function render(){
   { const tp=tl.querySelector('.tlp'), pa=m.pauseAsk&&m.pauseAsk.at, txt = pa ? `⏸ ${o&&o.name||'Opponent'}: ${PAUSE_SHORT[pa]}` : (m.pauseSelf ? '⏸ my upkeep' : ''); tp.hidden=!txt; tp.textContent=txt; }
   const stg=$('#stormTag'), showStorm=!!(t.n && ((m.cares&&m.cares.storm) || (o&&o.cares&&o.cares.storm)));
   stg.hidden=!showStorm; if(showStorm){ const mine_n=(m.cast&&m.cast.n)||0, opp_n=(o&&o.cast&&o.cast.n)||0; stg.innerHTML=`<small>STORM</small><b>${mine_n+opp_n}</b>`; stg.title=`Spells cast this turn: ${mine_n} by you${o?`, ${opp_n} by ${o.name}`:''}. Click to add one of yours, right-click to take one off.`; }
-  $('#phases').innerHTML = PH.map((p,i)=>{ const sd=priDash(i); return `<button data-ph="${i}" class="${t.n&&t.phase===i?'on':''}"${sd.tip?` title="${esc(sd.tip)}"`:''}>${p}${sd.h}</button>`; }).join('');
+  $('#phases').innerHTML = phaseChips(t);
   const gate=m.gate && t.active===G.myId ? m.gate : null, gateOld = gate && Date.now()-gate.at >= GATE_MS;
   $('#drawBtn').hidden = gate ? false : !(t.n>1 && t.active===G.myId && !S.autoDraw && t.phase===1 && m.drew!==t.n && m.lib.length);
   $('#drawBtn').textContent = gate ? (gateOld ? 'Draw anyway' : `Waiting for ${o?o.name:'opponent'}…`) : 'Draw a card'; $('#drawBtn').disabled = !!gate && !gateOld;
@@ -8795,6 +8807,7 @@ document.addEventListener('click', e=>{
   const av=t.closest('.avatar'); if(av && G.mode && G.mode.type!=='attach'){ finishMode(av.dataset.pl); return; }
   if(t.closest('[data-ph]') && G.turn.n && G.turn.hold && G.turn.hold.ok && !G.turn.passed){ toast(G.turn.hold.pid===G.myId ? `Press OK when ${priOn()} can move on.` : `Waiting for ${priOn()}'s OK.`); return; }   /* v5.0 */
   const ph=t.closest('[data-ph]'); if(ph && G.turn.n && G.turn.hold && !G.turn.passed){ toast(G.turn.hold.pid===G.myId ? 'You have priority: press Pass priority back when you are done.' : `Paused: ${G.opp?G.opp.name:'your opponent'} has priority.`); return; }
+  if(ph && G.turn.n && ph.dataset.xc && G.turn.phase===3 && G.turn.active===G.myId && !G.turn.passed){ nextPhase(); return; }   /* v5.26 */
   if(ph && G.turn.n){ if(G.turn.active===G.myId && G.turn.phase===0 && +ph.dataset.ph>0 && G.me.st.some(c=>c.pact)){ leaveUpkeep(); return; } if(priChip(+ph.dataset.ph)) return; setTurn({...G.turn, phase:+ph.dataset.ph, passed:false}); return; }
   const fb=t.closest('[data-first]'); if(fb){ if(fb.disabled) return; const v=fb.dataset.first; if(v==='mullgo'){ G.mullGo=true; log(`${G.me.name} starts without waiting for ${G.opp?G.opp.name:'the opponent'} to finish their mulligans.`); changed(); } else if(v==='sideboard') sideboardModal(); else if(v==='mull') mulligan(); else if(v==='roll') highRoll(); else if(v==='deal') drawOpening(); else if(v==='keep') keepHand(); else if(v==='me' && !G.turn.n) takeFirst(G.myId); else if(v==='rollboth') rollBoth(); else if(v==='skip') skipRoll(); else if(v==='comp') compDecide(fb.dataset.id); else if(v==='nocomp') compDecide(null); else if((v==='play'||v==='draw') && !G.turn.n) chooseFirst(v==='play'); return; }
   const pile=t.closest('.pile'); if(pile){ const z=pile.dataset.pile, mine=pile.dataset.o==='me';
