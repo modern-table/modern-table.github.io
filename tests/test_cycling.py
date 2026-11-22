@@ -62,7 +62,7 @@ try:
         # E: Rampager still gets no cycling row; cards without cycling unchanged
         w2 = p.evaluate("() => castWays(mk(keyOf('Ghor-Clan Rampager')), 'x').map(w=>w.k)")
         check('non-cycler: no cycling row', 'cycling' not in w2, str(w2))
-        # F: dimming (Ben): a cycler is never dimmed; a plain creature still is on the opponent's turn
+        # F: dimming (the maintainer): a cycler is never dimmed; a plain creature still is on the opponent's turn
         dim = p.evaluate("""() => { G.me.st=[]; G.turn.active=oppId(); G.turn.phase=2; const w=mk(keyOf('Street Wraith')), b=mk(null,{cu:{n:'Test Bear', t:'Creature — Bear', o:'', mc:'{1}{G}', pt:'2/2'}}), t=mk(keyOf('ketria triome')); return {w:handTimeWhy(w), b:!!handTimeWhy(b), t:handTimeWhy(t)}; }""")
         check("opponent's turn: Street Wraith not dimmed", dim['w'] is None, str(dim))
         check("opponent's turn: Triome not dimmed", dim['t'] is None, str(dim))

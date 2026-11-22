@@ -157,7 +157,7 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .pane.over{border-color:var(--brass);box-shadow:inset 0 0 0 2px #e0a66a66}
 #ghost{position:fixed;z-index:85;pointer-events:none;width:var(--gw,110px);transform:translate(-50%,-30%) rotate(-3deg);opacity:.92}
 #ghost .c{width:100%}
-/* Colour dive (v0.17, Ben): a rail of colour buttons beside the pool; a colour opens a window with every card of that colour
+/* Colour dive (v0.17, the maintainer): a rail of colour buttons beside the pool; a colour opens a window with every card of that colour
    (hybrid and multicolour included) and the lands that make it, by mana value across and type down, with Bulk add. */
 .poolwrap{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:16px;align-items:start}
 .diverail{display:flex;flex-direction:column;gap:6px;border-left:1px solid var(--line);padding-left:14px;position:sticky;top:8px;margin-top:22px}
@@ -993,7 +993,7 @@ function regionsHTML(cards, basics){
   });
   return h ? `<div class="regions">${h}</div>` : '';
 }
-/* Basic land art (v0.15, Ben): the same choice as the Modern Table's Basic lands box. It is one setting for both pages (mt_settings.basics,
+/* Basic land art (v0.15, the maintainer): the same choice as the Modern Table's Basic lands box. It is one setting for both pages (mt_settings.basics,
    the pages share browser storage), and the Modern Table applies it when the drafted deck is brought to a table, so here it only
    needs to be chosen and shown. The pictures are looked up once (dt_basicart) the same way the Modern Table does. */
 const BASIC_ART=[
@@ -1035,7 +1035,7 @@ function buildHTML(host, me){
   return h;
 }
 /* ---------- sealed: the kit, opened one pack at a time (v0.16) ----------
-   Ben's prerelease mode: the kit's sealed packs (Wizards' wrapper art from draft/packs/<set>/, drawn wrappers otherwise) and the
+   The maintainer's prerelease mode: the kit's sealed packs (Wizards' wrapper art from draft/packs/<set>/, drawn wrappers otherwise) and the
    promo face down as a card back; a pack fans out in pack order, then its cards are sorted into piles below. All of this is on
    the player's own screen (B.op): the host already dealt the cards as the pool. */
 const PACKIMG={};
@@ -1071,7 +1071,7 @@ function landMakes(d){
   return out;
 }
 /* A card belongs to a colour if it is that colour (hybrid and gold cards count for each of theirs), is colourless (artifacts and
-   other colourless spells fit any deck, so they show in every colour: Ben, v0.18), or is a land that makes it. */
+   other colourless spells fit any deck, so they show in every colour: the maintainer, v0.18), or is a land that makes it. */
 function inColour(d, k){ if(!d) return false; if(isLandCard(d)) return landMakes(d).has(k); return !d.c.length || d.c.includes(k); }
 function diveRailHTML(){
   const all=V.pool||[];
@@ -1311,7 +1311,7 @@ document.addEventListener('keydown', e=>{ if(e.key==='Escape' && GUIDE){ e.stopI
 $('#guideBtn').onclick=()=>{ if(V && GUIDES.includes(V.set)) openGuide(V.set); };
 
 /* ================= Game Night (v0.26) =================
-   Ben's design: a navy Game Night page (night/) hosts Modern {day} Night Magic for up to 8; Draft, Sealed and Cube open straight to their
+   The maintainer's design: a navy Game Night page (night/) hosts Modern {day} Night Magic for up to 8; Draft, Sealed and Cube open straight to their
    own table's setup (draft/, sealed/, cube/, each in its own felt). Every event ends in the same matchmaking room: chat, a 3-minute break
    before each round, tables named with their voice channel, one 50-minute clock, results sent by the Modern Table and confirmed by both
    players within 30 seconds (else the host reports them), automatic pairing by standings, and decks kept secret until the final standings. */

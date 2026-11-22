@@ -102,7 +102,7 @@ h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
 .cols .n{display:inline-block;width:1.6em;color:var(--brass);font-variant-numeric:tabular-nums}
 textarea#paste{width:100%;min-height:300px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
 .hint{color:var(--dim);font-size:13px;max-width:70ch}
-/* v4.127: the coin flip window (cfWindow); the coin is Ben's sprite sheet, img/coin-flip.webp: 4 x 4 frames, one turn; frame 0 = heads (planeswalker symbol), frame 8 = tails (the rat) */
+/* v4.127: the coin flip window (cfWindow); the coin is the maintainer's sprite sheet, img/coin-flip.webp: 4 x 4 frames, one turn; frame 0 = heads (planeswalker symbol), frame 8 = tails (the rat) */
 .cfstage{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px}.cfstage.solo{grid-template-columns:1fr;justify-items:center}
 .cfstage figure{margin:0;text-align:center;transition:opacity .35s,filter .35s}
 .cfstage:not(.win) .xfb .xfc{outline-color:transparent}.cfstage .xfb .xfc{transition:outline-color .3s,box-shadow .3s}.cfstage.win .xfb .xfc{outline-color:var(--brass);box-shadow:0 0 26px #d9b25f88}
@@ -284,7 +284,7 @@ body.t90r .pilT{margin:0 calc(var(--cw)*.16)}
 .costbox.up{border-color:#ff8a7a;box-shadow:0 0 6px 1px #ff4a3a88}.chban{position:absolute;left:0;right:0;top:30%;text-align:center;font:800 calc(var(--cw)*.095)/1.15 var(--ui);letter-spacing:.08em;color:#fff;background:#000e;border-top:1px solid #fffa;border-bottom:1px solid #fffa;padding:calc(var(--cw)*.02) 2px;box-shadow:0 2px 6px #0009;pointer-events:none;text-transform:uppercase}
 .costbox{position:absolute;left:3%;top:14%;display:flex;gap:1px;align-items:center;padding:2px 3px;border-radius:3px;background:#000e;border:1px solid var(--brass);box-shadow:0 2px 6px #0009;pointer-events:none}.costbox .ms{width:calc(var(--cw)*.13);height:calc(var(--cw)*.13);font-size:calc(var(--cw)*.075)}
 .badge.tok{left:4%;top:4%;border-color:var(--dim);color:var(--dim)}
-/* v4.130 (Ben chose the folded corner): a card created from outside the game (c.made) gets a brass triangle folded over its top-left corner with a star; sized from the card's own width, its rounded corner matches the card's (4.6% / 3.3% of the card = 17.7% of the fold) */
+/* v4.130 (the maintainer chose the folded corner): a card created from outside the game (c.made) gets a brass triangle folded over its top-left corner with a star; sized from the card's own width, its rounded corner matches the card's (4.6% / 3.3% of the card = 17.7% of the fold) */
 .crfold{position:absolute;left:0;top:0;width:26%;aspect-ratio:1;border-top-left-radius:17.7%;overflow:hidden;filter:drop-shadow(1px 1px 2px #000c);z-index:2}
 .crfold::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,#e2c072 0,#d9b25f 30%,#b8913f 50%,transparent 50%)}
 .crfold svg{position:absolute;left:10%;top:10%;width:38%;height:38%}
@@ -301,12 +301,12 @@ body.nomo .kc.won{animation:none}
 .badge.ctr.nm .kc{width:calc(var(--cw)*.17);height:calc(var(--cw)*.17);border:0;box-shadow:none}
 .badge.ctr.lore{padding:1px 8px;font-family:var(--display);font-weight:400;font-size:calc(var(--cw)*.17);letter-spacing:.04em}
 .badge.ctr.named{border-color:#fff;color:#fff;background:#000;white-space:nowrap}
-.badge.spl{left:4%;bottom:21%;display:flex;flex-direction:column;align-items:center;min-width:calc(var(--cw)*.27);padding:calc(var(--cw)*.012) calc(var(--cw)*.035) calc(var(--cw)*.02);background:linear-gradient(#22343a,#0c1619);border:1px solid var(--brass);border-radius:calc(var(--cw)*.018);box-shadow:inset 0 0 0 1px #000a,inset 0 1px 0 #f2d89255,0 2px 5px #000c;color:#f6ead0;white-space:nowrap}   /* v4.129: the brass plaque (Ben) */
+.badge.spl{left:4%;bottom:21%;display:flex;flex-direction:column;align-items:center;min-width:calc(var(--cw)*.27);padding:calc(var(--cw)*.012) calc(var(--cw)*.035) calc(var(--cw)*.02);background:linear-gradient(#22343a,#0c1619);border:1px solid var(--brass);border-radius:calc(var(--cw)*.018);box-shadow:inset 0 0 0 1px #000a,inset 0 1px 0 #f2d89255,0 2px 5px #000c;color:#f6ead0;white-space:nowrap}   /* v4.129: the brass plaque (the maintainer) */
 .badge.spl small{font:800 calc(var(--cw)*.052)/1 var(--ui);letter-spacing:.16em;color:var(--brass);margin-top:calc(var(--cw)*.008)}.badge.spl b{font:400 calc(var(--cw)*.15)/1 var(--display);color:#f6ead0}
 .badge.chap{left:4%;top:4%;border-color:#fff;color:#fff;background:#000;font-family:var(--display);font-weight:400;white-space:nowrap}
 .pile .dtag{position:absolute;right:4px;top:5px;font:800 10px var(--ui);letter-spacing:.06em;color:var(--ink);background:#000c;border:1px solid var(--dim);border-radius:99px;padding:1px 6px;z-index:2;pointer-events:none;white-space:nowrap}
 .pile .dtag.on{color:#1b1205;background:var(--brass);border-color:var(--brass)}.pile .dtag.low{top:26px}
-/* v4.129 (Ben chose the brass plaque): Storm | N, square corners, the number in the display font */
+/* v4.129 (the maintainer chose the brass plaque): Storm | N, square corners, the number in the display font */
 #stormTag{display:inline-flex;align-items:stretch;flex:none;cursor:pointer;border:1px solid var(--brass);border-radius:4px;overflow:hidden;box-shadow:inset 0 1px 0 #f2d89233}#stormTag[hidden]{display:none}#stormTag:hover{box-shadow:inset 0 1px 0 #f2d89233,0 0 0 1px var(--brass)}
 #stormTag small{font:800 10px var(--ui);letter-spacing:.16em;color:var(--brass);background:#0c1619;padding:3px 8px;display:grid;place-items:center}
 #stormTag b{font:400 16px/1 var(--display);color:#f6ead0;background:linear-gradient(#22343a,#16252a);padding:3px 9px;display:grid;place-items:center;border-left:1px solid #d9b25f88;font-variant-numeric:tabular-nums}
@@ -343,7 +343,7 @@ body.nomo .kc.won{animation:none}
 .badge.dpt{right:3.500%;bottom:2.500%;min-width:calc(var(--cw)*.27);text-align:center;border-radius:calc(var(--cw)*.05)/calc(var(--cw)*.07);padding:calc(var(--cw)*.012) calc(var(--cw)*.05);font:400 calc(var(--cw)*.17)/1.1 var(--display);-webkit-text-stroke:.06em currentColor;paint-order:stroke fill;letter-spacing:.05em;font-variant-numeric:tabular-nums;color:#141414;background:linear-gradient(#fbfbf8 0%,#e6e6e1 45%,#bdbdb7 100%);border:1px solid #2c2c2a;box-shadow:inset 0 1px 0 #fff,inset 0 -1px 2px #0005,0 0 0 1px #8e8e88,0 2px 4px #000a;white-space:nowrap}
 .badge.dpt.dead{color:#a3150c;background:linear-gradient(#fff1ef 0%,#f0c9c4 50%,#d39a93 100%);border-color:#6d0f08}
 .card.hasdpt .badge.ctr{bottom:21%}.card.hasdpt .badge.tmp{bottom:36%}
-/* v5.13: pennants for +1/+1 and -1/-1 counters and boosts this turn (Ben's pick, prototype C2): metal = it stays (brass +1/+1, onyx -1/-1), the creature's own color = this turn, dark gray = shrunk this turn */
+/* v5.13: pennants for +1/+1 and -1/-1 counters and boosts this turn (the maintainer's pick, prototype C2): metal = it stays (brass +1/+1, onyx -1/-1), the creature's own color = this turn, dark gray = shrunk this turn */
 .pens{position:absolute;right:-5%;bottom:6%;display:flex;flex-direction:column-reverse;align-items:flex-end;gap:calc(var(--cw)*.025);pointer-events:none;z-index:2;filter:drop-shadow(0 1px 2px #000b)}.card.hasdpt .pens{bottom:20%}
 .pen{min-height:calc(var(--cw)*.22);padding:calc(var(--cw)*.015) calc(var(--cw)*.06) calc(var(--cw)*.015) calc(var(--cw)*.1);display:flex;flex-direction:column;justify-content:center;align-items:flex-end;clip-path:polygon(0 0,100% 0,100% 100%,0 100%,calc(var(--cw)*.06) 50%);white-space:nowrap;color:#1c1a16;box-sizing:border-box}
 .pen b{font:900 max(12px,calc(var(--cw)*.13))/1 var(--ui);font-variant-numeric:tabular-nums}.pen small{font:800 max(6px,calc(var(--cw)*.055))/1.25 var(--ui);letter-spacing:.12em}
@@ -422,7 +422,7 @@ body.nomo .kc.won{animation:none}
 .pile .cmcban{display:none}
 .nmban{position:absolute;left:0;right:0;top:56%;text-align:center;font:800 calc(var(--cw)*.095)/1.15 var(--ui);letter-spacing:.06em;color:#fff;background:#000e;border-top:1px solid #fffa;border-bottom:1px solid #fffa;padding:calc(var(--cw)*.02) 0;box-shadow:0 2px 6px #0009;pointer-events:none}
 .wrpban{position:absolute;left:0;right:0;top:44%;text-align:center;font:800 calc(var(--cw)*.13)/1.1 var(--ui);letter-spacing:.14em;color:#fff;background:#000e;border-top:1px solid #fffa;border-bottom:1px solid #fffa;padding:calc(var(--cw)*.025) 0;box-shadow:0 2px 6px #0009;pointer-events:none}
-/* warp (v4.24, Ben): a WARP banner on a permanent cast for its warp cost, in the WARPED banner's place and style, with when it leaves underneath */
+/* warp (v4.24, the maintainer): a WARP banner on a permanent cast for its warp cost, in the WARPED banner's place and style, with when it leaves underneath */
 .card.tqnow{box-shadow:0 0 0 2px var(--brass),0 0 16px 5px color-mix(in srgb,var(--brass) 70%,transparent)!important;animation:tqpulse 1.4s ease-in-out infinite}@keyframes tqpulse{50%{box-shadow:0 0 0 2px var(--brass),0 0 26px 9px color-mix(in srgb,var(--brass) 45%,transparent)}}body.nomo .card.tqnow{animation:none}
 .tqban{position:absolute;left:0;right:0;top:40%;text-align:center;font:800 calc(var(--cw)*.105)/1.05 var(--ui);letter-spacing:.12em;color:#1a1408;background:var(--brass);padding:calc(var(--cw)*.03) 0 calc(var(--cw)*.025);box-shadow:0 2px 6px #0009;pointer-events:none}
 .card.tqnext{outline:2px dashed var(--brass);outline-offset:-2px}.tqtag{position:absolute;left:4%;top:40%;white-space:nowrap;font:800 calc(var(--cw)*.075)/1 var(--ui);letter-spacing:.1em;color:var(--brass);background:#000d;border:1px solid var(--brass);border-radius:3px;padding:calc(var(--cw)*.025) calc(var(--cw)*.04);pointer-events:none}
@@ -768,14 +768,14 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
 const VERSION = 'v5.27';
-/* Affiliation (v4.88, Ben): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
+/* Affiliation (v4.88, the maintainer): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
   {k:'black-vault-gaming', n:'Black Vault Gaming'}, {k:'brimstone-games', n:'Brimstone Games'}, {k:'eternal-games', n:'Eternal Games'},
   {k:'gamers-gauntlet', n:"Gamer's Gauntlet"}, {k:'gob', n:'GOB'}, {k:'jesters-gallery', n:"Jester's Gallery"}, {k:'motor-city-gaming', n:'Motor City Gaming'},
   {k:'mythic-forge-gaming', n:'Mythic Forge Gaming'}, {k:'riw-hobbies-games', n:'RIW Hobbies & Games'}, {k:'the-8th-side', n:'The 8th Side'},
   {k:'the-upkeep-games', n:'The Upkeep Games'}, {k:'time-travelers', n:'Time Travelers'}, {k:'twin-knights-gaming', n:'Twin Knights Gaming'} ];
-/* v4.96 (Ben): affiliation is switched off for now. With AFF_ON false nothing shows (front-page field, store notice line, logos beside names,
+/* v4.96 (the maintainer): affiliation is switched off for now. With AFF_ON false nothing shows (front-page field, store notice line, logos beside names,
    match intro, tour stop) and saved or published choices are ignored. The logos stay in lgs/; set AFF_ON = true to bring it all back. */
 const AFF_ON = false;
 const lgsOf = k => AFF_ON ? (LGS.find(x=>x.k===k) || null) : null;
@@ -929,7 +929,7 @@ const NEWS = [
   ['v4.22','Oct 23',"Urza's Saga played while Blood Moon is out now enters with no lore counters (entering with one is the Saga's own ability, which Blood Moon takes away)."],
   ['v4.21','Oct 23',"Urza's Saga under Blood Moon (or Magus of the Moon) stays on the battlefield as a Mountain: it keeps its lore counters and the abilities its chapters already gave it, but gets no new lore counters or chapters."],
   ['v4.20','Oct 23',"Full screen: choose Full screen in the ☰ menu. An Exit full screen button appears beside the menu while you're in it. In Chrome and Edge, Esc still works in the game (hold Esc to leave full screen); in other browsers Esc leaves full screen."],
-  ['v4.19','Oct 23',"Card fixes from Ben's notes. Chef's Kiss takes the spell, copies it and picks new targets at random for both (never you or your permanents). Out of Time phases out every creature (they turn grey and wait, counters and Equipment and all) and phases them back in when it leaves; its time counters come off each upkeep. String of Disappearances opens the pay window for {U}{U}, and the offer goes to whoever controls the bounced creature. Summon: Brynhildr counts lore counters, keeps its exiled card playable on your turns while it's out, and shows a box when your next creature spell will gain haste. Forecast cards (Piercing Rays) can be used from your hand in your upkeep, and the pause button can stop your own next turn in your upkeep. Graveyards show THRESHOLD when a deck cares, and a card Null Summoner exiles says so (and when it can be cast with mana of any type). Warrior's Blades asks where to equip first, then charges {1} less for each +1/+1 counter on that creature."],
+  ['v4.19','Oct 23',"Card fixes from the maintainer's notes. Chef's Kiss takes the spell, copies it and picks new targets at random for both (never you or your permanents). Out of Time phases out every creature (they turn grey and wait, counters and Equipment and all) and phases them back in when it leaves; its time counters come off each upkeep. String of Disappearances opens the pay window for {U}{U}, and the offer goes to whoever controls the bounced creature. Summon: Brynhildr counts lore counters, keeps its exiled card playable on your turns while it's out, and shows a box when your next creature spell will gain haste. Forecast cards (Piercing Rays) can be used from your hand in your upkeep, and the pause button can stop your own next turn in your upkeep. Graveyards show THRESHOLD when a deck cares, and a card Null Summoner exiles says so (and when it can be cast with mana of any type). Warrior's Blades asks where to equip first, then charges {1} less for each +1/+1 counter on that creature."],
   ['v4.18','Oct 23',"Ketramose now sees its own exile: when Phelia, Flickerwisp or a removal spell exiles it during your turn, you still draw a card and lose 1 life."],
   ['v4.17','Oct 23',"Practice games now have an opponent called Practice, at 20 life, so you can see combat damage and burn land. The Practice button in the middle can give it creatures (with flying, reach, deathtouch and so on), a planeswalker, an artifact, an enchantment or a land, or put a battle on your side to attack; you declare its blocks. Attack with all chooses every creature that can attack, and Reset attackers starts over. Phelia and Flickerwisp keep asking for their target until you click one or press No target. An Overlord cast for its impending cost no longer counts as a creature entering (Guide of Souls)."],
   ['v4.16','Oct 23',"The last of the draft sets' odd cards: Zodiark, Kindred Judgment and Patriarch's Bidding (you pick the creature type), Villainous Wealth, Gix and Lonis (your opponent's top cards come over to you), Collected Conjuring, Mizzix's Mastery, Uldaros and Garth One-Eye (free casts and copies), Howl of the Horde, Memories Returning (you and your opponent take turns), Sorin's and Garruk's 'until your next turn' effects, Clash of Elements, Stiltzkin, Sin, Glimpse of Tomorrow, hideaway, abilities that cost less for each Town, spells that do more when cast from a graveyard, and many more."],
@@ -1161,7 +1161,7 @@ function saveDB(){ const o={}; let n=0; for(const k in DB){ if(!DB[k].tmp && !DB
 const BAKED = /*__CARDS__*/{};
 /* names a decklist gives under another name than Scryfall's (src/aliases.txt), e.g. Arena's "Through the Omenpaths" names for Marvel cards */
 const ALIASES = /*__ALIASES__*/{};
-/* v4.46 (Ben): a card the table has "learned" is one whose rules we have checked: every card of the built-in decks and src/extra.txt (BAKED),
+/* v4.46 (the maintainer): a card the table has "learned" is one whose rules we have checked: every card of the built-in decks and src/extra.txt (BAKED),
    cards printed in the Draft Table's ready sets (READY_SETS, read from src/draft.src.html by the build), basic lands and cards with no rules text.
    Any other card can be played, by hand where needed, and carries a violet ring (.unlr) with a legend under the game log. */
 const READY_SETS = /*__READY__*/[], READY_NAMES = new Set(/*__READYN__*/[]);   // the ready cubes' card names
@@ -1685,7 +1685,7 @@ function useAbility(c, a, noExtra){
   if(!payCost(a.cost)){ toast(`That costs ${costLabel(a.cost)}. Put it in your mana pool first, then try again.`); return false; }
   if(!a.notap){ c.tap=true; c.mt={o:a.out, t:G.turn.n, ph:G.turn.phase, sm:(a.only || a.rider) ? 1 : 0}; }   /* v4.102: Relic of Legends' second ability taps a creature, not the Relic */ if(a.only || a.rider){ const m=G.me, src=cdata(c).n.split(',')[0]; m.smana=m.smana||[]; for(const k of a.out) if(MANA.includes(k)) m.smana.push({k, src, only:a.only||'', rider:a.rider||'', chosen:c.chosen||''}); if(!noExtra) log(`${G.me.name} taps ${cname(c)} for ${[...a.out].map(k=>'{'+k+'}').join('')}${a.only ? `: spend ${a.out.length>1?'this mana':'it'} only ${a.only}` : ''}${a.rider==='haste' ? ' (a creature spell paid with it gains haste)' : ''}.`); } else addMana(a.out); if(!noExtra && (isCreature(c) || c.anim)) extraMana(c); if(a.rem) c.c--; if(a.dmg){ G.me.life-=a.dmg; log(`${cname(c)} deals ${a.dmg} damage to ${G.me.name} (now ${G.me.life}).`); } if(a.life){ G.me.life-=a.life; log(`${G.me.name} pays ${a.life} life for ${cname(c)}'s mana (now ${G.me.life}).`); } if(a.sacs){ const g=find(c.id); if(g && g.z==='bf'){ log(`${G.me.name} taps and sacrifices ${cname(c)} for ${[...a.out].map(k=>'{'+k+'}').join('')}.`); move(c.id,'gy',{silent:true}); } } if(a.exert){ c.exert=true; log(`${G.me.name} exerts ${cname(c)}. It will not untap next turn.`); } return true;
 }
-/* v4.98 (Ben): an "any color" mana ability that also taps one of your creatures (Springleaf Drum) is one menu item worded as the card; the creature is chosen and tapped first, then the color (a mana ability: no stack) */
+/* v4.98 (the maintainer): an "any color" mana ability that also taps one of your creatures (Springleaf Drum) is one menu item worded as the card; the creature is chosen and tapped first, then the color (a mana ability: no stack) */
 function manaItems(c, ch){ ch=ch||changed; const abs=manaAbilities(c), grp=abs.filter(a=>a.tcr && a.out.length===1 && 'WUBRG'.includes(a.out)), one=grp.length>1, out=[];
   if(one){ const ln=(cdata(c).o||'').split('\n').map(l=>l.trim()).find(l=>/Tap an untapped (?:[a-z]+ )?(?:artifact or creature|creature|artifact) you control[^:\n]*:\s*Add\b/i.test(l)) || 'Tap an untapped creature you control: Add one mana of any color.'; out.push([ln, ()=>anyColorTap(c, grp, ch)]); }
   for(const a of abs) if(!(one && grp.includes(a))) out.push([abilityLabel(a), ()=>{ if(useAbility(c,a)) ch(); }]);
@@ -1885,7 +1885,7 @@ const ozText = z => [z.p ? `${z.p} +1/+1` : '', z.m ? `${z.m} -1/-1` : '', z.stu
 function ozolithTrig(c){ const z={p:Math.max(0, c.c||0), m:Math.max(0, -(c.c||0)), stun:c.stun||0}; if(!ozTotal(z)) return;
   for(const o of G.me.bf){ if(o.id===c.id || o.fd || (!o.k && !o.cu) || !OZO_RE.test(frontText(o)||'')) continue; const d=cdata(o), nm=faceName(o,0);
     G.me.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:o.id, tr:true, ozc:z}, cu:{n:`${nm}: trigger`, t:'Triggered ability', o:`Put those counters (${ozText(z)}) on ${nm}.`, img:d.img||''}})); log(`${nm}: ${cname(c)} left the battlefield with counters on it, so its trigger goes on the stack.`); } }
-/* v5.13 pennants (Ben's C2): the boost this turn takes a pale version of the creature's colors (split for two or more, silver if colorless; black is pale purple) */
+/* v5.13 pennants (the maintainer's C2): the boost this turn takes a pale version of the creature's colors (split for two or more, silver if colorless; black is pale purple) */
 const PEN_COL={W:'#f3e9cc', U:'#bcd8f2', B:'#d8c8ef', R:'#f4b3a6', G:'#c3e2b6'}, PEN_C='#e4e4de';
 function penBg(c){ const cs=[...new Set((c.fd ? [] : (cardColors(c)||[])).filter(k=>PEN_COL[k]))]; if(!cs.length) return PEN_C; if(cs.length===1) return PEN_COL[cs[0]]; const n=cs.length; return 'linear-gradient(90deg,'+cs.map((k,i)=>`${PEN_COL[k]} ${(i*100/n).toFixed(1)}% ${((i+1)*100/n).toFixed(1)}%`).join(',')+')'; }
 function penHTML(c, ctr){ let h='';
@@ -1960,11 +1960,11 @@ function pickP(title, cards, none){ return new Promise(res=>{ let done=false; co
   if(!$('#modal').hidden) closeModal();
   const el=modal(title, `<div class="grid" id="pkGrid">${cards.map(c=>cardHTML(c,'gy',true)).join('')}</div><span class="hint">Click a card to choose it.</span>`, [[none||'None',()=>fin(null),'ghost']], {wide:true, onClose:()=>{ if(!done){ done=true; res(null); } }});
   $('#pkGrid',el).onclick=e=>{ const d=e.target.closest('.card[data-id]'); if(!d) return; fin(cards.find(x=>x.id===d.dataset.id)||null); }; }); }
-/* v4.125 (Ben): transform windows show the card as it is now and the face it transforms into */
+/* v4.125 (the maintainer): transform windows show the card as it is now and the face it transforms into */
 function xfFace(c, i){ const d=cdata(c), img=i ? d.back : d.img, nm=faceName(c,i), tp=faceTypeOf(c,i), tx=(String(d.o||'').split('\n\n')[i]||'').replace(/^[^\n]*\n/,'');
   return `<div class="xfc"><div class="xftx"><b>${esc(nm)}</b><i>${esc(tp)}</i>${esc(tx).slice(0,420).replace(/\n/g,'<br>')}</div>${img ? `<img src="${esc(img)}" alt="${esc(nm)}" draggable="false" onerror="this.remove()">` : ''}</div>`; }
 function xfPairHTML(c){ const d=c && cdata(c); if(!d || !(d.back || / \/\/ /.test(d.t||''))) return ''; return `<div class="xfpair"><figure>${xfFace(c,0)}<figcaption>Now</figcaption></figure><span class="xfarr">→</span><figure class="xfb">${xfFace(c,1)}<figcaption>Transforms into</figcaption></figure></div>`; }
-/* v4.127 (Ben): coin flips in one window: the call (first flip of a game, kept in m.coinCall), Flip the coin (or Space), the coin tossed from the sprite sheet,
+/* v4.127 (the maintainer): coin flips in one window: the call (first flip of a game, kept in m.coinCall), Flip the coin (or Space), the coin tossed from the sprite sheet,
    the result, and what happens next. A trigger whose win is "you may exile …, then return … transformed" shows Now → Transforms into and asks there (G.coinXf).
    o: {title, why, src, win, lose, xf, call} (call: a game flip with heads/tails called; without it, the Roll menu's plain flip). Resolves {side, res, xf}. */
 const CF_IMG='img/coin-flip.webp'; let CFP=null;
@@ -2009,7 +2009,7 @@ function cfWindow(o){ return new Promise(resolve=>{ const m=G.me, tok=++CFT, pai
       el._noClose=false; foot(`<span class="cfnote">${esc(note)}</span><button class="ghost" data-cfx="0">Not now</button><button class="go" data-cfx="1">Exile ${esc(short)} and return transformed</button>`); const b=$('[data-cfx="1"]',el); if(b) b.focus(); return; }
     if(br){ const ou=$('#cfOut',el); ou.hidden=false; ou.className='cfout '+res; ou.textContent=cap(br); }
     el._noClose=false; foot(`<span class="cfnote">${br ? "Nothing to choose: it's done" : ''}</span><button class="go" data-cfok>OK</button>`); const b=$('[data-cfok]',el); if(b) b.focus();
-    /* v4.128 (Ben): with nothing to choose, the result happens as the coin lands (the trigger goes on while the window stays up; OK only closes it), and a life change shows in the strip */
+    /* v4.128 (the maintainer): with nothing to choose, the result happens as the coin lands (the trigger goes on while the window stays up; OK only closes it), and a life change shows in the strip */
     if(o.call){ const lf=m.life; done=true; removeEventListener('keydown', key, true); resolve({side, res, xf:false}); if(br) setTimeout(()=>{ if(!alive() || m.life===lf) return; const ou=$('#cfOut',el); if(ou) ou.textContent=`${cap(br)} Life ${lf} → ${m.life}.`; }, 120); } };
   function onClick(e){ if(!alive()) return; const t=e.target;
     const cc=t.closest('[data-cfc]'); if(cc && stage==='call'){ m.coinCall=cc.dataset.cfc; log(`${m.name} calls ${m.coinCall} for coin flips this game.`); changed(); ready(); flip(); return; }
@@ -2132,7 +2132,7 @@ const TOKTXT={Powerstone:['Token Artifact — Powerstone',"{T}: Add {C}. This ma
 const TOKART = store.get('mt_tokart2', {}); try{ localStorage.removeItem('mt_tokart'); }catch(e){}   // v3.65: the old list held the white Warrior picture for mobilize's red tokens
 const TOKPIN={treasure:'khm'};   // token name → the set whose token picture is always used (searched as e:t<set>)
 async function tokenArt(made, src, name, pt, cl){
-  if(!made || !made.length || !name) return; const pin=TOKPIN[name.toLowerCase()]; if(pin) src=null;   // v4.66 (Ben): every Treasure uses the Kaldheim Tokens picture
+  if(!made || !made.length || !name) return; const pin=TOKPIN[name.toLowerCase()]; if(pin) src=null;   // v4.66 (the maintainer): every Treasure uses the Kaldheim Tokens picture
   const sd=src ? cdata(src) : null, set=pin||(sd && sd.set)||'', key=(pin ? 'pin|' : '')+[set, name, pt||'', cl ? cl.join('')||'c' : ''].join('|').toLowerCase(), nm=name.toLowerCase();
   let img=TOKART[key];
   if(img===undefined){ img=''; let err=false;
@@ -2162,7 +2162,7 @@ function pickSpent(c, cb){ const cs=spentConds(c), sym=k=>`{${k}}{${k}}`; const 
 /* Teferi, Time Raveler: its controller's opponents cast spells only when they could cast a sorcery */
 function timingLock(c){ for(const x of ((G.opp&&G.opp.bf)||[])){ if(x.fd || (!x.k && !x.cu)) continue; if(/Each opponent can cast spells only any time they could cast a sorcery/i.test(frontText(x)||'')){
     const ok=G.turn.active===G.myId && (G.turn.phase===2 || G.turn.phase===4) && !G.me.st.some(y=>y.id!==c.id) && !((G.opp&&G.opp.st)||[]).length; return ok ? null : cdata(x).n; } } return null; }
-/* v5.14: timing (Ben). Spells without flash, lands and loyalty abilities follow sorcery timing: your turn, a main phase, the stack empty. Flash comes from the
+/* v5.14: timing (the maintainer). Spells without flash, lands and loyalty abilities follow sorcery timing: your turn, a main phase, the stack empty. Flash comes from the
    keyword, from "as though it had flash" lines on my battlefield (Leyline of Anticipation, Vedalken Orrery, Yeva, Shimmer Myr, Teferi, Mage of Zhalfir's
    "… cards you own that aren't on the battlefield have flash") and from effects that resolved (m.flashT: Borne Upon a Wind, Emergence Zone this turn,
    Teferi, Time Raveler until my next turn). A split second spell on either stack holds everything else. Loyalty abilities: once per planeswalker per turn
@@ -2211,7 +2211,7 @@ function loyMark(c){ const n=G.turn.n||0, b=c.bfx||0; if(!c.lyT || c.lyT.t!==n |
 /* the window: Don't / … anyway, logged */
 function timeAsk(w, verb, what, go, more){ modal(w.title, `<span class="hint">${esc(w.why)}${more && more.length ? '<br><br>'+esc(more.note) : ''}<br><br>${verb} anyway only to fix a mistake, or if you have both agreed it's allowed. The log will note it.</span>`, [[`Don't ${verb.toLowerCase()}`,()=>closeModal(),'ghost'], ...(more||[]), [`${verb} anyway`,()=>{ closeModal(); log(`${G.me.name} ${verb==='Play'?'plays':verb==='Cast'?'casts':'activates'} ${what} anyway, outside the timing rules (${w.short}).`); go(); },'go']]); }
 /* hand dimming: why this hand card can't be played right now (null = it can, or the table can't tell) */
-function handTimeWhy(c){ if(tmOff() || !c || c.fd || (!c.k && !c.cu)) return null; if(brIdx(c)>=0) return null;   /* v5.17: bloodrush can be played, so the card isn't dimmed */ if(cyclingOf(c).length && !splitSecondOn(null)) return null;   /* v5.25 (Ben): cycling is instant speed, so a cycler is never dimmed */
+function handTimeWhy(c){ if(tmOff() || !c || c.fd || (!c.k && !c.cu)) return null; if(brIdx(c)>=0) return null;   /* v5.17: bloodrush can be played, so the card isn't dimmed */ if(cyclingOf(c).length && !splitSecondOn(null)) return null;   /* v5.25 (the maintainer): cycling is instant speed, so a cycler is never dimmed */
   if(isLand(c)) return landTimeWhy(c);
   const ws=[castTimeWhy(c, {})]; if(cdata(c).lay==='adventure') ws.push(castTimeWhy(c, {adv:1})); if(isSplit(c)) ws.push(castTimeWhy(c, {half:0}), castTimeWhy(c, {half:1}));
   if(typeof mdfcLand==='function' && mdfcLand(c)) ws.push(landTimeWhy(c));
@@ -2280,7 +2280,7 @@ async function creativeReveal(n, by){ const m=G.me, got=[]; if(!n) return;
     log(`${by}: ${m.name} reveals ${shown.map(cname).join(', ')||'nothing (empty library)'}${j<0 ? ' and finds no artifact or creature card' : ''}.`); if(j<0) break; const hit=m.lib[j]; move(hit.id,'ex',{silent:true}); got.push(hit); }
   const in_=[]; for(const x of got){ const f=find(x.id); if(f && f.z==='ex'){ move(x.id,'bf',{silent:true}); in_.push(cname(x)); } }
   shuffleLib(true); G.noUndo=true; log(`${by}: ${in_.length ? in_.join(', ')+' enter'+(in_.length===1?'s':'')+' the battlefield' : 'nothing enters the battlefield'}; ${m.name} shuffles.`); changed(); }
-/* v4.41 (Ben): Surgical Extraction and Extirpate step by step. The caster looks through the owner's graveyard, then hand, then library (in its
+/* v4.41 (the maintainer): Surgical Extraction and Extirpate step by step. The caster looks through the owner's graveyard, then hand, then library (in its
    order; the card under the pointer shows whole), clicks the copies of the named card to exile (gold aura) and moves on with the button; before
    the library the caster may start a notepad of the rest of the hand. Extirpate ("all cards") marks every copy and can't leave one. The owner
    then exiles the chosen cards and shuffles (extractdo). A friend's zones come from their table (askOpp 'zones'); Practice's and my own are here. */
@@ -2650,7 +2650,7 @@ function oppSearchAsk(msg){ const by=String(msg.by||'An effect').slice(0,80), wh
   const what=`a${/^[aeiou]/i.test(sp.desc)?'n':''} ${sp.desc} card${sp.basicType?' with a basic land type':''}`;
   setTimeout(()=>modal(`${who}'s ${by}`, `<span class="hint">You may search your library for ${esc(what)}, put it onto the battlefield${sp.tapped?' tapped':''}, then shuffle.</span>`,
     [["Don't search",()=>{ closeModal(); log(`${by}: ${G.me.name} doesn't search their library.`); },'ghost'], ['Search my library',()=>{ closeModal(); searchGate(()=>libSearch(sp, by, null), by); },'go']]), 0); }
-/* v4.38 (Ben): Practice "may search its library" (Price of Freedom, Demolition Field, Field of Ruin). I choose for it: a tile per matching name in
+/* v4.38 (the maintainer): Practice "may search its library" (Price of Freedom, Demolition Field, Field of Ruin). I choose for it: a tile per matching name in
    its library (up to N for "up to N basic land cards"), or Practice doesn't search. The cards go straight onto its battlefield. */
 function dummySearchAsk(d, sp, by, who, must){ if(!d || !d.dummy || G.opp!==d) return; const n = typeof sp.n==='number' ? sp.n : 1;
   const cs=searchLib(d, false).filter(c=>matchesDesc(c, sp.desc) && (!sp.basicType || BASICS.some(t=>new RegExp('\\b'+t+'\\b').test(faceTypeOf(c,0))))), seen=new Set(), shown=cs.filter(c=>!seen.has(cdata(c).n) && seen.add(cdata(c).n));
@@ -2680,7 +2680,7 @@ function fanWire(g){ if(!g || g._fan) return; g._fan=1; const reset=()=>{ for(co
   g.addEventListener('mouseover', e=>{ const cd=e.target.closest('.card'); if(!cd || cd.parentElement!==g) return; const kids=[...g.children], i=kids.indexOf(cd), top=cd.offsetTop, w=cd.offsetWidth;
     kids.forEach((k,j)=>{ const row=k.offsetTop===top; k.style.transform = k===cd ? 'translateY(-7%)' : row && j>i ? `translateX(${Math.round(w*.55)}px)` : row ? `translateX(${-Math.round(w*.08)}px)` : ''; k.style.zIndex = k===cd ? 3 : ''; }); });
   g.addEventListener('mouseleave', reset); }
-/* v5.16 (Ben): "Whenever you scry or surveil, draw a card." (Matoya, Archon Elder) and similar: once a scry or surveil window closes, each of my permanents with that trigger puts one on the stack */
+/* v5.16 (the maintainer): "Whenever you scry or surveil, draw a card." (Matoya, Archon Elder) and similar: once a scry or surveil window closes, each of my permanents with that trigger puts one on the stack */
 function scryTrigs(kind){ for(const x of G.me.bf){ const m=(frontText(x)||'').match(/Whenever you (scry or surveil|scry|surveil), ([^\n]+)/i); if(!m || !m[1].toLowerCase().includes(kind)) continue; const d=cdata(x), sn=(d.n||'').split(',')[0]; G.me.st.push(mk(null,{tok:true, ts:Date.now(), ab:{id:x.id, tr:true}, cu:{n:`${sn}: trigger`, t:'Triggered ability', o:m[0], img:d.img||''}})); log(`${sn}: its trigger goes on the stack.`); } }
 /* Scry N / surveil N: the top N cards in a window; each is marked Top or Bottom (Graveyard for surveil) and the ones on top can be reordered.
    Resolution waits for it, so "Scry 1. Draw a card." draws after the scry. */
@@ -2702,7 +2702,7 @@ function scryWin(n, kind, by){ return new Promise(res=>{ const m=G.me, cards=m.l
     if(s==='t' || s==='b'){ x.top = s==='t'; st.splice(i,1); if(x.top){ const li=st.map(y=>y.top).lastIndexOf(true); st.splice(li+1,0,x); } else st.push(x); }
     else { const tops=st.filter(y=>y.top), j=tops.indexOf(x), k=s==='l' ? j-1 : j+1; if(k<0 || k>=tops.length) return; const o=tops[k], a=st.indexOf(x), bI=st.indexOf(o); st[a]=o; st[bI]=x; }
     paint(); }; }); }
-/* v4.21–v4.22 (Ben's reading of the current Saga rules): entering with a lore counter is the Saga's own (intrinsic) ability, so under Blood Moon it enters with none; a Saga land under Blood Moon (Urza's Saga) stays. It is a Mountain with no
+/* v4.21–v4.22 (the maintainer's reading of the current Saga rules): entering with a lore counter is the Saga's own (intrinsic) ability, so under Blood Moon it enters with none; a Saga land under Blood Moon (Urza's Saga) stays. It is a Mountain with no
    chapter abilities, so it gets no new lore counters and no chapters, keeps the lore counters it has, and keeps the abilities its resolved
    chapters gave it ("This Saga gains '…'" for chapters up to its lore count): `sagaGained`, used by abilitiesOf and manaAbilities0. */
 const moonSaga = c => { if(!c || c.fd || !isSaga(c) || !isLand(c)) return null; const mine=G.me.bf.includes(c), opp=!mine && ((G.opp&&G.opp.bf)||[]).includes(c); if(!mine && !opp) return null;
@@ -2732,7 +2732,7 @@ function sagaTick(turnN){
 function sagaEnd(s){
   const d=cdata(s), xf=!!d.back && /return it to the battlefield transformed/i.test(d.o||'');
   if(!xf){ const f=find(s.id); if(!f || f.z!=='bf') return; log(`${cname(f.c)}'s last chapter has resolved, so ${G.me.name} sacrifices it.`); move(s.id,'gy',{silent:true}); changed(); return; }   // a Saga is sacrificed as its last chapter leaves the stack (Urza's Saga: while its search is still going)
-  { const f=find(s.id); if(!f || f.z!=='bf') return; const c=f.c; c.c=0; c.tap=false; c.row=null; c.atk=false; delete c.kw; delete c.lt; delete c.tp; delete c.tt; c.flip=true; c.sick=!!G.turn.n; const L=cdata(c).loy2; if(isPW(c) && L && !isNaN(+L)) c.c=+L; log(`${faceName(c,0)}'s last chapter: ${G.me.name} exiles it and returns it transformed (${faceName(c,1)}).`); changed(); }   // v4.126 (Ben): no choice to make, so no window (Fable of the Mirror-Breaker); before, a window offered "Leave it on the battlefield"
+  { const f=find(s.id); if(!f || f.z!=='bf') return; const c=f.c; c.c=0; c.tap=false; c.row=null; c.atk=false; delete c.kw; delete c.lt; delete c.tp; delete c.tt; c.flip=true; c.sick=!!G.turn.n; const L=cdata(c).loy2; if(isPW(c) && L && !isNaN(+L)) c.c=+L; log(`${faceName(c,0)}'s last chapter: ${G.me.name} exiles it and returns it transformed (${faceName(c,1)}).`); changed(); }   // v4.126 (the maintainer): no choice to make, so no window (Fable of the Mirror-Breaker); before, a window offered "Leave it on the battlefield"
 }
 /* discarding: every way of discarding from my hand comes through discard(). A card with madness goes to exile first and its owner is asked
    whether to cast it for the madness cost; if not, it goes to the graveyard. */
@@ -2881,7 +2881,7 @@ function openReveal(cards, pid, who, info){ let pick=null; const own=pid===G.myI
     modal(`Track ${own?'your':who+"'s"} hand?`, `<span class="hint">A notepad next to your hand can list the ${rest.length} card${rest.length>1?'s':''} still there: ${rest.map(x=>esc(cdata(d(x)).n)).join(', ')}. Both players can see it; you cross names off as they are played.</span>`,
       [['No need to track these cards',()=>closeModal(),'ghost'], ['I would like to track these cards',()=>{ closeModal(); trkSet('hand', {who, pid, src:info.src, list:rest.map(x=>({k:x.k, n:cdata(d(x)).n}))}); log(`${G.me.name} starts a notepad of ${own?'their own':who+"'s"} hand (${rest.length} card${rest.length>1?'s':''}).`); changed(); },'go']]); }
 }
-/* v4.65 (Ben): the notepad also takes cards seen privately: a top card of the opponent's library (Mishra's Bauble, shown to you) and a card seen
+/* v4.65 (the maintainer): the notepad also takes cards seen privately: a top card of the opponent's library (Mishra's Bauble, shown to you) and a card seen
    in their hand (Urza's Bauble). m.trk = {who, pid, src, n, list:[{k, n, p?}], top:{k, n, src, t, p}|null}; p marks what only I saw, which the
    opponent's copy of the pad shows as "?" (pubTrk). A new full look at the hand replaces the hand list; a top card replaces the old one. */
 function trkSet(kind, o){ const m=G.me, prev=m.trk && m.trk.pid===o.pid ? m.trk : null, t=Object.assign({list:[], top:null, n:G.turn.n||0}, prev||{}, {who:o.who, pid:o.pid});
@@ -3202,7 +3202,7 @@ const isHeldTrig = x => (!!G.trigHold && !G.trigHold.before.has(x.id) && G.me.st
 function holdDrop(){ if((G.trigHold || G.ordHold) && G.mode && G.mode.type==='arrow'){ const x=G.me.st.find(y=>y.id===G.mode.from); if(x && isHeldTrig(x)){ if(x.ab) x.ab.tq=1; G.mode=null; } } }   // a held trigger's own arrow start waits too
 const heldTrigs = () => G.trigHold ? G.me.st.filter(x=>!G.trigHold.before.has(x.id)) : [];
 async function holdIdle(){ const t0=Date.now(); await new Promise(r=>setTimeout(r,250)); holdDrop(); while(Date.now()-t0<30000 && (!$('#modal').hidden || PAY || G.mode)){ await new Promise(r=>setTimeout(r,120)); holdDrop(); } }
-/* v4.116 (Ben): the Colossus box is its own panel (#coPanel), docked over the opponent's half so my battlefield stays in view, and it stays put for the
+/* v4.116 (the maintainer): the Colossus box is its own panel (#coPanel), docked over the opponent's half so my battlefield stays in view, and it stays put for the
    whole loop (a question a land asks opens on top of it). Top: the waiting triggers at table size, overlapping like the stack. Below: the rest of the hand
    (left) and the lands I can put down (right); the card just drawn carries DRAWN. After Done the same row is ordered by dragging, like the hand
    (pointer events, so touch works): left = bottom, right = top (resolves first). */
@@ -3247,7 +3247,7 @@ async function colossusLoop(by, tapped){ const m=G.me; G.trigHold={by, before:ne
     if(hd.length) log(`${by}: ${m.name} puts ${hd.length} trigger${hd.length>1?'s':''} on the stack${hd.length>1?' (top: '+String(cdata(hd[hd.length-1]).n).replace(/: (?:trigger|landfall)$/,'')+')':''}.`);
   } finally { coClose(); G.trigHold=null; changed(); }
   return n; }
-/* v5.02 (Ben): triggers that happen at the same time are put on the stack in the order their controller chooses (rule 603.3b), both players.
+/* v5.02 (the maintainer): triggers that happen at the same time are put on the stack in the order their controller chooses (rule 603.3b), both players.
    With Priority on, two or more of my triggers that arrive in one checkpoint (ordWatch, from changed(), before priWatch) are held (G.ordHold:
    off the stack display, off pub(), away from autoArm, like the Colossus hold) and the same docked panel opens in its ordering phase
    (CO.kind 'sim'): drag to order, then Add to stack or Add to stack and remember this order. While it is open pub() says ord, and both
@@ -3347,7 +3347,7 @@ function libSearch(sp, by, x, o={}){ let done=false;   // v4.42: once a search s
     shuffleLib(true); log(names.length ? (sp.dest==='ex' ? `${by}: ${m.name} searches their library${censorNote()}, exiles ${names.join(', ')}, then shuffles.` : `${by}: ${m.name} searches their library${censorNote()}, puts ${names.join(', ')} ${sp.dest==='bf' ? 'onto the battlefield'+(sp.tapped?' tapped':'') : 'into their hand'}${paid?`, paying ${paid} life (now ${m.life})`:''}, then shuffles.`) : `${by}: ${m.name} searches their library${censorNote()}, finds no ${what}, then shuffles.`); changed(); if(o.after) o.after(ids.filter(id=>{ const g=find(id); return g && g.z!=='lib'; })); };   // v4.131: dest 'ex' (Bring to Light) and o.after(found ids)
   const el=modal(`${by}: ${n>1?'up to '+n:'a'}${/^[aeiou]/i.test(what)&&n===1?'n':''} ${what}${n>1?'s':''}`, `<span class="hint">Click ${n>1?'up to '+n+' cards':'the card'}${sp.dest==='split' ? ': one goes onto the battlefield'+(sp.tapped?' tapped':'')+', the other into your hand' : (sp.dest==='ex' ? ' to exile' : ' to put '+(sp.dest==='landbf' ? 'onto the battlefield'+(sp.tapped?' tapped':'')+' if it is a land, otherwise into your hand' : sp.dest==='bf' ? 'onto the battlefield'+(sp.tapped?' tapped':'') : 'into your hand'))}. Your library is shuffled afterwards.</span>${cs.length ? '' : `<span class="hint"> There is no ${esc(what)} in your library.</span>`}<div class="grid" id="lsGrid">${shownHTML()}</div>`,
     [['Fail to find (shuffle)',()=>fin([]),'ghost'], ['Look through the whole library',()=>lsToggle(),'ghost lsall'], ['Put onto the battlefield tapped',()=>fin([...sel],'tapped'),'alt'], ['Choose',()=>fin([...sel], el._how),'go']], {wide:true, noClose:!!o.must, onClose:()=>fin([])});
-  // v4.41 (Ben): while searching you may look at the whole library; it is laid out in its order, the cards that can't be chosen greyed
+  // v4.41 (the maintainer): while searching you may look at the whole library; it is laid out in its order, the cards that can't be chosen greyed
   function shownHTML(){ return shown.map(c=>n===1 && cnt[cdata(c).n]>1 ? `<span class="cewrap" style="position:relative">${cardHTML(c,'gy',true)}<span class="cemv">×${cnt[cdata(c).n]} in library</span></span>` : cardHTML(c,'gy',true)).join(''); }
   let full=false; function lsToggle(){ full=!full; const g=$('#lsGrid'), b=$('footer button.lsall', el); if(!g) return; g.classList.toggle('lfan', full); g.innerHTML = full ? fanHTML(searchLib(m), x=>cs.includes(x)) : shownHTML(); if(full) fanWire(g);
     if(b) b.textContent = full ? 'Show only the cards you can find' : 'Look through the whole library'; [...g.querySelectorAll('.card')].forEach(e=>e.classList.toggle('sel', sel.has(e.dataset.id))); }
@@ -3592,7 +3592,7 @@ async function simpleEffects(c, text, srcId){
     if(/^(?:they|a creature destroyed this way|a creature dealt damage this way) can(?:'|’)t be regenerated(?: this turn)?\.?$|^this spell can(?:'|’)t be countered\.?$/i.test(sen)) continue; if(SLT){ const np=tgtPhrases(sen).length, mine=np ? tgAll.filter((t,i)=>tgS[i]>=slK && tgS[i]<slK+np) : (slPrev || tgAll); slIt=slPrev; tg.length=0; tg.push(...mine); if(np){ slPrev=mine.slice(); slK+=np; } }
     if(/^until end of turn, if a nontoken creature would enter(?: the battlefield)? and it wasn(?:'|’)t cast, exile it instead\.?$/i.test(sen)){ m.mistT=G.turn.n||0; m.mistBy=(nm||'An effect').split(',')[0]; log(`${by}: until end of turn, a nontoken creature that would enter without being cast is exiled instead.`); changed(); continue; }   /* v4.82: Mistcaller */
     if(/^(?:When|Whenever|At) [^.]*,$/.test(sen) || !sen) continue;   // only the trigger's opening was left (the rest was handled above)
-    // ---- v4.79: Ben's cards (Nov 1): extort, Plunge into Darkness, Sorin, Ravenous Neonate's −6
+    // ---- v4.79: the maintainer's cards (Nov 1): extort, Plunge into Darkness, Sorin, Ravenous Neonate's −6
     { let q; const oppName=()=>G.opp?G.opp.name:'the opponent';
       if(EXTORT_RE.test(sen)){ waited=true; const paid=await new Promise(res=>payFor(normSyms(['W/B']), {abil:true}, {title:`${by}: pay {W/B} to extort?`, verb:'extort', ask:1, cancelLabel:"Don't pay", done:()=>res(true), cancel:()=>res(false)}));
         if(!paid){ log(`${by}: ${m.name} doesn't pay {W/B} for extort.`); continue; } if(!G.opp){ log(`${by}: ${m.name} pays {W/B}, but there is no opponent to lose life.`); changed(); continue; }
@@ -4048,7 +4048,7 @@ async function simpleEffects(c, text, srcId){
       if((r=sen.match(/^(?:then )?put (a|an|one|two|three|\d+) stun counters? on (it|each of (?:them|those creatures|those permanents)|(?:one|either) of them)\.?$/i))){ const k=NUMW2[r[1].toLowerCase()]||+r[1]||1, pool=(itT.length ? itT : tg).filter(x=>{ const a=findAny(x); return a && a.z==='bf'; });
         let ts=pool; if(/^(?:one|either)/i.test(r[2]) && pool.length>1){ waited=true; const p=await pickP(`${by}: put ${k===1?'a stun counter':k+' stun counters'} on which one?`, pool.map(x=>findAny(x).c), 'None'); ts=p ? [p.id] : []; }
         for(const t of ts) modTarget(t, {stun:k}, by); if(!ts.length) log(`${by}: nothing to put a stun counter on.`); changed(); continue; }
-      // Proliferate (v4.06, Ben): the proliferating player chooses — any permanents and any players with counters; nothing is chosen for them
+      // Proliferate (v4.06, the maintainer): the proliferating player chooses — any permanents and any players with counters; nothing is chosen for them
       if((r=sen.match(/^proliferate(?: (twice|X times|\w+ times))?\.?$/i))){ const times=/twice/i.test(r[1]||'') ? 2 : 1;
         for(let i=0;i<times;i++){ waited=true; const ch=await proliferatePick(by, times>1 ? ` (${i+1} of ${times})` : '');
           for(const id of ch.cards){ const a=findAny(id); if(!a || a.z!=='bf') continue; const x=a.c; if((x.c||0)>0){ if(isPW(x) && !isCreature(x)) ctrOn(id, 1, 'loyalty'); else ctrOn(id, 1, 'p'); } else if((x.c||0)<0) modTarget(id, {mctr:1}, by); if((x.stun||0)>0) modTarget(id, {stun:1}, by); }
@@ -5272,7 +5272,7 @@ function cycCanPay(cy){ if(!cy.mana) return true; const pool=Object.assign(noMan
   const srcs=G.me.bf.filter(x=>!x.fd && !x.tap && (x.k||x.cu) && (!isCreature(x) || !x.sick || hasHaste(x))).map(x=>{ let cols=''; try{ cols=manaAbilities(x).filter(a=>!a.cost && !a.tcr && !a.only).map(a=>a.out).join(''); }catch(e){} return cols; }).filter(Boolean), used=srcs.map(()=>false);
   for(const k of syms.filter(k=>!/^\d+$/.test(k))){ const ks=k.split('/').filter(x=>MANA.includes(x)); const pk=ks.find(x=>pool[x]>0); if(pk){ pool[pk]--; continue; } const j=srcs.findIndex((o,i)=>!used[i] && ks.some(x=>o.includes(x))); if(j<0) return false; used[j]=true; }
   const gen=syms.filter(k=>/^\d+$/.test(k)).reduce((a,k)=>a+(+k),0), left=Object.values(pool).reduce((a,n)=>a+(+n||0),0)+used.filter(u=>!u).length; return left>=gen; }
-/* v5.25 (Ben): left click on a land with cycling (the Triomes). Land play legal and the cycling payable: the payment window with both (cycle, or play it as
+/* v5.25 (the maintainer): left click on a land with cycling (the Triomes). Land play legal and the cycling payable: the payment window with both (cycle, or play it as
    a land). Land play legal, cycling not payable: play the land. Land play not legal (timing, or no land play left): cycle it (the window waits for mana). */
 function cycLandClick(id){ const f=find(id); if(!f || f.z!=='hand') return; const c=f.c, cys=cyclingOf(c); if(!cys.length || G.me.ctl || splitSecondOn(null) || waitMull()) return playFromHand(id);
   const m=G.me, landOK=!landTimeWhy(c) && (DSW || !G.turn.n || G.turn.active!==G.myId || landsPlayed(m)<landSlots(m).length), i=Math.max(0, cys.findIndex(cycCanPay)), cy=cys[i];
@@ -5529,7 +5529,7 @@ function blinkAuto(src, b){ const d=cdata(src), sn=srcName(src);
 const autoWait = () => G.me.st.find(x=>x.ab && x.ab.auto && !x.ab.nt && !(x.bt && x.bt.length));
 /* v4.110: every trigger on my stack whose text targets waits for its arrow, one after another, whichever path put it there (enter, attack, dies, landfall, "Whenever a Forest you control enters": Archon of Cruelty, Roiling Canopy). Before, only triggers marked ab.tq re-armed, so a second targeted trigger, or one whose arrow mode another trigger took over, was left without an arrow. */
 const trigTq = x => !!(x && x.ab && !x.ab.nt && !x.ab.auto && (x.ab.tq || ((x.ab.tr || (x.cu && x.cu.t==='Triggered ability')) && (()=>{ const t=(x.cu&&x.cu.o)||''; return needsTarget(t) || /\btarget opponent\b/i.test(t); })())));
-/* v4.117 (Ben): the trigger that resolves first asks for its target first: the top of the stack (highest ts, later in the list on a tie), not the oldest. */
+/* v4.117 (the maintainer): the trigger that resolves first asks for its target first: the top of the stack (highest ts, later in the list on a tie), not the oldest. */
 function stTop(pred){ let best=null, bt=-Infinity; G.me.st.forEach((x,i)=>{ if(!pred(x)) return; const t=(x.ts||0)*1000+i; if(t>=bt){ bt=t; best=x; } }); return best; }
 function autoArm(){ if(G.trigHold || G.ordHold || G.mode || G.atkSel || PAY || !$('#modal').hidden || (G.turn && G.turn.cs==='blk' && pblockStep())) return; { const q=stTop(x=>trigTq(x) && !G.me.arrows.some(a=>a.a===x.id)); if(q){ const fresh=!q.ab.tq; q.ab.tq=1; G.mode={type:'arrow', from:q.id, tq:1}; if(fresh || G.tqLast!==q.id) toast(`${String(srcName(q)).replace(/: (?:trigger|attack trigger|landfall)$/,'')}: click its target (Esc for none).`); G.tqLast=q.id; return; } }
   { const q=stTop(x=>x.tq && !x.nt && !G.me.arrows.some(a=>a.a===x.id)); if(q){ G.mode={type:'arrow', from:q.id, tq:1}; toast(`${cdata(q).n} (copy): click its target (Esc for none).`); return; } }   // v4.95: copies cast onto the stack (copyTq). v4.44: the next trigger still waiting for its target (two Hedron Crabs)
@@ -5729,7 +5729,7 @@ function activate(id, a, evDone, extra){ if(waitMull()) return;
   if(loy && /[−-]/.test(loy[1]) && (c.c||0) < +loy[2]){ toast('It does not have that much loyalty.'); return; }
   if(rn && (c.c||0) < rn){ toast('It does not have enough counters to remove.'); return; }
   const what=cname(c), syms=[...cost.matchAll(/\{([WUBRGC]|\d+)\}/g)].map(x=>x[1]).join(',');
-  { const lessA=abilLess(c, a, extra), asy=abilSyms(String(cost).replace(/\.\s*This ability costs[^]*$/i,''), extra && extra.x, lessA); if(lessA) log(`${cname(c)}: the ability costs {${lessA}} less.`); if(asy.length && autoPayOn() && !(extra && extra.paidOK)){ const pre=/\{T\}/.test(cost) && !c.tap; if(pre){ c.tap=true; changed(); }   // v4.37 (Ben, Barbarian Ring): it taps now, so it can't be tapped for its own mana
+  { const lessA=abilLess(c, a, extra), asy=abilSyms(String(cost).replace(/\.\s*This ability costs[^]*$/i,''), extra && extra.x, lessA); if(lessA) log(`${cname(c)}: the ability costs {${lessA}} less.`); if(asy.length && autoPayOn() && !(extra && extra.paidOK)){ const pre=/\{T\}/.test(cost) && !c.tap; if(pre){ c.tap=true; changed(); }   // v4.37 (the maintainer, Barbarian Ring): it taps now, so it can't be tapped for its own mana
       payFor(asy, {abil:true, card:c, id, from:'bf'}, {title:`Activate ${nm}`, verb:'activate', done:r=>activate(id, a, evDone, Object.assign({}, extra||{}, {paidOK:r}, pre ? {preTap:1} : {})), cancel:()=>{ if(pre){ const g=find(id); if(g && g.z==='bf'){ g.c.tap=false; changed(); } } }}); return; } }
   if(extra && extra.paidOK){ const pd=extra.paidOK; if(pd.other) paid.push('mana paid another way'); else if(pd.text) paid.push(pd.text); }
   else if(syms && G.me.mana && MANA.some(k=>G.me.mana[k]) && payCost(syms)) paid.push('mana from the pool');
@@ -5807,7 +5807,7 @@ const warpLife = c => { const m=(frontText(c)||'').match(/(?:^|\n)Warp\s*[—–
 const warpFromGy = c => /You may cast this card from your graveyard using its warp ability/i.test(frontText(c)||'');
 const warpUntrig = c => { if(c.wp && c.wp.tr){ const i=G.me.st.findIndex(x=>x.id===c.wp.tr); if(i>=0) G.me.st.splice(i,1); } };   // v4.65: by hand, its waiting trigger goes too
 function warpOut(c, why){ const nm=cname(c); warpUntrig(c); c.warp=G.turn.n||1; delete c.wp; move(c.id,'ex',{silent:true}); log(`${why||''}${G.me.name}'s ${nm} goes to the warp zone (exile). It can be cast from there on a later turn.`); }
-/* v4.65 (Ben): warp's exile is a delayed trigger that uses the stack. At the beginning of the end step warpTrig puts one marker per warped permanent
+/* v4.65 (the maintainer): warp's exile is a delayed trigger that uses the stack. At the beginning of the end step warpTrig puts one marker per warped permanent
    on my stack (ab.warpx = {id, ent}; c.wp.tr = the marker), under that step's other triggers, so players can respond to it (counter it) and resolve
    Ocelot Pride, Haliya and the like first while the creature is still there. Resolving it exiles the permanent only if it is the same object.
    A marker that leaves the stack without resolving (countered) leaves the permanent where it is for good (warpPrune). If the turn ends with the
@@ -5894,7 +5894,7 @@ function castSpell(id, o={}, after){ const f=find(id); if(f && f.z!=='st'){ if(o
     modal(`Cast ${cdata(f.c).n}`, '<span class="hint">Which half?</span>', [...fs.map((x,i)=>[`${x.n} ${mcs[i]||''}`, ()=>{ closeModal(); castSpell(id, Object.assign({}, o, {half:i}), after); }, 'go']), ['Cancel', ()=>closeModal(), 'ghost']]); return; }
   { const fb=find(id); if(fb && fb.z==='hand' && !o.brx && !isLand(fb.c)){ const bi=brIdx(fb.c); if(bi>=0 && castTimeWhy(fb.c,{})){ channel(id, bi); return; } } }   /* v5.17: creature half out of timing, bloodrush legal: go straight to bloodrush */
   castGate(id, ()=>castSpellNow(id, o, after), o); }
-/* Other ways to cast, in the payment window (v4.32, Ben): a card cast from the hand with auto-pay on lists its alternative costs (warp, impending,
+/* Other ways to cast, in the payment window (v4.32, the maintainer): a card cast from the hand with auto-pay on lists its alternative costs (warp, impending,
    dash, evoke, overload, spectacle, bestow, morph, "rather than pay this spell's mana cost", Mystical Dispute's discount) as extra rows under the
    normal cost, and optional extra costs (kicker, replicate, gift) as a checkbox or a counter that changes the totals. Such cards always open the
    window, even when the pool covers the normal cost. An alternative's button runs the same path as its hand-menu item (castWays → run), with the
@@ -5928,7 +5928,7 @@ function castWays(c, id){ const W=[]; if(isLand(c) || c.fd || G.me.ctl) return W
   const mo=morphOf(c); if(mo) W.push({k:'morph', cost:'{3}', btn:'cast it face down', note:`A face-down 2/2. Turn it face up for ${mo.cost}.`, run:()=>morphCast(id)});
   const plc=plotCost(c); if(plc) W.push({k:'plot', cost:plc, btn:'plot it', ok:()=>{ const t=G.turn; return !!t.n && t.active===G.myId && (t.phase===2 || t.phase===4) && !G.me.st.length && !((G.opp&&G.opp.st)||[]).length; }, why:'Plot only as a sorcery: in your main phase with the stack empty.', note:'It is exiled now; cast it without paying its mana cost on a later turn, as a sorcery.', run:()=>plotCard(id)});   // v5.11 Slickshot Show-Off
   handAbils(c).forEach((x,i)=>{ if(!x.br || !brReady()) return; W.push({k:'bloodrush', cost:x.mana||'', btn:'bloodrush', ok:()=>[...G.me.bf, ...((G.opp&&G.opp.bf)||[])].some(y=>y.atk && isCreature(y)), why:'Only while a creature is attacking.', note:`Discard it: ${x.eff}`, run:()=>channel(id, i)}); });   // v5.11 Ghor-Clan Rampager
-  cyclingOf(c).forEach((cy,i)=>W.push({k:'cycling', cost:cy.mana, life:cy.life, extra:cy.other, noEx:1, btn:cycVerb(cy), note:cycNote(cy), run:()=>startCycle(id, i, {now:1})}));   // v5.25 (Ben): cycling in the left-click payment window
+  cyclingOf(c).forEach((cy,i)=>W.push({k:'cycling', cost:cy.mana, life:cy.life, extra:cy.other, noEx:1, btn:cycVerb(cy), note:cycNote(cy), run:()=>startCycle(id, i, {now:1})}));   // v5.25 (the maintainer): cycling in the left-click payment window
   return W; }
 function castSpellNow(id, o={}, after){ if(G.altEx){ o=Object.assign({}, G.altEx, o); G.altEx=null; } { const fq=find(id); if(fq && o.gift!=null) fq.c.gift=o.gift; } { const fa=find(id); if(fa && fa.z!=='st' && o.addl==null && !fa.c.fd && !G.me.ctl){ const ac=addlCostOf(fa.c); if(ac){ payAddl(id, ac).then(r=>{ if(!r) return; castSpellNow(id, Object.assign({}, o, {addl:r}), after); }); return; } } } { const fb=find(id); if(fb && o.addl){ if(o.addl.sacMV!=null) fb.c.sacMV=o.addl.sacMV; if(o.addl.sacTp!=null) fb.c.sacTp=o.addl.sacTp; if(o.addl.payX!=null) fb.c.x=o.addl.payX; if(o.addl.addPaid) fb.c.addPaid=true; } } { const f0=find(id); if(f0 && o.half!=null) f0.c.half=o.half; }
   { const f0=find(id); if(f0 && f0.z!=='st' && o.x==null && !f0.c.fd && !G.me.ctl && /\{X\}/.test(o.payCost!=null ? o.payCost : ((cdata(f0.c).mc||'').split(' // ')[f0.c.flip?1:0]||''))){ askN(`${cdata(f0.c).n}: X =`, 1).then(n=>{ if(n==null || n<0) return; castSpellNow(id, Object.assign({}, o, {x:n}), after); }); return; } }
@@ -6008,7 +6008,7 @@ function abilLess0(c, a, ex){ { const q=String(frontText(c)||'').match(/costs \{
   if(/^town you control$/.test(d)) n=m.bf.filter(x=>!x.fd && (!r[2] || x.id!==c.id) && /\bTown\b/.test(faceType(x))).length; else if(/^\+1\/\+1 counter on creatures you control$/.test(d)) n=m.bf.filter(x=>!x.fd && isCreature(x)).reduce((s,x)=>s+Math.max(0,x.c||0),0); return k*n; }
 const symStr = ks => ks.map(k=>`{${k}}`).join('');
 function payPlan(syms, ctx, ch){
-  ch=ch||{}; const m=G.me, pool=Object.assign(noMana(), m.mana||{}), pk=ch.sp||[], sp=(m.smana||[]).map((e,i)=>({e, i, ok:specAllows(e, ctx)===true && pk.includes(i), used:false}));   /* v4.99 (Ben): special mana is spent only when the player clicks it into the payment, so hasty mana can be split between creatures */
+  ch=ch||{}; const m=G.me, pool=Object.assign(noMana(), m.mana||{}), pk=ch.sp||[], sp=(m.smana||[]).map((e,i)=>({e, i, ok:specAllows(e, ctx)===true && pk.includes(i), used:false}));   /* v4.99 (the maintainer): special mana is spent only when the player clicks it into the payment, so hasty mana can be split between creatures */
   sp.forEach(x=>{ x.good = x.ok; });
   const spent=[], from={}, riders=[], cols=noMana(); let life=0, short=0;
   const use=(x,k)=>{ x.used=true; cols[k]++; (from[x.e.src]=from[x.e.src]||[]).push(k); if(x.e.rider && riderApplies(x.e, ctx) && !riders.some(r=>r.r===x.e.rider)) riders.push({r:x.e.rider, src:x.e.src}); };
@@ -6331,7 +6331,7 @@ function dynPT(c, pid){
     for(const x of sideOf(pid===G.myId ? oppId() : G.myId).bf||[]){ if(x.fd || (!x.k && !x.cu)) continue; for(const g of noRemind(x).matchAll(/(?:^|\n)Creatures your opponents control get ([+\-−]\d+)\/([+\-−]\d+)\./g)) add(x, g[1], g[2]); }
     { const L=lordFx(c, pid); if(L.why.length){ gp+=L.p; gt+=L.t; dyn=true; why.push(...L.why); } }
     for(const e of (sideOf(pid).emb||[])) for(const g of String(e.o||'').matchAll(/(?:^|\n)[Cc]reatures you control get ([+\-−]\d+)\/([+\-−]\d+)\./g)){ gp+=v(g[1]); gt+=v(g[2]); dyn=true; why.push(`${e.src} emblem: ${g[1]}/${g[2]}`); } }   // Ajani Resolute's −10
-  if(!dyn && !c.tp && !c.tt && !c.eb && !(c.c && !isSaga(c))) return null;   /* v5.26 (Ben): counters alone show the current P/T too (Moonshadow's six −1/−1) */
+  if(!dyn && !c.tp && !c.tt && !c.eb && !(c.c && !isSaga(c))) return null;   /* v5.26 (the maintainer): counters alone show the current P/T too (Moonshadow's six −1/−1) */
   if(c.eb && !dyn && !c.tp && !c.tt) return {p:0, t:0, printed:true, why:'earthbent land: 0/0 (counters shown separately)'};   // its printed-style box; counters stay on their own badge   // counters alone show only their badge; text-driven P/T and boosts get the box
   const val=x=>{ x=String(x||'').trim(); if(/\*/.test(x)){ if(n==null) return null; return x.split('+').reduce((a,p)=>a+(p.trim()==='*' ? n : (+p||0)),0); } return /^-?\d+$/.test(x) ? +x : null; };
   const [ps,ts]=(d.pt || (c.eb ? '0/0' : '')).split('/'), bp=val(ps), bt=val(ts); if(bp==null || bt==null) return null;
@@ -6550,7 +6550,7 @@ function toggleTap(id, x, y){
   if(convokeTap(c)) return;
   if(!c.fd && sacManaOf(c)){ const a=sacManaOf(c); if(x==null){ const el=$(`#table .card[data-id="${id}"]`), r=el?el.getBoundingClientRect():{left:200,top:200,width:0}; x=r.left+r.width/2; y=r.top+20; } menu(x, y, [[`Sacrifice it: add ${[...a.out].map(k=>'{'+k+'}').join('')}`, ()=>sacForMana(id)], '-', [c.tap?'Untap':'Tap', ()=>{ if(c.tap) untapCard(c); else c.tap=true; changed(); }]]); return; }
   if(c.tap){ if(c.mt && manaUntap(c)) return; untapCard(c); changed(); return; }
-  if(x!=null && !c.fd && isPW(c) && !isCreature(c)){ const abs=abilitiesOf(c);   // v4.93 (Ben): a click on a planeswalker (the Jace token too) opens its loyalty abilities, its own and those other cards give it; T still taps
+  if(x!=null && !c.fd && isPW(c) && !isCreature(c)){ const abs=abilitiesOf(c);   // v4.93 (the maintainer): a click on a planeswalker (the Jace token too) opens its loyalty abilities, its own and those other cards give it; T still taps
     if(abs.length){ const lbl=a=>{ const t=abText(a); return (t.length>70 ? t.slice(0,68)+'…' : t)+(a.from ? `  (${a.from})` : ''); };
       menu(x, y, [...abs.map(a=>[lbl(a), ()=>activate(id, a)]), '-', ['Tap', ()=>{ c.tap=true; changed(); }]]); return; } }
   if(x!=null && !c.fd && isLand(c)){ const fe=abilitiesOf(c).filter(a=>fetchOf(a));   // v4.63: clicking a fetch land asks: Fetch, its mana if something gives it some (Urborg, Yavimaya, Leyline of the Guildpact), or tap it for nothing; clicking elsewhere closes
@@ -6619,7 +6619,7 @@ function askPause(at){ const on=G.opp?G.opp.name:'your opponent';
   G.me.pauseAsk={at}; send({t:'pause', at}); log(`${G.me.name} asks to pause ${on}'s next turn ${PAUSE_TXT[at]}.`); changed(); }
 function pauseItems(){ const on=G.opp?G.opp.name:'Opponent', a=G.me.pauseAsk&&G.me.pauseAsk.at, ck=k=>a===k?'✓ ':'', real=vsReal();   // v4.87: my own upkeep stop works anywhere (practice too); the opponent's only at a friend's table, from before turn 1
   return [[`${G.me.pauseSelf?'✓ ':''}Pause on my next upkeep (my turn stops there)`, ()=>{ G.me.pauseSelf=!G.me.pauseSelf; log(G.me.pauseSelf ? `${G.me.name}'s next turn will stop in their upkeep.` : `${G.me.name} won't stop in their next upkeep.`); changed(); }], real ? [`${ck('up')}Pause ${on}'s next upkeep`, ()=>askPause('up')] : null, real ? [`${ck('pre')}Pause ${on}'s draw step (before the draw)`, ()=>askPause('pre')] : null, real ? [`${ck('post')}Pause ${on}'s draw step (after the draw)`, ()=>askPause('post')] : null, real && a ? ['Cancel the pause', ()=>askPause(null)] : null]; }
-/* v4.86 (Ben): the Turn menu, opened from the turn label: Pause (was a tools-bar button), Give control (was in ☰, without "(Emrakul)"), Take the turn (was in ☰). */
+/* v4.86 (the maintainer): the Turn menu, opened from the turn label: Pause (was a tools-bar button), Give control (was in ☰, without "(Emrakul)"), Take the turn (was in ☰). */
 function turnMenu(){ const b=$('#turnlbl'), r=b.getBoundingClientRect(), t=G.turn, m=G.me, pa=m.pauseAsk&&m.pauseAsk.at, on=G.opp?G.opp.name:'Opponent';
   const ctl = !G.opp ? null : (m.ctl||m.ctlNext) ? ['Take back control of my turn', ()=>giveControl()] : [t.n&&t.active===G.myId&&!t.passed ? 'Give opponent control of this turn' : 'Give opponent control of my next turn', ()=>giveControl()];
   const al=[...PRI.aok], pri = priTable() ? [{html:stopsHTML(), cls:'stops', wire:stopsWire}, '-', [`Always OK: ${al.length ? al.join(', ') : 'nothing yet'}`, ()=>{ if(al.length){ PRI.aok.clear(); toast('Always OK list cleared.'); save(); render(); } else toast('Right-click a spell or trigger of theirs on the stack to always OK it.'); }, al.length ? 'click to clear' : 'right-click a stack item'], ...((PRI.tord||[]).length ? [[`Trigger orders: ${PRI.tord.map(o=>o.n.slice().reverse().join(' first, then ')).join('; ')}`, ()=>{ PRI.tord=[]; toast('Remembered trigger orders forgotten.'); save(); render(); }, 'click to forget']] : []), '-'] : [];   /* v5.02: remembered orders, resolving order (top first) */
@@ -6951,10 +6951,10 @@ function priPaint(){ const L=priLabel(), nb=$('#next'), oa=$('#okAll'), hi=$('#p
   hi.hidden=!hint; if(hi.textContent!==hint) hi.textContent=hint;
   const mineOK = !!(w && w.me && (w.kind==='stack' || w.kind==='stop')), ti = mineOK ? '● Your OK needed · '+PRI.title : PRI.title; if(document.title!==ti) document.title=ti;
   document.body.classList.toggle('pri', priTable()); PRI.had=!!L; sndWatch(w); return L; }
-/* v5.04, the stack alert (Ben): a short shimmer when the other player's spell or trigger is waiting for my OK (any kind, one sound). Made by
+/* v5.04, the stack alert (the maintainer): a short shimmer when the other player's spell or trigger is waiting for my OK (any kind, one sound). Made by
    the browser (Web Audio, no sound files). Waits PRI_BEAT+150 ms first so an Always OK answer (priAlways) never chimes. S.snd: off | low |
    mid (default) | high, row "Stack alert" in Settings, which plays a preview. The tab title ("● Your OK needed") comes from priPaint.
-   v5.05 (Ben): one chime per batch: the next item of the same run (it starts waiting on me within SND_RUN of the last one, or replaces the
+   v5.05 (the maintainer): one chime per batch: the next item of the same run (it starts waiting on me within SND_RUN of the last one, or replaces the
    top while I'm still being asked) doesn't chime. The reminder (half volume, once per item) plays only after SND_AGAIN with no sign of me on
    the page: SND.act = the last pointer move, click, key or wheel here, so moving the mouse keeps it quiet, and a hidden tab never moves it. */
 const SND={ac:null, key:'', t1:0, t2:0, act:0, runEnd:0}, SND_VOL={low:0.25, mid:0.55, high:1}, SND_AGAIN=10000, SND_RUN=4000;
@@ -6976,7 +6976,7 @@ function sndWatch(w){ const id = w && w.kind==='stack' && w.me && w.top ? w.top.
   if(id===SND.key) return; const prev=SND.key, now=Date.now(); SND.key=id; clearTimeout(SND.t1); clearTimeout(SND.t2);
   if(!id){ if(prev) SND.runEnd=now; return; }
   const fresh = !prev && now-SND.runEnd > SND_RUN; if(fresh) SND.t1=setTimeout(()=>{ if(sndStill(id)) stackChime(1); }, PRI_BEAT+150);
-  sndIdle(id, now, fresh ? 0.5 : 1); }   /* v5.06 (Ben): an item that never chimed (the next one of a batch) reminds at full volume */
+  sndIdle(id, now, fresh ? 0.5 : 1); }   /* v5.06 (the maintainer): an item that never chimed (the next one of a batch) reminds at full volume */
 /* the big button or Space while something is waiting; true = the press was used here */
 function priPress(){ const w=priWait(); if(!w) return false; const on=priOn();
   if(w.kind==='aim' || w.kind==='ord') return true;
@@ -7026,7 +7026,7 @@ function priHello(m){ const was=priSet(); G.oppHello=true; G.oppPv=+m.pv||0; if(
 function pressNext(){ if(priPress()) return; nextPhase(); }
 setInterval(()=>{ if(!$('#table').hidden && (PRI.had || priWait())){ const L=priPaint(); if(!L) render(); } }, 250);
 /* ---- v5.0 stops: standing stops on the pause mechanism ---- */
-/* v5.01 (Ben): Main 2 on the opponent's turn is off by default, and Auto (st.auto, on by default) turns it on while they have a permanent with
+/* v5.01 (the maintainer): Main 2 on the opponent's turn is off by default, and Auto (st.auto, on by default) turns it on while they have a permanent with
    "At the beginning of your end step" (or each end step); Before attackers holds only when the active player has something that can attack. */
 const stopsUsual = () => ({v:2, mine:{up:false, draw:false}, opp:{up:false, draw:false, m1:false, atk:true, m2:false}, auto:true});
 if(S.stops && S.stops.v!==2){ if(S.stops.opp) S.stops.opp.m2=false; S.stops.v=2; store.set('mt_settings', S); }   /* v5.0 saved Main 2 on with every change */
@@ -7057,7 +7057,7 @@ function priDrawStop(){ if(pauseAt('post')) return {hold:pauseHold('post')}; if(
 function priStopGate(){ const t=G.turn; if(t.active!==G.myId || t.passed || t.hold) return false; const k=PRI_LEAVE[t.phase]; if(!k || !priStd(k)) return false; setTurn({...t, hold:priHold(k)}); changed(); return true; }
 /* entering combat: the Before attackers stop holds the beginning of combat (again = an additional combat phase asks again) */
 function priAtk(nt, again){ if(nt.phase!==3 || nt.hold || !priLive() || !(G.oppStops && G.oppStops.atk) || (!again && nt.okd && nt.okd.atk) || !atkEligible()) return nt; return {...nt, hold:priHold('atk', true)}; }
-/* v5.10 (Ben, CR 509.4 / 510.3): after blocks, and after first-strike damage, the active player has priority first: their press of Apply combat
+/* v5.10 (the maintainer, CR 509.4 / 510.3): after blocks, and after first-strike damage, the active player has priority first: their press of Apply combat
    damage passes it, and the other player gets the blue OK before any damage is dealt (time for a pump spell or removal on an attacker or a blocker).
    Always there, like Done blocking: not in S.stops. Key dmg before the first damage step, dmg2 before regular damage after first strike. */
 function priDmgStop(t){ if(!priLive() || t.active!==G.myId || t.passed || t.hold) return false; const k = t.cs==='fs' ? 'dmg2' : 'dmg'; if(t.okd && t.okd[k]) return false;
@@ -7095,10 +7095,10 @@ function priDash(i){ if(!priTable()) return {h:'', tip:''}; const st=myStops(), 
   const a = st.opp[PRI_DK[i]] || (i===4 && priAutoM2().length) ? 'on' : (i===3||i===5) ? 'fx' : 'off', b = (i===0&&st.mine.up)||(i===1&&st.mine.draw) ? 'on' : i>=2 ? 'fx' : 'off';
   const TA={on:'a stop you added: you are asked for an OK here', fx: i===3 ? 'you declare blocks and OK combat damage, as always' : 'you press Start my turn, as always', off:'no stop set'}, TB={on:'a stop you added: your turn stops here', fx:'you press Next, as always', off:'no stop set'};
   return {h:`<i class="sd a ${a}"></i><i class="sd b ${b}"></i>`, tip:`${on}'s turn: ${TA[a]}. Your turn: ${TB[b]}. Stops are set in the turn menu.`}; }
-/* v5.26 (Ben): an additional combat phase (Fear of Missing Out) gets its own Combat chip after the first: dashed while it is still to come,
+/* v5.26 (the maintainer): an additional combat phase (Fear of Missing Out) gets its own Combat chip after the first: dashed while it is still to come,
    lit while it is under way (G.turn.cx = which combat this is, carried in the shared turn), kept for the rest of the turn once it happened */
 function xcombPending(t){ const a = t.active===G.myId ? G.me : G.opp; return !!(t.n && a && a.xcomb===t.n && t.phase<=3) ? (a.xcby||'An effect') : ''; }
-/* v5.27 (Ben): the big button names the coming additional combat ("Next: second combat") instead of Main 2 */
+/* v5.27 (the maintainer): the big button names the coming additional combat ("Next: second combat") instead of Main 2 */
 function nextName(t){ if(t.phase===3 && xcombPending(t)){ const k=(t.cx||1)+1; return (ORDW[k]||k+'th')+' combat'; } return PH[t.phase+1]; }
 function phaseChips(t){ const cx=t.cx||1, pend=xcombPending(t), nC=cx+(pend?1:0), out=[];
   PH.forEach((p,i)=>{ const sd=priDash(i);
@@ -7201,7 +7201,7 @@ function mtTick(){
       else if(!G.turn.n){ t.over=matchResult(); log(`Time is called between games, so the match ends on the score: ${t.over}.`); }
       else { t.ask={}; log('Time is called on the round clock.'); }
       mtSend(); mtPrompts(); render(); }
-    /* Game Night: the host's call for every table (Ben). Yes: time is enforced; mid-game, the active player's turn is turn 0 and five more follow;
+    /* Game Night: the host's call for every table (the maintainer). Yes: time is enforced; mid-game, the active player's turn is turn 0 and five more follow;
        between games, the match ends on the score. No: no enforcement; the match plays on as if untimed. Both players see a notice either way. */
     if(ng && t.hostq && NIGHT.turns && !t.over){ t.hostq=false;
       if(NIGHT.turns==='yes'){
@@ -7318,12 +7318,12 @@ var DSW=0, DUMQ=[];
 const dummy = () => !!(G.opp && G.opp.dummy);
 const vsReal = () => !G.solo && !!G.opp && !G.opp.dummy;           // a real two-player table
 const vsAny = () => !!G.opp && (!G.solo || !!G.opp.dummy);          // someone to fight: a friend or Practice
-/* messages Practice can't answer because it has no library or hand (v4.25, Ben: Ragavan seemed not to exile): the log says so instead of nothing happening */
+/* messages Practice can't answer because it has no library or hand (v4.25, the maintainer: Ragavan seemed not to exile): the log says so instead of nothing happening */
 const DUMMY_NO={creative:"it has no library to reveal from", tasha:"there is no library to exile from", ragavan:"nothing is exiled from the top of its library", peek:"there is no top card to look at", peekhand:"there is no hand to look at", reveal:"there is no hand to reveal", youdraw:"it draws nothing", exlib:"there is no library to exile", oppsearch:"there is nothing to search", guide:"there is no top card to reveal", libtop:"there are no cards to look at", each:"it has no hand or library to do that with"};
 const DUMMY_OK=new Set(['tibex','sacids','yield','extractdo','rmctr','ctrlock','losectr','adj','dmg','loy','hit','mod','pump','cdmg','tapstun','wipe','gyall','gyexile','exhold','left','edict','mill','monarch']);
 const newDummy = () => Object.assign(newPlayer(), {name:'Practice', lgs:'', dummy:true, deck:'Practice opponent', libN:0, handN:0, sideN:0, dealt:true, kept:true, compDone:true, deckReady:true, comp:[], lost:0});
 function makeDummy(){ if(G.opp && !G.opp.dummy) return; if(!G.opp) G.opp=newDummy(); }
-/* v4.39 (Ben): when Practice has to choose (discard a card, keep a creature, top or bottom), I choose for it in a window. The window's answer
+/* v4.39 (the maintainer): when Practice has to choose (discard a card, keep a creature, top or bottom), I choose for it in a window. The window's answer
    is handled after a pause, when the quick swap of asDummy is long over, so it used to land on my side and do nothing. Such messages wait in
    PQ until my own windows are closed, then run with the sides swapped until Practice's choice is done (DPROM: the handler's promise; a window
    left closed for 4 s also ends it, so the table can't stay swapped). Keys are held off meanwhile. */
@@ -7353,7 +7353,7 @@ function dummyLoss(){ if(!dummy()) return; const d=G.opp, why = d.life<=0 ? 'Pra
 /* start of each of my turns: Practice's permanents untap, lose damage and until-end-of-turn changes */
 function dummyRefresh(){ if(!dummy()) return; for(const c of G.opp.bf){ if(!G.opp.turns) c.tap=false; c.atk=false; delete c.dmg; delete c.dtd; delete c.tp; delete c.tt; delete c.tkw; delete c.lhit; } G.opp.arrows=[]; G.opp.mana=noMana(); }
 function dummyReset(full){ if(!dummy()) return; const d=G.opp; d.life=20; d.ctr={poison:0, energy:0}; d.lost=0; d.emptyDraw=0; d.arrows=[]; d.monarch=false; d.reveal=false; if(full){ d.bf=[]; d.gy=[]; d.ex=[]; d.st=[]; d.ph=[]; if(d.deckSpec) dummyBuild(); } }
-/* Practice's deck (v4.26, Ben): a tournament deck (random or chosen) or a saved one; a shuffled library and seven cards in hand, hidden like a
+/* Practice's deck (v4.26, the maintainer): a tournament deck (random or chosen) or a saved one; a shuffled library and seven cards in hand, hidden like a
    real opponent's. Cards that reach into an opponent's library or hand (DUMMY_DECK messages) then work on Practice too. Its cards are made
    inside asDummy so they belong to Practice's side. */
 const DUMMY_DECK=new Set(['tot','totx','tasha','take','ragavan','peek','peekhand','reveal','discardpick','youdraw','exlib','oppsearch','guide','each','yield','gytuck','tuck','tuckch','topbottom','gybottom','extract','exgy','give','bounceall']);
@@ -7382,7 +7382,7 @@ function dummyFromDeck(kind){ const d=G.opp, test = kind==='cre' ? (c=>isCreatur
   const [z,c]=pool[Math.floor(Math.random()*pool.length)]; d[z].splice(d[z].indexOf(c),1);
   Object.assign(c, {tap:false, atk:false, c: kind==='pw' ? (+cdata(c).loy||0) : 0, ent:newEnt(), sick:false}); d.bf.push(c); dummySync();
   log(`Practice puts ${cname(c)} from its ${z==='lib'?'library':'hand'} onto the battlefield.`); changed(); }
-/* Practice's turns (v4.26, Ben): with "Practice takes turns" on, ending my turn starts Practice's. It untaps, draws in its draw step, and I click
+/* Practice's turns (v4.26, the maintainer): with "Practice takes turns" on, ending my turn starts Practice's. It untaps, draws in its draw step, and I click
    through its steps with the bar on its side of the table (#pracBar), choose its attackers and block them with my own blockers bar. Its combat
    damage runs through the normal applyCombat with the sides swapped (asDummyA keeps them swapped across the awaits). My cards that care about
    the opponent's turn (Oculus's upkeep, "each end step", flash) work as at a real table. Practice's own triggers wait on its stack for me to
@@ -7522,7 +7522,7 @@ function mulligan(){ const m=G.me; if(G.turn.n && !m.kept && !canDecide()){ notY
 const missingCards = () => { const ks=new Set(); for(const p of [G.me, G.opp]) if(p) for(const z of ['lib','hand','bf','gy','ex','st','side']) for(const c of (p[z]||[])) if(c && c.k && DB[c.k] && DB[c.k].tmp) ks.add(c.k); return [...ks]; };
 let retryT=null;
 function retryMissing(n=0){ clearTimeout(retryT); if(n>=20) return; retryT=setTimeout(async()=>{ const ks=missingCards(); if(!ks.length) return; await ensureCards(ks); if(missingCards().length<ks.length) render(); if(missingCards().length) retryMissing(n+1); else toast('Card images loaded.'); }, 30000); }
-/* v4.68 (Ben): land art. v4.71: four families in tabs (Basic, Shock, Fetch, Surveil), each with its own styles.
+/* v4.68 (the maintainer): land art. v4.71: four families in tabs (Basic, Shock, Fetch, Surveil), each with its own styles.
    A style's printings are looked up once on Scryfall and remembered in mt_basics (key = style for basics, 'fam:style' otherwise):
    ids = exact set + collector number; q = a search; sets = search those sets for the family's names and take, per land, the first set
    that has it (pick 'low' = its lowest collector number, the plain printing; 'high' = its highest, the showcase/borderless one).
@@ -7534,7 +7534,7 @@ const BASIC_SETS=[
   {k:'ugl', n:'Unglued', q:'e:ugl t:basic -t:snow'},
   {k:'unh', n:'Unhinged', q:'e:unh t:basic -t:snow'},
   {k:'ust', n:'Unstable', q:'e:ust t:basic -t:snow'},
-  {k:'und', n:'Unsanctioned', ids:[['und','88'],['und','90'],['und','92'],['und','94'],['und','96']]},   // v4.69 (Ben): the Island is 090/096, so the even-numbered set of the two
+  {k:'und', n:'Unsanctioned', ids:[['und','88'],['und','90'],['und','92'],['und','94'],['und','96']]},   // v4.69 (the maintainer): the Island is 090/096, so the even-numbered set of the two
   {k:'neo', n:'Kamigawa: Neon Dynasty', q:'e:neo t:basic -t:snow is:fullart'},
   {k:'dmu', n:'Dominaria United (stained glass)', q:'e:dmu t:basic -t:snow is:fullart'},
   {k:'sld', n:'Secret Lair (full-text lands)', ids:[['sld','254'],['sld','255'],['sld','256'],['sld','257'],['sld','258']]},
@@ -7544,7 +7544,7 @@ const FETCH10=['Flooded Strand','Polluted Delta','Bloodstained Mire','Wooded Foo
 const SURV10=['Meticulous Archive','Undercity Sewers','Raucous Theater','Commercial District','Lush Portico','Shadowy Backstreet','Thundering Falls','Underground Mortuary','Elegant Parlor','Hedge Maze'];
 const LAND_FAMS=[
   {k:'basic', n:'Basic', names:BASIC5, styles:BASIC_SETS},
-  {k:'shock', n:'Shock', names:SHOCK10, styles:[{k:'std', n:'As your deck lists them'},   // v4.74 (Ben's four)
+  {k:'shock', n:'Shock', names:SHOCK10, styles:[{k:'std', n:'As your deck lists them'},   // v4.74 (the maintainer's four)
     {k:'orig', n:'Originals (Ravnica, Guildpact, Dissension)', sets:['rav','gpt','dis'], pick:'low'},
     {k:'rtr', n:'Return to Ravnica + Gatecrash', sets:['rtr','gtc'], pick:'low'},
     {k:'grn', n:'Guilds of Ravnica + Ravnica Allegiance', sets:['grn','rna'], pick:'low'},
@@ -7553,8 +7553,8 @@ const LAND_FAMS=[
     {k:'orig', n:'Originals (Onslaught + Zendikar)', sets:['ons','zen'], pick:'low'},
     {k:'mod', n:'Modern (MH2 + MH3)', sets:['mh2','mh3'], pick:'low'},
     {k:'fancy', n:'Fancy (Special Guests + MH3)', sets:['spg','mh3'], pick:'high', cn:{mh3:[340,370]}, ver:2},
-    {k:'zne', n:'Expeditions (Zendikar Rising)', ids:[['zne','1'],['zne','2'],['zne','3'],['zne','4'],['zne','5'],['zne','6'],['zne','7'],['zne','8'],['zne','9'],['zne','10']]}]},   // v4.83 (Ben): ZNE #1–10 are the ten fetches, one printing each   // v4.72 (Ben): MH3's are the ones around #353 (Flooded Strand), not #464
-  {k:'surveil', n:'Surveil', names:SURV10, styles:[{k:'std', n:'As your deck lists them'}, {k:'alt', n:'Alternate art (Karlov Manor)', sets:['mkm'], pick:'low', cn:{mkm:[315,345]}}]}];   // v4.73 (Ben): MKM's other run, Commercial District is #324
+    {k:'zne', n:'Expeditions (Zendikar Rising)', ids:[['zne','1'],['zne','2'],['zne','3'],['zne','4'],['zne','5'],['zne','6'],['zne','7'],['zne','8'],['zne','9'],['zne','10']]}]},   // v4.83 (the maintainer): ZNE #1–10 are the ten fetches, one printing each   // v4.72 (the maintainer): MH3's are the ones around #353 (Flooded Strand), not #464
+  {k:'surveil', n:'Surveil', names:SURV10, styles:[{k:'std', n:'As your deck lists them'}, {k:'alt', n:'Alternate art (Karlov Manor)', sets:['mkm'], pick:'low', cn:{mkm:[315,345]}}]}];   // v4.73 (the maintainer): MKM's other run, Commercial District is #324
 const BASICS_C=store.get('mt_basics', {});
 for(const x of BASIC_SETS) if(x.ids && BASICS_C[x.k] && Object.values(BASICS_C[x.k]).flat().length!==x.ids.length) delete BASICS_C[x.k];   // v4.70: a list saved before a set was pinned to exact numbers (Unsanctioned in v4.68) is forgotten, so the box and the deck both look it up again
 delete BASICS_C['fetch:fancy'];   /* v4.72: picked by the old rule (MH3's highest number); the new list is cached under fetch:fancy@2 */
@@ -7652,7 +7652,7 @@ function pkShow(el){
   const {list, im}=pkHolder(card.dataset.id); if(list.length) pkGroups(list, c=> c.id===im ? 'IMPRINTED' : 'HELD'); }
 document.addEventListener('mouseover', e=>{ const t=e.target && e.target.closest ? e.target : null; if(!t){ if(PKK) pkClear(); return; } if(t.closest('.pkfan')) return; pkShow(t); });
 document.addEventListener('mousedown', ()=>{ if(PKK) pkClear(); }, true);
-/* v5.07 (Ben): a permanent under the other player's control gets a square pennant on its left edge with its owner's name, in the owner's colour
+/* v5.07 (the maintainer): a permanent under the other player's control gets a square pennant on its left edge with its owner's name, in the owner's colour
    (the pill "borrowed" badge is gone): on my battlefield, the opponent's card reads "BOB'S" (blue); on theirs, my card reads "YOURS" (brass). */
 function ctlFlag(mine){ const on=String((G.opp&&G.opp.name)||'Opponent').slice(0,12);
   return mine ? `<span class="ctlflag theirs" title="${esc(on)}'s card, under your control">${esc(on)}'s</span>` : `<span class="ctlflag mine" title="Your card, under ${esc(on)}'s control">YOURS</span>`; }
@@ -7708,7 +7708,7 @@ function cardHTML(c, z, mine, cls=''){
   const tmw = mine && z==='hand' && !backUp ? handTimeWhy(c) : null;   // v5.14: dim what can't be played right now
   return `<div class="card ${tmw?'ntime':''} ${mine?'':'opp'} ${c.tap?'tap':''} ${c.atk?'atk':''} ${!mine && c.atk && z==='bf' && blkDim(c) ? 'nblk' : ''} ${tgtDim(c, z)} ${z==='bf' && (mine ? G.atkSel : G.patk) && (mine ? G.atkSel : G.patk).has(c.id) ? 'asel' : ''} ${c.fd&&mine?'fdmine':''} ${cls}" data-id="${c.id}" data-z="${z}" data-o="${mine?'me':'opp'}"${lkA}${tmw ? ` title="${esc('Not now: '+tmw.short+' (you can still play it: the table will ask)')}"` : ''}>${inner}${b}${extra}</div>`;
 }
-/* marker icons (v4.08, Ben): one drawn style instead of emoji: rounded white outline with filled details; they take the text colour */
+/* marker icons (v4.08, the maintainer): one drawn style instead of emoji: rounded white outline with filled details; they take the text colour */
 const ICO = (()=>{ const sv=(b)=>`<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">${b}</svg>`;
   return { energy: sv('<path d="M13.6 2.6 5.4 13.4h5.7l-1.4 8 8.9-11.6h-5.8z" fill="currentColor"/>'),
     poison: sv('<path fill="currentColor" stroke="none" fill-rule="evenodd" d="M7.4 17.3A8.6 8.6 0 1 1 16.6 17.3V20.5Q16.6 21.9 15.2 21.9H14.1V19.7H13.1V21.9H10.9V19.7H9.9V21.9H8.8Q7.4 21.9 7.4 20.5ZM5.6 11.2a2.65 2.65 0 1 0 5.3 0a2.65 2.65 0 1 0-5.3 0z M13.1 11.2a2.65 2.65 0 1 0 5.3 0a2.65 2.65 0 1 0-5.3 0zM10.7 14.5h1.05v2.2h-1.05z M12.25 14.5h1.05v2.2h-1.05z"/>'),
@@ -7734,9 +7734,9 @@ function proliferatePick(by, note){ return new Promise(res=>{ const m=G.me, opp=
   const pg=$('#prGrid', el); if(pg) pg.onclick=e=>{ const d=e.target.closest('.card[data-id]'); if(!d) return; const id=d.dataset.id; if(sel.has(id)) sel.delete(id); else sel.add(id); d.classList.toggle('sel', sel.has(id)); };
   const pp=$('#prPl', el); if(pp) pp.onclick=e=>{ const b=e.target.closest('[data-pp]'); if(!b) return; const id=b.dataset.pp; if(psel.has(id)) psel.delete(id); else psel.add(id); b.classList.toggle('on', psel.has(id)); }; }); }
 function becomeMonarch(by){ const m=G.me; if(m.monarch) return; m.monarch=true; if(G.opp) send({t:'monarch', by, who:m.name}); log(`${by}: ${m.name} becomes the monarch (draws a card at the beginning of their end step).`); changed(); }
-/* the monarch (v4.06, Ben): a gold box with the crown on the current monarch's side; clicking the opponent's takes it by hand */
+/* the monarch (v4.06, the maintainer): a gold box with the crown on the current monarch's side; clicking the opponent's takes it by hand */
 const monarchHTML = pid => `<div class="card marker mon" data-mon="${pid}" title="${pid===G.myId ? 'You are the monarch: you draw a card at the beginning of your end step. Whoever deals you combat damage takes it.' : 'The monarch. Deal them combat damage to take it (it moves by itself), or click to take it by hand.'}"><span class="mkc">${ICO.monarch}</span><span class="mkt">Monarch</span></div>`;
-/* markers show while their count is above 0 (v4.07, Ben; the chips by the name stay for adding from 0). One marker keeps the full card look; two or more share one card-sized column (v4.06) so a crowded row doesn't push them off the table */
+/* markers show while their count is above 0 (v4.07, the maintainer; the chips by the name stay for adding from 0). One marker keeps the full card look; two or more share one card-sized column (v4.06) so a crowded row doesn't push them off the table */
 const markersHTML = xs => { xs=xs.filter(Boolean); return xs.length>1 ? `<div class="mkstack">${xs.join('')}</div>` : xs.join(''); };
 const poisonOn = () => !!(G.me.poisonSeen || G.me.poisonSrc || (G.opp && (G.opp.poisonSeen || G.opp.poisonSrc)) || (G.me.ctr.poison||0)>0 || (G.opp && G.opp.ctr && (G.opp.ctr.poison||0)>0));
 /* a row wider than the board scrolls sideways: the mouse wheel moves it, and its scroll bar is brought to the front while the pointer is on the row */
@@ -7751,10 +7751,10 @@ function rowsHTML(bf, mine){
   for(const c of free){ const r = c.row || ((c.fd || (isCreature(c) && !c.imp)) ? 'f' : 'b'); if(r==='f') front.push(c); else if(isLand(c) && !c.row) lands.push(c); else other.push(c); }
   lands.sort((a,b)=> (cdata(a).n||'').localeCompare(cdata(b).n||'') || (a.tap-b.tap));
   // a pile of tapped identical cards is wrapped in .pilT: with a sideways tap (t90) it is drawn right to left, the top card leftmost, so each card
-  // underneath shows its right edge, which is the top of a tapped card (name and art) (v4.40, Ben). With the 18° tap the wrapper does nothing.
+  // underneath shows its right edge, which is the top of a tapped card (name and art) (v4.40, the maintainer). With the 18° tap the wrapper does nothing.
   const wrapT = (g, html) => g.length>1 && g[0].tap ? `<span class="pilT">${html}</span>` : html;
   // v4.50: each group (a card, a pile, a card with what is attached to it) is drawn above the groups to its right, so a card tapped sideways
-  // overlaps its right-hand neighbour with its top (name and art) instead of being covered by that neighbour's bottom (Ben)
+  // overlaps its right-hand neighbour with its top (name and art) instead of being covered by that neighbour's bottom (the maintainer)
   const zgOf = () => { let z=19; return html => { const v=Math.max(1, z--); return html.replace(/ data-z="bf"/g, ` data-z="bf" style="--zg:${v}"`); }; };
   let L='', run=[]; const zB=zgOf(), zF=zgOf(); lands.forEach((c,i)=>{ run.push(c); const n=lands[i+1]; const same = n && n.k===c.k && n.tap===c.tap && !c.c && !LPID.has(c.id) && !LPID.has(n.id) && !host.has(c.id) && !host.has(n.id);
     if(!same){ L += zB(wrapT(run, run.map((x,j)=> j<run.length-1 ? cardHTML(x,'bf',mine,'under') : one(x)).join(''))); run=[]; } });
@@ -7763,7 +7763,7 @@ function rowsHTML(bf, mine){
   const tkey = c => c.tok && !c.fd && !host.has(c.id) && !arrowed.has(c.id) && !c.cp ? [c.k||'', (c.cu&&c.cu.n)||'', (c.cu&&c.cu.pt)||'', (c.cu&&c.cu.t)||'', (c.cu&&c.cu.o)||'', !!c.tap, !!c.atk, !!showSick(c), c.c||0, c.dmg||0, c.tp||0, c.tt||0, (c.kw||[]).join(','), c.hst||0, c.gainLtb||''].join('|') : null;
   const piles = (list, zg) => { const groups=[], byKey=new Map(); for(const c of list){ const k=tkey(c); if(k && byKey.has(k)){ byKey.get(k).push(c); continue; } const g=[c]; if(k) byKey.set(k,g); groups.push(g); }
     return groups.map(g=>{ if(g.length===1) return zg(one(g[0])); const top=g[g.length-1], rest=g.slice(0,-1);
-      // v4.66 (Ben): non-creature tokens (Treasure, Clue, Food, …) show as one token with a count, like one paper token with a die on it; the others stay
+      // v4.66 (the maintainer): non-creature tokens (Treasure, Clue, Food, …) show as one token with a count, like one paper token with a die on it; the others stay
       // on the battlefield hidden underneath, so everything that counts artifacts or permanents still sees each one
       if(!isCreature(top)) return zg(rest.map(c=>cardHTML(c,'bf',mine,'tokunder tokhide')).join('') + cardHTML(top,'bf',mine,'tokpile tokone').replace(/<\/div>$/, `<span class="tokc" title="${g.length} ${esc(cdata(top).n)} tokens">${g.length}</span></div>`));
       return zg(wrapT(g, rest.map((c,i)=>cardHTML(c,'bf',mine, i>=rest.length-3 ? 'tokunder' : 'tokunder tokhide')).join('') + cardHTML(top,'bf',mine,'tokpile').replace(/<\/div>$/, `<span class="tokn" title="${g.length} identical tokens">×${g.length}</span></div>`))); }).join(''); };
@@ -7785,7 +7785,7 @@ function avatarHTML(p, pid, mine){
     <div class="life"><button data-life="-1" data-pl="${pid}" aria-label="Lose 1 life">−</button><b>${p.life}</b><button data-life="1" data-pl="${pid}" aria-label="Gain 1 life">+</button></div>
     <div class="dk">${esc(!mine && nightSeat() && p.deck ? 'Deck locked in' : p.deck||'No deck yet')}${p.mull?` · ${p.mull} mulligan${p.mull>1?'s':''}`:''}</div>${p.ptest?`<div class="ptnote" title="${mine?'You chose to play this deck for testing even though it is not tournament legal.':'Your opponent is playtesting with a deck that is not tournament legal.'}">Playtesting: ${esc(p.ptest)}</div>`:''}<div class="mana">${MANA.map(k=>{ const n=(p.mana||{})[k]||0; return `<span class="mp ${n?'on':''} ${mine?'mine':''}" ${mine?`data-mana="${k}"`:''} title="${MNAME[k]} mana${mine?': click to spend one, Shift-click or right-click to add one':''}">${n>1?`<b>${n}</b>`:''}<i class="ms ms-${k}">${k}<img src="https://svgs.scryfall.io/card-symbols/${k}.svg" alt="" draggable="false" onerror="this.remove()"></i></span>`; }).join('')}</div>${smanaHTML(p, mine)}<div class="chips">${chips}<span class="winmark ${p.wins?'on':''}" data-win="${pid}" title="Click to mark a game win. Right-click to take one back."><i></i>${p.wins>=2?'Match won':p.wins?'1 game won':'Game win'}</span></div>`;
 }
-/* smooth taps (v4.23, Ben): render() rebuilds the rows, so CSS transitions never play on a tap. tapSnap notes where each battlefield card is
+/* smooth taps (v4.23, the maintainer): render() rebuilds the rows, so CSS transitions never play on a tap. tapSnap notes where each battlefield card is
    and how it is turned just before a render; tapAnim then animates every card that moved or turned from that pose to its new one (FLIP),
    so taps, untaps and the neighbours making room glide. A pose read mid-animation is where the card is on screen, so a render during an
    animation carries on from there. Arrows are redrawn when the cards have settled. */
@@ -7800,8 +7800,8 @@ function tapAnim(s){ if(!s || !s.size) return; let any=0;
     const k0={transform:`translate(${dx}px,${dy}px)${a.t==='none'?'':' '+a.t}`}, k1={transform:b.t==='none'?'translate(0px,0px)':b.t}; if(a.f!==b.f){ k0.filter=a.f; k1.filter=b.f; }
     try{ el.animate([k0,k1], {duration:230, easing:'cubic-bezier(.2,.7,.3,1)'}); any=1; }catch(x){} }
   if(any){ clearTimeout(tapAnim.tm); tapAnim.tm=setTimeout(drawArrows, 250); } }
-/* tapped cards (v4.23, Ben): turned slightly (18°, as before), sideways (90°) over their neighbours, or sideways with room made for them. Per player, saved in mt_settings */
-/* v4.43 (Ben): animations are on unless a player turns them off (☰ Animations). "Follow my computer" honours the reduced-motion setting,
+/* tapped cards (v4.23, the maintainer): turned slightly (18°, as before), sideways (90°) over their neighbours, or sideways with room made for them. Per player, saved in mt_settings */
+/* v4.43 (the maintainer): animations are on unless a player turns them off (☰ Animations). "Follow my computer" honours the reduced-motion setting,
    which used to switch every animation off by itself, so a computer set that way showed the table frozen. */
 const noMotion = () => S.anim==='off' || (S.anim==='auto' && RMOT.matches);
 function applyMotion(){ if(document.body) document.body.classList.toggle('nomo', noMotion()); }
@@ -7842,7 +7842,7 @@ async function streamModal(){ const cur=S.stream||'off'; let cams=[];
 function animModal(){ const cur=S.anim||'on';
   modal('Animations', `<span class="hint">Cards turning as they tap, the hand opening a gap for a dragged card, piles spreading. ${RMOT.matches ? '<b>This computer asks apps for less motion</b>, so "Follow my computer\'s setting" turns them off.' : 'This computer does not ask for less motion.'}</span>`,
     Object.entries(ANIMST).map(([v,l])=>[l+(v===cur?'  ✓':''), ()=>{ S.anim=v; store.set('mt_settings',S); closeModal(); applyMotion(); toast('Animations: '+(noMotion()?'off':'on')+'.'); }, v===cur?'go':'ghost'])); }
-const TAP_DEF='90';   // v4.43: sideways is the default (Ben)
+const TAP_DEF='90';   // v4.43: sideways is the default (the maintainer)
 const TAPST = {'18':'Turned slightly (18°)', '90':'Sideways (90°), overlapping neighbours', '90r':'Sideways (90°), with room made'};
 function applyTapStyle(){ const v=S.tap||TAP_DEF, b=document.body; if(!b) return; b.classList.toggle('t90', v!=='18'); b.classList.toggle('t90r', v==='90r'); }
 if(document.body) applyTapStyle(); else document.addEventListener('DOMContentLoaded', applyTapStyle);
@@ -7850,10 +7850,10 @@ function tapStyleModal(){ const cur=S.tap||TAP_DEF;
   const pick = v => { S.tap=v; store.set('mt_settings',S); closeModal(); applyTapStyle(); setTimeout(()=>{ render(); drawArrows(); }, 200); toast('Tapped cards: '+TAPST[v].replace(/,.*/,'')+(v==='90r'?', with room':'')+'.'); };
   modal('Tapped cards', `<span class="hint">How your tapped cards are turned on your screen. It changes only what you see; your opponent picks their own.<br><br><b>Sideways with room</b> spreads each row out a little, so a crowded row may need scrolling sooner. Identical lands stay stacked either way.</span>`,
     Object.entries(TAPST).map(([v,l])=>[l+(v===cur?'  ✓':''), ()=>pick(v), v===cur?'go':'ghost'])); }
-/* Ragavan-style "until end of turn, you may cast that card" (v4.31, Ben): c.offer holds the turn number it was exiled on; it can be cast only during that turn, before it is passed. The owner's turn cleanup still clears the flag, but the check doesn't depend on it (Practice never runs one). */
+/* Ragavan-style "until end of turn, you may cast that card" (v4.31, the maintainer): c.offer holds the turn number it was exiled on; it can be cast only during that turn, before it is passed. The owner's turn cleanup still clears the flag, but the check doesn't depend on it (Practice never runs one). */
 const offerLive = c => !!c.offer && (c.offer===true || (c.offer===G.turn.n && !G.turn.passed));
 let NMW=null, CHAL=[];   /* name of a card that cares whether mana was spent, set each render */
-/* v5.08 (Ben): when the left column gets crowded (round clock, keyword key, city's blessing on a short window), the pile boxes shrink
+/* v5.08 (the maintainer): when the left column gets crowded (round clock, keyword key, city's blessing on a short window), the pile boxes shrink
    evenly before anything in the middle is cut off, down to PILE_MIN (the label plus a sliver of the top card); roomier windows keep full piles.
    #midRail is the part that shrinks (min-height 0), so the amount it is clipped by is what the piles give up. Runs after each render (once per frame) and on resize. */
 const PILE_MIN=26; let FITL=0;
@@ -7914,7 +7914,7 @@ function render(){
     const btn = iCast ? `<button class="go" data-take="${c.id}"${free?` data-free="1"`:''}>${free || (by.tib && land) ? (land ? 'Play it' : 'Cast it free') : 'Cast it'}</button>` : (mine && by.tib && by.pid===G.myId) ? `<button class="go" data-tibme="${c.id}">${land ? 'Play it' : 'Cast it'}</button>` : (mine && by.mode==='hold') ? `<button data-byback="${c.id}">Return it</button>` : '';   // v4.133 Tibalt's emblem: the cards exiled with him
     return row(c, mine, line, btn, tip); };
   $('#offerwrap').hidden = !(myOff.length || opOff.length || myBy.length || opBy.length);
-  $('#offers').innerHTML = opOff.map(c=>isLand(c)   /* v4.124 (Ben): a land exiled by Ragavan can't be cast, so it is shown with the button greyed out */
+  $('#offers').innerHTML = opOff.map(c=>isLand(c)   /* v4.124 (the maintainer): a land exiled by Ragavan can't be cast, so it is shown with the button greyed out */
       ? row(c, false, `From ${on}'s library · a land can't be cast`, `<button class="go" disabled title="Lands can't be cast, so this one can't be played">Cast it</button>`, `From ${on}'s library. It's a land: lands can't be cast, so you can't play it. It stays in ${on}'s exile.`)
       : row(c, false, `From ${on}'s library · cast it this turn`, `<button class="go" data-take="${c.id}">Cast it</button>`, `From ${on}'s library. You may cast it this turn; it still belongs to ${on}.`)).join('')
     + myOff.map(c=>row(c, true, `${on} may cast this until the turn ends`, `<button data-offend="${c.id}">Stop offering</button>`, `${on} may cast this until the turn ends. It is in your exile.`)).join('')
@@ -8123,7 +8123,7 @@ function zoneModal(title, src, zone, mine, footer=[], onClose){
   modalRefresh=paint; paint();
 }
 function hideZoom(){ $('#zoom').hidden=true; }
-const ZOOMW = {s:240, m:300, l:380, xl:460};   /* v5.24 (Ben): Settings → Card enlargement; Normal is the old 300 px */
+const ZOOMW = {s:240, m:300, l:380, xl:460};   /* v5.24 (the maintainer): Settings → Card enlargement; Normal is the old 300 px */
 const zoomW = () => ZOOMW[S.zoom] || 300;
 function showZoom(d, rect, extra, fan){
   if(!d || (!d.img && !d.o && !d.n) || drag.on) return;
@@ -8138,7 +8138,7 @@ function showZoom(d, rect, extra, fan){
     if(w2!==w){ x = rect.left+rect.width/2 < innerWidth/2 ? rect.right+12 : rect.left-w2-12; z.style.left=Math.max(6,Math.min(x,innerWidth-w2-6))+'px'; }
     h=z.offsetHeight; z.style.top=Math.max(6, Math.min(rect.top+rect.height/2-h/2, innerHeight-h-6))+'px';
     const im=z.querySelector('img'); if(im && !im.complete) im.onload=()=>{ if(!z.hidden && !im._re){ im._re=1; showZoom(d, rect, extra, fan); } }; }
-  if(fan){ // v4.45 (Ben): over a library laid out in rows, the enlargement goes below a card in the upper rows and above one in the lower rows, never over its own row
+  if(fan){ // v4.45 (the maintainer): over a library laid out in rows, the enlargement goes below a card in the upper rows and above one in the lower rows, never over its own row
     const rb=[...fan.children].map(k=>k.getBoundingClientRect()).filter(r=>Math.abs(r.top-rect.top)<rect.height*.35), top=Math.min(rect.top, ...rb.map(r=>r.top)), bot=Math.max(rect.bottom, ...rb.map(r=>r.bottom)), below=(rect.top+rect.bottom)/2 < innerHeight/2;
     const room=(below ? innerHeight-bot : top)-16; if(z.offsetHeight>room){ z.style.width=Math.round(w*Math.max(.5, room/z.offsetHeight))+'px'; }
     const zw=z.offsetWidth, zh=Math.min(z.offsetHeight, Math.max(120, room)); z.style.maxHeight=zh+'px'; z.style.overflow='hidden';
@@ -8310,7 +8310,7 @@ function fsEnter(){ const d=document.documentElement; let p;
 function fsExit(){ try{ if(navigator.keyboard && navigator.keyboard.unlock) navigator.keyboard.unlock(); }catch(e){} try{ if(document.exitFullscreen) document.exitFullscreen(); else if(document.webkitExitFullscreen) document.webkitExitFullscreen(); }catch(e){} }
 function fsSync(){ const b=$('#fsBtn'); if(b) b.hidden=!fsEl(); if(!fsEl()){ try{ if(navigator.keyboard && navigator.keyboard.unlock) navigator.keyboard.unlock(); }catch(e){} } setTimeout(()=>{ render(); drawArrows(); for(const el of [$('#pactPanel'), $('#payPanel')]) if(el && !el.hidden) placePay(el); }, 60); }
 document.addEventListener('fullscreenchange', fsSync); document.addEventListener('webkitfullscreenchange', fsSync);
-function tableMenu(x,y){   /* v4.86 (Ben's layout B): this game · view and settings · help · the exit. Turn actions are on the turn label (turnMenu); settings in one window (settingsModal). */
+function tableMenu(x,y){   /* v4.86 (the maintainer's layout B): this game · view and settings · help · the exit. Turn actions are on the turn label (turnMenu); settings in one window (settingsModal). */
   menu(x,y,[
     ['New game / sideboard',()=>confirmBox('Start a new game?','Both players go back to 20 life and reshuffle. You can sideboard first.',()=>newGame())],
     ['Change deck',()=>showDecks()],
@@ -8349,9 +8349,9 @@ function settingsModal(){
   settingsModal.refresh=()=>{ if(document.body.contains(body)) body.innerHTML=html(); };   /* v5.0: the host changed Priority while this window was open */
 }
 function confirmBox(title, text, yes){ modal(title, `<span class="hint">${esc(text)}</span>`, [['Cancel',()=>closeModal(),'ghost'],['Yes',()=>{ closeModal(); yes(); },'go']]); }
-/* The tour (v4.27, Ben): a spotlight on the real screen with a short note and Back / Next / Skip. From the front page it walks the front page,
+/* The tour (v4.27, the maintainer): a spotlight on the real screen with a short note and Back / Next / Skip. From the front page it walks the front page,
    opens a practice game (deck screen, then a random tournament deck at the table) and walks the table; from the ☰ menu it walks only the
-   table. Content follows what Ben shows friends in person. Seen once → mt_toured (the front-page link stops glowing). Keys: → / Enter next,
+   table. Content follows what the maintainer shows friends in person. Seen once → mt_toured (the front-page link stops glowing). Keys: → / Enter next,
    ← back, Esc ends; the game's own keys are held off while it runs. */
 let TOUR=null;
 const TOUR_STEPS = {
@@ -8421,7 +8421,7 @@ function tourPlace(){ if(!TOUR) return; const hole=$('#tourHole'), card=$('#tour
   card.style.left=Math.max(8, Math.min(W-cw-8, L))+'px'; card.style.top=Math.max(8, Math.min(H-ch-8, T))+'px'; }
 document.addEventListener('keydown', e=>{ if(!TOUR) return; if(e.key==='Escape'){ tourEnd(); } else if(e.key==='ArrowRight' || e.key==='Enter'){ tourGo(1); } else if(e.key==='ArrowLeft'){ tourGo(-1); } else return; e.preventDefault(); e.stopImmediatePropagation(); }, true);
 document.addEventListener('keydown', e=>{ if(TOUR && !(e.target && /INPUT|TEXTAREA/.test(e.target.tagName))){ e.stopImmediatePropagation(); } }, true);
-/* v4.86 Explore the table (Ben): from How the table works. Point at (or tap) any part of the live table and it is outlined and named.
+/* v4.86 Explore the table (the maintainer): from How the table works. Point at (or tap) any part of the live table and it is outlined and named.
    Zone level only: where things are and what they're for. The first match walking up from the element under the pointer wins, so list the
    specific parts (a single pile, a tool button) before the areas that hold them. `tour` borrows that tour step's words so the two can't drift;
    `hi` outlines several elements as one (both battlefield rows). When a part of the screen is added or renamed, add or update its entry here. */
@@ -8680,7 +8680,7 @@ function finishMode(target){
 /* ================= input ================= */
 const drag={on:false};
 let down=null;
-/* rearranging the hand (v4.33, Ben; v4.34: the cards spread apart to open a gap at the spot, and the dragged card leaves its old place): dropping a card on the hand puts it where it was dropped.
+/* rearranging the hand (v4.33, the maintainer; v4.34: the cards spread apart to open a gap at the spot, and the dragged card leaves its old place): dropping a card on the hand puts it where it was dropped.
    handSlot = the id of the hand card it goes before (null = at the end). Cards dragged in from other zones land there too. */
 function handSlot(x, dragId){ for(const el of $$('#myHand .card[data-id]')){ if(el.dataset.id===dragId) continue; const r=el.getBoundingClientRect(); if(x < r.left + r.width/2) return el.dataset.id; } return null; }
 function handMark(slot){ $$('#myHand .card.insb, #myHand .card.insa').forEach(el=>el.classList.remove('insb','insa')); if(slot===false || slot===undefined) return;
@@ -8927,7 +8927,7 @@ function viewDeck(d, name, sub, link, canSave, savedIdx){
   const db=$('#delDeck'); if(db) db.onclick=()=>{ const sv=store.get('mt_decks',[]); sv.splice(savedIdx,1); store.set('mt_decks',sv); renderTab(); };
 }
 
-/* ================= v4.46 (Ben): the deck editor, the playtesting warning, the violet-ring legend =================
+/* ================= v4.46 (the maintainer): the deck editor, the playtesting warning, the violet-ring legend =================
    "Modify this deck" on the deck screen and the "Build a deck from scratch" tab open the editor (ED) in #deckView: a search bar across the top
    (Scryfall's name completion through sfetch, then the cards themselves, so Modern legality and the ring show), List or Cards view (columns by
    mana value, the sideboard pinned right), − / + / to side on every card. Four copies at most across main deck and sideboard, except basic lands
@@ -8993,7 +8993,7 @@ function paintEd(){ const v=$('#deckView'); if(!ED || !v) return; v.dataset.tok=
     viewDeck(d, ch || o.kind!=='tour' ? o.name : (o.name0||o.name), o.sub, o.link, o.kind==='paste' || (ch && o.kind==='tour'), o.kind==='saved' ? o.savedIdx : null); };
   paintEdBody(); }
 function edSave(){ if(!ED) return; const d=edDeck(), text=edText(d), sv=store.get('mt_decks',[]);
-  const asNew = ED.kind==='saved' && ED.name!==ED.name0;   // v4.122 (Ben): a renamed saved deck is saved as a new deck; the one it came from stays as it was
+  const asNew = ED.kind==='saved' && ED.name!==ED.name0;   // v4.122 (the maintainer): a renamed saved deck is saved as a new deck; the one it came from stays as it was
   if(ED.kind==='saved' && !asNew && sv[ED.savedIdx]) sv[ED.savedIdx]=Object.assign({}, sv[ED.savedIdx], {name:ED.name, text});
   else { const nm=edSaveName(); sv.unshift({name:nm, text}); ED.kind='saved'; ED.savedIdx=0; ED.name=nm; ED.sub='Saved deck'; }
   store.set('mt_decks', sv); ED.base=text; ED.name0=ED.name; toast(`Saved to your decks as “${ED.name}”.`); paintEd(); }
