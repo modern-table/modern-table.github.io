@@ -775,7 +775,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.30';
+const VERSION = 'v5.31';
 /* Affiliation (v4.88, the maintainer): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -791,6 +791,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.31','Nov 23',"Ward works on more cards: a creature with ward in a list of keywords (Colossal Skyturtle's \"Flying, ward {2}\") now asks for its cost, and against Practice your abilities and triggers that target a ward creature ask too, not only your spells. A ward cost in mana opens the payment window."],
   ['v5.30','Nov 23',"Practice always brings a deck now: a random tournament deck, or one you choose. Your Ragavan, Thoughtseize and peeks have something to hit, and when Practice takes turns it draws real cards. You can still change its deck from the Practice button."],
   ['v5.29','Nov 23',"This week's new cards play themselves. Emrakul, the Aeons Torn: annihilator 6 when it attacks, protection from colored spells (they can't target it, and their damage is prevented), and it shuffles your graveyard into your library whenever it goes there. Federation Outpost asks for its mode when it enters untapped. Firespout hits the creatures without flying if red was spent and the fliers if green was spent. Iona stops your opponent casting spells of the chosen color. Valgavoth exiles the cards that would go to your graveyard, and its controller can play them on their turn by paying life. Ward now works: when you target a creature with ward, you pay the ward cost or your spell is countered (Valgavoth, Kappa Cannoneer, Sire of Seven Deaths). Spells that say \"target creature with flying\" only point at fliers."],
   ['v5.28','Nov 22',"Playing on the same wifi now works. When two players can't connect to each other directly (some home routers, guest wifi at a store or a friend's house), the table connects through a relay server instead, and the game plays the same. The connection label at the top says which: Connected directly, or Connected through the relay. This works at the Draft, Sealed, Cube and Game Night tables too."],
@@ -6518,24 +6519,24 @@ function clearTargets(id){ G.me.arrows=G.me.arrows.filter(a=>a.a!==id && a.b!==i
    are seen in oppTgtWatch; my own spells' arrows (to my Giant, or to Practice's, which can't resolve triggers, so its damage is dealt at once) in selfTgtWatch. */
 const bonecrusherOf = x => { if(!x || x.fd || (!x.k && !x.cu)) return null; const r=(frontText(x)||'').match(new RegExp('(?:^|\\n)Whenever (?:this creature|'+escRe(faceName(x,0))+') becomes the target of a spell, (?:this creature|it|'+escRe(faceName(x,0))+') deals (\\d+) damage to that spell(?:\'|’)s controller','i')); return r ? +r[1] : null; };
 /* v5.29 ward (Valgavoth's "Ward—Sacrifice three nonland permanents", Kappa Cannoneer's "Ward {4}", Sire of Seven Deaths' "Ward—Pay 7 life"): when an opponent's spell or ability targets my permanent with ward, a trigger "Counter that spell or ability unless its controller pays …" goes on my stack (ab.csp = their item); resolving it asks them (wardAsk). Practice never casts, so a ward permanent of Practice's asks me at once when my spell targets it */
-const wardOf = x => { if(!x || x.fd || (!x.k && !x.cu)) return null; const m=noRemind(x).match(/(?:^|\n)Ward(?:\s*[—–-]\s*|\s+)([^\n]+)/); return m ? m[1].trim().replace(/\.$/,'') : null; };
+const wardOf = x => { if(!x || x.fd || (!x.k && !x.cu)) return null; const m=noRemind(x).match(/(?:^|\n)(?:[A-Za-z]+(?: [A-Za-z]+){0,2}, )*[Ww]ard(?:\s*[—–-]\s*([^\n]+)|\s+((?:\{[^}]+\})+))/); return m ? (m[1]||m[2]).trim().replace(/\.$/,'') : null; };   /* v5.31: also inside a keyword list ("Flying, ward {2}": Colossal Skyturtle) */
 const wardPhrase = cost => /^\{/.test(cost) ? 'pays '+cost : cost.replace(/^(\w+)/, w=>{ w=w.toLowerCase(); return /(?:s|sh|ch|x)$/.test(w) ? w+'es' : w+'s'; });
 const wardBase = t => String(t).replace(/^pays\b/i,'pay').replace(/^(\w+)s\b/,'$1');
 async function wardAsk(msg){ const id=msg.id, by=String(msg.by||'Ward').slice(0,60), who=String(msg.who||'Opponent').slice(0,40), cost=String(msg.cost||'').slice(0,120), f=find(id); if(!f || f.z!=='st') return;
   if(f.c.unc){ log(`${who}'s ${by} can't counter ${cname(f.c)}: it can't be countered.`); changed(); return; }
-  const nm=cname(f.c), pn=cdata(f.c).n, m=G.me; let r;
+  const nm=cname(f.c), pn=cdata(f.c).n.replace(/: (trigger|ability|\w+)$/,' $1'), m=G.me, ttl=`${by} (${who})`; let r;   /* v5.31: "Thought-Knot Seer trigger", title "Sire of Seven Deaths's ward (Practice)" */
   const no=()=>counterMine(id, false, by, who);
-  if((r=cost.match(/^pays (\d+) life$/i))){ const n=+r[1]; if(await yesNo(`${who}'s ${by}`, `${by} counters your ${pn} unless you pay ${n} life. You have ${m.life}.`, `Pay ${n} life`, "Don't pay")){ m.life-=n; log(`${m.name} pays ${n} life for ward, so ${nm} isn't countered (life ${m.life}).`); changed(); } else no(); return; }
+  if((r=cost.match(/^pays (\d+) life$/i))){ const n=+r[1]; if(await yesNo(ttl, `${by} counters your ${pn} unless you pay ${n} life. You have ${m.life}.`, `Pay ${n} life`, "Don't pay")){ m.life-=n; log(`${m.name} pays ${n} life for ward, so ${nm} isn't countered (life ${m.life}).`); changed(); } else no(); return; }
   if((r=cost.match(/^sacrifices (a|an|one|two|three|four|five|\d+) (.+)$/i))){ const n=NUMW2[r[1].toLowerCase()]||+r[1]||1, d=r[2].toLowerCase().replace(/ies$/,'y').replace(/s$/,''), have=m.bf.filter(x=>!x.fd && matchesDesc(x, d)).length;
     if(have<n){ log(`${m.name} can't sacrifice ${n} ${r[2]} (has ${have}), so ${who}'s ${by} counters ${nm}.`); no(); return; }
-    if(await yesNo(`${who}'s ${by}`, `${by} counters your ${pn} unless you sacrifice ${r[1]} ${r[2]}. You have ${have}.`, 'Sacrifice them', "Don't")){ await edictPick({desc:d, n, by, who}); log(`${m.name} paid the ward cost, so ${nm} isn't countered.`); changed(); } else no(); return; }
-  if(await yesNo(`${who}'s ${by}`, `${by} counters your ${pn} unless you ${wardBase(cost)}. Pay it by hand first, then click Paid.`, 'Paid', "Don't pay")){ log(`${m.name} pays the ward cost (${cost}) for ${nm}.`); changed(); } else no(); }
-function selfTgtWatch(){ const m=G.me, st=new Set(m.st.filter(x=>!x.ab && !x.ch).map(x=>x.id)); G.stSeen=G.stSeen||new Set(); let ch=false;
+    if(await yesNo(ttl, `${by} counters your ${pn} unless you sacrifice ${r[1]} ${r[2]}. You have ${have}.`, 'Sacrifice them', "Don't")){ await edictPick({desc:d, n, by, who}); log(`${m.name} paid the ward cost, so ${nm} isn't countered.`); changed(); } else no(); return; }
+  if(await yesNo(ttl, `${by} counters your ${pn} unless you ${wardBase(cost)}. Pay it by hand first, then click Paid.`, 'Paid', "Don't pay")){ log(`${m.name} pays the ward cost (${cost}) for ${nm}.`); changed(); } else no(); }
+function selfTgtWatch(){ const m=G.me, st=new Set(m.st.filter(x=>!x.pact).map(x=>x.id)); G.stSeen=G.stSeen||new Set(); let ch=false;   /* v5.31: abilities and triggers too (ward); Bonecrusher stays spells only */
   for(const k of [...G.stSeen]) if(!st.has(k.split('>')[0])) G.stSeen.delete(k);
   for(const a of m.arrows||[]){ if(a.atk || a.blk || !st.has(a.a)) continue; const key=a.a+'>'+a.b; if(G.stSeen.has(key)) continue; G.stSeen.add(key); const sp=m.st.find(y=>y.id===a.a);
     const mine=m.bf.find(x=>x.id===a.b), theirs=dummy() ? (G.opp.bf||[]).find(x=>x.id===a.b) : null, t=mine||theirs;
-    { const w=theirs && wardOf(theirs); if(w && sp){ const sid=sp.id, cost=wardPhrase(w), bn=`${cdata(theirs).n.split(',')[0]}'s ward`; log(`${cname(sp)} targets ${G.opp.name}'s ${cname(theirs)}: ward (${w}).`); setTimeout(()=>wardAsk({id:sid, cost, by:bn, who:G.opp.name}), 0); ch=true; } }   /* v5.29 */
-    const r=bonecrusherOf(t); if(!r) continue;
+    { const w=theirs && wardOf(theirs); if(w && sp){ const sid=sp.id, cost=wardPhrase(w), bn=`${cdata(theirs).n.split(',')[0]}'s ward`; log(`${cname(sp)} targets ${G.opp.name}'s ${cname(theirs)}: ward (${w}).`); { const gn=/^\{(\d+)\}$/.exec(w); setTimeout(()=>gn ? counterAsk({id:sid, by:bn, who:G.opp.name, pay:+gn[1]}) : wardAsk({id:sid, cost, by:bn, who:G.opp.name}), 0); } ch=true; } }   /* v5.29; v5.31: a generic {N} opens the payment window, as against a friend */
+    if(sp && (sp.ab || sp.ch)) continue; const r=bonecrusherOf(t); if(!r) continue;
     if(mine){ pushTrig(t, `${cdata(t).n.split(' // ')[0]} deals ${r} damage to you.`, 'trigger'); log(`${cname(sp)} targets ${cname(t)}: its trigger goes on the stack (${r} damage to ${m.name}).`); }
     else { m.life-=r; log(`${cname(sp)} targets ${G.opp.name}'s ${cname(t)}: it deals ${r} damage to ${m.name} (life ${m.life}).`); } ch=true; }
   return ch; }
