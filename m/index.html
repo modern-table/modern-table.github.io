@@ -9555,7 +9555,7 @@ window.__G = G;
    - choosing targets has a strip that says what to tap, legal targets outlined in orange, and a Done button (m0.5)
    - blocking is guided: tap a blocker, then the attacker it blocks; blockers group under their attackers (m0.6) */
 'use strict';
-const MVERSION = 'm0.6';
+const MVERSION = 'm0.7';
 const M = {look:false, view:null, lands:null, autoLands:false, tap:null, swallow:0, lastTouch:0, stN:0};
 const HT = document.documentElement;
 
@@ -9951,10 +9951,18 @@ function blkArrange(){ const done = [];
 const anyBlk = () => !!((G.me && (G.me.arrows||[]).some(a=>a.blk)) || (G.opp && (G.opp.arrows||[]).some(a=>a.blk)));
 function blkSnapPos(){ const m = new Map(); for(const el of document.querySelectorAll('#myFront .card[data-id], #oppFront .card[data-id]')){ const r = el.getBoundingClientRect(); m.set(el.dataset.id, [r.left, r.top]); } return m; }
 /* the desktop's own slide (tapAnim) was worked out for its order, not ours: in a rearranged row it is replaced by a slide from where each card was on screen */
-function blkSlide(before, rows){ if(!rows.length) return; const still = typeof noMotion === 'function' && noMotion();
+/* The desktop drew the arrows before the rows were re-ordered, so they point where the cards were (the maintainer, m0.7: Ocelot Pride's block arrow
+   stayed at its old spot). The arrows are hidden while the cards slide and drawn again once they have settled, then fade in. */
+const BLK_SLIDE = 400;
+function blkSlide(before, rows){ if(!rows.length) return; const still = typeof noMotion === 'function' && noMotion(); let moved = 0;
   for(const row of rows) for(const el of row.querySelectorAll('.card[data-id]')){ try { el.getAnimations().forEach(a=>a.cancel()); } catch(e){}
     const o = before && before.get(el.dataset.id); if(!o || still) continue; const r = el.getBoundingClientRect(), dx = o[0] - r.left, dy = o[1] - r.top;
-    if(Math.abs(dx) < 2 && Math.abs(dy) < 2) continue; el.animate([{translate:`${dx}px ${dy}px`}, {translate:'0 0'}], {duration:400, easing:'ease-out'}); } }
+    if(Math.abs(dx) < 2 && Math.abs(dy) < 2) continue; moved++; el.animate([{translate:`${dx}px ${dy}px`}, {translate:'0 0'}], {duration:BLK_SLIDE, easing:'ease-out'}); }
+  const g = $('#arrowG'); clearTimeout(M.arT);
+  if(!moved){ if(g){ g.style.opacity = ''; } drawArrows(); return; }
+  if(g) g.style.opacity = '0';
+  M.arT = setTimeout(()=>{ drawArrows(); const a = $('#arrowG'); if(!a) return; a.style.opacity = '';
+    try { a.animate([{opacity:0}, {opacity:1}], {duration:180, easing:'ease-out'}); } catch(e){} }, BLK_SLIDE + 20); }
 
 /* ---------- after every redraw ---------- */
 const deskRender = render;

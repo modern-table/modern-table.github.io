@@ -64,7 +64,15 @@ try:
     card('Flickerwisp', 'opp').tap(); p.wait_for_timeout(300); s = J(p, ST)
     check('tapping the flyer asks first (Pick another / Block anyway)', s['modal'] and 'flying' in s['modal'] and 'Block anyway' in s['modal'] and not s['mine'], s['modal'])
     p.get_by_role('button', name='Pick another').tap(); p.wait_for_timeout(300)
-    card('Ragavan', 'opp').tap(); p.wait_for_timeout(500); s = J(p, ST)
+    card('Ragavan', 'opp').tap(); p.wait_for_timeout(120)
+    hid = J(p, "() => document.querySelector('#arrowG').style.opacity")
+    p.wait_for_timeout(600)
+    ARW = """() => { const b=G.me.bf.find(c=>cdata(c).n==='Thought-Knot Seer'), a=anchor(b.id), ps=[...document.querySelectorAll('#arrowG path')].map(x=>x.getAttribute('d').match(/^M([\\d.-]+) ([\\d.-]+)/)).filter(Boolean).map(m=>[+m[1],+m[2]]);
+      return {a, ps, ok:ps.some(q=>Math.hypot(q[0]-a[0], q[1]-a[1])<4), op:document.querySelector('#arrowG').style.opacity}; }"""
+    aw = J(p, ARW)
+    check('m0.7: while the blocker slides into its group the arrows are hidden', hid == '0', hid)
+    check('m0.7: once it has settled, its block arrow starts from where the blocker is now (not its old spot), and the arrows show again', aw['ok'] and aw['op'] == '', aw)
+    s = J(p, ST)
     check('tapping Ragavan blocks it: the blocker tagged BLOCKS, the attacker ringed blue and BLOCKED, Done blocking (1)', s['mine'] == ['Thought-Knot Seer>Ragavan, Nimble Pilferer'] and s['on'] == ['Thought-Knot Seer'] and s['atk'] == ['Ragavan, Nimble Pilferer'] and 'BLOCKED' in s['tags'] and s['go'] == 'Done blocking (1)', s)
     check('the blocker moves to the front of my row, apart from the creatures not blocking', s['my'][0] == 'Thought-Knot Seer' and s['gaps'] >= 2, s['my'])
     card('Walking').tap(); p.wait_for_timeout(250); card('Ragavan', 'opp').tap(); p.wait_for_timeout(500); s = J(p, ST)
