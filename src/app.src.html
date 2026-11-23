@@ -384,6 +384,22 @@ body.nomo .kc.won{animation:none}
 .avatar.active{background:linear-gradient(90deg,#d9b25f22,transparent)}
 .avatar.tgt{outline:2px solid var(--brass);outline-offset:-2px;cursor:crosshair}
 .avatar .nm{font-family:var(--display);font-size:17px;display:flex;align-items:center;gap:8px;min-width:0}.avatar .nm .nmt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+/* v5.32: voice */
+.vcb,.vci{display:inline-flex;align-items:center;gap:3px;flex:none;border:1px solid var(--line);background:transparent;color:var(--dim);border-radius:3px;padding:2px 4px;font:700 11px var(--ui);cursor:pointer;line-height:1}
+.vcb svg,.vci svg{width:16px;height:16px;fill:currentColor;stroke:currentColor;stroke-width:1.6}
+.vcb:hover{color:var(--ink);border-color:var(--brass)}
+.vcb.on{color:#1b1205;background:var(--brass);border-color:var(--brass);box-shadow:0 0 0 0 #d9b25f88;animation:vcpulse 1.6s infinite}
+.vcb.rec{color:#fff;background:#b3261e;border-color:#b3261e}
+.vcb.rec b{font-variant-numeric:tabular-nums}
+.vcb.x{padding:2px 6px}
+.vci{cursor:default;border-color:transparent;color:var(--opp)}
+.vci.on{animation:vcpulse 1.6s infinite;border-radius:3px}
+.vci.tap{cursor:pointer;border-color:var(--opp)}
+@keyframes vcpulse{0%{box-shadow:0 0 0 0 #d9b25f88}70%{box-shadow:0 0 0 6px #d9b25f00}100%{box-shadow:0 0 0 0 #d9b25f00}}
+body.nomo .vcb.on,body.nomo .vci.on{animation:none}
+.vns{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:3px;margin-top:2px}
+.vnc{border:1px solid var(--opp);background:transparent;color:var(--opp);border-radius:3px;padding:1px 6px;font:700 11px var(--ui);cursor:pointer}
+.vnc.new{background:var(--opp);color:#0c1a24}
 .avatar .dk{font-size:11px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .life{display:flex;align-items:center;gap:4px;grid-row:span 2}
 .life b{font-family:var(--display);font-size:34px;min-width:1.6em;text-align:center;font-variant-numeric:tabular-nums}
@@ -767,7 +783,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.31';
+const VERSION = 'v5.32';
 /* Affiliation (v4.88, the maintainer): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -783,6 +799,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.32','Nov 23',"Talk to your friend at the table: a microphone button sits next to your name. Tap it and your friend hears you live until you tap it again (works on phones too). Prefer messages? Settings → Voice → Voice notes: tap to record, tap again to send, and they tap ▶ to listen. Nothing is recorded or stored anywhere."],
   ['v5.31','Nov 23',"Ward works on more cards: a creature with ward in a list of keywords (Colossal Skyturtle's \"Flying, ward {2}\") now asks for its cost, and against Practice your abilities and triggers that target a ward creature ask too, not only your spells. A ward cost in mana opens the payment window."],
   ['v5.30','Nov 23',"Practice always brings a deck now: a random tournament deck, or one you choose. Your Ragavan, Thoughtseize and peeks have something to hit, and when Practice takes turns it draws real cards. You can still change its deck from the Practice button."],
   ['v5.29','Nov 23',"This week's new cards play themselves. Emrakul, the Aeons Torn: annihilator 6 when it attacks, protection from colored spells (they can't target it, and their damage is prevented), and it shuffles your graveyard into your library whenever it goes there. Federation Outpost asks for its mode when it enters untapped. Firespout hits the creatures without flying if red was spent and the fliers if green was spent. Iona stops your opponent casting spells of the chosen color. Valgavoth exiles the cards that would go to your graveyard, and its controller can play them on their turn by paying life. Ward now works: when you target a creature with ward, you pay the ward cost or your spell is countered (Valgavoth, Kappa Cannoneer, Sire of Seven Deaths). Spells that say \"target creature with flying\" only point at fliers."],
@@ -1376,6 +1393,7 @@ function connect(){
   setNet(host ? 'waiting' : 'joining');
   const peer = G.peer = host ? new Peer(PREFIX+G.code, peerOpts()) : new Peer(peerOpts());
   peer.on('open', () => { if(!host) relayReady().then(dial); });   /* v5.28: dial once the relay servers are known (at most 3 s) */
+  peer.on('call', vcIncoming);   /* v5.32: voice */
   peer.on('connection', c => { if(G.conn && G.conn.open){ c.on('open', ()=>{ c.send({t:'full'}); setTimeout(()=>c.close(), 300); }); return; } wire(c); });
   peer.on('disconnected', () => { if(!peer.destroyed) setTimeout(()=>{ try{ peer.reconnect(); }catch(e){} }, 1500); });
   peer.on('error', e => {
@@ -1389,10 +1407,94 @@ function connect(){
   function wire(c){
     c.on('open', () => { G.conn=c; setNet('connected'); relayNote(c, k=>{ if(G.conn!==c) return; G.via=k; renderNet(); addLog(k==='relay' ? 'Connected through the relay (a direct connection wasn\'t possible on this network).' : 'Connected directly.', 's'); }); if(host) gcEvent('friend-joined', 'Friend joined a table (two-player game)', 'fj_'+G.code); send({t:'hello', n:G.turn.n, pv:PRI_PV, pri:isHostSide() ? priSet() : null}); send({t:'state', s:pub()}); if(host || G.turn.n>0) send({t:'turn', turn:G.turn, hello:true}); if(host) setTimeout(mtSend, 600); });
     c.on('data', onMsg);
-    c.on('close', () => { if(G.conn===c){ G.conn=null; G.oppHello=false; G.oppPv=0; setNet(host ? 'waiting' : 'joining'); if(!host) setTimeout(()=>{ if(peer===G.peer && !G.conn) dial(); }, 2000); } });
+    c.on('close', () => { if(G.conn===c){ vcHang(); G.conn=null; G.oppHello=false; G.oppPv=0; setNet(host ? 'waiting' : 'joining'); if(!host) setTimeout(()=>{ if(peer===G.peer && !G.conn) dial(); }, 2000); } });
     c.on('error', e => console.warn('conn error', e));
   }
 }
+/* v5.32: voice (the maintainer: mistakes and rollbacks go best when you can talk; an open line by default, voice notes as a setting).
+   Only at a table with a friend (vsReal and an open connection), never in practice. The microphone button sits in my player box
+   (vcBtnHTML); the other player's box shows a speaker while their microphone is on (vcOppHTML) and their voice notes as play chips
+   (vnChipsHTML). Open line: the first tap asks for the microphone and calls the other page over the same PeerJS peer (media calls use
+   the Peer's config, so the relay too), metadata {vc:1}; their page answers without a stream of its own (vcIncoming) and plays ours in
+   #vcAudio. Each side that talks places its own call. Muting stops the microphone (the phone's in-use light goes off) and keeps the
+   call; unmuting swaps a fresh track in (replaceTrack). Message vc {on} drives the speaker in the other box. Phones may refuse to play
+   sound before a tap on the page: then the other box shows "Tap to hear" (VC.needTap), and any tap retries. Voice notes: the
+   microphone through a ScriptProcessor into 16-bit WAV at VN_RATE (wavOf: plays in every browser), at most VN_MAX seconds, sent as base64 in vn pieces (VN_CHUNK), the
+   receiver keeps the last three as blob URLs. The connection closing ends everything (vcHang). Nothing is recorded or kept anywhere else. */
+const VC = {mic:null, out:null, inc:null, live:false, oppLive:false, needTap:false, rec:null, recTimer:0, parts:{}, notes:[]};
+const VN_MAX = 30, VN_CHUNK = 16000, VN_KEEP = 3, VN_RATE = 12000;
+const vcOK = () => vsReal() && !!(G.conn && G.conn.open) && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+const vcMode = () => S.voice === 'notes' ? 'notes' : 'line';
+const VC_MIC = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4M9 21h6" fill="none"/></svg>';
+const VC_SPK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11" fill="none"/></svg>';
+async function vcMicGet(){ if(VC.mic && VC.mic.getAudioTracks().some(t=>t.readyState==='live')) return VC.mic;
+  VC.mic = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true, noiseSuppression:true, autoGainControl:true}, video:false}); return VC.mic; }
+function vcMicStop(){ if(VC.mic){ VC.mic.getTracks().forEach(t=>t.stop()); VC.mic=null; } }
+function vcErr(e){ const n=e && e.name; toast(n==='NotAllowedError' || n==='SecurityError' ? 'The microphone is blocked for this page. Allow it in your browser\'s settings for this site, then tap the microphone again.' : n==='NotFoundError' ? 'No microphone was found.' : 'The microphone could not start'+(n ? ` (${n})` : '')+'.'); }
+function vcSender(){ try{ const pc=VC.out && VC.out.peerConnection; return pc ? pc.getSenders().find(x=>!x.track || x.track.kind==='audio') : null; }catch(e){ return null; } }
+function vcCall(stream){ if(VC.out){ try{ VC.out.close(); }catch(e){} } const call=G.peer.call(G.conn.peer, stream, {metadata:{vc:1}}); VC.out=call;
+  if(call){ call.on('close', ()=>{ if(VC.out===call) VC.out=null; }); call.on('error', e=>console.warn('voice call', e)); } }
+async function vcToggle(){ if(!vcOK()){ toast('Voice works at a table with a friend.'); return; } vcUnlock();
+  if(vcMode()==='notes') return vnToggle();
+  if(VC.live){ VC.live=false; vcMicStop(); send({t:'vc', on:false}); render(); return; }
+  let st; try{ st=await vcMicGet(); }catch(e){ vcErr(e); return; } if(!vcOK()){ vcMicStop(); return; }
+  const tr=st.getAudioTracks()[0], snd=vcSender();
+  if(VC.out && VC.out.open && snd){ try{ await snd.replaceTrack(tr); }catch(e){ vcCall(st); } } else vcCall(st);
+  VC.live=true; send({t:'vc', on:true}); render(); }
+function vcIncoming(call){ if(!(call && call.metadata && call.metadata.vc)){ try{ call.close(); }catch(e){} return; }
+  if(VC.inc && VC.inc!==call){ try{ VC.inc.close(); }catch(e){} } VC.inc=call; call.answer();
+  call.on('stream', st=>vcPlay(st)); call.on('close', ()=>{ if(VC.inc===call) VC.inc=null; }); call.on('error', e=>console.warn('voice call', e)); }
+function vcAudio(){ let a=$('#vcAudio'); if(!a){ a=document.createElement('audio'); a.id='vcAudio'; a.autoplay=true; a.setAttribute('playsinline',''); document.body.appendChild(a); } return a; }
+function vcPlay(st){ const a=vcAudio(); a.srcObject=st; const pr=a.play(); if(pr && pr.catch) pr.then(()=>{ if(VC.needTap){ VC.needTap=false; render(); } }).catch(()=>{ VC.needTap=true; render(); }); }
+function vcUnlock(){ if(!VC.needTap) return; const a=$('#vcAudio'); if(!a) return; a.play().then(()=>{ VC.needTap=false; render(); }).catch(()=>{}); }
+function vcGot(m){ const was=VC.oppLive; VC.oppLive=!!m.on; if(VC.oppLive && !was) toast(`${(G.opp && G.opp.name) || 'Your opponent'}'s microphone is on: you can hear them.`); render(); }
+function vcHang(){ for(const k of ['out','inc']){ if(VC[k]){ try{ VC[k].close(); }catch(e){} VC[k]=null; } } if(VC.rec) vnStop(false); VC.live=false; VC.oppLive=false; VC.needTap=false; vcMicStop(); VC.parts={}; }
+function vcSwitch(v){ if(VC.live){ VC.live=false; vcMicStop(); send({t:'vc', on:false}); } if(VC.rec) vnStop(false); S.voice=v; render(); }
+async function vnToggle(){ if(VC.rec){ vnStop(true); return; }
+  const AC=window.AudioContext || window.webkitAudioContext; if(!AC){ toast('This browser can\'t record voice notes. Switch Settings → Voice to Open line.'); return; }
+  const ac=new AC(); try{ ac.resume(); }catch(e){}   /* made inside the tap, before the microphone question, so phones let it run */
+  let st; try{ st=await vcMicGet(); }catch(e){ try{ ac.close(); }catch(x){} vcErr(e); return; }
+  const src=ac.createMediaStreamSource(st), sp=ac.createScriptProcessor(4096, 1, 1), bufs=[], mute=ac.createGain(); mute.gain.value=0;
+  sp.onaudioprocess=e=>{ if(VC.rec===rec) bufs.push(new Float32Array(e.inputBuffer.getChannelData(0))); };
+  src.connect(sp); sp.connect(mute); mute.connect(ac.destination);
+  const rec={t0:Date.now(), send:true, fin:()=>{ clearInterval(VC.recTimer); try{ src.disconnect(); sp.disconnect(); }catch(e){} const rate=ac.sampleRate; try{ ac.close(); }catch(e){}
+    if(VC.rec===rec) VC.rec=null; vcMicStop(); render(); if(!rec.send || !bufs.length) return;
+    vnSend(wavOf(bufs, rate, VN_RATE), Math.max(1, Math.round((Date.now()-rec.t0)/1000))); }};
+  VC.rec=rec; VC.recTimer=setInterval(()=>{ if(VC.rec!==rec) return; if(Date.now()-rec.t0 >= VN_MAX*1000) vnStop(true); else vnTick(); }, 250); render(); }
+/* 16-bit mono WAV at VN_RATE: every browser plays it (compressed recordings differ: Safari makes AAC, Chrome Opus) */
+function wavOf(bufs, from, to){ let n=0; for(const b of bufs) n+=b.length; const all=new Float32Array(n); let o=0; for(const b of bufs){ all.set(b, o); o+=b.length; }
+  const k=from/to, m=Math.floor(n/k), pcm=new Int16Array(m); for(let i=0;i<m;i++){ const a=Math.floor(i*k), e=Math.min(n, Math.floor((i+1)*k)); let sm=0; for(let j=a;j<e;j++) sm+=all[j]; const v=Math.max(-1, Math.min(1, sm/Math.max(1, e-a))); pcm[i]=v<0 ? v*0x8000 : v*0x7fff; }
+  const dv=new DataView(new ArrayBuffer(44+pcm.length*2)), w=(p, t)=>{ for(let i=0;i<t.length;i++) dv.setUint8(p+i, t.charCodeAt(i)); };
+  w(0,'RIFF'); dv.setUint32(4, 36+pcm.length*2, true); w(8,'WAVE'); w(12,'fmt '); dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true);
+  dv.setUint32(24, to, true); dv.setUint32(28, to*2, true); dv.setUint16(32, 2, true); dv.setUint16(34, 16, true); w(36,'data'); dv.setUint32(40, pcm.length*2, true);
+  for(let i=0;i<pcm.length;i++) dv.setInt16(44+i*2, pcm[i], true); return new Blob([dv.buffer], {type:'audio/wav'}); }
+function vnStop(sendIt){ const rec=VC.rec; if(!rec) return; rec.send=sendIt; rec.fin(); }
+function vnSecs(){ return VC.rec ? Math.floor((Date.now()-VC.rec.t0)/1000) : 0; }
+function vnTick(){ const b=document.querySelector('.vcb.rec b'); if(b) b.textContent=`0:${String(vnSecs()).padStart(2,'0')}`; }
+function vnSend(blob, secs){ if(!vcOK()) return; const fr=new FileReader();
+  fr.onload=()=>{ const d=String(fr.result).split(',')[1]||'', id='vn'+Date.now().toString(36)+Math.floor(Math.random()*1e4), n=Math.ceil(d.length/VN_CHUNK);
+    for(let i=0;i<n;i++) send({t:'vn', id, i, n, mt:blob.type, s:secs, d:d.slice(i*VN_CHUNK, (i+1)*VN_CHUNK)}); toast(`Voice note sent (${secs} s).`); };
+  fr.readAsDataURL(blob); }
+function vnGot(m){ const id=String(m.id||'').slice(0,40), n=Math.min(+m.n||0, 80), i=+m.i; if(!id || !n || !(i>=0 && i<n)) return;
+  const P=VC.parts[id]=VC.parts[id]||{n, got:0, d:[]}; if(P.d[i]==null){ P.d[i]=String(m.d||''); P.got++; } if(P.got<P.n) return; delete VC.parts[id];
+  let url=''; const mt=/^audio\/[\w.+-]+$/.test(String(m.mt||'')) ? String(m.mt) : 'audio/webm';
+  try{ const bin=atob(P.d.join('')), u=new Uint8Array(bin.length); for(let k=0;k<bin.length;k++) u[k]=bin.charCodeAt(k); url=URL.createObjectURL(new Blob([u], {type:mt})); }catch(e){ return; }
+  VC.notes.push({id, url, mt, s:Math.max(1, Math.min(VN_MAX, +m.s||1)), heard:false}); while(VC.notes.length>VN_KEEP){ try{ URL.revokeObjectURL(VC.notes.shift().url); }catch(e){} }
+  addLog(`${(G.opp && G.opp.name) || 'Your opponent'} sent a voice note. Tap ▶ in their player box to hear it.`, 's'); render(); }
+function vnPlay(id){ const n=VC.notes.find(x=>x.id===id); if(!n) return; const a=new Audio(n.url);
+  if(!a.canPlayType(n.mt)) toast('This browser may not play this voice note\'s format ('+n.mt+').');
+  a.play().then(()=>{ n.heard=true; render(); }).catch(()=>toast('The voice note could not play on this browser.')); }
+function vcBtnHTML(){ if(!vcOK()) return ''; const nm=(G.opp && G.opp.name) || 'your opponent';
+  if(vcMode()==='notes'){ if(VC.rec) return `<button class="vcb rec" data-vc="mic" title="Recording: tap to send it to ${esc(nm)}">${VC_MIC}<b>0:${String(vnSecs()).padStart(2,'0')}</b></button><button class="vcb x" data-vc="cancel" title="Throw this recording away">✕</button>`;
+    return `<button class="vcb note" data-vc="mic" title="Record a voice note for ${esc(nm)} (tap again to send; at most ${VN_MAX} s)">${VC_MIC}</button>`; }
+  return `<button class="vcb${VC.live ? ' on' : ''}" data-vc="mic" aria-pressed="${VC.live}" title="${VC.live ? `Your microphone is on: ${esc(nm)} hears you. Tap to mute.` : `Talk to ${esc(nm)}: tap to turn your microphone on.`}">${VC_MIC}</button>`; }
+function vcOppHTML(){ if(!vsReal()) return ''; const nm=esc((G.opp && G.opp.name) || 'Your opponent');
+  if(VC.needTap && VC.oppLive) return `<button class="vci tap" data-vc="hear" title="Your browser needs a tap before it plays sound">${VC_SPK}<b>Tap to hear</b></button>`;
+  return VC.oppLive ? `<span class="vci on" title="${nm}'s microphone is on">${VC_SPK}</span>` : ''; }
+function vnChipsHTML(){ if(!vsReal() || !VC.notes.length) return ''; return `<div class="vns">${VC.notes.map(n=>`<button class="vnc${n.heard ? '' : ' new'}" data-vn="${esc(n.id)}" title="Play this voice note">▶ ${n.s} s</button>`).join('')}</div>`; }
+document.addEventListener('click', e=>{ const b=e.target.closest && e.target.closest('[data-vc],[data-vn]'); if(!b) return; e.stopPropagation(); e.preventDefault();
+  if(b.dataset.vn) return vnPlay(b.dataset.vn); const k=b.dataset.vc; if(k==='mic') vcToggle(); else if(k==='cancel') vnStop(false); else if(k==='hear') vcUnlock(); }, true);
+addEventListener('pointerdown', ()=>vcUnlock(), true);
 function onMsg(m){
   if(!m || typeof m!=='object') return;
   if(m.t==='state'){ const first=!G.opp, pl=G.opp ? G.opp.life : null; G.opp=m.s; if(pl!=null && m.s && m.s.life<pl) G.oppLost=G.turn.n; if(checkHeld() | pruneArrows() | bestowCheck() | oppTgtWatch() | priWatch()){ changed(); } const need=[]; for(const z of ['bf','gy','ex','st','hand']) for(const c of (G.opp[z]||[])){ if(c.k) need.push(c.k); if(c.cp && c.cp.k) need.push(c.cp.k); } ensureCards(need).then(render); if(first) addLog((G.opp.name||'Opponent')+' sat down at the table.','s'); render(); }
@@ -1533,6 +1635,8 @@ function onMsg(m){
   else if(m.t==='newmatch'){ toast((G.opp&&G.opp.name||'Opponent')+' started a new match.'); newMatch(true); }
   else if(m.t==='setroll'){ G.me.roll=+m.v||null; changed(); }
   else if(m.t==='newgame'){ toast((G.opp&&G.opp.name||'Opponent')+' started a new game.'); newGame(true); }
+  else if(m.t==='vc'){ vcGot(m); }   /* v5.32: the other player's microphone on / off */
+  else if(m.t==='vn'){ vnGot(m); }   /* v5.32: a voice note, in pieces */
   else if(m.t==='hello'){ priHello(m); }   /* v5.0: which pages pass priority, and the host's switch */
   else if(m.t==='ok'){ priGotOK(Array.isArray(m.ids) ? m.ids.slice(0,300).map(String) : []); }
   else if(m.t==='pri'){ if(!isHostSide()){ const was=priSet(); if(m.on===false) G.pri=false; else delete G.pri; if(was!==priSet()){ priChanged(); changed(); if(settingsModal.refresh) settingsModal.refresh(); } } }   /* only the host's page sends it; the host's own page ignores it */
@@ -7885,7 +7989,7 @@ function pileHTML(z, label, cards, n, mine, top){
 function avatarHTML(p, pid, mine){
   const act = G.turn.n && G.turn.active===pid;
   const chips = Object.entries(p.ctr||{}).map(([k,v])=>`<span class="chip ${v?'nz':''}" data-ctr="${k}" data-pl="${pid}" title="Click to add, right-click to remove">${ICON_OF(k)}${k} ${v}</span>`).join('') + (p.monarch ? `<span class="chip nz" data-mon="${pid}" title="${pid===G.myId ? 'You are the monarch: draw a card at the beginning of your end step.' : 'Click to take the monarch (when you deal combat damage to them).'}">${ICO.monarch} monarch</span>` : '');
-  return `<div class="nm">${lgsImg(p.lgs,'lgsl')}<span class="nmt">${esc(p.name||'Opponent')}${act?' ●':''}</span></div>
+  return `<div class="nm">${lgsImg(p.lgs,'lgsl')}<span class="nmt">${esc(p.name||'Opponent')}${act?' ●':''}</span>${mine ? vcBtnHTML() : vcOppHTML()}</div>${mine ? '' : vnChipsHTML()}
     <div class="life"><button data-life="-1" data-pl="${pid}" aria-label="Lose 1 life">−</button><b>${p.life}</b><button data-life="1" data-pl="${pid}" aria-label="Gain 1 life">+</button></div>
     <div class="dk">${esc(!mine && nightSeat() && p.deck ? 'Deck locked in' : p.deck||'No deck yet')}${p.mull?` · ${p.mull} mulligan${p.mull>1?'s':''}`:''}</div>${p.ptest?`<div class="ptnote" title="${mine?'You chose to play this deck for testing even though it is not tournament legal.':'Your opponent is playtesting with a deck that is not tournament legal.'}">Playtesting: ${esc(p.ptest)}</div>`:''}<div class="mana">${MANA.map(k=>{ const n=(p.mana||{})[k]||0; return `<span class="mp ${n?'on':''} ${mine?'mine':''}" ${mine?`data-mana="${k}"`:''} title="${MNAME[k]} mana${mine?': click to spend one, Shift-click or right-click to add one':''}">${n>1?`<b>${n}</b>`:''}<i class="ms ms-${k}">${k}<img src="https://svgs.scryfall.io/card-symbols/${k}.svg" alt="" draggable="false" onerror="this.remove()"></i></span>`; }).join('')}</div>${smanaHTML(p, mine)}<div class="chips">${chips}<span class="winmark ${p.wins?'on':''}" data-win="${pid}" title="Click to mark a game win. Right-click to take one back."><i></i>${p.wins>=2?'Match won':p.wins?'1 game won':'Game win'}</span></div>`;
 }
@@ -8437,6 +8541,7 @@ const SETROWS = [
   {g:'Look', k:'tap', l:'Tapped cards', h:'Only on your screen; your opponent picks their own.', o:{'18':'18°', '90':'90°', '90r':'90° with room'}, get:()=>S.tap||TAP_DEF, set:v=>{ S.tap=v; applyTapStyle(); setTimeout(()=>{ render(); drawArrows(); }, 200); }},
   {g:'Look', k:'zoom', l:'Card enlargement', h:'How big a card gets when you point at it, at the table and in windows like Thoughtseize\'s.', o:{s:'Small', m:'Normal', l:'Large', xl:'Extra large'}, get:()=>ZOOMW[S.zoom]?S.zoom:'m', set:v=>{ S.zoom=v; }},
   {g:'Look', k:'anim', l:'Animations', h:()=>RMOT.matches ? 'This computer asks apps for less motion.' : 'Cards turning, the hand opening a gap, piles spreading.', o:{on:'On', off:'Off', auto:'Follow my computer'}, get:()=>S.anim||'on', set:v=>{ S.anim=v; applyMotion(); }},
+  {g:'Sound', k:'voice', l:'Voice', h:'How the microphone button in your player box talks to your friend: an open line (they hear you live while your microphone is on), or voice notes (tap to record, tap again to send; they tap to play). You hear whatever your friend sends either way.', o:{line:'Open line', notes:'Voice notes'}, get:()=>vcMode(), set:v=>{ vcSwitch(v); }},
   {g:'Sound', k:'snd', l:'Stack alert', h:'A short chime when your opponent\'s spell or trigger is waiting for your OK, and once more, quieter, if it\'s still waiting after 10 seconds.', o:{off:'Off', low:'Quiet', mid:'Normal', high:'Loud'}, get:()=>S.snd||'mid', set:v=>{ S.snd=v; if(v!=='off') stackChime(1); }},
   {g:'Streaming', k:'stream', l:'Streamer mode', h:'A camera box at the bottom of the game log. Nothing is sent to your opponent.', o:{off:'Off', space:'Camera space', cam:'My camera'}, get:()=>S.stream||'off', set:v=>{ S.stream=v; applyStream(); }, more:()=>(S.stream||'off')!=='off' ? '<button class="lk" data-more="stream">Frame and camera…</button>' : ''} ];
 function settingsModal(){
@@ -8550,6 +8655,8 @@ const EXPLORE = [
   {sel:'#clockBox', t:'Round clock', p:['At a two-player table the match has 50 minutes, like a tournament round. When it runs out, the end-of-round turns begin.']},
   {sel:'#winsBox', t:'Games won', p:["Games won this match: your opponent's count above, yours below. Best of three."]},
   {sel:'#midRail', tour:'#midRail'},
+  {sel:'.vcb', t:'Talk to your friend', p:['Your microphone. On an open line (the default), tap to turn it on and your friend hears you live; tap again to mute. With Settings → Voice set to Voice notes, tap to record and tap again to send. A speaker beside your friend\'s name means their microphone is on; their voice notes appear under their name with ▶.']},
+  {sel:'.vci, .vnc', t:'Your friend\'s voice', p:['A speaker means their microphone is on and you hear them. ▶ chips are their voice notes: tap one to play it (a filled chip hasn\'t been heard yet).']},
   {sel:'#oppAv', tour:'#oppAv'},
   {sel:'#myAv', tour:'#myAv'},
   {sel:'#stackwrap', tour:'#stackwrap'},
