@@ -363,9 +363,10 @@ a.btnlink{text-decoration:none}
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v0.37';
+const VERSION = 'v0.38';
 /* What's new on the front page (v0.19, like the Modern Table's NEWS): newest first, written for players. Add a line with every version bump. */
 const DNEWS = [
+  ['v0.38','Nov 22',"Players on the same wifi can now join each other's events. When a direct connection isn't possible (some home routers, store or guest wifi), the table connects through a relay server instead. The connection label shows Connected through the relay, and the host sees how many players come in that way."],
   ['v0.37','Nov 16',"Sealed: the Khans of Tarkir, Modern Horizons and Modern Horizons 2 pack wrappers are cleaned up. Every cover of a set is now the same size and shape, with clean edges (no white specks or see-through spots)."],
   ['v0.36','Nov 15',"Archetype guides for every set: Reality Fracture, Final Fantasy, Modern Horizons 1 and 2 and Khans of Tarkir. Each shows the official archetypes and signpost cards plus notes and key cards from players' draft guides. Read them while choosing a set, while everyone joins, and in a window during the draft (Archetypes in the top bar or next to Take). Khans of Tarkir prereleases now work like the real one: pick a clan, then open five packs plus a seeded booster of your clan's colors with a foil clan promo."],
   ['v0.35','Nov 11',"Card text is now built into the site, so drafts and cube drafts keep working when Scryfall's card lookups are down, and a card whose picture can't load shows its text instead of a blank."],
@@ -775,17 +776,45 @@ setInterval(()=>{                    // host: pick for anyone whose clock ran ou
 
 /* ================= networking: the host's browser is the hub ================= */
 let peer=null, conn=null, NET='';
-function peerOpts(){
-  const q=new URLSearchParams(location.search), h=q.get('peerhost'); if(!h) return {};
-  const [host, port]=h.split(':'); return { host, port:+port||443, path:q.get('peerpath')||'/', secure:q.get('peersecure')!=='0' };
+/* v0.38: the relay, the same code as the Modern Table's (src/app.src.html, v5.28): Metered's Open Relay servers fetched
+   once into RELAY_CFG, which every Peer gets; a guest dials once they're known (at most 3 s); ?norelay skips it. */
+const RELAY_URL = 'https://moderntable.metered.live/api/v1/turn/credentials?apiKey=301a0a1f21e8b2bead891537937c4118ac01';
+const ICE_DEF = [{urls:'stun:stun.l.google.com:19302'}];
+const ICE_PJS = [{urls:['turn:eu-0.turn.peerjs.com:3478','turn:us-0.turn.peerjs.com:3478'], username:'peerjs', credential:'peerjsp'}];   /* PeerJS's own default relays, kept last: with no Metered answer the config is PeerJS's default, as before */
+const RELAY_CFG = {iceServers: ICE_DEF.concat(ICE_PJS), sdpSemantics:'unified-plan'};
+let RELAY_ST = 'off', RELAY_P = null, VIA = '';
+function relayLoad(){
+  if(RELAY_P) return RELAY_P;
+  if(new URLSearchParams(location.search).has('norelay')){ RELAY_ST='failed'; return RELAY_P=Promise.resolve(); }
+  RELAY_ST='loading'; const ctl = typeof AbortController!=='undefined' ? new AbortController() : null, tm=setTimeout(()=>{ try{ ctl && ctl.abort(); }catch(e){} }, 6000);
+  return RELAY_P = fetch(RELAY_URL, ctl ? {signal:ctl.signal} : {}).then(r=>r.ok ? r.json() : Promise.reject(r.status))
+    .then(list=>{ const ok=(Array.isArray(list) ? list : []).filter(s=>s && s.urls && typeof s==='object'); if(!ok.length) throw new Error('no servers'); RELAY_CFG.iceServers = ICE_DEF.concat(ok, ICE_PJS); RELAY_ST='ready'; })
+    .catch(()=>{ RELAY_ST='failed'; }).finally(()=>clearTimeout(tm));
 }
-function setNet(s){ NET=s; drawTop(); }
+function relayReady(ms){ const p=relayLoad(); return Promise.race([p, new Promise(r=>setTimeout(r, ms==null ? 3000 : ms))]); }
+function relayKind(pc){
+  if(!pc || !pc.getStats) return Promise.resolve('');
+  return pc.getStats().then(rep=>{ const by={}; let pair=null; rep.forEach(s=>{ by[s.id]=s; });
+    rep.forEach(s=>{ if(!pair && s.type==='transport' && s.selectedCandidatePairId) pair=by[s.selectedCandidatePairId]; });
+    if(!pair) rep.forEach(s=>{ if(!pair && s.type==='candidate-pair' && (s.selected || (s.nominated && s.state==='succeeded'))) pair=s; });
+    if(!pair) return '';
+    const l=by[pair.localCandidateId], r=by[pair.remoteCandidateId];
+    return (l && l.candidateType==='relay') || (r && r.candidateType==='relay') ? 'relay' : 'direct'; }).catch(()=>'');
+}
+function relayNote(c, done){ let n=0; const go=()=>relayKind(c && c.peerConnection).then(k=>{ if(k){ done(k); return; } if(++n<4) setTimeout(go, 1200); }); setTimeout(go, 600); }
+relayLoad();
+function peerOpts(){
+  const q=new URLSearchParams(location.search), h=q.get('peerhost'); if(!h) return {config:RELAY_CFG};
+  const [host, port]=h.split(':'); return { host, port:+port||443, path:q.get('peerpath')||'/', secure:q.get('peersecure')!=='0', config:RELAY_CFG };
+}
+function setNet(s){ NET=s; if(s!=='connected') VIA=''; drawTop(); }
 function hostPeer(){
   if(typeof Peer==='undefined'){ setNet('offline'); return; }
   if(peer){ try{ peer.destroy(); }catch(e){} }
   const p=peer=new Peer(PREFIX+CODE, peerOpts()); setNet('opening');
   p.on('open', ()=>setNet('open'));
   p.on('connection', c=>{
+    c.on('open', ()=>relayNote(c, k=>{ c._via=k; drawTop(); }));   /* v0.38: which guests come through the relay */
     c.on('data', m=>{
       if(!m || typeof m!=='object') return;
       if(m.t==='join'){
@@ -815,13 +844,13 @@ function guestPeer(){
   const p=peer=new Peer(peerOpts()); setNet('joining');
   const dial=()=>{ if(p!==peer || p.destroyed || p.disconnected) return;
     const c=p.connect(PREFIX+CODE, {reliable:true, serialization:'json'});
-    c.on('open', ()=>{ conn=c; setNet('connected'); c.send({t:'join', pid:PID, name:SETTINGS.name||'Player'}); });
+    c.on('open', ()=>{ conn=c; setNet('connected'); relayNote(c, k=>{ if(conn!==c) return; VIA=k; drawTop(); }); c.send({t:'join', pid:PID, name:SETTINGS.name||'Player'}); });
     c.on('data', m=>{ if(!m || typeof m!=='object') return;
       if(m.t==='v') gotView(m);
       else if(m.t==='no'){ store.del('dt_guest'); try{ p.destroy(); }catch(e){} peer=null; showLobby(m.why==='full' ? 'That event is full.' : 'That event has already started.'); } });
     c.on('close', ()=>{ if(conn===c){ conn=null; setNet('joining'); setTimeout(dial, 2000); } });
     c.on('error', e=>console.warn('conn error', e)); };
-  p.on('open', dial);
+  p.on('open', ()=>relayReady().then(dial));
   p.on('disconnected', ()=>{ if(!p.destroyed) setTimeout(()=>{ try{ p.reconnect(); }catch(e){} }, 1500); });
   p.on('error', e=>{ if(p!==peer) return;
     if(e.type==='peer-unavailable'){ setNet('nohost'); setTimeout(()=>{ if(p===peer && !(conn&&conn.open)) dial(); }, 3000); }
@@ -865,7 +894,10 @@ function drawTop(){
   $('#guideBtn').hidden = !(V && GUIDES.includes(V.set));
   $('#codePill').innerHTML = 'Code <b>'+esc(CODE)+'</b>';
   const map={ opening:['Opening…','warn'], open:['Hosting','ok'], retry:['Reclaiming code…','warn'], error:['Connection problem, retrying','warn'], offline:['Offline','warn'], joining:['Connecting…','warn'], connected:['Connected','ok'], nohost:['Host not found yet, retrying','warn'] };
-  const m=map[NET]||['','']; const el=$('#netPill'); el.textContent=m[0]; el.className='pill '+m[1]; el.hidden=!m[0];
+  const m=(map[NET]||['','']).slice(); let tip='';
+  if(NET==='connected' && VIA){ m[0] = VIA==='relay' ? 'Connected through the relay' : 'Connected directly'; if(VIA==='relay') tip='A direct connection to the host wasn\'t possible on this network, so it goes through a relay server. It plays the same.'; }   /* v0.38 */
+  if(NET==='open' && typeof conns!=='undefined'){ const nr=[...conns.values()].filter(c=>c && c._via==='relay').length; if(nr){ m[0]='Hosting · '+nr+' through the relay'; tip='Some players reach you through a relay server because a direct connection wasn\'t possible on their network. It plays the same.'; } }
+  const el=$('#netPill'); el.textContent=m[0]; el.className='pill '+m[1]; el.hidden=!m[0]; el.title=tip;
 }
 function tickClock(){
   const el=$('#clock'); if(!el || !V) return;

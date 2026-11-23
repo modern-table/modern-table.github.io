@@ -767,7 +767,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.27';
+const VERSION = 'v5.28';
 /* Affiliation (v4.88, the maintainer): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -783,6 +783,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.28','Nov 22',"Playing on the same wifi now works. When two players can't connect to each other directly (some home routers, guest wifi at a store or a friend's house), the table connects through a relay server instead, and the game plays the same. The connection label at the top says which: Connected directly, or Connected through the relay. This works at the Draft, Sealed, Cube and Game Night tables too."],
   ['v5.27','Nov 22',"Fear of Missing Out: once the first combat is over, the big button reads Next: second combat instead of Next: Main 2 when delirium has given you an additional combat phase."],
   ['v5.26','Nov 21',"Fear of Missing Out: when delirium gives you an additional combat phase, the phase bar shows a second Combat step after the first (dashed until it begins, lit while it's under way), on both players' screens. Moonshadow and any other creature whose only change is counters now shows its current power and toughness at the bottom of the card, like boosted creatures do."],
   ['v5.25','Nov 21',"Cycling is in the payment window: left-click Street Wraith, Troll of Khazad-dûm or any other card with cycling or landcycling and the window offers to cycle it (Street Wraith: Pay 2 life and cycle it) under the normal cost. Clicked when it can't be cast, such as a creature on your opponent's turn, the timing warning offers to cycle it instead. Cards with cycling are no longer dimmed in your hand, since you can always cycle them. Triomes and other lands with cycling: a left click plays the land when that's all you can do, cycles it when you can't play a land right now (the window waits for mana), and when you could do either, the payment window offers both."],
@@ -1322,13 +1323,47 @@ async function crewIt(id, n){ const f=find(id); if(!f || f.z!=='bf') return; con
 function addLog(text, cls){ G.log.push({text, cls}); if(G.log.length>300) G.log.shift(); renderLog(); }
 
 /* ================= networking (PeerJS, peer to peer) ================= */
+/* v5.28: the relay (Metered's Open Relay, free plan, the project's account). When two browsers can't reach each other
+   directly (some home routers, store and guest wifi), WebRTC sends the game through a TURN relay. RELAY_CFG is the one
+   config object every Peer gets (peerOpts); PeerJS reads it when each connection starts, so the servers fetched below
+   count even for a Peer made before they arrived. The API key is a credential-scoped key meant for front-end use
+   (Metered: "safe for front-end use"); never put the account's Secret Key here. ?norelay skips the fetch.
+   Same code in src/draft.src.html. */
+const RELAY_URL = 'https://moderntable.metered.live/api/v1/turn/credentials?apiKey=301a0a1f21e8b2bead891537937c4118ac01';
+const ICE_DEF = [{urls:'stun:stun.l.google.com:19302'}];
+const ICE_PJS = [{urls:['turn:eu-0.turn.peerjs.com:3478','turn:us-0.turn.peerjs.com:3478'], username:'peerjs', credential:'peerjsp'}];   /* PeerJS's own default relays, kept last: with no Metered answer the config is PeerJS's default, as before */
+const RELAY_CFG = {iceServers: ICE_DEF.concat(ICE_PJS), sdpSemantics:'unified-plan'};
+let RELAY_ST = 'off', RELAY_P = null;   /* off | loading | ready | failed */
+function relayLoad(){
+  if(RELAY_P) return RELAY_P;
+  if(new URLSearchParams(location.search).has('norelay')){ RELAY_ST='failed'; return RELAY_P=Promise.resolve(); }
+  RELAY_ST='loading'; const ctl = typeof AbortController!=='undefined' ? new AbortController() : null, tm=setTimeout(()=>{ try{ ctl && ctl.abort(); }catch(e){} }, 6000);
+  return RELAY_P = fetch(RELAY_URL, ctl ? {signal:ctl.signal} : {}).then(r=>r.ok ? r.json() : Promise.reject(r.status))
+    .then(list=>{ const ok=(Array.isArray(list) ? list : []).filter(s=>s && s.urls && typeof s==='object'); if(!ok.length) throw new Error('no servers'); RELAY_CFG.iceServers = ICE_DEF.concat(ok, ICE_PJS); RELAY_ST='ready'; })
+    .catch(()=>{ RELAY_ST='failed'; }).finally(()=>clearTimeout(tm));
+}
+/* resolves once the relay is known or after ms, whichever comes first (a guest waits for it before dialling) */
+function relayReady(ms){ const p=relayLoad(); return Promise.race([p, new Promise(r=>setTimeout(r, ms==null ? 3000 : ms))]); }
+/* 'relay' | 'direct' | '' from a connection's chosen candidate pair */
+function relayKind(pc){
+  if(!pc || !pc.getStats) return Promise.resolve('');
+  return pc.getStats().then(rep=>{ const by={}; let pair=null; rep.forEach(s=>{ by[s.id]=s; });
+    rep.forEach(s=>{ if(!pair && s.type==='transport' && s.selectedCandidatePairId) pair=by[s.selectedCandidatePairId]; });
+    if(!pair) rep.forEach(s=>{ if(!pair && s.type==='candidate-pair' && (s.selected || (s.nominated && s.state==='succeeded'))) pair=s; });
+    if(!pair) return '';
+    const l=by[pair.localCandidateId], r=by[pair.remoteCandidateId];
+    return (l && l.candidateType==='relay') || (r && r.candidateType==='relay') ? 'relay' : 'direct'; }).catch(()=>'');
+}
+/* after a connection opens: note how it got through (tries again briefly, the pair can take a moment to settle) */
+function relayNote(c, done){ let n=0; const go=()=>relayKind(c && c.peerConnection).then(k=>{ if(k){ done(k); return; } if(++n<4) setTimeout(go, 1200); }); setTimeout(go, 600); }
+relayLoad();
 function peerOpts(){
   const q = new URLSearchParams(location.search), h = q.get('peerhost');
-  if(!h) return {};
+  if(!h) return {config:RELAY_CFG};
   const [host, port] = h.split(':');
-  return { host, port:+port || 443, path:q.get('peerpath') || '/', secure:q.get('peersecure') !== '0' };
+  return { host, port:+port || 443, path:q.get('peerpath') || '/', secure:q.get('peersecure') !== '0', config:RELAY_CFG };
 }
-function setNet(s){ G.net=s; renderNet(); }
+function setNet(s){ G.net=s; if(s!=='connected') G.via=''; renderNet(); }
 function send(m){ if(DSW || (G.opp && G.opp.dummy)){ dummyRoute(m); return; }   /* DSW: Practice speaking, while the sides are swapped */ if(G.conn && G.conn.open){ try{ G.conn.send(m); }catch(e){} } }
 function connect(){
   if(G.solo){ setNet('solo'); return; }
@@ -1337,7 +1372,7 @@ function connect(){
   const host = G.myId==='p1';
   setNet(host ? 'waiting' : 'joining');
   const peer = G.peer = host ? new Peer(PREFIX+G.code, peerOpts()) : new Peer(peerOpts());
-  peer.on('open', () => { if(!host) dial(); });
+  peer.on('open', () => { if(!host) relayReady().then(dial); });   /* v5.28: dial once the relay servers are known (at most 3 s) */
   peer.on('connection', c => { if(G.conn && G.conn.open){ c.on('open', ()=>{ c.send({t:'full'}); setTimeout(()=>c.close(), 300); }); return; } wire(c); });
   peer.on('disconnected', () => { if(!peer.destroyed) setTimeout(()=>{ try{ peer.reconnect(); }catch(e){} }, 1500); });
   peer.on('error', e => {
@@ -1349,7 +1384,7 @@ function connect(){
   });
   function dial(){ if(peer.destroyed || peer.disconnected) return; wire(peer.connect(PREFIX+G.code, {reliable:true, serialization:'json'})); }
   function wire(c){
-    c.on('open', () => { G.conn=c; setNet('connected'); if(host) gcEvent('friend-joined', 'Friend joined a table (two-player game)', 'fj_'+G.code); send({t:'hello', n:G.turn.n, pv:PRI_PV, pri:isHostSide() ? priSet() : null}); send({t:'state', s:pub()}); if(host || G.turn.n>0) send({t:'turn', turn:G.turn, hello:true}); if(host) setTimeout(mtSend, 600); });
+    c.on('open', () => { G.conn=c; setNet('connected'); relayNote(c, k=>{ if(G.conn!==c) return; G.via=k; renderNet(); addLog(k==='relay' ? 'Connected through the relay (a direct connection wasn\'t possible on this network).' : 'Connected directly.', 's'); }); if(host) gcEvent('friend-joined', 'Friend joined a table (two-player game)', 'fj_'+G.code); send({t:'hello', n:G.turn.n, pv:PRI_PV, pri:isHostSide() ? priSet() : null}); send({t:'state', s:pub()}); if(host || G.turn.n>0) send({t:'turn', turn:G.turn, hello:true}); if(host) setTimeout(mtSend, 600); });
     c.on('data', onMsg);
     c.on('close', () => { if(G.conn===c){ G.conn=null; G.oppHello=false; G.oppPv=0; setNet(host ? 'waiting' : 'joining'); if(!host) setTimeout(()=>{ if(peer===G.peer && !G.conn) dial(); }, 2000); } });
     c.on('error', e => console.warn('conn error', e));
@@ -1501,8 +1536,10 @@ function onMsg(m){
 }
 function renderNet(){
   const map = { solo:['Practice',''], waiting:['Waiting for opponent','warn'], joining:['Connecting…','warn'], connected:['Connected','ok'], retry:['Reclaiming table…','warn'], nohost:['Table not found yet, retrying','warn'], error:['Connection problem, retrying','warn'], full:['Table is full','warn'] };
-  const [txt, cls] = map[G.net] || ['',''];
-  for(const el of $$('#netPill1,#netPill2')){ el.textContent=txt; el.className='pill '+cls; }
+  let [txt, cls] = map[G.net] || ['',''];
+  if(G.net==='connected' && G.via) txt = G.via==='relay' ? 'Connected through the relay' : 'Connected directly';   /* v5.28 */
+  const tip = G.net==='connected' && G.via==='relay' ? 'Your two browsers couldn\'t reach each other directly on this network, so the game goes through a relay server. It plays the same.' : '';
+  for(const el of $$('#netPill1,#netPill2')){ el.textContent=txt; el.className='pill '+cls; el.title=tip; }
   for(const el of $$('#codePill1')){ el.hidden = G.solo; el.innerHTML = 'Table code <b>'+esc(G.code)+'</b>'; }
 }
 
