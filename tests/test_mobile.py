@@ -93,14 +93,14 @@ try:
       const rs=fs.map(f=>f.getBoundingClientRect()); const steps=rs.slice(1).map((r,i)=>(r.left-rs[i].left)/rs[i].width);
       return {n:fs.length, hc:b.querySelector('.hc').innerText, ids:fs.map(f=>f.dataset.hid).join()===G.me.hand.map(c=>c.id).join(),
         inview:rs.every(r=>r.left>=bd.left-1 && r.right<=innerWidth-128 && r.bottom<=innerHeight+1 && r.top>=0),
-        corner: b.getBoundingClientRect().right > bd.right-20 && b.getBoundingClientRect().bottom > bd.bottom-20,
+        corner: Math.abs((b.getBoundingClientRect().left+b.getBoundingClientRect().right)/2 - (bd.left+bd.right)/2) < 3 && b.getBoundingClientRect().bottom > bd.bottom-20,
         minshow: steps.length ? Math.min(...steps) : 1, width: Math.round(b.getBoundingClientRect().width), half: Math.round(bd.width*.5)}; }"""
     hs = J(p, FAN)
-    check('m0.3: the hand is a fan in the bottom right corner with every card (3), in hand order, all in view', hs and hs['n'] == 3 and hs['hc'] == '3' and hs['ids'] and hs['inview'] and hs['corner'], hs)
+    check('m0.4: the hand is a fan centred at the bottom of the board with every card (3), in hand order, all in view', hs and hs['n'] == 3 and hs['hc'] == '3' and hs['ids'] and hs['inview'] and hs['corner'], hs)
     check('m0.3: less overlap than m0.1: at least 45% of each card shows', hs and hs['minshow'] >= .45, hs)
     J(p, """() => { for(let i=0;i<6;i++) G.me.hand.push(mk(keyOf('Forest'),{o:G.myId})); changed(); render(); }""")
     p.wait_for_timeout(200); h9 = J(p, FAN)
-    check('m0.3: a nine-card hand still fits the corner (all nine, at most half the board wide, in view)', h9 and h9['n'] == 9 and h9['inview'] and h9['width'] <= h9['half'], h9)
+    check('m0.3: a nine-card hand still fits (all nine, at most half the board wide, in view)', h9 and h9['n'] == 9 and h9['inview'] and h9['width'] <= h9['half'], h9)
     J(p, """() => { G.me.hand.splice(3); changed(); render(); }"""); p.wait_for_timeout(200)
     p.tap('#mLook'); p.wait_for_timeout(150); p.locator('#mHandBtn .fc').nth(2).tap(); p.wait_for_timeout(300)
     check('m0.3: with LOOK on, tapping a card in the fan reads it', J(p, "() => !document.querySelector('#mView').hidden && !document.documentElement.classList.contains('mhand')"))
@@ -174,6 +174,33 @@ try:
     p.locator('#payPanel button').filter(has_text='Pay {R} and cast').first.tap(); p.wait_for_timeout(600)
     p.locator('#stack .card').first.tap(timeout=5000); p.wait_for_timeout(600)
     check('paid with that mana, Ragavan enters with haste', J(p, "() => { const c=G.me.bf.find(c=>cdata(c).n.startsWith('Ragavan')); return !!c && !!c.hst; }"))
+    # m0.4: other mana (Treasures) in the box while paying
+    J(p, """() => { G.me.bf=[]; G.me.hand=[]; G.me.st=[]; G.me.mana=noMana(); G.me.smana=[];
+      const T=()=>mk(null,{cu:{n:'Treasure', t:'Token Artifact — Treasure', o:'{T}, Sacrifice this artifact: Add one mana of any color.'}, tok:1});
+      G.me.bf.push(mk(keyOf('Mountain')), T(), T()); G.me.hand.push(mk(keyOf('Thought-Knot Seer'))); changed(); }""")
+    p.wait_for_timeout(300); p.tap('#mHandBtn'); p.wait_for_timeout(300); p.locator('#myHand .card').first.tap(); p.wait_for_timeout(700)
+    tb = J(p, "() => { const o=document.querySelectorAll('#mLands .mlo'); const l=document.querySelector('#mLands'); return [!document.querySelector('#payPanel').hidden, !l.hidden, o.length, (l.querySelector('.mlcnt')||{}).innerText, [...o].every(e=>e.getBoundingClientRect().bottom<=innerHeight+1)]; }")
+    check('m0.4: while paying, the box shows Treasures under the lands (two grouped as one with ×2, in view)', tb and tb[0] and tb[1] and tb[2] == 1 and tb[3] == '×2' and tb[4], tb)
+    p.locator('#mLands .mlo .card').first.tap(); p.wait_for_timeout(400)
+    tm = J(p, "() => [...document.querySelectorAll('#ctx button')].map(b=>b.innerText)")
+    check('m0.4: tapping a Treasure there offers its mana, as a desktop click does', any('Sacrifice, add Red' in x for x in tm), tm)
+    p.locator('#ctx button').filter(has_text='Sacrifice, add Red').first.tap(); p.wait_for_timeout(400)
+    check('m0.4: the Treasure is sacrificed for Red and the box now shows one', J(p, "() => (G.me.mana.R===1 || G.me.st.length===1 || !G.me.hand.length) && G.me.bf.filter(c=>cdata(c).n==='Treasure').length===1 && (document.querySelector('#mLands').hidden || !document.querySelector('#mLands .mlcnt'))"), J(p, "() => [JSON.stringify(G.me.mana), G.me.bf.map(c=>cdata(c).n)]"))
+    J(p, "() => { if(!document.querySelector('#payPanel').hidden) { const b=[...document.querySelectorAll('#payPanel button')].find(b=>/Cancel/.test(b.innerText)); if(b) b.click(); } closeLands(); }"); p.wait_for_timeout(300)
+    # m0.4: screen edges (the phone's own safe-area insets stood in for: Chromium reports none)
+    J(p, "() => { window.__env={l:47,r:47,b:21}; window.__side='l'; envInsets=()=>window.__env; camSide=()=>window.__side; applyEdges(); }"); p.wait_for_timeout(300)
+    ed = J(p, "() => { const t=document.querySelector('#table').getBoundingClientRect(); return [Math.round(t.left), Math.round(innerWidth-t.right), Math.round(innerHeight-t.bottom)]; }")
+    check('m0.4: camera on the left: the table starts 47 px in on that side only (the other side and the bottom stay)', ed == [47, 0, 0], ed)
+    J(p, "() => { window.__side='r'; applyEdges(); }"); p.wait_for_timeout(300)
+    ed = J(p, "() => { const t=document.querySelector('#table').getBoundingClientRect(); return [Math.round(t.left), Math.round(innerWidth-t.right)]; }")
+    check('m0.4: turned the other way, the space moves to the right', ed == [0, 47], ed)
+    J(p, "() => { window.__side=null; window.__env={l:0,r:0,b:0}; applyEdges(); settingsModal(); }"); p.wait_for_timeout(300)
+    rows = J(p, "() => [...document.querySelectorAll('#setBody .setg')].map(g=>g.querySelector('h5').innerText)")
+    check('m0.4: Settings opens with a Phone section first', rows and rows[0].lower() == 'phone', rows)
+    p.locator('#setBody [data-set="mcam"][data-v="8"]').tap(); p.wait_for_timeout(200); p.locator('#setBody [data-set="mbot"][data-v="12"]').tap(); p.wait_for_timeout(300)
+    ed = J(p, "() => { const t=document.querySelector('#table').getBoundingClientRect(); return [Math.round(t.left), Math.round(innerWidth-t.right), Math.round(innerHeight-t.bottom), S.mCam, S.mBot]; }")
+    check('m0.4: a manual margin of 8 on the camera side and 12 at the bottom moves the table in by that much', ed == [8, 0, 12, 8, 12], ed)
+    J(p, "() => { closeModal(); S.mCam=0; S.mBot=0; applyEdges(); }"); p.wait_for_timeout(300)
     # fit
     fit = J(p, "() => { const r=document.querySelector('#next').getBoundingClientRect(), t=document.querySelector('#table').getBoundingClientRect(); return [r.bottom <= innerHeight, t.height <= innerHeight + 1, document.documentElement.scrollWidth <= innerWidth]; }")
     check('the table fits the screen, big button in reach', all(fit), fit)

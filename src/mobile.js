@@ -5,7 +5,7 @@
    - the hand is a fan of every card in the corner that opens into a tray; tapping a card there casts it, as a left click does on the desktop
    - menus open as a sheet with fingertip-sized rows; the hover enlargement is off */
 'use strict';
-const MVERSION = 'm0.3';
+const MVERSION = 'm0.4';
 const M = {look:false, view:null, lands:null, autoLands:false, tap:null, swallow:0, lastTouch:0, stN:0};
 const HT = document.documentElement;
 
@@ -66,7 +66,7 @@ function mainMenu(){
     '-', ...tm ], 'Menu');
 }
 
-/* ---------- the hand: every card fanned in the bottom right corner (m0.3, the maintainer: m0.1's fan, but the whole hand and less overlap); tapping it opens the tray ---------- */
+/* ---------- the hand: every card fanned at the bottom centre of the board (m0.3, m0.4 centred so tokens and markers in the corner stay in view; the maintainer: m0.1's fan, but the whole hand and less overlap); tapping it opens the tray ---------- */
 (function(){ const b = document.createElement('button'); b.id = 'mHandBtn'; b.setAttribute('aria-label', 'Your hand'); $('#board').appendChild(b);
   b.addEventListener('click', e=>{ if(Date.now()-M.swallow < 450) return; const f = e.target.closest('[data-hid]');
     if(M.look && f){ openLook(f.dataset.hid); return; } tray(!HT.classList.contains('mhand')); });
@@ -87,6 +87,32 @@ function paintHandBtn(){ const b = $('#mHandBtn'); if(!b) return; const h = G.me
   const step = n > 1 ? Math.min(w * FAN_SHOW, (room - w) / (n - 1)) : 0, da = n > 1 ? Math.min(4, 16 / (n - 1)) : 0;   /* at most ±8° at the ends, so the fan stays inside the corner */
   b.style.width = Math.round(w + step * (n - 1) + 30) + 'px';
   fcs.forEach((el, i)=>{ el.style.left = Math.round(12 + i * step) + 'px'; el.style.transform = `rotate(${((i - (n - 1) / 2) * da).toFixed(2)}deg)`; }); }
+
+/* ---------- screen edges (m0.4, the maintainer): keep the table clear of the iPhone's camera notch, with a manual margin per edge in Settings → Phone ----------
+   The page fills the whole screen (viewport-fit=cover), so the phone reports how much of each edge its hardware covers (safe-area insets). In landscape
+   an iPhone reports the same inset on both sides, so the camera side comes from how the phone is turned (angle 90: camera on the left, 270: right);
+   only that side is kept clear, unless the phone doesn't say how it's turned. The margins below add to that, and follow the camera when the phone turns. */
+const EDGE_PX = {'0':'None', '4':'+4', '8':'+8', '12':'+12', '20':'+20', '32':'+32'};
+function envInsets(){ let pr = $('#mEnv'); if(!pr){ pr = document.createElement('div'); pr.id = 'mEnv';
+    pr.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)'; document.body.appendChild(pr); }
+  const cs = getComputedStyle(pr); return {l:parseFloat(cs.paddingLeft)||0, r:parseFloat(cs.paddingRight)||0, b:parseFloat(cs.paddingBottom)||0}; }
+function camSide(){ const o = screen.orientation, a = o && typeof o.angle === 'number' ? o.angle : (typeof window.orientation === 'number' ? (window.orientation + 360) % 360 : null);
+  return a === 90 ? 'l' : a === 270 ? 'r' : null; }
+function applyEdges(){ const e = envInsets(), auto = (S.mNotch || 'auto') === 'auto', side = camSide(), cam = +(S.mCam || 0), oth = +(S.mOth || 0), bot = +(S.mBot || 0), env = Math.max(e.l, e.r);
+  let l = 0, r = 0; if(auto){ if(side === 'l') l = env; else if(side === 'r') r = env; else { l = e.l; r = e.r; } }
+  if((side || 'l') === 'l'){ l += cam; r += oth; } else { r += cam; l += oth; }
+  const was = M.edge; M.edge = {l, r, b:bot, side, env};
+  HT.style.setProperty('--sl', l + 'px'); HT.style.setProperty('--sr', r + 'px'); HT.style.setProperty('--sb', bot + 'px');
+  if(was && (was.l !== l || was.r !== r || was.b !== bot)) setTimeout(()=>{ try { render(); drawArrows(); } catch(err){} }, 60); }
+function edgeHint(){ const e = M.edge || {}; if(!e.env) return 'Your phone reports no notch here, so the whole screen is used. The margins below still apply.';
+  const where = e.side === 'l' ? 'on the left' : e.side === 'r' ? 'on the right' : 'on one side'; return `Your phone's camera is ${where} right now; ${Math.round(e.env)} px are kept clear there. It follows the camera when you turn the phone.`; }
+SETROWS.unshift(
+  {g:'Phone', k:'mnotch', l:'Camera notch', h:()=>edgeHint(), o:{auto:'Keep clear', off:'Use the whole screen'}, get:()=>S.mNotch || 'auto', set:v=>{ S.mNotch = v; applyEdges(); }},
+  {g:'Phone', k:'mcam', l:'Extra margin, camera side', h:'Moves the table further in from the side your camera is on, in pixels.', o:EDGE_PX, get:()=>String(S.mCam || 0), set:v=>{ S.mCam = +v; applyEdges(); }},
+  {g:'Phone', k:'moth', l:'Extra margin, other side', h:'For a rounded corner or a phone case on the other side.', o:EDGE_PX, get:()=>String(S.mOth || 0), set:v=>{ S.mOth = +v; applyEdges(); }},
+  {g:'Phone', k:'mbot', l:'Extra margin, bottom', h:'Lifts the table above the home bar at the bottom of the screen.', o:EDGE_PX, get:()=>String(S.mBot || 0), set:v=>{ S.mBot = +v; applyEdges(); }});
+applyEdges(); addEventListener('resize', applyEdges); addEventListener('orientationchange', ()=>setTimeout(applyEdges, 120));
+if(screen.orientation && screen.orientation.addEventListener) screen.orientation.addEventListener('change', ()=>setTimeout(applyEdges, 120));
 
 /* ---------- lands fold into a tile: a small picture per land (identical lands grouped with a count, tapped ones turned), m0.2 ---------- */
 const foldable = c => isLand(c) && !isCreature(c);
@@ -115,20 +141,23 @@ const bfAtt = (side, g) => (side.bf||[]).some(a=>g.some(c=>a.att===c.id)) ? '<i 
 function openLands(mine){ M.lands = {mine}; paintLands(); $('#mLands').hidden = false; tray(false); }
 function closeLands(){ M.lands = null; M.autoLands = false; $('#mLands').hidden = true; }
 /* the largest land size at which every land fits the box without scrolling (a tapped land turns sideways, so each takes a square) */
-function landSize(n, paying){ const rc = parseFloat(getComputedStyle(HT).getPropertyValue('--rcol')) || 132, W = innerWidth - rc - (paying ? Math.min(340, innerWidth*.44) + 8 : 0) - 22, Hh = innerHeight - 84; let best = 44;
-  for(let lw = 120; lw >= 44; lw -= 2){ const cell = lw*1.396 + 4 + 6, cols = Math.max(1, Math.floor((W+6)/cell)), rows = Math.max(1, Math.floor((Hh+6)/cell)); if(cols*rows >= n){ best = lw; break; } }
+function landSize(n, paying, o){ o = o || 0;   /* n lands, then o other mana sources on rows of their own under a separator */ const rc = parseFloat(getComputedStyle(HT).getPropertyValue('--rcol')) || 132, ed = M.edge || {l:0, r:0, b:0}, W = innerWidth - rc - ed.l - ed.r - (paying ? Math.min(340, innerWidth*.44) + 8 : 0) - 22, Hh = innerHeight - ed.b - 84 - (o ? 26 : 0); let best = 44;
+  for(let lw = 120; lw >= 44; lw -= 2){ const cell = lw*1.396 + 4 + 6, cols = Math.max(1, Math.floor((W+6)/cell)), rows = Math.max(1, Math.floor((Hh+6)/cell)); if(Math.ceil(n/cols) + Math.ceil(o/cols) <= rows){ best = lw; break; } }
   return best; }
 /* a land with something to do besides tapping for mana (Mutavault, Fiery Islet's draw, Urza's Saga's construct): its button reads Abilities */
 function landExtra(c){ return capture(()=>cardMenu(c.id, 0, 0)).some(it=>it && it.own && Array.isArray(it) && !Array.isArray(it[1]) && !/^(Tap|Untap)\b/.test(it[0])); }
+/* m0.4 (the maintainer): mana you have besides lands (Treasures, mana rocks, mana creatures) sits in the same box, so it is in view while you pay.
+   Identical ones are grouped (one card with a count); a tap is the desktop's left click on the top one. */
+function manaOthers(){ return (G.me.bf||[]).filter(c=>{ if(foldable(c) || c.att) return false; try { return manaAbilities(c).length > 0; } catch(e){ return false; } }); }
 function paintLands(){ const el = $('#mLands'); if(!M.lands) return; const mine = M.lands.mine, side = mine ? G.me : G.opp; if(!side){ closeLands(); return; }
-  const lands = sideLands(mine), bf = side.bf || [];
+  const lands = sideLands(mine), bf = side.bf || [], others = mine ? landGroups(manaOthers()) : [];
   const pool = mine ? MANA.filter(k=>(G.me.mana||{})[k]).map(k=>`<span style="display:inline-flex;align-items:center">${(G.me.mana[k]>1?`<b style="font-size:11px">${G.me.mana[k]}</b>`:'')}<i class="ms ms-${k}">${k}<img src="https://svgs.scryfall.io/card-symbols/${k}.svg" alt="" onerror="this.remove()"></i></span>`).join('') : '';
   const paying = mine && !$('#payPanel').hidden;
-  el.innerHTML = `<header><h3>${mine ? 'Your lands' : esc((G.opp&&G.opp.name)||'Opponent')+"'s lands"}</h3>${mine ? `<span class="mhint">${pool ? 'Pool' : 'Pool empty'}</span><span class="pool">${pool}</span>` : ''}<button class="${paying?'ghost':'go'}" data-ml="x">${paying ? 'Hide' : 'Done'}</button></header>
-    <div class="mhint">${G.mode ? 'Tap a land to choose it.' : M.look ? 'LOOK is on: tap a land to read it.' : mine ? (paying ? 'Tap lands to pay; each symbol in the payment box lights up as your pool covers it.' : 'Tap a land to tap it for mana (a land with choices asks which); tap a tapped land to untap it. Abilities opens the rest.') : 'Tap a land to read it.'}</div>
-    <div class="mlg" style="--lw:${landSize(lands.length, paying)}px">${lands.length ? lands.map(c=>`<div class="mlc">${bf.filter(a=>a.att===c.id).map(a=>cardHTML(a,'bf',mine,'under')).join('')}${cardHTML(c,'bf',mine)}${mine ? (landExtra(c) ? `<button class="mlm ab" data-ml="more" data-id="${c.id}">Abilities</button>` : `<button class="mlm" data-ml="more" data-id="${c.id}" aria-label="More">⋯</button>`) : ''}</div>`).join('') : '<span class="mhint">No lands.</span>'}</div>`; }
+  el.innerHTML = `<header><h3>${mine ? (others.length ? 'Your lands and mana' : 'Your lands') : esc((G.opp&&G.opp.name)||'Opponent')+"'s lands"}</h3>${mine ? `<span class="mhint">${pool ? 'Pool' : 'Pool empty'}</span><span class="pool">${pool}</span>` : ''}<button class="${paying?'ghost':'go'}" data-ml="x">${paying ? 'Hide' : 'Done'}</button></header>
+    <div class="mhint">${G.mode ? 'Tap a land to choose it.' : M.look ? 'LOOK is on: tap a land to read it.' : mine ? (paying ? (others.length ? 'Tap lands, or a Treasure or other mana below, to pay; each symbol in the payment box lights up as your pool covers it.' : 'Tap lands to pay; each symbol in the payment box lights up as your pool covers it.') : 'Tap a land to tap it for mana (a land with choices asks which); tap a tapped land to untap it. Abilities opens the rest.') : 'Tap a land to read it.'}</div>
+    <div class="mlg" style="--lw:${landSize(lands.length, paying, others.length)}px">${lands.length ? lands.map(c=>`<div class="mlc">${bf.filter(a=>a.att===c.id).map(a=>cardHTML(a,'bf',mine,'under')).join('')}${cardHTML(c,'bf',mine)}${mine ? (landExtra(c) ? `<button class="mlm ab" data-ml="more" data-id="${c.id}">Abilities</button>` : `<button class="mlm" data-ml="more" data-id="${c.id}" aria-label="More">⋯</button>`) : ''}</div>`).join('') : '<span class="mhint">No lands.</span>'}${others.length ? `<div class="mlsep">Other mana</div>` + others.map(g=>{ const c = g[0]; return `<div class="mlc mlo">${cardHTML(c,'bf',true)}${g.length > 1 ? `<b class="mlcnt">×${g.length}</b>` : ''}${landExtra(c) ? `<button class="mlm ab" data-ml="more" data-id="${c.id}">Abilities</button>` : `<button class="mlm" data-ml="more" data-id="${c.id}" aria-label="More">⋯</button>`}</div>`; }).join('') : ''}</div>`; }
 new MutationObserver(()=>{ const pp = $('#payPanel'), v = !pp.hidden; HT.classList.toggle('mpay', v);
-  if(v){ tray(false); closeView(); if(!M.lands && sideLands(true).length){ openLands(true); M.autoLands = true; } else if(M.lands) paintLands(); }
+  if(v){ tray(false); closeView(); if(!M.lands && (sideLands(true).length || manaOthers().length)){ openLands(true); M.autoLands = true; } else if(M.lands) paintLands(); }
   else if(M.autoLands) closeLands(); else if(M.lands) paintLands(); }).observe($('#payPanel'), {attributes:true, attributeFilter:['hidden']});
 
 /* ---------- the card sheet and the LOOK view ---------- */
