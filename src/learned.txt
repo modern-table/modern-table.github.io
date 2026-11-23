@@ -68,6 +68,7 @@ Breeding Pool
 Bridgeworks Battle
 Brotherhood's End
 Burning Inquiry
+Captain James T. Kirk
 Carrion Feeder
 Case of the Crimson Pulse
 Castle Ardenvale
@@ -158,6 +159,7 @@ Elesh Norn, Mother of Machines
 Elven Chorus
 Emperor of Bones
 Empty the Warrens
+Emrakul, the Aeons Torn
 Emrakul, the Exigent Doom
 Emrakul, the Promised End
 Emry, Lurker of the Loch
@@ -185,11 +187,13 @@ Faithless Looting
 Fallaji Archaeologist
 Fatal Push
 Fear of Missing Out
+Federation Outpost
 Fell the Profane
 Field of Ruin
 Fiend Artisan
 Fiery Islet
 Fire Magic
+Firespout
 Flagstones of Trokair
 Flame of Anor
 Flare of Denial
@@ -272,10 +276,12 @@ Ingot Chewer
 Inquisition of Kozilek
 Inspiring Vantage
 Into the Flood Maw
+Iona, Shield of Emeria
 Irencrag Feat
 Island
 Isochron Scepter
 Jace, the Mind Sculptor
+Jetmir's Garden
 Jwari Disruption
 Kaheera, the Orphanguard
 Kaito, Bane of Nightmares
@@ -313,6 +319,7 @@ Lush Portico
 Magebane Lizard
 Magus of the Moon
 Malevolent Rumble
+Mana Tithe
 Manamorphose
 Marauding Mako
 March of Otherworldly Light
@@ -382,6 +389,7 @@ Pact of Negation
 Past in Flames
 Path of Peril
 Path to Exile
+Pawpatch Formation
 Persist
 Pest Control
 Phelia, Exuberant Shepherd
@@ -482,6 +490,8 @@ Smash to Smithereens
 Snapcaster Mage
 Snow-Covered Forest
 Snow-Covered Island
+Snow-Covered Mountain
+Snow-Covered Plains
 Snow-Covered Swamp
 Solitude
 Soul Spike
@@ -552,6 +562,7 @@ The Filigree Sylex
 The Legend of Roku
 The Mind Stone
 The Mycosynth Gardens
+The Naked Time
 The Ozolith
 The Stone Brain
 The Theorist, Jace Beleren
@@ -598,6 +609,7 @@ Urza's Tower
 Urza, Lord High Artificer
 Valakut Awakening
 Valakut, the Molten Pinnacle
+Valgavoth, Terror Eater
 Vampire Hexmage
 Vapor Snag
 Veil of Summer
@@ -642,6 +654,7 @@ Wrath of God
 Wrath of the Skies
 Wrenn and Six
 Wrenn's Resolve
+Xander's Lounge
 Xenagos, God of Revels
 Yavimaya, Cradle of Growth
 Yawgmoth, Thran Physician
