@@ -647,7 +647,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 </style>
 <style id="mcss">/* The phone table (m/): a phone held sideways. Everything here is scoped to html.mob, which only m/index.html sets.
    Sizes: the board holds four rows of cards (their battlefield, a thin bar, ours); the hand is a fan in the corner that opens into a tray. */
-html.mob{--rcol:132px; --lcol:calc(var(--cw) + 12px); --ch:calc((100dvh - 28px - 4*6px - 6px)/4.5); --hs:calc(var(--ch)*.5); --cw:calc(var(--ch)/1.396); touch-action:manipulation; -webkit-text-size-adjust:100%; -webkit-touch-callout:none}
+html.mob{--rcol:132px; --lcol:calc(var(--cw) + 12px); --ch:calc((100dvh - 28px - 4*6px - 6px)/4); --cw:calc(var(--ch)/1.396); touch-action:manipulation; -webkit-text-size-adjust:100%; -webkit-touch-callout:none}
 html.mob body{font-size:13px; overscroll-behavior:none; -webkit-tap-highlight-color:transparent}
 html.mob button{padding:6px 10px}
 html.mob .card{touch-action:pan-x pan-y}
@@ -662,7 +662,7 @@ html.mob #kwKey, html.mob #cityBox:empty{display:none!important}
 html.mob #midRail{gap:3px}
 html.mob #winsBox{font-size:9px; gap:2px}
 html.mob #winsBox b{font-size:15px}
-html.mob #board{padding:3px 0 calc(var(--hs) + 3px)}
+html.mob #board{padding:3px 0}
 html.mob .row{--rp:3px; height:calc(var(--ch) + 6px); margin:0; gap:4px; padding:3px 6px}
 html.mob #oppHand, html.mob #turnSign{display:none!important}
 html.mob #myHand{display:none}
@@ -735,13 +735,14 @@ html.mob .mlands .ml .mlc{position:absolute; right:-3px; bottom:-3px; z-index:2;
 html.mob .mlands.opp .ml .mlc{border-color:var(--opp)}
 html.mob .mlands .ml .mla{position:absolute; left:2px; top:2px; z-index:2; font-size:9px; color:#7fd6c8; font-style:normal}
 
-/* the hand: every card along the bottom of the board (top halves), the count at the right; tapping it opens the tray (m0.2) */
-html.mob #mHandStrip{position:absolute; left:0; right:0; bottom:0; height:var(--hs); z-index:30; overflow:hidden; display:flex; align-items:flex-start; padding:3px 6px 0 8px; gap:6px; cursor:pointer; background:linear-gradient(0deg,#0b1417cc,#0b141700); border-top:1px solid #d9b25f40}
-html.mob #mHandStrip .hs{flex:1; min-width:0; display:flex; align-items:flex-start}
-html.mob #mHandStrip .card{flex:none; width:var(--cw); margin:0; box-shadow:0 -1px 5px #000a; transition:none}
-html.mob #mHandStrip .card:hover{transform:none}
-html.mob #mHandStrip .hc{flex:none; align-self:center; min-width:26px; height:26px; border-radius:50%; background:#000; color:#fff; border:2px solid var(--brass); font:800 13px/22px var(--ui); text-align:center}
-html.mob #mHandStrip .he{position:absolute; left:12px; top:50%; transform:translateY(-50%); font-size:11px; color:var(--dim)}
+/* the hand (m0.3): every card fanned in the bottom right corner, each one half uncovered; tapping it opens the tray */
+html.mob #mHandBtn{position:absolute; right:6px; bottom:4px; z-index:30; height:calc(var(--ch)*.9); min-width:calc(var(--cw)*.9); padding:0; border:0; background:none; border-radius:0}
+html.mob #mHandBtn .fc{position:absolute; bottom:8px; width:calc(var(--cw)*.82); aspect-ratio:488/680; border-radius:5px; overflow:hidden; box-shadow:-2px 2px 7px #000c; transform-origin:50% 200%; background:#243b40; border:1px solid #0008}
+html.mob #mHandBtn .fc img{width:100%; height:100%; object-fit:cover; display:block}
+html.mob #mHandBtn .fc .ft{position:absolute; inset:0; padding:3px; font-size:8px; line-height:1.1; color:var(--ink)}
+html.mob #mHandBtn .fc.ntime{filter:brightness(.6) saturate(.55)}
+html.mob #mHandBtn .hc{position:absolute; right:-4px; top:-4px; z-index:99; min-width:22px; height:22px; border-radius:50%; background:#000; color:#fff; border:2px solid var(--brass); font:800 12px/18px var(--ui); text-align:center}
+html.mob #mHandBtn.none{opacity:.5; width:calc(var(--cw)*.9)}
 html.mob.mhand #mHandBack{position:fixed; inset:0 var(--rcol) 0 0; z-index:63; background:#000a}
 html.mob.mhand #myHand{display:flex; position:fixed; left:0; right:var(--rcol); bottom:0; z-index:64; height:min(66dvh, 290px); align-items:center; justify-content:safe center; overflow-x:auto; overflow-y:hidden; padding:8px 14px; gap:0; background:linear-gradient(0deg,#0b1417,#0b1417e6); border-top:1px solid var(--brass)}
 html.mob.mhand #myHand .card{--cw:min(calc((min(66dvh, 290px) - 30px)/1.396), 150px); width:var(--cw); margin:0 -3px; transition:transform .12s}
@@ -851,7 +852,6 @@ html.mob #basicsBox{display:none!important}
 html.mob .tabs button[data-tab="new"]{display:none}
 html.mob .drow{padding:8px 10px}
 html.mob .drow b, html.mob .drow .an{font-size:15px}
-html.mob #mHandStrip .card.ntime{filter:brightness(.6) saturate(.55)}
 </style>
 </head>
 <body>
@@ -9500,11 +9500,11 @@ window.__G = G;
 <script id="mjs">/* The phone table (m/index.html only). It runs after the Modern Table's own script, reuses all of its rules and messages (so a phone can
    play a desktop), and changes only how the table is drawn and touched:
    - a tapped card opens larger with what you can do with it (its own menu, as buttons); LOOK reads a card instead (picture, text, right now)
-   - your lands fold into one tile (a pip per land, dim when tapped); tapping it opens the lands box, which also opens while you pay
-   - the hand is a fan in the corner that opens into a tray; tapping a card there casts it, as a left click does on the desktop
+   - your lands fold into one tile (a small picture per land, tapped ones turned); tapping it opens the lands box, which also opens while you pay
+   - the hand is a fan of every card in the corner that opens into a tray; tapping a card there casts it, as a left click does on the desktop
    - menus open as a sheet with fingertip-sized rows; the hover enlargement is off */
 'use strict';
-const MVERSION = 'm0.2';
+const MVERSION = 'm0.3';
 const M = {look:false, view:null, lands:null, autoLands:false, tap:null, swallow:0, lastTouch:0, stN:0};
 const HT = document.documentElement;
 
@@ -9565,9 +9565,10 @@ function mainMenu(){
     '-', ...tm ], 'Menu');
 }
 
-/* ---------- the hand: every card along the bottom of the board (top halves, overlapped to fit); tapping it opens the tray (m0.2, the maintainer) ---------- */
-(function(){ const s = document.createElement('div'); s.id = 'mHandStrip'; s.setAttribute('aria-label', 'Your hand'); $('#board').appendChild(s);
-  s.addEventListener('click', e=>{ if(Date.now()-M.swallow < 450) return; tray(true); });
+/* ---------- the hand: every card fanned in the bottom right corner (m0.3, the maintainer: m0.1's fan, but the whole hand and less overlap); tapping it opens the tray ---------- */
+(function(){ const b = document.createElement('button'); b.id = 'mHandBtn'; b.setAttribute('aria-label', 'Your hand'); $('#board').appendChild(b);
+  b.addEventListener('click', e=>{ if(Date.now()-M.swallow < 450) return; const f = e.target.closest('[data-hid]');
+    if(M.look && f){ openLook(f.dataset.hid); return; } tray(!HT.classList.contains('mhand')); });
   const bk = document.createElement('div'); bk.id = 'mHandBack'; document.body.appendChild(bk); bk.onclick = ()=>tray(false);
   const hh = document.createElement('div'); hh.id = 'mHandHint'; document.body.appendChild(hh);
   hh.onclick = e=>{ const k = e.target.closest('[data-mh]'); if(!k) return; if(k.dataset.mh === 'x') tray(false); else { tray(false); handMenu(0, 0); } };
@@ -9575,11 +9576,16 @@ function mainMenu(){
 function tray(on){ HT.classList.toggle('mhand', !!on); if(on) paintHint(); }
 function paintHint(){ const n = G.me.hand.length;
   $('#mHandHint').innerHTML = `<span>Your hand · ${n} card${n===1?'':'s'} · ${M.look ? 'LOOK is on: tap a card to read it' : 'tap a card to cast or play it'}</span><span><button class="ghost" data-mh="menu">Hand actions…</button> <button class="ghost" data-mh="x">Close</button></span>`; }
-function paintStrip(){ const s = $('#mHandStrip'); if(!s) return; const h = G.me.hand, n = h.length;
-  s.innerHTML = `<div class="hs">${h.map(c=>cardHTML(c,'hand',true)).join('')}</div><span class="hc" title="Cards in your hand">${n}</span>` + (n ? '' : '<span class="he">Your hand is empty</span>');
-  const row = s.querySelector('.hs'), cards = [...row.children]; if(cards.length < 2) return;
-  const w = cards[0].offsetWidth, avail = row.clientWidth - 4, step = Math.min(w + 5, (avail - w) / (cards.length - 1));
-  cards.forEach((el, i)=>{ if(i) el.style.marginLeft = (step - w) + 'px'; }); }
+const FAN_SHOW = .52;   /* the part of each card left uncovered by the next one (m0.1 showed 26%) */
+function paintHandBtn(){ const b = $('#mHandBtn'); if(!b) return; const h = G.me.hand, n = h.length;
+  b.innerHTML = h.map((c,i)=>{ const d = cdata(c), why = typeof handTimeWhy === 'function' ? handTimeWhy(c) : '';
+    return `<span class="fc${why ? ' ntime' : ''}" data-hid="${esc(c.id)}" style="z-index:${i+1}">${d.img ? `<img src="${esc(d.img)}" alt="" draggable="false">` : `<span class="ft">${esc(d.n||'')}</span>`}</span>`; }).join('')
+    + `<span class="hc" title="Cards in your hand">${n}</span>`;
+  b.classList.toggle('none', !n); if(!n){ b.style.width = ''; return; }
+  const fcs = [...b.querySelectorAll('.fc')], w = fcs[0].offsetWidth, room = Math.max(w, ($('#board').clientWidth || 600) * .48 - 12);
+  const step = n > 1 ? Math.min(w * FAN_SHOW, (room - w) / (n - 1)) : 0, da = n > 1 ? Math.min(4, 16 / (n - 1)) : 0;   /* at most ±8° at the ends, so the fan stays inside the corner */
+  b.style.width = Math.round(w + step * (n - 1) + 30) + 'px';
+  fcs.forEach((el, i)=>{ el.style.left = Math.round(12 + i * step) + 'px'; el.style.transform = `rotate(${((i - (n - 1) / 2) * da).toFixed(2)}deg)`; }); }
 
 /* ---------- lands fold into a tile: a small picture per land (identical lands grouped with a count, tapped ones turned), m0.2 ---------- */
 const foldable = c => isLand(c) && !isCreature(c);
@@ -9663,7 +9669,6 @@ aboutCard = function(id){ openLook(id); };
 /* ---------- taps on cards ---------- */
 const ROWS = '#myFront,#myBack,#oppFront,#oppBack';
 function tapKind(el){
-  if(el.closest('#mHandStrip')) return 'strip';
   if(el.closest('#mLands')) return 'lands';
   if(M.look && el.closest('#modal') && !el.closest('.pile')) return 'look';
   if(el.closest('#modal,#payPanel,#pactPanel,#coPanel,#shown,#ctx,#ctx2,#mView,.pile')) return null;
@@ -9680,7 +9685,6 @@ function handPlay(id, x, y){ const f = find(id); if(!f) return; if(G.me.ctl){ pl
   if(mdfcLand(f.c)){ mdfcMenu(id, x, y); return; } if(isLand(f.c) && cyclingOf(f.c).length) cycLandClick(id); else playFromHand(id); }
 function mAct(kind, el, x, y){ const id = el.dataset.id;
   if(kind === 'hand'){ if(M.look){ openLook(id); return; } tray(false); handPlay(id, x, y); return; }
-  if(kind === 'strip'){ if(M.look) openLook(id); else tray(true); return; }
   if(kind === 'look' || kind === 'opp'){ openLook(id); return; }
   if(kind === 'mine'){ openCard(id); return; }
   if(kind === 'lands'){ if(M.look){ openLook(id); return; } if(G.mode){ finishMode(id); return; } if(el.dataset.o === 'me') toggleTap(id, x, y); else openLook(id); } }
@@ -9701,7 +9705,7 @@ const deskRender = render;
 render = function(){ const r = deskRender.apply(this, arguments); try{ mAfter(); }catch(e){ console.error('phone layer', e); } return r; };
 function mAfter(){ if($('#table').hidden) return;
   foldLands('#myBack', true); if(G.opp) foldLands('#oppBack', false);
-  paintStrip(); if(HT.classList.contains('mhand')){ if(!G.me.hand.length) tray(false); else paintHint(); }
+  paintHandBtn(); if(HT.classList.contains('mhand')){ if(!G.me.hand.length) tray(false); else paintHint(); }
   if(M.lands) paintLands();
   if(M.view){ const a = findAny(M.view.id) || PEEK.get(M.view.id); if(!a) closeView(); else if(!M.view.look && (a.z !== 'bf' || !a.mine)) closeView(); }
   const se = $('#stack'), n = se.children.length; if(n !== M.stN){ se.scrollTop = se.scrollHeight; M.stN = n; } }

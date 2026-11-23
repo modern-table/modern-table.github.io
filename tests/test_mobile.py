@@ -89,15 +89,29 @@ try:
     p.tap('#mLook'); p.wait_for_timeout(200)
     check('pressing LOOK again closes the view and turns it off', J(p, "() => document.querySelector('#mView').hidden && !M.look && !document.documentElement.classList.contains('look')"))
     # the hand
-    hs = J(p, "() => { const s=document.querySelector('#mHandStrip'); const cs=[...s.querySelectorAll('.card')]; const r=s.getBoundingClientRect(); return [cs.length, s.querySelector('.hc').innerText, cs.every(c=>{const q=c.getBoundingClientRect(); return q.left>=r.left-1 && q.right<=r.right+1;}), Math.round(r.bottom)<=innerHeight]; }")
-    check('m0.2: the whole hand shows along the bottom (3 cards, the count, all in view)', hs and hs[0] == 3 and hs[1] == '3' and hs[2] and hs[3], hs)
-    p.locator('#mHandStrip .card').nth(1).tap(); p.wait_for_timeout(300)
-    check('tapping the hand strip opens the tray with the cards', J(p, "() => document.documentElement.classList.contains('mhand') && getComputedStyle(document.querySelector('#myHand')).display==='flex' && document.querySelectorAll('#myHand .card').length===3"))
+    FAN = """() => { const b=document.querySelector('#mHandBtn'), bd=document.querySelector('#board').getBoundingClientRect(); const fs=[...b.querySelectorAll('.fc')];
+      const rs=fs.map(f=>f.getBoundingClientRect()); const steps=rs.slice(1).map((r,i)=>(r.left-rs[i].left)/rs[i].width);
+      return {n:fs.length, hc:b.querySelector('.hc').innerText, ids:fs.map(f=>f.dataset.hid).join()===G.me.hand.map(c=>c.id).join(),
+        inview:rs.every(r=>r.left>=bd.left-1 && r.right<=innerWidth-128 && r.bottom<=innerHeight+1 && r.top>=0),
+        corner: b.getBoundingClientRect().right > bd.right-20 && b.getBoundingClientRect().bottom > bd.bottom-20,
+        minshow: steps.length ? Math.min(...steps) : 1, width: Math.round(b.getBoundingClientRect().width), half: Math.round(bd.width*.5)}; }"""
+    hs = J(p, FAN)
+    check('m0.3: the hand is a fan in the bottom right corner with every card (3), in hand order, all in view', hs and hs['n'] == 3 and hs['hc'] == '3' and hs['ids'] and hs['inview'] and hs['corner'], hs)
+    check('m0.3: less overlap than m0.1: at least 45% of each card shows', hs and hs['minshow'] >= .45, hs)
+    J(p, """() => { for(let i=0;i<6;i++) G.me.hand.push(mk(keyOf('Forest'),{o:G.myId})); changed(); render(); }""")
+    p.wait_for_timeout(200); h9 = J(p, FAN)
+    check('m0.3: a nine-card hand still fits the corner (all nine, at most half the board wide, in view)', h9 and h9['n'] == 9 and h9['inview'] and h9['width'] <= h9['half'], h9)
+    J(p, """() => { G.me.hand.splice(3); changed(); render(); }"""); p.wait_for_timeout(200)
+    p.tap('#mLook'); p.wait_for_timeout(150); p.locator('#mHandBtn .fc').nth(2).tap(); p.wait_for_timeout(300)
+    check('m0.3: with LOOK on, tapping a card in the fan reads it', J(p, "() => !document.querySelector('#mView').hidden && !document.documentElement.classList.contains('mhand')"))
+    p.tap('#mLook'); p.wait_for_timeout(200)
+    p.locator('#mHandBtn .fc').nth(1).tap(); p.wait_for_timeout(300)
+    check('tapping the fan opens the tray with the cards', J(p, "() => document.documentElement.classList.contains('mhand') && getComputedStyle(document.querySelector('#myHand')).display==='flex' && document.querySelectorAll('#myHand .card').length===3"))
     names = J(p, "() => G.me.hand.map(c=>cdata(c).n)")
     p.locator('#myHand .card').nth(names.index('Forest')).tap(); p.wait_for_timeout(500)
     check('tapping a land in the tray plays it (land for turn) and closes the tray', J(p, "() => G.me.bf.filter(c=>cdata(c).n==='Forest').length===2 && G.me.lp && G.me.lp.n===1 && !document.documentElement.classList.contains('mhand')"))
     # casting and paying
-    p.tap('#mHandStrip'); p.wait_for_timeout(300); names = J(p, "() => G.me.hand.map(c=>cdata(c).n)")
+    p.tap('#mHandBtn'); p.wait_for_timeout(300); names = J(p, "() => G.me.hand.map(c=>cdata(c).n)")
     p.locator('#myHand .card').nth(names.index('Thought-Knot Seer')).tap(); p.wait_for_timeout(700)
     check('casting opens the payment box with the lands box beside it', J(p, "() => !document.querySelector('#payPanel').hidden && !document.querySelector('#mLands').hidden && document.documentElement.classList.contains('mpay')"))
     geo = J(p, "() => { const a=document.querySelector('#mLands').getBoundingClientRect(), b=document.querySelector('#payPanel').getBoundingClientRect(); return [a.right <= b.left + 1, b.bottom <= innerHeight, document.querySelector('#mLands .mlg').scrollHeight <= document.querySelector('#mLands .mlg').clientHeight + 1]; }")
@@ -153,7 +167,7 @@ try:
     p.locator('#ctx button').filter(has_text='exerts').first.tap(); p.wait_for_timeout(500)
     check('exerting it spends the Mountain\'s Red and adds two Red that give haste', J(p, "() => (G.me.smana||[]).filter(s=>s.rider==='haste').length===2 && G.me.bf.find(c=>cdata(c).n==='Arena of Glory').exert"), J(p, "() => JSON.stringify(G.me.smana)"))
     p.tap('#mLands [data-ml="x"]'); p.wait_for_timeout(200)
-    p.tap('#mHandStrip'); p.wait_for_timeout(300); p.locator('#myHand .card').first.tap(); p.wait_for_timeout(700)
+    p.tap('#mHandBtn'); p.wait_for_timeout(300); p.locator('#myHand .card').first.tap(); p.wait_for_timeout(700)
     pp = J(p, "() => { const e=document.querySelector('#payPanel'); return e.hidden ? null : [e.scrollHeight <= e.clientHeight + 1, e.getBoundingClientRect().bottom <= innerHeight, !!e.querySelector('[data-pay^=\"sp:\"]')]; }")
     check('m0.2: casting Ragavan opens the whole payment box (no part cut off) with the special mana to choose', pp and all(pp), pp)
     p.locator('#payPanel [data-pay^="sp:"]').first.tap(); p.wait_for_timeout(300)

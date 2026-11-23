@@ -1,6 +1,6 @@
 /* The phone table (m/): a phone held sideways. Everything here is scoped to html.mob, which only m/index.html sets.
    Sizes: the board holds four rows of cards (their battlefield, a thin bar, ours); the hand is a fan in the corner that opens into a tray. */
-html.mob{--rcol:132px; --lcol:calc(var(--cw) + 12px); --ch:calc((100dvh - 28px - 4*6px - 6px)/4.5); --hs:calc(var(--ch)*.5); --cw:calc(var(--ch)/1.396); touch-action:manipulation; -webkit-text-size-adjust:100%; -webkit-touch-callout:none}
+html.mob{--rcol:132px; --lcol:calc(var(--cw) + 12px); --ch:calc((100dvh - 28px - 4*6px - 6px)/4); --cw:calc(var(--ch)/1.396); touch-action:manipulation; -webkit-text-size-adjust:100%; -webkit-touch-callout:none}
 html.mob body{font-size:13px; overscroll-behavior:none; -webkit-tap-highlight-color:transparent}
 html.mob button{padding:6px 10px}
 html.mob .card{touch-action:pan-x pan-y}
@@ -15,7 +15,7 @@ html.mob #kwKey, html.mob #cityBox:empty{display:none!important}
 html.mob #midRail{gap:3px}
 html.mob #winsBox{font-size:9px; gap:2px}
 html.mob #winsBox b{font-size:15px}
-html.mob #board{padding:3px 0 calc(var(--hs) + 3px)}
+html.mob #board{padding:3px 0}
 html.mob .row{--rp:3px; height:calc(var(--ch) + 6px); margin:0; gap:4px; padding:3px 6px}
 html.mob #oppHand, html.mob #turnSign{display:none!important}
 html.mob #myHand{display:none}
@@ -88,13 +88,14 @@ html.mob .mlands .ml .mlc{position:absolute; right:-3px; bottom:-3px; z-index:2;
 html.mob .mlands.opp .ml .mlc{border-color:var(--opp)}
 html.mob .mlands .ml .mla{position:absolute; left:2px; top:2px; z-index:2; font-size:9px; color:#7fd6c8; font-style:normal}
 
-/* the hand: every card along the bottom of the board (top halves), the count at the right; tapping it opens the tray (m0.2) */
-html.mob #mHandStrip{position:absolute; left:0; right:0; bottom:0; height:var(--hs); z-index:30; overflow:hidden; display:flex; align-items:flex-start; padding:3px 6px 0 8px; gap:6px; cursor:pointer; background:linear-gradient(0deg,#0b1417cc,#0b141700); border-top:1px solid #d9b25f40}
-html.mob #mHandStrip .hs{flex:1; min-width:0; display:flex; align-items:flex-start}
-html.mob #mHandStrip .card{flex:none; width:var(--cw); margin:0; box-shadow:0 -1px 5px #000a; transition:none}
-html.mob #mHandStrip .card:hover{transform:none}
-html.mob #mHandStrip .hc{flex:none; align-self:center; min-width:26px; height:26px; border-radius:50%; background:#000; color:#fff; border:2px solid var(--brass); font:800 13px/22px var(--ui); text-align:center}
-html.mob #mHandStrip .he{position:absolute; left:12px; top:50%; transform:translateY(-50%); font-size:11px; color:var(--dim)}
+/* the hand (m0.3): every card fanned in the bottom right corner, each one half uncovered; tapping it opens the tray */
+html.mob #mHandBtn{position:absolute; right:6px; bottom:4px; z-index:30; height:calc(var(--ch)*.9); min-width:calc(var(--cw)*.9); padding:0; border:0; background:none; border-radius:0}
+html.mob #mHandBtn .fc{position:absolute; bottom:8px; width:calc(var(--cw)*.82); aspect-ratio:488/680; border-radius:5px; overflow:hidden; box-shadow:-2px 2px 7px #000c; transform-origin:50% 200%; background:#243b40; border:1px solid #0008}
+html.mob #mHandBtn .fc img{width:100%; height:100%; object-fit:cover; display:block}
+html.mob #mHandBtn .fc .ft{position:absolute; inset:0; padding:3px; font-size:8px; line-height:1.1; color:var(--ink)}
+html.mob #mHandBtn .fc.ntime{filter:brightness(.6) saturate(.55)}
+html.mob #mHandBtn .hc{position:absolute; right:-4px; top:-4px; z-index:99; min-width:22px; height:22px; border-radius:50%; background:#000; color:#fff; border:2px solid var(--brass); font:800 12px/18px var(--ui); text-align:center}
+html.mob #mHandBtn.none{opacity:.5; width:calc(var(--cw)*.9)}
 html.mob.mhand #mHandBack{position:fixed; inset:0 var(--rcol) 0 0; z-index:63; background:#000a}
 html.mob.mhand #myHand{display:flex; position:fixed; left:0; right:var(--rcol); bottom:0; z-index:64; height:min(66dvh, 290px); align-items:center; justify-content:safe center; overflow-x:auto; overflow-y:hidden; padding:8px 14px; gap:0; background:linear-gradient(0deg,#0b1417,#0b1417e6); border-top:1px solid var(--brass)}
 html.mob.mhand #myHand .card{--cw:min(calc((min(66dvh, 290px) - 30px)/1.396), 150px); width:var(--cw); margin:0 -3px; transition:transform .12s}
@@ -204,4 +205,3 @@ html.mob #basicsBox{display:none!important}
 html.mob .tabs button[data-tab="new"]{display:none}
 html.mob .drow{padding:8px 10px}
 html.mob .drow b, html.mob .drow .an{font-size:15px}
-html.mob #mHandStrip .card.ntime{filter:brightness(.6) saturate(.55)}

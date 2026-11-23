@@ -1,11 +1,11 @@
 /* The phone table (m/index.html only). It runs after the Modern Table's own script, reuses all of its rules and messages (so a phone can
    play a desktop), and changes only how the table is drawn and touched:
    - a tapped card opens larger with what you can do with it (its own menu, as buttons); LOOK reads a card instead (picture, text, right now)
-   - your lands fold into one tile (a pip per land, dim when tapped); tapping it opens the lands box, which also opens while you pay
-   - the hand is a fan in the corner that opens into a tray; tapping a card there casts it, as a left click does on the desktop
+   - your lands fold into one tile (a small picture per land, tapped ones turned); tapping it opens the lands box, which also opens while you pay
+   - the hand is a fan of every card in the corner that opens into a tray; tapping a card there casts it, as a left click does on the desktop
    - menus open as a sheet with fingertip-sized rows; the hover enlargement is off */
 'use strict';
-const MVERSION = 'm0.2';
+const MVERSION = 'm0.3';
 const M = {look:false, view:null, lands:null, autoLands:false, tap:null, swallow:0, lastTouch:0, stN:0};
 const HT = document.documentElement;
 
@@ -66,9 +66,10 @@ function mainMenu(){
     '-', ...tm ], 'Menu');
 }
 
-/* ---------- the hand: every card along the bottom of the board (top halves, overlapped to fit); tapping it opens the tray (m0.2, the maintainer) ---------- */
-(function(){ const s = document.createElement('div'); s.id = 'mHandStrip'; s.setAttribute('aria-label', 'Your hand'); $('#board').appendChild(s);
-  s.addEventListener('click', e=>{ if(Date.now()-M.swallow < 450) return; tray(true); });
+/* ---------- the hand: every card fanned in the bottom right corner (m0.3, the maintainer: m0.1's fan, but the whole hand and less overlap); tapping it opens the tray ---------- */
+(function(){ const b = document.createElement('button'); b.id = 'mHandBtn'; b.setAttribute('aria-label', 'Your hand'); $('#board').appendChild(b);
+  b.addEventListener('click', e=>{ if(Date.now()-M.swallow < 450) return; const f = e.target.closest('[data-hid]');
+    if(M.look && f){ openLook(f.dataset.hid); return; } tray(!HT.classList.contains('mhand')); });
   const bk = document.createElement('div'); bk.id = 'mHandBack'; document.body.appendChild(bk); bk.onclick = ()=>tray(false);
   const hh = document.createElement('div'); hh.id = 'mHandHint'; document.body.appendChild(hh);
   hh.onclick = e=>{ const k = e.target.closest('[data-mh]'); if(!k) return; if(k.dataset.mh === 'x') tray(false); else { tray(false); handMenu(0, 0); } };
@@ -76,11 +77,16 @@ function mainMenu(){
 function tray(on){ HT.classList.toggle('mhand', !!on); if(on) paintHint(); }
 function paintHint(){ const n = G.me.hand.length;
   $('#mHandHint').innerHTML = `<span>Your hand · ${n} card${n===1?'':'s'} · ${M.look ? 'LOOK is on: tap a card to read it' : 'tap a card to cast or play it'}</span><span><button class="ghost" data-mh="menu">Hand actions…</button> <button class="ghost" data-mh="x">Close</button></span>`; }
-function paintStrip(){ const s = $('#mHandStrip'); if(!s) return; const h = G.me.hand, n = h.length;
-  s.innerHTML = `<div class="hs">${h.map(c=>cardHTML(c,'hand',true)).join('')}</div><span class="hc" title="Cards in your hand">${n}</span>` + (n ? '' : '<span class="he">Your hand is empty</span>');
-  const row = s.querySelector('.hs'), cards = [...row.children]; if(cards.length < 2) return;
-  const w = cards[0].offsetWidth, avail = row.clientWidth - 4, step = Math.min(w + 5, (avail - w) / (cards.length - 1));
-  cards.forEach((el, i)=>{ if(i) el.style.marginLeft = (step - w) + 'px'; }); }
+const FAN_SHOW = .52;   /* the part of each card left uncovered by the next one (m0.1 showed 26%) */
+function paintHandBtn(){ const b = $('#mHandBtn'); if(!b) return; const h = G.me.hand, n = h.length;
+  b.innerHTML = h.map((c,i)=>{ const d = cdata(c), why = typeof handTimeWhy === 'function' ? handTimeWhy(c) : '';
+    return `<span class="fc${why ? ' ntime' : ''}" data-hid="${esc(c.id)}" style="z-index:${i+1}">${d.img ? `<img src="${esc(d.img)}" alt="" draggable="false">` : `<span class="ft">${esc(d.n||'')}</span>`}</span>`; }).join('')
+    + `<span class="hc" title="Cards in your hand">${n}</span>`;
+  b.classList.toggle('none', !n); if(!n){ b.style.width = ''; return; }
+  const fcs = [...b.querySelectorAll('.fc')], w = fcs[0].offsetWidth, room = Math.max(w, ($('#board').clientWidth || 600) * .48 - 12);
+  const step = n > 1 ? Math.min(w * FAN_SHOW, (room - w) / (n - 1)) : 0, da = n > 1 ? Math.min(4, 16 / (n - 1)) : 0;   /* at most ±8° at the ends, so the fan stays inside the corner */
+  b.style.width = Math.round(w + step * (n - 1) + 30) + 'px';
+  fcs.forEach((el, i)=>{ el.style.left = Math.round(12 + i * step) + 'px'; el.style.transform = `rotate(${((i - (n - 1) / 2) * da).toFixed(2)}deg)`; }); }
 
 /* ---------- lands fold into a tile: a small picture per land (identical lands grouped with a count, tapped ones turned), m0.2 ---------- */
 const foldable = c => isLand(c) && !isCreature(c);
@@ -164,7 +170,6 @@ aboutCard = function(id){ openLook(id); };
 /* ---------- taps on cards ---------- */
 const ROWS = '#myFront,#myBack,#oppFront,#oppBack';
 function tapKind(el){
-  if(el.closest('#mHandStrip')) return 'strip';
   if(el.closest('#mLands')) return 'lands';
   if(M.look && el.closest('#modal') && !el.closest('.pile')) return 'look';
   if(el.closest('#modal,#payPanel,#pactPanel,#coPanel,#shown,#ctx,#ctx2,#mView,.pile')) return null;
@@ -181,7 +186,6 @@ function handPlay(id, x, y){ const f = find(id); if(!f) return; if(G.me.ctl){ pl
   if(mdfcLand(f.c)){ mdfcMenu(id, x, y); return; } if(isLand(f.c) && cyclingOf(f.c).length) cycLandClick(id); else playFromHand(id); }
 function mAct(kind, el, x, y){ const id = el.dataset.id;
   if(kind === 'hand'){ if(M.look){ openLook(id); return; } tray(false); handPlay(id, x, y); return; }
-  if(kind === 'strip'){ if(M.look) openLook(id); else tray(true); return; }
   if(kind === 'look' || kind === 'opp'){ openLook(id); return; }
   if(kind === 'mine'){ openCard(id); return; }
   if(kind === 'lands'){ if(M.look){ openLook(id); return; } if(G.mode){ finishMode(id); return; } if(el.dataset.o === 'me') toggleTap(id, x, y); else openLook(id); } }
@@ -202,7 +206,7 @@ const deskRender = render;
 render = function(){ const r = deskRender.apply(this, arguments); try{ mAfter(); }catch(e){ console.error('phone layer', e); } return r; };
 function mAfter(){ if($('#table').hidden) return;
   foldLands('#myBack', true); if(G.opp) foldLands('#oppBack', false);
-  paintStrip(); if(HT.classList.contains('mhand')){ if(!G.me.hand.length) tray(false); else paintHint(); }
+  paintHandBtn(); if(HT.classList.contains('mhand')){ if(!G.me.hand.length) tray(false); else paintHint(); }
   if(M.lands) paintLands();
   if(M.view){ const a = findAny(M.view.id) || PEEK.get(M.view.id); if(!a) closeView(); else if(!M.view.look && (a.z !== 'bf' || !a.mine)) closeView(); }
   const se = $('#stack'), n = se.children.length; if(n !== M.stN){ se.scrollTop = se.scrollHeight; M.stN = n; } }
