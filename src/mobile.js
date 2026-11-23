@@ -7,7 +7,7 @@
    - choosing targets has a strip that says what to tap, legal targets outlined in orange, and a Done button (m0.5)
    - blocking is guided: tap a blocker, then the attacker it blocks; blockers group under their attackers (m0.6) */
 'use strict';
-const MVERSION = 'm0.8';
+const MVERSION = 'm0.9';
 const M = {look:false, view:null, lands:null, autoLands:false, tap:null, swallow:0, lastTouch:0, stN:0};
 const HT = document.documentElement;
 
@@ -55,8 +55,11 @@ function mFill(el, items, trail, run, title){
 })();
 function setLook(on){ M.look = !!on; HT.classList.toggle('look', M.look); $('#mLook').setAttribute('aria-pressed', String(M.look)); if(!M.look) closeView(); }
 function mainMenu(){
-  const tm = capture(()=>tableMenu(0, 0)).filter(it=>!(Array.isArray(it) && /tour|explore/i.test(it[0])));
+  const tm = capture(()=>tableMenu(0, 0)).filter(it=>!(Array.isArray(it) && /tour|explore|^Leave the table/i.test(it[0])));   /* m0.9: Leave the table is Home, at the top */
   mMenu([
+    ['⌂ Home (the front page)', ()=>mHome()],
+    ['↻ Reload (back to this table)', ()=>mReload()],
+    '-',
     ['Undo', ()=>undo()],
     ['Your lands', ()=>openLands(true)],
     ['Hand actions…', ()=>handMenu(0, 0)],
@@ -543,5 +546,19 @@ addEventListener('resize', ()=>{ try{ render(); }catch(e){} });
 
 /* ---------- the front page ---------- */
 (function(){ const lm = $('.lmain'); if(!lm) return; const n = document.createElement('p'); n.id = 'mNote';
-  n.innerHTML = `<b>The phone table, an early test</b> (${MVERSION}). Hold your phone sideways. Practice alone is ready to try; playing a friend from a phone hasn't been tried yet. <a href="../">The desktop table</a>`;
+  n.innerHTML = `<b>The phone table, an early test</b> (${MVERSION}). Hold your phone sideways. Practice alone is ready to try; playing a friend from a phone hasn't been tried yet. <a href="../">The desktop table</a> <button class="mnav" data-mnav="reload" title="Load the page again (picks up the newest version)">↻ Reload</button>`;
   lm.prepend(n); })();
+
+/* ---------- home and reload (m0.9, the maintainer: added to the home screen, the phone page has no browser bar, so no back or refresh) ----------
+   ⌂ Home goes to the front page (the desktop's Leave the table: the seat is kept and the front page offers Resume), ↻ Reload loads the page
+   again and, from a table or the deck screen of an open table, takes you straight back to it (sessionStorage mt_mresume → the front page's
+   own Resume button). In the ☰ sheet (Home replaces Leave the table), in the deck screen's top bar, and Reload on the front page. */
+const mOpen = () => !!(G && G.me && (G.code || G.solo) && $('#lobby').hidden);
+function mHome(){ if(!$('#lobby').hidden) return; const go = ()=>{ try{ save(); }catch(e){} location.href = location.pathname; };
+  if(mOpen()) confirmBox('Go to the front page?', 'Your seat at this table is kept: the front page offers Resume to come back.', go); else go(); }
+function mReload(){ if(mOpen()){ try{ save(); }catch(e){} try{ sessionStorage.setItem('mt_mresume', '1'); }catch(e){} } location.reload(); }
+(function(){ const tb = $('#decks .topbar'); if(tb){ const w = document.createElement('span'); w.className = 'mnavs';
+    w.innerHTML = '<button class="mnav" data-mnav="home" title="The front page">⌂ Home</button><button class="mnav" data-mnav="reload" title="Load the page again">↻</button>'; tb.appendChild(w); }
+  document.addEventListener('click', e=>{ const b = e.target.closest && e.target.closest('[data-mnav]'); if(!b) return; e.preventDefault(); e.stopPropagation(); b.dataset.mnav === 'home' ? mHome() : mReload(); }, true);
+  let r = null; try{ r = sessionStorage.getItem('mt_mresume'); sessionStorage.removeItem('mt_mresume'); }catch(e){}
+  if(r){ const rb = $('#resumeBtn'); if(rb && !rb.hidden) setTimeout(()=>rb.click(), 0); } })();

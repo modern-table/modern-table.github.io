@@ -263,3 +263,8 @@ html.mob .card.mbatk{outline:3px solid #3f8cff; outline-offset:2px; box-shadow:0
 .mbtag{position:absolute; left:50%; top:3px; transform:translateX(-50%); background:#ff8a1f; color:#1b1205; font:900 9px/1.2 var(--ui); letter-spacing:.06em; padding:1px 5px; z-index:9; white-space:nowrap; pointer-events:none}
 .mbtag.blue{background:#3f8cff; color:#fff}
 html.mob .mbgap{margin-left:calc(var(--cw) * .3)!important}
+
+/* m0.9: home and reload */
+html.mob .mnavs{margin-left:auto; display:flex; gap:6px}
+html.mob .mnav{background:transparent; border:1px solid var(--line); color:var(--ink); border-radius:3px; padding:4px 10px; font:700 13px var(--ui); min-height:32px; cursor:pointer}
+html.mob #mNote .mnav{margin-left:6px; padding:2px 8px; min-height:26px; font-size:12px}
