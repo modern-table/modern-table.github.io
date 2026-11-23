@@ -207,3 +207,26 @@ html.mob #basicsBox{display:none!important}
 html.mob .tabs button[data-tab="new"]{display:none}
 html.mob .drow{padding:8px 10px}
 html.mob .drow b, html.mob .drow .an{font-size:15px}
+
+/* ---------- targeting (m0.5) ---------- */
+#mTgt{position:fixed; left:calc(var(--sl) + 8px); right:calc(var(--rr) + 8px); top:50%; transform:translateY(-50%); z-index:67; pointer-events:none; display:flex; justify-content:center}
+#mTgt[hidden]{display:none}
+#mTgt .in{background:rgba(22,14,6,.93); border:2px solid #ff9a3c; border-radius:3px; padding:3px 12px 4px; font:700 12px/1.3 var(--ui); color:#fff; text-align:center; box-shadow:0 4px 14px rgba(0,0,0,.55); max-width:100%}
+#mTgt b{color:#ffb15c}
+#mTgt .n{color:#1b1205; background:#ffb15c; font:900 10px var(--ui); letter-spacing:.04em; padding:1px 5px; margin-left:7px; vertical-align:1px}
+#mTgt .c{font-weight:600; font-size:12px; color:#eadfca; margin-left:7px}
+html.mtgt #modebar{display:none!important}
+html.mob #modebar{border-radius:3px; font-size:12px; padding:4px 10px; max-width:calc(100vw - var(--rr) - var(--sl) - 16px)}
+html.mob #modebar button{padding:6px 12px; font-size:11px}
+html.mob .card.mtl{outline:2px dashed #ff9a3c; outline-offset:2px}
+html.mob .card.mtc{outline:3px solid #ff8a1f; outline-offset:2px; box-shadow:0 0 14px 4px rgba(255,138,31,.75)}
+html.mob .card.mtsrc{outline:2px solid #ff8a1f; outline-offset:1px}
+.mttag{position:absolute; left:50%; top:3px; transform:translateX(-50%); background:#ff8a1f; color:#1b1205; font:900 9px/1.2 var(--ui); letter-spacing:.06em; padding:1px 5px; z-index:9; white-space:nowrap; pointer-events:none}
+html.mob .avatar.mtl{outline:2px dashed #ff9a3c; outline-offset:-3px}
+html.mob .avatar.mtc{outline:3px solid #ff8a1f; outline-offset:-3px; box-shadow:inset 0 0 12px rgba(255,138,31,.6)}
+html.mob .mlands.mtl{outline:2px dashed #ff9a3c; outline-offset:1px}
+html.mob .mlands.mtc{outline:3px solid #ff8a1f; outline-offset:1px}
+#mTgtGo{position:fixed; z-index:67; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; background:#ff8a1f; color:#1b1205; border:0; border-radius:6px; padding:6px 6px; font:800 13px/1.15 var(--ui); box-shadow:0 0 14px rgba(255,138,31,.55); cursor:pointer}
+#mTgtGo[hidden]{display:none}
+#mTgtGo small{font:700 10px/1.15 var(--ui); opacity:.85; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+#mTgtGo.none{background:#e9dcc0}

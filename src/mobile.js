@@ -3,9 +3,10 @@
    - a tapped card opens larger with what you can do with it (its own menu, as buttons); LOOK reads a card instead (picture, text, right now)
    - your lands fold into one tile (a small picture per land, tapped ones turned); tapping it opens the lands box, which also opens while you pay
    - the hand is a fan of every card in the corner that opens into a tray; tapping a card there casts it, as a left click does on the desktop
-   - menus open as a sheet with fingertip-sized rows; the hover enlargement is off */
+   - menus open as a sheet with fingertip-sized rows; the hover enlargement is off
+   - choosing targets has a strip that says what to tap, legal targets outlined in orange, and a Done button (m0.5) */
 'use strict';
-const MVERSION = 'm0.4';
+const MVERSION = 'm0.5';
 const M = {look:false, view:null, lands:null, autoLands:false, tap:null, swallow:0, lastTouch:0, stN:0};
 const HT = document.documentElement;
 
@@ -230,6 +231,94 @@ addEventListener('pointerup', e=>{ const t = M.tap; if(!t) return; M.tap = null;
 addEventListener('click', e=>{ if(Date.now()-M.swallow < 450 && M.swXY && Math.hypot(e.clientX-M.swXY[0], e.clientY-M.swXY[1]) < 24){ M.swallow = 0; e.stopPropagation(); e.preventDefault(); } }, true);
 addEventListener('contextmenu', e=>{ if(e.pointerType === 'touch' || Date.now()-M.lastTouch < 1500){ e.preventDefault(); e.stopPropagation(); } }, true);
 
+/* ---------- targeting (m0.5, the maintainer's design, step 2) ----------
+   While a spell, ability or trigger of mine on the stack is choosing its targets (the desktop's arrow mode), a strip at the top says what it can target,
+   legal targets get a dashed orange outline (the desktop already dims the rest), chosen ones an orange ring with a TARGET tag, and the big button reads
+   Done / No target / Next target. The maintainer's rules: targets can be chosen up to the most allowed and Done pressed at any time before; at the most,
+   the table waits for Done (it doesn't move on by itself), so a target can still be swapped: tapping a chosen target takes it back, and with room for
+   only one, tapping another moves it. Too few on Done asks first (warn, don't refuse). Done is the desktop's Esc, so the rest (the next target phrase,
+   a trigger marked as having no target) is the desktop's own. Cards with their own two-step flows (Searing Blaze, earthbend, bestow, blink, Auras) keep
+   the desktop's behaviour under the strip. */
+function mTgSrc(){ const md = G.mode; if(!md || md.type !== 'arrow' || !md.from || md.second) return null; const f = find(md.from); return f && f.z === 'st' ? f : null; }
+function tgPlain(f){ const c = f.c; if(c.fd || c.bw || (c.ab && (c.ab.eb || c.ab.auto))) return false;
+  try { if(twoTgt(c)) return false; if(!c.ab && !c.ch && isAura(c) && enchantOf(c)) return false; if(blinkOf(stackText(c) || '')) return false; return !!tgtSpec(c, 0); } catch(e){ return false; } }
+const tgOwn = from => a => a.a === from && !a.blk;
+function tgMax(md){ const f = find(md.from); if(!f) return null; const sl = tgtSlotsOf(md.from), k = md.slot || 0;
+  if(sl) return {sl, k, max:sl[k].n, upto:!!sl[k].upto, last:k >= sl.length - 1};
+  let ph = []; try { ph = tgtPhrases(tgtText(f.c)); } catch(e){}
+  return {sl:null, k:0, max:ph[0] ? (ph[0].n === 'X' ? 1 : ph[0].n) : 1, upto:!!(ph[0] && ph[0].upto), last:true}; }
+const tgName = t => t === G.myId ? G.me.name : t === oppId() ? ((G.opp && G.opp.name) || 'your opponent') : (findAny(t) ? cname(findAny(t).c) : 'that');
+/* keep the session's arrow mode on until Done (runs before the desktop's autoArm, so another trigger doesn't take over before Done) */
+function tgRearm(){ const t = M.tg; if(!t || t.done || !t.plain || G.mode) return false; const s = find(t.from);
+  if(!s || s.z !== 'st'){ M.tg = null; return false; }
+  if(G.trigHold || G.ordHold || PAY || G.atkSel || !$('#modal').hidden || isHeldTrig(s.c)) return false;
+  G.mode = {type:'arrow', from:t.from, slot:t.slot || 0}; if(t.tq) G.mode.tq = 1; return true; }
+const deskAutoArm = autoArm;
+autoArm = function(){ if(tgRearm()) return; return deskAutoArm.apply(this, arguments); };
+const deskFinish = finishMode;
+finishMode = function(target){ const md = G.mode, t = M.tg;
+  if(md && md.type === 'arrow' && t && t.plain && md.from === t.from){ const f = find(md.from), own = tgOwn(md.from);
+    if(target === md.from){ toast(`Tap what ${unlink(srcName(f.c))} targets, then Done.`); return; }
+    const hit = G.me.arrows.find(a=>own(a) && a.b === target);
+    if(hit){ G.me.arrows = G.me.arrows.filter(a=>a !== hit); log(`${unlink(srcName(f.c))} no longer targets ${unlink(tgName(target))}.`);
+      G.mode = {type:'arrow', from:md.from, slot:typeof hit.s === 'number' ? hit.s : (md.slot || 0)}; if(md.tq || t.tq) G.mode.tq = 1; changed(); return; }
+    const mx = tgMax(md), mine = a=>own(a) && (!mx.sl || a.s === mx.k), have = G.me.arrows.filter(mine).length;
+    if(mx.max < 99 && have >= mx.max){
+      if(mx.max === 1){ if(!md.tgtOK){ const sp = tgtSpec(f.c, mx.k), r = sp && tgtCheck(sp, target); if(r && (!r.ok || r.cok === false)) return deskFinish.apply(this, arguments); }   // an illegal pick asks first; the old target stays until it's confirmed
+        G.me.arrows = G.me.arrows.filter(a=>!mine(a)); }
+      else { toast(`${mx.max} of ${mx.max} chosen: tap one to take it back, or Done.`); render(); return; } } }
+  return deskFinish.apply(this, arguments); };
+function mEsc(){ document.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape', bubbles:true})); }
+function tgDone(force){ const md = G.mode, f = mTgSrc(); if(!md || !f) return; const t = M.tg || {}, mx = tgMax(md) || {k:0, max:1, last:true}, own = tgOwn(md.from);
+  const have = G.me.arrows.filter(a=>own(a) && (!mx.sl || a.s === mx.k)).length, nm = unlink(srcName(f.c)), sp = md.auto ? null : tgtSpec(f.c, mx.k);
+  if(!force && !md.auto && t.plain && !mx.upto){
+    if(!have){ const none = !G.me.arrows.some(own);
+      modal(`${nm}: no target?`, `<span class="hint">${esc(nm)} asks for ${esc(sp ? sp.phrase : 'a target')}. ${none ? `Without one it won't do what it says to its target.` : 'Without one, that part does nothing.'}<br><br>Go on without a target only if you've both agreed it's allowed.</span>`,
+        [['Choose a target', ()=>{ closeModal(); render(); }, 'ghost'], ['No target', ()=>{ closeModal(); tgDone(true); }, 'go']]); return; }
+    if(mx.max > 1 && mx.max < 99 && have < mx.max){
+      modal(`${nm}: only ${have} of ${mx.max}?`, `<span class="hint">${esc(nm)} asks for ${mx.max} targets and ${have === 1 ? 'one is' : have + ' are'} chosen.</span>`,
+        [['Choose another', ()=>{ closeModal(); render(); }, 'ghost'], [`Go on with ${have}`, ()=>{ closeModal(); tgDone(true); }, 'go']]); return; } }
+  if(mx.last && M.tg) M.tg.done = true;
+  mEsc(); }
+function tgPaint(){ const f = mTgSrc(), on = !!f && $('#table').hidden === false; HT.classList.toggle('mtgt', on);
+  const strip = $('#mTgt'), go = $('#mTgtGo');
+  document.querySelectorAll('.mtl,.mtc,.mtsrc').forEach(el=>el.classList.remove('mtl','mtc','mtsrc')); document.querySelectorAll('.mttag').forEach(el=>el.remove());
+  if(!on){ strip.hidden = true; go.hidden = true; return; }
+  const md = G.mode, c = f.c, mx = tgMax(md), own = tgOwn(md.from), arr = G.me.arrows.filter(own), have = arr.filter(a=>!mx.sl || a.s === mx.k).length;
+  const sp = md.auto ? null : (TGS || tgtSpec(c, mx.k)), nm = unlink(srcName(c));
+  /* the cards: legal ones outlined, chosen ones ringed and tagged */
+  const tagOf = a => mx.sl && mx.sl.length > 1 ? `TARGET ${(a.s || 0) + 1}` : 'TARGET';
+  for(const el of document.querySelectorAll([...ROWS.split(','), '#stack', '#mLands'].map(r=>r + ' .card[data-id]').join(','))){ const id = el.dataset.id, z = el.dataset.z;
+    if(id === md.from){ el.classList.add('mtsrc'); continue; } if(z !== 'bf' && z !== 'st') continue;
+    const a = arr.find(x=>x.b === id); if(a){ el.classList.add('mtc'); const tg = document.createElement('span'); tg.className = 'mttag'; tg.textContent = tagOf(a); el.appendChild(tg); continue; }
+    if(sp && !el.classList.contains('mfold')){ try { if(tgtCheck(sp, id).ok) el.classList.add('mtl'); } catch(e){} } }
+  for(const av of [$('#oppAv'), $('#myAv')]){ if(!av) continue; const pl = av.dataset.pl; if(arr.some(x=>x.b === pl)) av.classList.add('mtc'); else if(sp){ try { if(tgtCheck(sp, pl).ok) av.classList.add('mtl'); } catch(e){} } }
+  for(const tile of document.querySelectorAll('.mlands')){ const ls = sideLands(tile.dataset.mlands === 'me');
+    if(ls.some(l=>arr.some(x=>x.b === l.id))) tile.classList.add('mtc'); else if(sp && ls.some(l=>{ try { return tgtCheck(sp, l.id).ok; } catch(e){ return false; } })) tile.classList.add('mtl'); }
+  /* the strip */
+  const what = md.auto ? ((c.ab && c.ab.what) || 'its target') : sp ? sp.phrase : 'its target', cnt = mx.max >= 99 ? `${have} chosen` : mx.max > 1 ? `${have} of ${mx.max} chosen` : '';
+  strip.innerHTML = `<div class="in"><b>${esc(nm)}</b>${mx.sl && mx.sl.length > 1 ? `<span class="n">Target ${mx.k + 1} of ${mx.sl.length}</span>` : ''}${cnt ? `<span class="n">${cnt}</span>` : ''}<span class="c">tap ${esc(what)}${sp && sp.cond ? ` · ${esc(sp.cond.note)}` : ''}${mx.upto ? ' (or none)' : ''}${arr.length && M.tg && M.tg.plain ? ' · tap one again to take it back' : ''}</span></div>`;
+  strip.hidden = false; { const mr = $('#mid').getBoundingClientRect(); if(mr.height) Object.assign(strip.style, {top:(mr.top + mr.height / 2) + 'px', left:(mr.left + 6) + 'px', right:Math.max(0, innerWidth - mr.right + 6) + 'px'}); }
+  /* the big button, over the desktop's */
+  const lbl = mx.sl && !mx.last ? (have || !mx.upto ? 'Next target' : `Skip target ${mx.k + 1}`) : (have || arr.length ? 'Done' : 'No target');
+  const sub = mx.sl && !mx.last ? `then target ${mx.k + 2} of ${mx.sl.length}` : cnt || (have ? `targets: ${arr.map(a=>unlink(tgName(a.b))).join(', ')}` : '');
+  go.innerHTML = `<b>${esc(lbl)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}`; go.classList.toggle('none', lbl === 'No target');
+  const r = $('#next').getBoundingClientRect(); if(r.width){ Object.assign(go.style, {left:r.left + 'px', top:r.top + 'px', width:r.width + 'px', height:Math.max(48, r.height) + 'px'}); }
+  go.hidden = false; }
+(function(){ const s = document.createElement('div'); s.id = 'mTgt'; s.hidden = true; document.body.appendChild(s);
+  const g = document.createElement('button'); g.id = 'mTgtGo'; g.hidden = true; document.body.appendChild(g); g.onclick = ()=>tgDone();
+  /* the desktop's other "click something" modes (attach, block, exile with…) get tap wording and a button in place of Esc */
+  $('#modebar').addEventListener('click', e=>{ if(e.target.closest('[data-mesc]')){ e.stopPropagation(); mEsc(); } }); })();
+function modebarPhone(){ const mb = $('#modebar'); if(!mb || mb.hidden || HT.classList.contains('mtgt') || !G.mode || mb.querySelector('[data-mesc],[data-notgt]')) return;
+  const lbl = G.mode.type === 'atktgt' ? `Attack ${(G.opp && G.opp.name) || 'the player'}` : 'Cancel';
+  mb.innerHTML = esc(mb.textContent.replace(/ · Esc cancels$/, '').replace(/\b([Cc])lick(ed|ing|s)?\b/g, (z, c0, e)=>(c0 === 'C' ? 'T' : 't') + 'ap' + (e === 'ed' ? 'ped' : e === 'ing' ? 'ping' : e || ''))) + ` <button data-mesc>${esc(lbl)}</button>`; }
+/* toasts: the strip already says what to tap; the rest say tap, not click, and lose their Esc hints */
+const deskToast = toast;
+toast = function(t){ t = String(t == null ? '' : t);
+  if(mTgSrc() && /\bclick\b/i.test(t) && /target|Esc|enchant/i.test(t)) return;
+  t = t.replace(/\s*\((?:[^()]*?;\s*)?Esc\b[^()]*\)/g, '').replace(/,? or NO TARGET/, '').replace(/\b([Cc])lick(ed|ing|s)?\b/g, (z, c0, e)=>(c0 === 'C' ? 'T' : 't') + 'ap' + (e === 'ed' ? 'ped' : e === 'ing' ? 'ping' : e || ''));
+  return deskToast.call(this, t); };
+
 /* ---------- after every redraw ---------- */
 const deskRender = render;
 render = function(){ const r = deskRender.apply(this, arguments); try{ mAfter(); }catch(e){ console.error('phone layer', e); } return r; };
@@ -238,6 +327,14 @@ function mAfter(){ if($('#table').hidden) return;
   paintHandBtn(); if(HT.classList.contains('mhand')){ if(!G.me.hand.length) tray(false); else paintHint(); }
   if(M.lands) paintLands();
   if(M.view){ const a = findAny(M.view.id) || PEEK.get(M.view.id); if(!a) closeView(); else if(!M.view.look && (a.z !== 'bf' || !a.mine)) closeView(); }
+  { const f = mTgSrc(); if(f){ if(!M.tg || M.tg.from !== f.c.id){
+      /* the table already chose the only possible target (Thought-Knot Seer's "target opponent" with one opponent): nothing to wait for */
+      const mx = tgMax(G.mode), own = tgOwn(f.c.id), have = mx ? G.me.arrows.filter(a=>own(a) && (!mx.sl || a.s === mx.k)).length : 0;
+      if(mx && mx.last && mx.max < 99 && have >= mx.max){ G.mode = null; setTimeout(()=>{ try { render(); } catch(e){} }, 0); }
+      else M.tg = {from:f.c.id, plain:tgPlain(f), tq:!!G.mode.tq}; }
+    if(M.tg && G.mode){ M.tg.slot = G.mode.slot || 0; if(G.mode.tq) M.tg.tq = true; } }
+    else if(M.tg){ const s = find(M.tg.from); if(!s || s.z !== 'st' || M.tg.done) M.tg = null; } }
+  tgPaint(); modebarPhone();
   const se = $('#stack'), n = se.children.length; if(n !== M.stN){ se.scrollTop = se.scrollHeight; M.stN = n; } }
 addEventListener('resize', ()=>{ try{ render(); }catch(e){} });
 

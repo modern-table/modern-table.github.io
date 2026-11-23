@@ -127,7 +127,10 @@ try:
     check('paying puts the spell on the stack and the lands box goes away', J(p, "() => G.me.st.some(c=>cdata(c).n==='Thought-Knot Seer') && document.querySelector('#payPanel').hidden && document.querySelector('#mLands').hidden && !document.documentElement.classList.contains('mpay')"))
     p.locator('#stack .card').first.tap(timeout=5000); p.wait_for_timeout(700)
     check('tapping the stack card resolves it', J(p, "() => G.me.bf.some(c=>cdata(c).n==='Thought-Knot Seer')"))
-    if J(p, "() => !!G.mode"): p.tap('#oppAv'); p.wait_for_timeout(400)
+    check("m0.5: Thought-Knot Seer's trigger asks for its target with the targeting strip", J(p, "() => !!G.mode && !document.querySelector('#mTgt').hidden && document.querySelector('#mTgt').innerText.includes('opponent')"))
+    p.tap('#oppAv'); p.wait_for_timeout(400)
+    check('m0.5: the table waits for Done after the target is tapped', J(p, "() => !!G.mode && document.querySelector('#mTgtGo').innerText.startsWith('Done')"))
+    p.tap('#mTgtGo'); p.wait_for_timeout(400)
     if p.locator('#stack .card').count(): p.locator('#stack .card').first.tap(timeout=5000); p.wait_for_timeout(600)
     if p.locator('#modal:not([hidden])').count(): J(p, "() => closeModal()")
     # the lands box on its own
