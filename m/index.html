@@ -647,7 +647,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 </style>
 <style id="mcss">/* The phone table (m/): a phone held sideways. Everything here is scoped to html.mob, which only m/index.html sets.
    Sizes: the board holds four rows of cards (their battlefield, a thin bar, ours); the hand is a fan in the corner that opens into a tray. */
-html.mob{--rcol:132px; --lcol:calc(var(--cw) + 12px); --ch:calc((100dvh - 28px - 4*6px - 6px)/4); --cw:calc(var(--ch)/1.396); touch-action:manipulation; -webkit-text-size-adjust:100%; -webkit-touch-callout:none}
+html.mob{--rcol:132px; --lcol:calc(var(--cw) + 12px); --ch:calc((100dvh - 28px - 4*6px - 6px)/4.5); --hs:calc(var(--ch)*.5); --cw:calc(var(--ch)/1.396); touch-action:manipulation; -webkit-text-size-adjust:100%; -webkit-touch-callout:none}
 html.mob body{font-size:13px; overscroll-behavior:none; -webkit-tap-highlight-color:transparent}
 html.mob button{padding:6px 10px}
 html.mob .card{touch-action:pan-x pan-y}
@@ -662,9 +662,8 @@ html.mob #kwKey, html.mob #cityBox:empty{display:none!important}
 html.mob #midRail{gap:3px}
 html.mob #winsBox{font-size:9px; gap:2px}
 html.mob #winsBox b{font-size:15px}
-html.mob #board{padding:3px 0}
+html.mob #board{padding:3px 0 calc(var(--hs) + 3px)}
 html.mob .row{--rp:3px; height:calc(var(--ch) + 6px); margin:0; gap:4px; padding:3px 6px}
-html.mob #myBack{padding-right:calc(var(--cw)*1.75)}
 html.mob #oppHand, html.mob #turnSign{display:none!important}
 html.mob #myHand{display:none}
 html.mob #mid{height:28px; gap:4px; padding:0 4px}
@@ -716,25 +715,33 @@ html.mob #drawBtn, html.mob #okAll{margin:4px 6px 0; padding:7px 4px; font-size:
 html.mob #next{margin:5px 6px 6px; padding:10px 6px; font-size:13px; line-height:1.15; border-radius:6px; min-height:48px}
 html.mob #prihint{font-size:10px; padding:0 6px 4px}
 
-/* the lands tile: one tile with a pip for each land (dim when tapped); tapping it opens the lands */
+/* the lands tile: a small picture per land, identical lands grouped with a count, tapped ones turned and dimmed; tapping it opens the lands */
 html.mob .card.mfold, html.mob .pilT.mfold{display:none!important}
-html.mob .mlands{flex:none; position:relative; height:var(--ch); min-width:calc(var(--cw)*1.25); max-width:calc(var(--cw)*2.6); padding:5px 7px; border-radius:6px; border:1px solid #6d5a33; background:linear-gradient(160deg,#2a2416,#14110b); box-shadow:0 2px 6px #0008; display:flex; flex-direction:column; gap:4px; cursor:pointer; color:var(--ink)}
+html.mob .mlands{flex:none; position:relative; height:var(--ch); padding:3px 6px 4px; border-radius:6px; border:1px solid #6d5a33; background:linear-gradient(160deg,#2a2416,#14110b); box-shadow:0 2px 6px #0008; display:flex; flex-direction:column; gap:2px; cursor:pointer; color:var(--ink); overflow:hidden; --mw:calc(var(--cw)*.6)}
 html.mob .mlands.opp{border-color:#33506d; background:linear-gradient(160deg,#16222f,#0b1118)}
-html.mob .mlands .mlh{font:800 9px var(--ui); letter-spacing:.12em; color:var(--brass); white-space:nowrap}
+html.mob .mlands .mlh{font:800 8.5px var(--ui); letter-spacing:.1em; color:var(--brass); white-space:nowrap; display:flex; align-items:baseline; gap:3px}
 html.mob .mlands.opp .mlh{color:var(--opp)}
-html.mob .mlands .mlh b{font:400 15px var(--display); color:var(--ink); letter-spacing:0; margin-left:3px}
-html.mob .mlands .mlp{display:flex; flex-wrap:wrap; gap:3px; align-content:flex-start}
-html.mob .mlands .pip{width:calc(var(--cw)*.2); height:calc(var(--cw)*.2); min-width:9px; min-height:9px; border-radius:50%; border:1px solid #0009; box-shadow:0 0 0 1px #fff3}
-html.mob .mlands .pip.t{opacity:.28}
-html.mob .mlands .mlu{font-size:9px; color:var(--dim); margin-top:auto; white-space:nowrap}
+html.mob .mlands .mlh b{font:400 13px var(--display); color:var(--ink); letter-spacing:0}
+html.mob .mlands .mlh span{font:600 8.5px var(--ui); letter-spacing:0; color:var(--dim); margin-left:4px}
+html.mob .mlands .mli{flex:1; display:flex; align-items:center; gap:3px; min-width:0}
+html.mob .mlands .ml{position:relative; flex:none; width:var(--mw); aspect-ratio:488/680; border-radius:4px; box-shadow:0 1px 4px #000c}
+html.mob .mlands .ml .pic{position:absolute; inset:0; border-radius:inherit; overflow:hidden; background:#243b40; border:1px solid #0008}
+html.mob .mlands .ml .pic img{width:100%; height:100%; object-fit:cover; display:block}
+html.mob .mlands .ml .pic .ft{position:absolute; inset:0; padding:2px; font-size:7.5px; line-height:1.1; color:var(--ink)}
+html.mob .mlands .ml .pic .back{position:absolute; inset:0; background:radial-gradient(circle,#c79a4a 0 18%,#5a3a1c 19% 34%,#2c2136 35% 62%,#1a1422 63%)}
+html.mob .mlands .ml.t{aspect-ratio:680/488; width:calc(var(--mw)*1.396)}
+html.mob .mlands .ml.t .pic{inset:auto; left:50%; top:50%; width:var(--mw); aspect-ratio:488/680; transform:translate(-50%,-50%) rotate(90deg); filter:brightness(.55) saturate(.7)}
+html.mob .mlands .ml .mlc{position:absolute; right:-3px; bottom:-3px; z-index:2; min-width:17px; height:17px; padding:0 3px; border-radius:50%; background:#000; color:#fff; border:1.5px solid var(--brass); font:800 10px/14px var(--ui); text-align:center}
+html.mob .mlands.opp .ml .mlc{border-color:var(--opp)}
+html.mob .mlands .ml .mla{position:absolute; left:2px; top:2px; z-index:2; font-size:9px; color:#7fd6c8; font-style:normal}
 
-/* the hand: a fan in the bottom right corner of the board; tapping it opens the tray */
-html.mob #mHandBtn{position:absolute; right:6px; bottom:4px; z-index:30; width:calc(var(--cw)*1.55); height:calc(var(--ch)*.82); padding:0; border:0; background:none; border-radius:0}
-html.mob #mHandBtn .fc{position:absolute; bottom:0; left:50%; width:calc(var(--cw)*.82); aspect-ratio:488/680; border-radius:5px; overflow:hidden; box-shadow:0 2px 8px #000c; transform-origin:50% 120%; background:#243b40; border:1px solid #0008}
-html.mob #mHandBtn .fc img{width:100%; height:100%; object-fit:cover; display:block}
-html.mob #mHandBtn .fc .ft{position:absolute; inset:0; padding:3px; font-size:8px; line-height:1.1; color:var(--ink)}
-html.mob #mHandBtn .hc{position:absolute; right:-4px; top:-6px; z-index:5; min-width:22px; height:22px; border-radius:50%; background:#000; color:#fff; border:2px solid var(--brass); font:800 12px/18px var(--ui); text-align:center}
-html.mob #mHandBtn.none{opacity:.5}
+/* the hand: every card along the bottom of the board (top halves), the count at the right; tapping it opens the tray (m0.2) */
+html.mob #mHandStrip{position:absolute; left:0; right:0; bottom:0; height:var(--hs); z-index:30; overflow:hidden; display:flex; align-items:flex-start; padding:3px 6px 0 8px; gap:6px; cursor:pointer; background:linear-gradient(0deg,#0b1417cc,#0b141700); border-top:1px solid #d9b25f40}
+html.mob #mHandStrip .hs{flex:1; min-width:0; display:flex; align-items:flex-start}
+html.mob #mHandStrip .card{flex:none; width:var(--cw); margin:0; box-shadow:0 -1px 5px #000a; transition:none}
+html.mob #mHandStrip .card:hover{transform:none}
+html.mob #mHandStrip .hc{flex:none; align-self:center; min-width:26px; height:26px; border-radius:50%; background:#000; color:#fff; border:2px solid var(--brass); font:800 13px/22px var(--ui); text-align:center}
+html.mob #mHandStrip .he{position:absolute; left:12px; top:50%; transform:translateY(-50%); font-size:11px; color:var(--dim)}
 html.mob.mhand #mHandBack{position:fixed; inset:0 var(--rcol) 0 0; z-index:63; background:#000a}
 html.mob.mhand #myHand{display:flex; position:fixed; left:0; right:var(--rcol); bottom:0; z-index:64; height:min(66dvh, 290px); align-items:center; justify-content:safe center; overflow-x:auto; overflow-y:hidden; padding:8px 14px; gap:0; background:linear-gradient(0deg,#0b1417,#0b1417e6); border-top:1px solid var(--brass)}
 html.mob.mhand #myHand .card{--cw:min(calc((min(66dvh, 290px) - 30px)/1.396), 150px); width:var(--cw); margin:0 -3px; transition:transform .12s}
@@ -789,8 +796,9 @@ html.mob #mLands .mlc .card.tap{transform:rotate(var(--ta,90deg))}
 html.mob #mLands .mlc .card.under{position:absolute; left:4px; top:4px; width:calc(var(--lw)*.5); --cw:calc(var(--lw)*.5); z-index:2}
 html.mob #mLands .mlc .mlm{position:absolute; right:0; bottom:0; z-index:4; padding:1px 7px; font-size:12px; background:#0b1417; border-radius:4px}
 html.mob #mLands .mhint{font-size:11px; color:var(--dim)}
-html.mob.mpay :is(#payPanel,#pactPanel){left:auto!important; right:calc(var(--rcol) + 6px)!important; top:6px!important; transform:none!important; width:min(340px, 44vw); max-height:calc(100dvh - 12px); overflow-y:auto; padding:10px 12px; gap:7px}
-html.mob :is(#payPanel,#pactPanel){width:min(380px, 60vw); max-height:calc(100dvh - 12px); overflow-y:auto; top:6px}
+html.mob #mLands .mlc .mlm.ab{background:var(--brass); border-color:var(--brass); color:#1b1205; font-weight:800; font-size:11px; padding:3px 7px}
+html.mob.mpay :is(#payPanel,#pactPanel){left:auto!important; right:calc(var(--rcol) + 6px)!important; top:6px!important; bottom:auto!important; transform:none!important; width:min(340px, 44vw)!important; max-height:calc(100dvh - 12px)!important; overflow-y:auto; padding:10px 12px; gap:7px}
+html.mob :is(#payPanel,#pactPanel){width:min(380px, 60vw)!important; max-height:calc(100dvh - 12px)!important; overflow-y:auto; top:6px!important; bottom:auto!important; right:calc(var(--rcol) + 6px)!important; left:auto!important; transform:none!important}
 html.mob :is(#payPanel,#pactPanel) h3{font-size:16px}
 html.mob :is(#payPanel,#pactPanel) .pbtns button{padding:8px 10px}
 
@@ -805,7 +813,10 @@ html.mob #mBackdrop[hidden]{display:none}
 
 /* windows and the other panels, fitted to a short screen */
 html.mob #modal{padding:6px; inset:0 var(--rcol) 0 0}
-html.mob .sheet{max-height:calc(100dvh - 12px)}
+html.mob .sheet{max-height:calc(100dvh - 12px); width:auto!important; max-width:100%!important; min-width:0!important}
+html.mob .sheet footer{flex-wrap:wrap}
+html.mob .sheet .body .grid, html.mob .sheet .body #zgrid{flex-wrap:wrap}
+html.mob #banner :is(div,.mrow){flex-wrap:wrap}
 html.mob .sheet header{padding:7px 12px}
 html.mob .sheet header h3{font-size:17px}
 html.mob .sheet .body{padding:8px 12px; gap:7px}
@@ -840,6 +851,7 @@ html.mob #basicsBox{display:none!important}
 html.mob .tabs button[data-tab="new"]{display:none}
 html.mob .drow{padding:8px 10px}
 html.mob .drow b, html.mob .drow .an{font-size:15px}
+html.mob #mHandStrip .card.ntime{filter:brightness(.6) saturate(.55)}
 </style>
 </head>
 <body>
@@ -9425,10 +9437,9 @@ window.__G = G;
    - the hand is a fan in the corner that opens into a tray; tapping a card there casts it, as a left click does on the desktop
    - menus open as a sheet with fingertip-sized rows; the hover enlargement is off */
 'use strict';
-const MVERSION = 'm0.1';
+const MVERSION = 'm0.2';
 const M = {look:false, view:null, lands:null, autoLands:false, tap:null, swallow:0, lastTouch:0, stN:0};
 const HT = document.documentElement;
-const PIPC = {W:'#f3ecd0', U:'#4f9fe0', B:'#9a86a0', R:'#e2574c', G:'#4fbf7f', C:'#b8b2a7'};
 
 /* ---------- no hover enlargement: LOOK replaces it ---------- */
 showZoom = function(){};
@@ -9487,9 +9498,9 @@ function mainMenu(){
     '-', ...tm ], 'Menu');
 }
 
-/* ---------- the hand: a fan in the corner, a tray when open ---------- */
-(function(){ const b = document.createElement('button'); b.id = 'mHandBtn'; b.setAttribute('aria-label', 'Your hand'); $('#board').appendChild(b);
-  b.onclick = ()=>tray(!HT.classList.contains('mhand'));
+/* ---------- the hand: every card along the bottom of the board (top halves, overlapped to fit); tapping it opens the tray (m0.2, the maintainer) ---------- */
+(function(){ const s = document.createElement('div'); s.id = 'mHandStrip'; s.setAttribute('aria-label', 'Your hand'); $('#board').appendChild(s);
+  s.addEventListener('click', e=>{ if(Date.now()-M.swallow < 450) return; tray(true); });
   const bk = document.createElement('div'); bk.id = 'mHandBack'; document.body.appendChild(bk); bk.onclick = ()=>tray(false);
   const hh = document.createElement('div'); hh.id = 'mHandHint'; document.body.appendChild(hh);
   hh.onclick = e=>{ const k = e.target.closest('[data-mh]'); if(!k) return; if(k.dataset.mh === 'x') tray(false); else { tray(false); handMenu(0, 0); } };
@@ -9497,28 +9508,31 @@ function mainMenu(){
 function tray(on){ HT.classList.toggle('mhand', !!on); if(on) paintHint(); }
 function paintHint(){ const n = G.me.hand.length;
   $('#mHandHint').innerHTML = `<span>Your hand · ${n} card${n===1?'':'s'} · ${M.look ? 'LOOK is on: tap a card to read it' : 'tap a card to cast or play it'}</span><span><button class="ghost" data-mh="menu">Hand actions…</button> <button class="ghost" data-mh="x">Close</button></span>`; }
-function paintHandBtn(){ const b = $('#mHandBtn'); if(!b) return; const h = G.me.hand, n = h.length, show = h.slice(-3);
-  const fan = show.map((c,i)=>{ const d = cdata(c), k = show.length, a = (i-(k-1)/2)*13, x = (i-(k-1)/2)*26;
-    return `<span class="fc" style="transform:translateX(calc(-50% + ${x}%)) rotate(${a}deg);z-index:${i}">${d.img ? `<img src="${esc(d.img)}" alt="" draggable="false">` : `<span class="ft">${esc(d.n||'')}</span>`}</span>`; }).join('');
-  b.innerHTML = fan + `<span class="hc">${n}</span>`; b.classList.toggle('none', !n); }
+function paintStrip(){ const s = $('#mHandStrip'); if(!s) return; const h = G.me.hand, n = h.length;
+  s.innerHTML = `<div class="hs">${h.map(c=>cardHTML(c,'hand',true)).join('')}</div><span class="hc" title="Cards in your hand">${n}</span>` + (n ? '' : '<span class="he">Your hand is empty</span>');
+  const row = s.querySelector('.hs'), cards = [...row.children]; if(cards.length < 2) return;
+  const w = cards[0].offsetWidth, avail = row.clientWidth - 4, step = Math.min(w + 5, (avail - w) / (cards.length - 1));
+  cards.forEach((el, i)=>{ if(i) el.style.marginLeft = (step - w) + 'px'; }); }
 
-/* ---------- lands fold into a tile ---------- */
-function landCols(c){ if(c.fd) return []; const d = cdata(c), out = new Set(), t = d.t || '', o = d.o || '';
-  [['Plains','W'],['Island','U'],['Swamp','B'],['Mountain','R'],['Forest','G']].forEach(([w,k])=>{ if(t.includes(w)) out.add(k); });
-  for(const line of o.split('\n')) if(/\badd\b/i.test(line)){ if(/any colou?r|any type/i.test(line)) 'WUBRG'.split('').forEach(k=>out.add(k)); for(const m of line.matchAll(/\{([WUBRGC])\}/g)) out.add(m[1]); }
-  return 'WUBRGC'.split('').filter(k=>out.has(k)); }
-function pipBg(cs){ if(!cs.length) return 'transparent'; if(cs.length===1) return PIPC[cs[0]];
-  const st = 360/cs.length; return `conic-gradient(${cs.map((k,i)=>`${PIPC[k]} ${i*st}deg ${(i+1)*st}deg`).join(',')})`; }
+/* ---------- lands fold into a tile: a small picture per land (identical lands grouped with a count, tapped ones turned), m0.2 ---------- */
 const foldable = c => isLand(c) && !isCreature(c);
 function sideLands(mine){ const s = mine ? G.me : G.opp; if(!s) return []; return (s.bf||[]).filter(foldable).sort((a,b)=>(cdata(a).n||'').localeCompare(cdata(b).n||'') || (a.tap-b.tap)); }
+function landGroups(lands){ const g = new Map();
+  for(const c of lands){ const k = (c.fd ? '?' : cdata(c).n||'') + '|' + (c.tap ? 1 : 0); if(!g.has(k)) g.set(k, []); g.get(k).push(c); }
+  return [...g.values()].sort((a,b)=>(a[0].tap?1:0)-(b[0].tap?1:0)); }
+function landPic(c){ if(c.fd) return '<div class="back"></div>'; const d = cdata(c), img = (c.flip && d.back) ? d.back : d.img;
+  return img ? `<img src="${esc(img)}" alt="" draggable="false" onerror="this.remove()">` : `<span class="ft">${esc(d.n||'')}</span>`; }
 function foldLands(sel, mine){ const row = $(sel); if(!row) return; const lands = sideLands(mine); if(!lands.length) return;
   const ids = new Set(lands.map(c=>c.id)), side = mine ? G.me : G.opp, att = new Set((side.bf||[]).filter(c=>c.att && ids.has(c.att)).map(c=>c.id));
   row.querySelectorAll('.card[data-id]').forEach(el=>{ if(ids.has(el.dataset.id) || att.has(el.dataset.id)){ el.classList.add('mfold'); const p = el.parentElement; if(p && p.classList.contains('pilT') && [...p.children].every(k=>ids.has(k.dataset.id) || att.has(k.dataset.id))) p.classList.add('mfold'); } });
-  const un = lands.filter(c=>!c.tap).length;
+  const un = lands.filter(c=>!c.tap).length, gs = landGroups(lands);
   const t = document.createElement('div'); t.className = 'mlands'+(mine?'':' opp'); t.dataset.mlands = mine ? 'me' : 'opp';
-  t.innerHTML = `<div class="mlh">LANDS<b>${lands.length}</b></div><div class="mlp">${lands.map(c=>`<i class="pip${c.tap?' t':''}" style="background:${pipBg(landCols(c))}${landCols(c).length?'':';border:1px dashed #fff6'}"></i>`).join('')}</div><div class="mlu">${un} untapped</div>`;
+  t.innerHTML = `<div class="mlh">LANDS<b>${lands.length}</b><span>${un} untapped</span></div><div class="mli">${gs.map(g=>`<span class="ml${g[0].tap?' t':''}" title="${esc((g[0].fd?'Face-down land':cdata(g[0]).n)+(g[0].tap?' (tapped)':''))}"><span class="pic">${landPic(g[0])}</span>${g.length>1?`<b class="mlc">${g.length}</b>`:''}${bfAtt(side, g)}</span>`).join('')}</div>`;
   t.onclick = ()=>openLands(mine);
-  row.prepend(t); }
+  row.prepend(t);
+  const box = t.querySelector('.mli'), kids = [...box.children], maxW = row.clientWidth*.55 - 16; let tot = kids.reduce((a,k)=>a+k.offsetWidth+3, 0);
+  if(kids.length > 1 && tot > maxW){ const cut = (tot - maxW)/(kids.length - 1); kids.forEach((k,i)=>{ if(i) k.style.marginLeft = (3 - cut) + 'px'; }); } }
+const bfAtt = (side, g) => (side.bf||[]).some(a=>g.some(c=>a.att===c.id)) ? '<i class="mla" title="Something is attached">◆</i>' : '';
 
 /* ---------- the lands box ---------- */
 (function(){ const el = document.createElement('div'); el.id = 'mLands'; el.hidden = true; document.body.appendChild(el);
@@ -9530,13 +9544,15 @@ function closeLands(){ M.lands = null; M.autoLands = false; $('#mLands').hidden 
 function landSize(n, paying){ const rc = parseFloat(getComputedStyle(HT).getPropertyValue('--rcol')) || 132, W = innerWidth - rc - (paying ? Math.min(340, innerWidth*.44) + 8 : 0) - 22, Hh = innerHeight - 84; let best = 44;
   for(let lw = 120; lw >= 44; lw -= 2){ const cell = lw*1.396 + 4 + 6, cols = Math.max(1, Math.floor((W+6)/cell)), rows = Math.max(1, Math.floor((Hh+6)/cell)); if(cols*rows >= n){ best = lw; break; } }
   return best; }
+/* a land with something to do besides tapping for mana (Mutavault, Fiery Islet's draw, Urza's Saga's construct): its button reads Abilities */
+function landExtra(c){ return capture(()=>cardMenu(c.id, 0, 0)).some(it=>it && it.own && Array.isArray(it) && !Array.isArray(it[1]) && !/^(Tap|Untap)\b/.test(it[0])); }
 function paintLands(){ const el = $('#mLands'); if(!M.lands) return; const mine = M.lands.mine, side = mine ? G.me : G.opp; if(!side){ closeLands(); return; }
   const lands = sideLands(mine), bf = side.bf || [];
   const pool = mine ? MANA.filter(k=>(G.me.mana||{})[k]).map(k=>`<span style="display:inline-flex;align-items:center">${(G.me.mana[k]>1?`<b style="font-size:11px">${G.me.mana[k]}</b>`:'')}<i class="ms ms-${k}">${k}<img src="https://svgs.scryfall.io/card-symbols/${k}.svg" alt="" onerror="this.remove()"></i></span>`).join('') : '';
   const paying = mine && !$('#payPanel').hidden;
   el.innerHTML = `<header><h3>${mine ? 'Your lands' : esc((G.opp&&G.opp.name)||'Opponent')+"'s lands"}</h3>${mine ? `<span class="mhint">${pool ? 'Pool' : 'Pool empty'}</span><span class="pool">${pool}</span>` : ''}<button class="${paying?'ghost':'go'}" data-ml="x">${paying ? 'Hide' : 'Done'}</button></header>
-    <div class="mhint">${G.mode ? 'Tap a land to choose it.' : M.look ? 'LOOK is on: tap a land to read it.' : mine ? (paying ? 'Tap lands to pay; each symbol in the payment box lights up as your pool covers it.' : 'Tap a land to tap it for mana; tap a tapped land to untap it. ⋯ opens its other abilities.') : 'Tap a land to read it.'}</div>
-    <div class="mlg" style="--lw:${landSize(lands.length, paying)}px">${lands.length ? lands.map(c=>`<div class="mlc">${bf.filter(a=>a.att===c.id).map(a=>cardHTML(a,'bf',mine,'under')).join('')}${cardHTML(c,'bf',mine)}${mine ? `<button class="mlm" data-ml="more" data-id="${c.id}" aria-label="More">⋯</button>` : ''}</div>`).join('') : '<span class="mhint">No lands.</span>'}</div>`; }
+    <div class="mhint">${G.mode ? 'Tap a land to choose it.' : M.look ? 'LOOK is on: tap a land to read it.' : mine ? (paying ? 'Tap lands to pay; each symbol in the payment box lights up as your pool covers it.' : 'Tap a land to tap it for mana (a land with choices asks which); tap a tapped land to untap it. Abilities opens the rest.') : 'Tap a land to read it.'}</div>
+    <div class="mlg" style="--lw:${landSize(lands.length, paying)}px">${lands.length ? lands.map(c=>`<div class="mlc">${bf.filter(a=>a.att===c.id).map(a=>cardHTML(a,'bf',mine,'under')).join('')}${cardHTML(c,'bf',mine)}${mine ? (landExtra(c) ? `<button class="mlm ab" data-ml="more" data-id="${c.id}">Abilities</button>` : `<button class="mlm" data-ml="more" data-id="${c.id}" aria-label="More">⋯</button>`) : ''}</div>`).join('') : '<span class="mhint">No lands.</span>'}</div>`; }
 new MutationObserver(()=>{ const pp = $('#payPanel'), v = !pp.hidden; HT.classList.toggle('mpay', v);
   if(v){ tray(false); closeView(); if(!M.lands && sideLands(true).length){ openLands(true); M.autoLands = true; } else if(M.lands) paintLands(); }
   else if(M.autoLands) closeLands(); else if(M.lands) paintLands(); }).observe($('#payPanel'), {attributes:true, attributeFilter:['hidden']});
@@ -9580,7 +9596,9 @@ aboutCard = function(id){ openLook(id); };
 /* ---------- taps on cards ---------- */
 const ROWS = '#myFront,#myBack,#oppFront,#oppBack';
 function tapKind(el){
+  if(el.closest('#mHandStrip')) return 'strip';
   if(el.closest('#mLands')) return 'lands';
+  if(M.look && el.closest('#modal') && !el.closest('.pile')) return 'look';
   if(el.closest('#modal,#payPanel,#pactPanel,#coPanel,#shown,#ctx,#ctx2,#mView,.pile')) return null;
   if(el.closest('#myHand')) return G.mode && !M.look ? null : 'hand';
   if(M.look) return 'look';
@@ -9595,6 +9613,7 @@ function handPlay(id, x, y){ const f = find(id); if(!f) return; if(G.me.ctl){ pl
   if(mdfcLand(f.c)){ mdfcMenu(id, x, y); return; } if(isLand(f.c) && cyclingOf(f.c).length) cycLandClick(id); else playFromHand(id); }
 function mAct(kind, el, x, y){ const id = el.dataset.id;
   if(kind === 'hand'){ if(M.look){ openLook(id); return; } tray(false); handPlay(id, x, y); return; }
+  if(kind === 'strip'){ if(M.look) openLook(id); else tray(true); return; }
   if(kind === 'look' || kind === 'opp'){ openLook(id); return; }
   if(kind === 'mine'){ openCard(id); return; }
   if(kind === 'lands'){ if(M.look){ openLook(id); return; } if(G.mode){ finishMode(id); return; } if(el.dataset.o === 'me') toggleTap(id, x, y); else openLook(id); } }
@@ -9615,7 +9634,7 @@ const deskRender = render;
 render = function(){ const r = deskRender.apply(this, arguments); try{ mAfter(); }catch(e){ console.error('phone layer', e); } return r; };
 function mAfter(){ if($('#table').hidden) return;
   foldLands('#myBack', true); if(G.opp) foldLands('#oppBack', false);
-  paintHandBtn(); if(HT.classList.contains('mhand')){ if(!G.me.hand.length) tray(false); else paintHint(); }
+  paintStrip(); if(HT.classList.contains('mhand')){ if(!G.me.hand.length) tray(false); else paintHint(); }
   if(M.lands) paintLands();
   if(M.view){ const a = findAny(M.view.id) || PEEK.get(M.view.id); if(!a) closeView(); else if(!M.view.look && (a.z !== 'bf' || !a.mine)) closeView(); }
   const se = $('#stack'), n = se.children.length; if(n !== M.stN){ se.scrollTop = se.scrollHeight; M.stN = n; } }

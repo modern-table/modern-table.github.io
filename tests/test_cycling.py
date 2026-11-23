@@ -63,12 +63,12 @@ try:
         w2 = p.evaluate("() => castWays(mk(keyOf('Ghor-Clan Rampager')), 'x').map(w=>w.k)")
         check('non-cycler: no cycling row', 'cycling' not in w2, str(w2))
         # F: dimming (the maintainer): a cycler is never dimmed; a plain creature still is on the opponent's turn
-        dim = p.evaluate("""() => { G.me.st=[]; G.turn.active=oppId(); G.turn.phase=2; const w=mk(keyOf('Street Wraith')), b=mk(null,{cu:{n:'Test Bear', t:'Creature — Bear', o:'', mc:'{1}{G}', pt:'2/2'}}), t=mk(keyOf('ketria triome')); return {w:handTimeWhy(w), b:!!handTimeWhy(b), t:handTimeWhy(t)}; }""")
+        dim = p.evaluate("""() => { G.me.st=[]; G.turn.active=oppId(); G.turn.phase=2; const w=mk(keyOf('Street Wraith')), b=mk(null,{cu:{n:'Test Bear', t:'Creature — Bear', o:'', mc:'{1}{G}', pt:'2/2'}}), t=mk(keyOf("xander's lounge")); return {w:handTimeWhy(w), b:!!handTimeWhy(b), t:handTimeWhy(t)}; }""")
         check("opponent's turn: Street Wraith not dimmed", dim['w'] is None, str(dim))
         check("opponent's turn: Triome not dimmed", dim['t'] is None, str(dim))
         check("opponent's turn: a creature without cycling still dimmed", dim['b'], str(dim))
         # G: Triome left click (real click on the hand card)
-        TRI = """() => { closePay(); closeModal(); G.me.st=[]; G.me.hand=[]; G.me.bf=[]; G.me.gy=[]; G.me.mana=noMana(); G.me.lp=null; G.turn.n=3; G.turn.active=G.myId; G.turn.phase=2; window.__tr=mk(keyOf('ketria triome')); G.me.hand.push(window.__tr); render(); }"""
+        TRI = """() => { closePay(); closeModal(); G.me.st=[]; G.me.hand=[]; G.me.bf=[]; G.me.gy=[]; G.me.mana=noMana(); G.me.lp=null; G.turn.n=3; G.turn.active=G.myId; G.turn.phase=2; window.__tr=mk(keyOf("xander's lounge")); G.me.hand.push(window.__tr); render(); }"""
         LANDS = """() => { for(let i=0;i<3;i++){ const l=mk(null,{cu:{n:'Test Forest', t:'Basic Land — Forest', o:''}}); G.me.bf.push(l); } render(); }"""
         def click_tri():
             p.locator(f'#myHand [data-id="{p.evaluate("() => window.__tr.id")}"]').first.click(); p.wait_for_timeout(350)
@@ -85,7 +85,7 @@ try:
         p.evaluate(TRI); p.evaluate(LANDS); p.evaluate("() => { G.me.mana.G=3; render(); }"); click_tri()
         p.evaluate("() => document.querySelector('#payPanel [data-pay=\"pay\"]').click()"); p.wait_for_timeout(300)
         st4 = p.evaluate("() => ({z:(find(window.__tr.id)||{}).z, pool:G.me.mana.G, top:(G.me.st[G.me.st.length-1]||{cu:{}}).cu.n, lp:landsPlayed(G.me)})")
-        check('Pay {3} and cycle it: Triome cycled, {3} paid, no land play used', st4['z']=='gy' and st4['pool']==0 and st4['top']=='Ketria Triome: cycling' and st4['lp']==0, str(st4))
+        check('Pay {3} and cycle it: Triome cycled, {3} paid, no land play used', st4['z']=='gy' and st4['pool']==0 and st4['top']=="Xander's Lounge: cycling" and st4['lp']==0, str(st4))
         # land play already used -> cycling window only
         p.evaluate(TRI); p.evaluate(LANDS); p.evaluate("() => { G.me.lp={n:G.turn.n, k:1}; render(); }"); click_tri(); t=paytxt()
         check('land play used: cycling window without the land row', 'cycle it' in t and 'Play it as a land' not in t and zone()=='hand', t[:200])

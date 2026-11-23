@@ -153,3 +153,7 @@ Sideboard
 # 2026-11-18 (v5.15): asked to work at the table
 1 Snarling Gorehound
 1 Jolted Awake
+
+# Kept built in for the tests (tests/test_cycling.py): a Triome with cycling, after the 2026-11-23 refresh dropped Ketria Triome from the decks
+1 Xander's Lounge
+1 Ketria Triome
