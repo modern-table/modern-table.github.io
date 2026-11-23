@@ -12,7 +12,7 @@ def check(n,c,e=''): res.append(bool(c)); print('PASS' if c else 'FAIL', n, e)
 def start(p):
     p.click('#soloBtn'); p.wait_for_timeout(600); p.locator('.drow').first.click(); p.wait_for_timeout(400)
     p.get_by_role('button', name='Play this deck').click(); p.wait_for_timeout(1500)
-    for nm in ['No deck','Keep']:
+    for nm in ['Random deck','Keep']:
         bt=p.get_by_role('button', name=nm)
         if bt.count():
             try: bt.first.click(timeout=800)

@@ -230,3 +230,25 @@ html.mob .mlands.mtc{outline:3px solid #ff8a1f; outline-offset:1px}
 #mTgtGo[hidden]{display:none}
 #mTgtGo small{font:700 10px/1.15 var(--ui); opacity:.85; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 #mTgtGo.none{background:#e9dcc0}
+
+/* ---------- guided blocking (m0.6) ---------- */
+#mBlk{position:fixed; z-index:67; transform:translateY(-50%); display:flex; justify-content:center; pointer-events:none}
+#mBlk[hidden]{display:none}
+#mBlk .in{background:rgba(22,14,6,.93); border:2px solid #ff9a3c; border-radius:3px; padding:3px 6px 4px 12px; font:700 12px/1.3 var(--ui); color:#fff; text-align:center; box-shadow:0 4px 14px rgba(0,0,0,.55); max-width:100%; display:flex; align-items:center; flex-wrap:wrap; justify-content:center; gap:2px 7px}
+#mBlk b{color:#ffb15c}
+#mBlk .c{font-weight:600; font-size:12px; color:#eadfca}
+#mBlk .c.mm{color:#ffd9a8}
+#mBlk .bb{display:inline-flex; gap:5px; pointer-events:auto}
+#mBlk .bb button{font:800 10px var(--ui); padding:3px 9px; border-radius:3px; background:#1b1205; color:#ffb15c; border:1px solid #ff9a3c; text-transform:uppercase; letter-spacing:.05em}
+html.mblk #blockBar, html.mblk #pracBar{display:none!important}
+#mBlkGo{position:fixed; z-index:67; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#ff8a1f; color:#1b1205; border:0; border-radius:6px; padding:6px; font:800 13px/1.15 var(--ui); box-shadow:0 0 14px rgba(255,138,31,.55)}
+#mBlkGo[hidden]{display:none}
+#mBlkGo.none{background:#e9dcc0}
+html.mob .card.mbok{outline:2px dashed #ff9a3c; outline-offset:2px}
+html.mob .card.mbsel{outline:3px solid #ff8a1f; outline-offset:2px; box-shadow:0 0 14px 4px rgba(255,138,31,.75)}
+html.mob .card.mbon{outline:2px solid #ff8a1f; outline-offset:2px}
+html.mob .card.mbcan{outline:2px dashed #5aa8ff; outline-offset:2px}
+html.mob .card.mbatk{outline:3px solid #3f8cff; outline-offset:2px; box-shadow:0 0 12px 3px rgba(63,140,255,.6)}
+.mbtag{position:absolute; left:50%; top:3px; transform:translateX(-50%); background:#ff8a1f; color:#1b1205; font:900 9px/1.2 var(--ui); letter-spacing:.06em; padding:1px 5px; z-index:9; white-space:nowrap; pointer-events:none}
+.mbtag.blue{background:#3f8cff; color:#fff}
+html.mob .mbgap{margin-left:calc(var(--cw) * .3)!important}

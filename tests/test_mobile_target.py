@@ -34,7 +34,7 @@ try:
     J(p, "() => { const s=document.getElementById('spl'); if(s) s.remove(); }")
     p.tap('#soloBtn'); p.wait_for_timeout(700); p.locator('.drow').first.tap(); p.wait_for_timeout(400)
     p.get_by_role('button', name='Play this deck').tap(); p.wait_for_timeout(1500)
-    bt = p.get_by_role('button', name='No deck')
+    bt = p.get_by_role('button', name='Random deck')
     if bt.count(): bt.first.tap(); p.wait_for_timeout(500)
     p.get_by_role('button', name='Start the game').first.tap(); p.wait_for_timeout(700)
     p.tap('[data-first="deal"]'); p.wait_for_timeout(600); p.tap('[data-first="keep"]'); p.wait_for_timeout(800)

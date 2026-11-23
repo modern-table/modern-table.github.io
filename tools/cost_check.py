@@ -132,7 +132,7 @@ async def run(items):
             await p.click('#soloBtn'); await p.wait_for_timeout(600)
             await p.locator('.drow').first.click(); await p.wait_for_timeout(400)
             await p.get_by_role('button', name='Play this deck').click(); await p.wait_for_timeout(1500)
-            for name in ['No deck', 'Keep']:
+            for name in ['Random deck', 'Keep']:
                 bt = p.get_by_role('button', name=name)
                 if await bt.count():
                     try: await bt.first.click(timeout=800)

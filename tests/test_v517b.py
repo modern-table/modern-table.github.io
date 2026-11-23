@@ -23,7 +23,7 @@ try:
         p.click('#soloBtn'); p.wait_for_timeout(600)
         p.locator('.drow').first.click(); p.wait_for_timeout(400)
         p.get_by_role('button', name='Play this deck').click(); p.wait_for_timeout(1500)
-        for name in ['No deck', 'Keep']:
+        for name in ['Random deck', 'Keep']:
             bt = p.get_by_role('button', name=name)
             if bt.count():
                 try: bt.first.click(timeout=800)

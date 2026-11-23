@@ -4,9 +4,10 @@
    - your lands fold into one tile (a small picture per land, tapped ones turned); tapping it opens the lands box, which also opens while you pay
    - the hand is a fan of every card in the corner that opens into a tray; tapping a card there casts it, as a left click does on the desktop
    - menus open as a sheet with fingertip-sized rows; the hover enlargement is off
-   - choosing targets has a strip that says what to tap, legal targets outlined in orange, and a Done button (m0.5) */
+   - choosing targets has a strip that says what to tap, legal targets outlined in orange, and a Done button (m0.5)
+   - blocking is guided: tap a blocker, then the attacker it blocks; blockers group under their attackers (m0.6) */
 'use strict';
-const MVERSION = 'm0.5';
+const MVERSION = 'm0.6';
 const M = {look:false, view:null, lands:null, autoLands:false, tap:null, swallow:0, lastTouch:0, stN:0};
 const HT = document.documentElement;
 
@@ -206,6 +207,8 @@ function tapKind(el){
   if(el.closest('#myHand')) return G.mode && !M.look ? null : 'hand';
   if(M.look) return 'look';
   if(G.mode) return null;
+  if(el.closest(ROWS) && el.dataset.z === 'bf' && blkCtx()){ const B = blkCtx(), a = findAny(el.dataset.id);
+    if(a && (isBlockerOf(B, a.c) || (a.c.atk && (B.as.bf||[]).some(x=>x.id === a.c.id)))) return 'blk'; }
   if(el.closest(ROWS) && el.dataset.z === 'bf'){
     if(el.dataset.o !== 'me') return iControl() ? null : 'opp';
     if(G.atkSel && atkStep()) return null;
@@ -218,6 +221,7 @@ function mAct(kind, el, x, y){ const id = el.dataset.id;
   if(kind === 'hand'){ if(M.look){ openLook(id); return; } tray(false); handPlay(id, x, y); return; }
   if(kind === 'look' || kind === 'opp'){ openLook(id); return; }
   if(kind === 'mine'){ openCard(id); return; }
+  if(kind === 'blk'){ blkTap(el); return; }
   if(kind === 'lands'){ if(M.look){ openLook(id); return; } if(G.mode){ finishMode(id); return; } if(el.dataset.o === 'me') toggleTap(id, x, y); else openLook(id); } }
 addEventListener('pointerdown', e=>{ if(e.pointerType === 'touch') M.lastTouch = Date.now();
   if(e.pointerType === 'mouse' && e.button !== 0) return;
@@ -319,11 +323,98 @@ toast = function(t){ t = String(t == null ? '' : t);
   t = t.replace(/\s*\((?:[^()]*?;\s*)?Esc\b[^()]*\)/g, '').replace(/,? or NO TARGET/, '').replace(/\b([Cc])lick(ed|ing|s)?\b/g, (z, c0, e)=>(c0 === 'C' ? 'T' : 't') + 'ap' + (e === 'ed' ? 'ped' : e === 'ing' ? 'ping' : e || ''));
   return deskToast.call(this, t); };
 
+/* ---------- guided blocking (m0.6, the maintainer's design, step 2) ----------
+   When I am attacked (blockStep) or I declare Practice's blocks against my attack (pblockStep), the table guides it: tap a blocker (orange ring,
+   BLOCKER), then the attacker it blocks (blue ring, BLOCKED, an arrow joins them). While a blocker is chosen, the attackers it can block get a
+   dashed blue outline; tapping the chosen blocker again lets it go; tapping a creature that already blocks takes its block back. A block the table
+   thinks breaks a rule (flying, landwalk, …) asks first with Block anyway (logged), in the table's warn-don't-refuse spirit. The strip has Undo and
+   Clear; the big button reads No blocks / Done blocking (N), which runs the desktop's own finish (its menace and must-block checks included).
+   Blockers rearrange like paper (the maintainer): the row puts other permanents first, then blockers grouped under the attacker they block
+   (attackers in their row's order, a small gap between groups), then creatures not blocking; cards slide to their new places. */
+function blkCtx(){ if(!G.turn || !G.turn.n || G.mode) return null;
+  if(blockStep()) return {mine:true, bs:G.me, as:G.opp, arr:()=>G.me.arrows, setArr:v=>{ G.me.arrows = v; },
+    can:()=>blockersLeft(), done:()=>doneBlocking(), who:'you', issues:(b,a)=>blockIssues(b,a)};
+  if(typeof pblockStep === 'function' && pblockStep()) return {mine:false, bs:G.opp, as:G.me, arr:()=>G.opp.arrows, setArr:v=>{ G.opp.arrows = v; },
+    can:()=>dummyBlockers(), done:()=>pblockBtn('done'), who:'Practice', issues:(b,a)=>{ let r = []; asDummy(()=>{ r = blockIssues(b, a).map(x=>x.replace(/\byou control\b/g, 'Practice controls')); }); return r; }};
+  return null; }
+const isBlockerOf = (B, c) => !!c && (B.bs.bf||[]).some(x=>x.id === c.id) && isCreature(c) && !c.fd;
+function blkSnap(B){ M.blk.hist.push(JSON.stringify(B.arr().filter(a=>a.blk))); if(M.blk.hist.length > 40) M.blk.hist.shift(); }
+function blkSet(B, blks){ B.setArr([...B.arr().filter(a=>!a.blk), ...blks]); }
+function blkTap(el){ const B = blkCtx(); if(!B) return; const id = el.dataset.id, a = findAny(id); if(!a) return; const c = a.c, nm = x=>unlink(cname(x));
+  M.blk = M.blk || {sel:null, hist:[]};
+  if(isBlockerOf(B, c)){
+    if(M.blk.sel === id){ M.blk.sel = null; render(); return; }
+    const mineB = B.arr().filter(x=>x.blk && x.a === id);
+    if(mineB.length && !multiBlock(c)){ blkSnap(B); B.setArr(B.arr().filter(x=>!(x.blk && x.a === id))); log(`${B.mine ? G.me.name+"'s" : "Practice's"} ${nm(c)} no longer blocks.`); M.blk.sel = null; changed(); return; }
+    if(c.tap){ toast(`${nm(c)} is tapped, so it can't block.`); return; }
+    if(!B.can().some(x=>x.id === id)){ toast(`${nm(c)} is already blocking.`); return; }
+    M.blk.sel = id; render(); return; }
+  if(c.atk && (B.as.bf||[]).some(x=>x.id === id)){
+    const sel = M.blk.sel && (B.bs.bf||[]).find(x=>x.id === M.blk.sel);
+    if(!sel){ toast(`Tap one of ${B.mine ? 'your' : "Practice's"} untapped creatures first, then the attacker it blocks.`); return; }
+    const go = force=>{ blkSnap(B); B.setArr(B.arr().filter(x=>!(x.blk && x.a === sel.id && (!multiBlock(sel) || x.b === id)))); B.arr().push({a:sel.id, b:id, blk:1});
+      log(`${B.mine ? G.me.name+"'s" : "Practice's"} ${nm(sel)} blocks ${nm(c)}${force ? ` (blocked anyway: ${force})` : ''}.`); M.blk.sel = null; changed(); };
+    const iss = B.issues(sel, c);
+    if(iss.length){ modal(`${nm(sel)} can't block ${nm(c)}?`, `<span class="hint">${esc(unlink(iss.join('; ')))}.<br><br>Block anyway only if you've both agreed it's allowed; it goes in the log.</span>`,
+      [['Pick another', ()=>{ closeModal(); render(); }, 'ghost'], ['Block anyway', ()=>{ closeModal(); go(unlink(iss.join('; '))); }, 'go']]); return; }
+    go(); return; } }
+function blkPaint(){ const B = blkCtx(), strip = $('#mBlk'), go = $('#mBlkGo'); HT.classList.toggle('mblk', !!B && !HT.classList.contains('mtgt'));
+  document.querySelectorAll('.mbsel,.mbcan,.mbok,.mbatk,.mbon').forEach(el=>el.classList.remove('mbsel','mbcan','mbok','mbatk','mbon')); document.querySelectorAll('.mbtag').forEach(el=>el.remove());
+  if(!B || HT.classList.contains('mtgt')){ strip.hidden = true; go.hidden = true; if(!B && M.blk){ M.blk = null; } return; }
+  M.blk = M.blk || {sel:null, hist:[]}; if(M.blk.sel && !B.can().some(x=>x.id === M.blk.sel)) M.blk.sel = null;
+  const sel = M.blk.sel && (B.bs.bf||[]).find(x=>x.id === M.blk.sel), blks = B.arr().filter(a=>a.blk), atks = (B.as.bf||[]).filter(c=>c.atk), canIds = new Set(B.can().map(c=>c.id));
+  const tag = (el, t, cls) => { const s = document.createElement('span'); s.className = 'mbtag' + (cls ? ' '+cls : ''); s.textContent = t; el.appendChild(s); };
+  for(const el of document.querySelectorAll('#myFront .card[data-id], #oppFront .card[data-id], #myBack .card[data-id], #oppBack .card[data-id]')){ if(el.dataset.z !== 'bf') continue; const id = el.dataset.id;
+    const isB = blks.some(a=>a.a === id), nB = blks.filter(a=>a.b === id).length, at = atks.find(c=>c.id === id);
+    if(id === M.blk.sel){ el.classList.add('mbsel'); tag(el, 'BLOCKER'); continue; }
+    if(isB){ el.classList.add('mbon'); tag(el, 'BLOCKS'); continue; }
+    if(at){ if(nB){ el.classList.add('mbatk'); tag(el, nB > 1 ? `BLOCKED ×${nB}` : 'BLOCKED', 'blue'); }
+      if(sel){ let ok = false; try { ok = !B.issues(sel, at).length; } catch(e){} if(ok) el.classList.add('mbcan'); } continue; }
+    if(!sel && canIds.has(id)) el.classList.add('mbok'); }
+  const must = B.mine ? mustBlockNotes() : [], n = blks.length;
+  const txt = sel ? `<b>${esc(unlink(cname(sel)))}</b><span class="c">now tap the attacker it blocks (tap it again to let go)</span>`
+    : canIds.size ? `<b>${B.mine ? 'Blocking' : 'Practice blocks'}</b><span class="c">tap ${B.mine ? 'your creature' : "Practice's creature"}, then the attacker it blocks</span>`
+    : `<b>${B.mine ? 'Blocking' : 'Practice blocks'}</b><span class="c">${n ? 'no more creatures can block' : `none of ${B.mine ? 'your' : "Practice's"} creatures can block`}</span>`;
+  strip.innerHTML = `<div class="in">${txt}${must.map(x=>`<span class="c mm">${esc(unlink(x))}</span>`).join('')}${n || (M.blk.hist.length) ? `<span class="bb">${M.blk.hist.length ? '<button data-mb="undo">Undo</button>' : ''}${n ? '<button data-mb="clear">Clear</button>' : ''}</span>` : ''}</div>`;
+  strip.hidden = false; { const mr = $('#mid').getBoundingClientRect(); if(mr.height) Object.assign(strip.style, {top:(mr.top + mr.height / 2) + 'px', left:(mr.left + 6) + 'px', right:Math.max(0, innerWidth - mr.right + 6) + 'px'}); }
+  go.innerHTML = n ? `<b>Done blocking (${n})</b>` : `<b>No blocks</b>`; go.classList.toggle('none', !n);
+  const r = $('#next').getBoundingClientRect(); if(r.width) Object.assign(go.style, {left:r.left + 'px', top:r.top + 'px', width:r.width + 'px', height:Math.max(48, r.height) + 'px'});
+  go.hidden = false; }
+(function(){ const s = document.createElement('div'); s.id = 'mBlk'; s.hidden = true; document.body.appendChild(s);
+  s.addEventListener('click', e=>{ const b = e.target.closest('[data-mb]'); const B = blkCtx(); if(!b || !B) return; e.stopPropagation();
+    if(b.dataset.mb === 'undo'){ const h = M.blk && M.blk.hist.pop(); if(h != null){ blkSet(B, JSON.parse(h)); log(`${B.mine ? G.me.name : 'Practice'}: the last block is undone.`); M.blk.sel = null; changed(); } }
+    else if(b.dataset.mb === 'clear'){ blkSnap(B); blkSet(B, []); M.blk.sel = null; log(B.mine ? `${G.me.name} resets their blocks.` : "Practice's blocks are reset."); changed(); } });
+  const g = document.createElement('button'); g.id = 'mBlkGo'; g.hidden = true; document.body.appendChild(g);
+  g.onclick = ()=>{ const B = blkCtx(); if(!B) return; if(M.blk) M.blk.sel = null; B.done(); }; })();
+/* blockers rearrange like paper: groups under their attackers, sliding into place */
+function blkUnits(row){ return [...row.children].filter(u=>!u.classList.contains('mlands')).map(u=>{ const cs = u.matches('.card[data-id]') ? [u] : [...u.querySelectorAll('.card[data-id]')];
+  const main = cs.find(e=>!e.classList.contains('under')) || cs[0]; return {u, id:main && main.dataset.id, ids:cs.map(e=>e.dataset.id)}; }); }
+function blkArrange(){ const done = [];
+  for(const [rowSel, side, other] of [['#myFront', G.me, G.opp], ['#oppFront', G.opp, G.me]]){ const row = $(rowSel); if(!row || !side || !other) continue;
+    const blks = (side.arrows||[]).filter(a=>a.blk); row.querySelectorAll('.mbgap').forEach(u=>u.classList.remove('mbgap')); if(!blks.length) continue;
+    const atkOrder = [...document.querySelectorAll(`${rowSel === '#myFront' ? '#oppFront' : '#myFront'} .card[data-id]`)].map(e=>e.dataset.id);
+    const units = blkUnits(row), first = [], groups = new Map(), rest = [];
+    for(const x of units){ const b = blks.find(a=>x.ids.includes(a.a)); const c = x.id && findAny(x.id);
+      if(b){ const k = b.b; if(!groups.has(k)) groups.set(k, []); groups.get(k).push(x); } else if(c && isCreature(c.c)) rest.push(x); else first.push(x); }
+    const keys = [...groups.keys()].sort((p, q)=>{ const i = atkOrder.indexOf(p), j = atkOrder.indexOf(q); return (i < 0 ? 999 : i) - (j < 0 ? 999 : j); });
+    const order = [...first]; keys.forEach(k=>{ const g = groups.get(k); g[0].u.classList.add('mbgap'); order.push(...g); }); if(rest.length) rest[0].u.classList.add('mbgap'); order.push(...rest);
+    if(order.some((x, i)=>units[i] !== x)){ order.forEach(x=>row.appendChild(x.u)); done.push(row); } }
+  return done; }
+const anyBlk = () => !!((G.me && (G.me.arrows||[]).some(a=>a.blk)) || (G.opp && (G.opp.arrows||[]).some(a=>a.blk)));
+function blkSnapPos(){ const m = new Map(); for(const el of document.querySelectorAll('#myFront .card[data-id], #oppFront .card[data-id]')){ const r = el.getBoundingClientRect(); m.set(el.dataset.id, [r.left, r.top]); } return m; }
+/* the desktop's own slide (tapAnim) was worked out for its order, not ours: in a rearranged row it is replaced by a slide from where each card was on screen */
+function blkSlide(before, rows){ if(!rows.length) return; const still = typeof noMotion === 'function' && noMotion();
+  for(const row of rows) for(const el of row.querySelectorAll('.card[data-id]')){ try { el.getAnimations().forEach(a=>a.cancel()); } catch(e){}
+    const o = before && before.get(el.dataset.id); if(!o || still) continue; const r = el.getBoundingClientRect(), dx = o[0] - r.left, dy = o[1] - r.top;
+    if(Math.abs(dx) < 2 && Math.abs(dy) < 2) continue; el.animate([{translate:`${dx}px ${dy}px`}, {translate:'0 0'}], {duration:400, easing:'ease-out'}); } }
+
 /* ---------- after every redraw ---------- */
 const deskRender = render;
-render = function(){ const r = deskRender.apply(this, arguments); try{ mAfter(); }catch(e){ console.error('phone layer', e); } return r; };
-function mAfter(){ if($('#table').hidden) return;
+render = function(){ let pre = null; try { if(G && G.me && !$('#table').hidden && anyBlk()) pre = blkSnapPos(); } catch(e){}
+  const r = deskRender.apply(this, arguments); try{ mAfter(pre); }catch(e){ console.error('phone layer', e); } return r; };
+function mAfter(pre){ if($('#table').hidden) return;
   foldLands('#myBack', true); if(G.opp) foldLands('#oppBack', false);
+  blkSlide(pre, blkArrange());
   paintHandBtn(); if(HT.classList.contains('mhand')){ if(!G.me.hand.length) tray(false); else paintHint(); }
   if(M.lands) paintLands();
   if(M.view){ const a = findAny(M.view.id) || PEEK.get(M.view.id); if(!a) closeView(); else if(!M.view.look && (a.z !== 'bf' || !a.mine)) closeView(); }
@@ -334,7 +425,7 @@ function mAfter(){ if($('#table').hidden) return;
       else M.tg = {from:f.c.id, plain:tgPlain(f), tq:!!G.mode.tq}; }
     if(M.tg && G.mode){ M.tg.slot = G.mode.slot || 0; if(G.mode.tq) M.tg.tq = true; } }
     else if(M.tg){ const s = find(M.tg.from); if(!s || s.z !== 'st' || M.tg.done) M.tg = null; } }
-  tgPaint(); modebarPhone();
+  tgPaint(); blkPaint(); modebarPhone();
   const se = $('#stack'), n = se.children.length; if(n !== M.stN){ se.scrollTop = se.scrollHeight; M.stN = n; } }
 addEventListener('resize', ()=>{ try{ render(); }catch(e){} });
 
