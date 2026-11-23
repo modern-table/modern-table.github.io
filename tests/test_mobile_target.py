@@ -2,7 +2,9 @@
 Lightning Bolt: the strip, legal targets outlined (creatures and both players, not the artifacts), a tap rings the target and the table waits
 for Done; tapping another moves it, tapping it again takes it back; Done goes on. Fatal Push: No target asks first; an illegal tap explains.
 Force of Vigor (up to two): two chosen, a third refused with a note, one taken back, Done. A trigger: No target marks it. Other modes get a
-Cancel button and tap wording; toasts say tap."""
+Cancel button and tap wording; toasts say tap.
+Since m0.8 these spells choose their targets before paying (tests/test_mobile_precast.py); M.preOff keeps them on this screen, which
+triggers, abilities and spells with their own casting choices still use."""
 import os, socket, subprocess, sys, time
 from playwright.sync_api import sync_playwright
 ROOT = os.environ.get('MT_ROOT') or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -43,7 +45,7 @@ try:
       G.me.bf=[]; G.me.hand=[]; G.me.mana=noMana(); for(const n of ['Mountain','Mountain','Mountain']) add(n,G.me,{});
       G.opp.bf=[]; add('Mountain',G.opp,{o:oppId()}); add('Ragavan, Nimble Pilferer',G.opp,{o:oppId()}); add('Thought-Knot Seer',G.opp,{o:oppId()});
       add('Expedition Map',G.opp,{o:oppId()}); add('Expedition Map',G.opp,{o:oppId()}); add('Aether Spellbomb',G.opp,{o:oppId()});
-      for(const n of ['Lightning Bolt','Fatal Push']) add(n,G.me,{},'hand'); G.me.mana.R=1; changed(); }""")
+      for(const n of ['Lightning Bolt','Fatal Push']) add(n,G.me,{},'hand'); G.me.mana.R=1; M.preOff=true; changed(); }""")
     p.wait_for_timeout(500)
     # 1. Lightning Bolt
     p.tap('#mHandBtn'); p.wait_for_timeout(300); p.locator('#myHand .card').nth(0).tap(); p.wait_for_timeout(700)
