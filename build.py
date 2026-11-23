@@ -87,6 +87,25 @@ open('index.html','w', encoding='utf-8').write(html)
 ver=re.search(r"const VERSION = '([^']+)'", src).group(1)
 print(f'built index.html: {len(html)//1024} KB, {len(out)} decks, {bad} dropped, version {ver}, cards built in for {len(have)} of {len(need)} names')
 
+# The phone table (m/, since v5.29): the same page plus src/mobile.css and src/mobile.js, which re-lay the table out for a phone held sideways
+# and turn taps into the phone's gestures. Nothing in index.html changes: the phone layer is only in m/index.html. Paths to the repo's own
+# files are pointed one folder up (img/, lgs/, night/, the icons).
+mcss=open('src/mobile.css', encoding='utf-8').read(); mjs=open('src/mobile.js', encoding='utf-8').read().replace('</script','<\\/script')
+mh=html
+for a,b_ in [("'img/coin-flip.webp'","'../img/coin-flip.webp'"), ('url(img/coin-flip.webp)','url(../img/coin-flip.webp)'), ('src="lgs/','src="../lgs/'), ('href="night/"','href="../night/"'),
+             ('href="icon.svg"','href="../icon.svg"'), ('href="icon-32.png"','href="../icon-32.png"'), ('href="apple-touch-icon.png"','href="../apple-touch-icon.png"')]:
+    assert a in mh, f'phone page: {a} not found'
+    mh=mh.replace(a, b_)
+vp='<meta name="viewport" content="width=device-width,initial-scale=1">'
+assert vp in mh and mh.count('</head>')==1 and mh.count('</body>')==1
+mh=mh.replace(vp, '<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black">'
+               '<script>document.documentElement.classList.add("mob")</script>', 1)
+mh=re.sub(r'<title>[^<]*</title>', '<title>Modern Table (phone)</title>', mh, count=1)
+mh=mh.replace('</head>', '<style id="mcss">'+mcss+'</style>\n</head>', 1).replace('</body>', '<script id="mjs">'+mjs+'</script>\n</body>', 1)
+os.makedirs('m', exist_ok=True); open('m/index.html','w', encoding='utf-8').write(mh)
+mver=re.search(r"const MVERSION = '([^']+)'", mjs)
+print(f'built m/index.html: {len(mh)//1024} KB, phone layer {mver.group(1) if mver else "?"}')
+
 # Draft Table: small page that loads PeerJS from ../src and one odds file per set from draft/sets/ (see tools/make_draft_sets.py)
 dsrc=open('src/draft.src.html', encoding='utf-8').read()
 sets=json.load(open('draft/sets/index.json', encoding='utf-8'))
