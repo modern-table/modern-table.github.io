@@ -58,8 +58,15 @@ html.mob #stack{flex:1; flex-direction:column-reverse; justify-content:flex-star
 html.mob #stack .card{width:calc(var(--rcol) * .62); --cw:calc(var(--rcol) * .62)}
 html.mob #stack .card+.card{margin-left:0; margin-bottom:calc(var(--rcol) * -.62)}
 html.mob #stack:empty::after{content:"Empty"; font-size:10px}
-html.mob #offerwrap{max-height:30%; overflow:auto; padding:3px 5px; font-size:10px}
-html.mob #offerwrap .offer.cmp{flex-wrap:wrap; gap:3px}
+html.mob #offerwrap{flex:0 1 auto; min-height:0; max-height:none; overflow:auto; padding:3px 5px; font-size:10px}
+html.mob #stackwrap:has(#stack .card){min-height:84px}
+html.mob #offers{max-height:none; overflow:visible}
+/* m0.11 (the maintainer: the exiled card was tiny, its text a thin column): a bigger card with its button beside it, the text across the full width below; a tap on the card opens LOOK */
+html.mob #offerwrap .offer.cmp{display:grid; grid-template-columns:auto 1fr; grid-template-areas:"c b" "t t"; align-items:center; gap:3px 6px; margin-top:4px; padding-bottom:4px}
+html.mob #offerwrap .offer.cmp+.offer.cmp{border-top:1px solid var(--line); padding-top:5px}
+html.mob #offerwrap .offer.cmp>.card{grid-area:c; width:calc(var(--rcol) * .42); --cw:calc(var(--rcol) * .42); cursor:pointer}
+html.mob #offerwrap .offer.cmp>button{grid-area:b; justify-self:stretch; padding:7px 4px; min-height:36px; font-size:12px; line-height:1.15; white-space:normal}
+html.mob #offerwrap .offer.cmp>span{grid-area:t; font-size:10.5px; line-height:1.3}
 html.mob #logwrap{display:none}
 html.mob.mlog #logwrap{display:flex; position:fixed; top:0; bottom:0; right:var(--rr); width:min(420px, 52vw); z-index:62; background:var(--rail); border-left:1px solid var(--line); box-shadow:-10px 0 30px #000a; padding-top:8px}
 html.mob #mLogX{float:right; padding:1px 8px; font-size:11px; margin-top:-3px}

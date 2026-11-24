@@ -7,7 +7,7 @@
    - choosing targets has a strip that says what to tap, legal targets outlined in orange, and a Done button (m0.5)
    - blocking is guided: tap a blocker, then the attacker it blocks; blockers group under their attackers (m0.6) */
 'use strict';
-const MVERSION = 'm0.10';
+const MVERSION = 'm0.11';
 const M = {look:false, view:null, lands:null, autoLands:false, tap:null, swallow:0, lastTouch:0, stN:0};
 const HT = document.documentElement;
 
@@ -211,6 +211,7 @@ function tapKind(el){
   if(M.look) return 'look';
   if(M.pre){ const z = el.dataset.z; return (el.closest(ROWS) || el.closest('#stack')) && (z === 'bf' || z === 'st') ? 'pre' : null; }
   if(G.mode) return null;
+  if(el.closest('#offerwrap')) return 'look';   // m0.11 (the maintainer): a card in the Exiled by cards box isn't in my hand, so a tap reads it
   if(el.closest(ROWS) && el.dataset.z === 'bf' && blkCtx()){ const B = blkCtx(), a = findAny(el.dataset.id);
     if(a && (isBlockerOf(B, a.c) || (a.c.atk && (B.as.bf||[]).some(x=>x.id === a.c.id)))) return 'blk'; }
   if(el.closest(ROWS) && el.dataset.z === 'bf'){
