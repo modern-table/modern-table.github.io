@@ -395,6 +395,10 @@ body.nomo .kc.won{animation:none}
 .vci{cursor:default;border-color:transparent;color:var(--opp)}
 .vci.on{animation:vcpulse 1.6s infinite;border-radius:3px}
 .vci.tap{cursor:pointer;border-color:var(--opp)}
+#vcOffer{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:66;width:360px;max-width:calc(100vw - 32px);background:#0b1417;border:1px solid var(--brass);border-radius:4px;padding:12px 14px 12px;box-shadow:0 10px 30px #000c;color:var(--ink)}
+#vcOffer h4{display:flex;align-items:center;gap:6px;margin:0 0 6px;font:800 14px var(--ui);color:var(--brass)}#vcOffer h4 svg{width:18px;height:18px;fill:currentColor;stroke:currentColor;stroke-width:1.6;flex:none}
+#vcOffer p{margin:0 0 6px;font-size:13px;line-height:1.4}#vcOffer p.sm{font-size:12px;color:var(--dim)}#vcOffer p.live{display:flex;align-items:center;gap:6px;color:var(--opp);font-weight:700}#vcOffer p.live svg{width:16px;height:16px;fill:currentColor;stroke:currentColor;stroke-width:1.6;flex:none}
+#vcOffer .vof{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}#vcOffer .vof button{padding:6px 12px;font-size:13px}
 @keyframes vcpulse{0%{box-shadow:0 0 0 0 #d9b25f88}70%{box-shadow:0 0 0 6px #d9b25f00}100%{box-shadow:0 0 0 0 #d9b25f00}}
 body.nomo .vcb.on,body.nomo .vci.on{animation:none}
 .vns{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:3px;margin-top:2px}
@@ -931,6 +935,14 @@ html.mob .mbgap{margin-left:calc(var(--cw) * .3)!important}
 html.mob .mnavs{margin-left:auto; display:flex; gap:6px}
 html.mob .mnav{background:transparent; border:1px solid var(--line); color:var(--ink); border-radius:3px; padding:4px 10px; font:700 13px var(--ui); min-height:32px; cursor:pointer}
 html.mob #mNote .mnav{margin-left:6px; padding:2px 8px; min-height:26px; font-size:12px}
+/* m0.10: the voice offer (v5.34) sits over the board, clear of the camera side and the right column, with touch-sized buttons */
+html.mob #vcOffer{left:calc(var(--sl) + (100vw - var(--sl) - var(--rr)) / 2); top:6px; width:min(580px, calc(100vw - var(--sl) - var(--rr) - 16px)); padding:7px 10px 7px 12px;
+  display:grid; grid-template-columns:1fr auto; column-gap:10px; align-items:center}   /* one row (title, buttons) and a line under it: short enough to clear the who-goes-first box */
+html.mob #vcOffer h4{grid-column:1; grid-row:1; margin:0}
+html.mob #vcOffer .vof{grid-column:2; grid-row:1; margin:0}
+html.mob #vcOffer p{grid-column:1 / -1; margin:4px 0 0; font-size:12px; line-height:1.3}
+html.mob #vcOffer p.sm{display:none}
+html.mob #vcOffer .vof button{min-height:40px; padding:8px 14px; font-size:14px}
 </style>
 </head>
 <body>
@@ -1062,7 +1074,7 @@ html.mob #mNote .mnav{margin-left:6px; padding:2px 8px; min-height:26px; font-si
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.33';
+const VERSION = 'v5.34';
 /* Affiliation (v4.88, the maintainer): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -1078,6 +1090,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.34','Nov 24',"Voice: once your friend has joined with the table code, the table asks whether you'd like to talk. One tap turns your microphone on; Not now leaves it off, and the microphone beside your name still turns it on any time."],
   ['v5.33','Nov 23',"Voice on iPhones: your friend's voice now plays without you having to turn your own microphone on first. If the phone still holds it back, a Tap to hear button appears beside their name, and any tap brings the sound in."],
   ['v5.32','Nov 23',"Talk to your friend at the table: a microphone button sits next to your name. Tap it and your friend hears you live until you tap it again (works on phones too). Prefer messages? Settings → Voice → Voice notes: tap to record, tap again to send, and they tap ▶ to listen. Nothing is recorded or stored anywhere."],
   ['v5.31','Nov 23',"Ward works on more cards: a creature with ward in a list of keywords (Colossal Skyturtle's \"Flying, ward {2}\") now asks for its cost, and against Practice your abilities and triggers that target a ward creature ask too, not only your spells. A ward cost in mana opens the payment window."],
@@ -1737,7 +1750,7 @@ function vcPrime(){ if(VC.primed || VC.priming || !vsReal()) return; const a=vcA
   try{ if(!VC_SIL) VC_SIL=URL.createObjectURL(wavOf([new Float32Array(1200)], 12000, 12000)); a.muted=false; a.src=VC_SIL;
     const pr=a.play(); if(pr && pr.then) pr.then(()=>{ VC.primed=true; VC.priming=false; }).catch(()=>{ VC.priming=false; }); else { VC.primed=true; VC.priming=false; } }catch(e){ VC.priming=false; } }
 function vcGot(m){ const was=VC.oppLive; VC.oppLive=!!m.on; if(VC.oppLive && !was) toast(`${(G.opp && G.opp.name) || 'Your opponent'}'s microphone is on: you can hear them.`); render(); }
-function vcHang(){ for(const k of ['out','inc']){ if(VC[k]){ try{ VC[k].close(); }catch(e){} VC[k]=null; } } if(VC.rec) vnStop(false); VC.live=false; VC.oppLive=false; VC.needTap=false; vcMicStop(); VC.parts={}; }
+function vcHang(){ for(const k of ['out','inc']){ if(VC[k]){ try{ VC[k].close(); }catch(e){} VC[k]=null; } } if(VC.rec) vnStop(false); VC.live=false; VC.oppLive=false; VC.needTap=false; vcMicStop(); VC.parts={}; VC.offerWant=false; const vo=$('#vcOffer'); if(vo) vo.remove(); }
 function vcSwitch(v){ if(VC.live){ VC.live=false; vcMicStop(); send({t:'vc', on:false}); } if(VC.rec) vnStop(false); S.voice=v; render(); }
 async function vnToggle(){ if(VC.rec){ vnStop(true); return; }
   const AC=window.AudioContext || window.webkitAudioContext; if(!AC){ toast('This browser can\'t record voice notes. Switch Settings → Voice to Open line.'); return; }
@@ -1781,8 +1794,27 @@ function vcOppHTML(){ if(!vsReal()) return ''; const nm=esc((G.opp && G.opp.name
   if(VC.needTap && VC.oppLive) return `<button class="vci tap" data-vc="hear" title="Your browser needs a tap before it plays sound">${VC_SPK}<b>Tap to hear</b></button>`;
   return VC.oppLive ? `<span class="vci on" title="${nm}'s microphone is on">${VC_SPK}</span>` : ''; }
 function vnChipsHTML(){ if(!vsReal() || !VC.notes.length) return ''; return `<div class="vns">${VC.notes.map(n=>`<button class="vnc${n.heard ? '' : ' new'}" data-vn="${esc(n.id)}" title="Play this voice note">▶ ${n.s} s</button>`).join('')}</div>`; }
+/* v5.34 (the maintainer: once the code is shared and entered, offer to open the voice line): when a friend's page says hello
+   (VC.offerWant), the table shows #vcOffer at the top of the board once, per table code (sessionStorage mt_vcoff_<code>): Turn on my
+   microphone (the tap that answers is the one phones need for the microphone and for sound) / Not now. Turning the microphone on any
+   other way counts as an answer too. Voice notes (Settings → Voice) get the same card with Record a note. */
+const vcOfferKey = () => 'mt_vcoff_'+(G.code||'');
+function vcOffered(){ try{ return !!sessionStorage.getItem(vcOfferKey()); }catch(e){ return !!VC.offerDone; } }
+function vcOfferDone(){ VC.offerDone=true; try{ sessionStorage.setItem(vcOfferKey(), '1'); }catch(e){} const el=$('#vcOffer'); if(el) el.remove(); }
+function vcOfferPaint(){ let el=$('#vcOffer');
+  if(VC.offerWant && (VC.live || VC.rec) && !vcOffered()) vcOfferDone();
+  if(!(VC.offerWant && vcOK() && G.opp && !vcOffered())){ if(el) el.remove(); return; }
+  if(!el){ el=document.createElement('div'); el.id='vcOffer'; el.setAttribute('role','dialog'); el.setAttribute('aria-label','Voice'); $('#table').appendChild(el); }
+  const nm=esc(G.opp.name || 'your opponent'), notes=vcMode()==='notes';
+  const h = `<h4>${VC_MIC}<span>Talk to ${nm}?</span></h4>`
+    + (notes ? `<p>Voice notes are on (Settings → Sound → Voice). Tap below or the microphone beside your name to record a note for ${nm}, and tap it again to send it.</p>`
+             : `<p>Turn your microphone on and ${nm} hears you while you play. You hear ${nm} once they turn theirs on.</p><p class="sm">Later, the microphone beside your name turns it on and off.</p>`)
+    + (VC.oppLive ? `<p class="live">${VC_SPK}<span>${nm}'s microphone is on: you can hear them.</span></p>` : '')
+    + `<div class="vof"><button class="go" data-vc="offer-yes">${notes ? 'Record a note' : 'Turn on my microphone'}</button><button class="ghost" data-vc="offer-no">Not now</button></div>`;
+  if(el._h!==h){ el._h=h; el.innerHTML=h; } }
 document.addEventListener('click', e=>{ const b=e.target.closest && e.target.closest('[data-vc],[data-vn]'); if(!b) return; e.stopPropagation(); e.preventDefault();
-  if(b.dataset.vn) return vnPlay(b.dataset.vn); const k=b.dataset.vc; if(k==='mic') vcToggle(); else if(k==='cancel') vnStop(false); else if(k==='hear') vcUnlock(); }, true);
+  if(b.dataset.vn) return vnPlay(b.dataset.vn); const k=b.dataset.vc; if(k==='mic') vcToggle(); else if(k==='cancel') vnStop(false); else if(k==='hear') vcUnlock();
+  else if(k==='offer-yes'){ vcOfferDone(); if(!VC.live && !VC.rec) vcToggle(); } else if(k==='offer-no'){ vcOfferDone(); addLog('Voice: the microphone beside your name turns it on whenever you want.', 's'); } }, true);
 for(const ev of ['pointerdown','pointerup','click','keydown']) addEventListener(ev, ()=>vcUnlock(), true);   /* v5.33: phones count a finished tap (pointerup) as permission to play */
 function onMsg(m){
   if(!m || typeof m!=='object') return;
@@ -1926,7 +1958,7 @@ function onMsg(m){
   else if(m.t==='newgame'){ toast((G.opp&&G.opp.name||'Opponent')+' started a new game.'); newGame(true); }
   else if(m.t==='vc'){ vcGot(m); }   /* v5.32: the other player's microphone on / off */
   else if(m.t==='vn'){ vnGot(m); }   /* v5.32: a voice note, in pieces */
-  else if(m.t==='hello'){ priHello(m); }   /* v5.0: which pages pass priority, and the host's switch */
+  else if(m.t==='hello'){ priHello(m); VC.offerWant=true; render(); }   /* v5.34: offer voice once a friend is connected */   /* v5.0: which pages pass priority, and the host's switch */
   else if(m.t==='ok'){ priGotOK(Array.isArray(m.ids) ? m.ids.slice(0,300).map(String) : []); }
   else if(m.t==='pri'){ if(!isHostSide()){ const was=priSet(); if(m.on===false) G.pri=false; else delete G.pri; if(was!==priSet()){ priChanged(); changed(); if(settingsModal.refresh) settingsModal.refresh(); } } }   /* only the host's page sends it; the host's own page ignores it */
   else if(m.t==='stops'){ const s=m.s||{}; G.oppStops={up:!!s.up, draw:!!s.draw, m1:!!s.m1, atk:!!s.atk, m2:!!s.m2, ea:!!s.ea}; }
@@ -8433,7 +8465,7 @@ function render(){
   { const lb=$('#loopBtn'); const ok=!blockStep() && (!!loopSpec() || !!samSpec()); if(ok){ lb.hidden=false; const fr=$('#myFront'), mid=$('#mid'); lb.style.top=Math.max(mid.offsetTop + mid.offsetHeight + 8, fr.offsetTop + 8)+'px'; } else if(!lb.hidden) lb.hidden=true; }
   markOverflow();
   { const pr=$('#practiceBtn'); if(pr) pr.hidden=!dummy(); }
-  priEndWatch();
+  priEndWatch(); vcOfferPaint();
   const nb=$('#next'), PL=priPaint();   /* v5.0: an OK that is waiting goes in front of the button's usual text */
   { const a=JSON.stringify(priAim()); if(a!==PRI.aim){ PRI.aim=a; clearTimeout(syncT); syncT=setTimeout(()=>{ send({t:'state', s:pub()}); save(); }, 40); } }
   if(PL){ }
@@ -9689,7 +9721,7 @@ window.__G = G;
    - choosing targets has a strip that says what to tap, legal targets outlined in orange, and a Done button (m0.5)
    - blocking is guided: tap a blocker, then the attacker it blocks; blockers group under their attackers (m0.6) */
 'use strict';
-const MVERSION = 'm0.9';
+const MVERSION = 'm0.10';
 const M = {look:false, view:null, lands:null, autoLands:false, tap:null, swallow:0, lastTouch:0, stN:0};
 const HT = document.documentElement;
 
