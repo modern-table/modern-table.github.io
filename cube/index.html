@@ -363,9 +363,10 @@ a.btnlink{text-decoration:none}
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v0.38';
+const VERSION = 'v0.39';
 /* What's new on the front page (v0.19, like the Modern Table's NEWS): newest first, written for players. Add a line with every version bump. */
 const DNEWS = [
+  ['v0.39','Nov 24',"Game Night: voice is built into your match tab now (it offers to open the line once your opponent is there). The Discord table channels stay as a backup."],
   ['v0.38','Nov 22',"Players on the same wifi can now join each other's events. When a direct connection isn't possible (some home routers, store or guest wifi), the table connects through a relay server instead. The connection label shows Connected through the relay, and the host sees how many players come in that way."],
   ['v0.37','Nov 16',"Sealed: the Khans of Tarkir, Modern Horizons and Modern Horizons 2 pack wrappers are cleaned up. Every cover of a set is now the same size and shape, with clean edges (no white specks or see-through spots)."],
   ['v0.36','Nov 15',"Archetype guides for every set: Reality Fracture, Final Fantasy, Modern Horizons 1 and 2 and Khans of Tarkir. Each shows the official archetypes and signpost cards plus notes and key cards from players' draft guides. Read them while choosing a set, while everyone joins, and in a window during the draft (Archetypes in the top bar or next to Take). Khans of Tarkir prereleases now work like the real one: pick a clan, then open five packs plus a seeded booster of your clan's colors with a foil clan promo."],
@@ -1443,7 +1444,7 @@ function lockHTML(host){
 }
 
 /* ---- the matchmaking room ---- */
-function voiceBtn(k){ const u=VOICE[k]; return u ? `<a class="vbtn" href="${esc(u)}" target="_blank" rel="noopener">${HEADSET}Join Table ${k+1} voice</a>` : ''; }
+function voiceBtn(k){ const u=VOICE[k]; return u ? `<a class="vbtn" href="${esc(u)}" target="_blank" rel="noopener" title="Voice is built into your match tab; this Discord channel is the backup">${HEADSET}Table ${k+1} on Discord (backup)</a>` : ''; }
 function matchBtns(st){
   if(!st.t || st.t.res || st.t.disp) return '';
   const href=nightLink(st.side==='a'?'h':'g', st.t.code);
@@ -1460,7 +1461,7 @@ function roomHTML(host){
   if(st.stage==='final'){ const s0=standings(T, V.seats)[0]; top='FINAL'; rdNo=T.total; b=`${esc(s0.name)} wins the night at ${recOf(s0)}.`; sub='Final standings are below, with every deck.'; if(host) act=`<button class="ghost sm" id="againBtn">Start a new event with these players</button>`; }
   else if(st.stage==='break'){ rdNo=st.R+1; top='BREAK';
     if(st.bye){ b=`Round ${st.R+1}: you have the bye.`; sub='It counts as a 2–0 win. Hang out in the chat until the next round.'; }
-    else { b=`Round ${st.R+1}: you’re at Table ${st.k+1} with ${esc(st.opp)}.`; sub=`Take a break and join the Table ${st.k+1} voice channel. Your match starts when the timer runs out.`; }
+    else { b=`Round ${st.R+1}: you’re at Table ${st.k+1} with ${esc(st.opp)}.`; sub=`Take a break. Your match starts when the timer runs out; your match tab offers voice with ${esc(st.opp)} as soon as you both are there (the Table ${st.k+1} Discord channel is the backup).`; }
     act=clk(st.rd.brkEnd, 'UNTIL ROUND '+(st.R+1), st.rd.brkEnd-now<30000) + `<span id="matchBtns">${matchBtns(st)}</span>`; }
   else { rdNo=st.R+1; const t=st.t, waiting=st.rd.tables.map((x,k)=>x.res?null:k+1).filter(Boolean);
     act=clk(st.rd.end, st.rd.called ? 'TIME' : 'LEFT IN ROUND', st.rd.end-now<5*60000);
@@ -1473,7 +1474,7 @@ function roomHTML(host){
       act += mine ? '' : `<button class="go sm" id="confirmBtn">Confirm the result</button>`; }
     else if(st.rd.called && !st.rd.turns){ b='Time in the round.'; sub='Waiting for the host to decide on end-of-round turns.'; act+=`<span id="matchBtns">${matchBtns(st)}</span>`; }
     else if(st.rd.called){ b= st.rd.turns==='yes' ? `Time in round: end-of-round turns at Table ${st.k+1}.` : 'Time in round: no enforcement.'; sub = st.rd.turns==='yes' ? 'This turn is turn 0, then five more; then the table asks who won. Confirm the result here.' : 'No time limit: play your match out, then confirm the result here.'; act+=`<span id="matchBtns">${matchBtns(st)}</span><button class="sm" id="reportBtn">Report result</button>`; }
-    else { b=`You’re at Table ${st.k+1} with ${esc(st.opp)}.`; sub=`Join the Table ${st.k+1} voice channel. When the match ends, the Modern Table sends the result here for you both to confirm.`; act+=`<span id="matchBtns">${matchBtns(st)}</span><button class="sm" id="reportBtn">Report result</button>`; }
+    else { b=`You’re at Table ${st.k+1} with ${esc(st.opp)}.`; sub=`Talk through the microphone in your match tab (the Table ${st.k+1} Discord channel is the backup). When the match ends, the Modern Table sends the result here for you both to confirm.`; act+=`<span id="matchBtns">${matchBtns(st)}</span><button class="sm" id="reportBtn">Report result</button>`; }
   }
   let h=`<div class="announce"><div class="rd">${rdNo}<small>${top}</small></div><b>${b}</b><span class="sub">${sub}</span><div class="act">${act}</div></div>`;
   /* tables */
@@ -1597,7 +1598,7 @@ function frontPage(){
       + sw('ct', 'Host a cube draft', 'Draft a curated cube of singletons.', 'Cube Table: straight to setup', '../cube/?host=1'));
     $('#nightBtn').onclick=()=>beginHost(null, 'modern');
     $('#codeIn').closest('.choice').querySelector('b').textContent='Join a Game Night';
-    $('#news').innerHTML=`<h4>How a night runs</h4><ol class="steps"><li><span>The host picks the event and shares a six-letter code in the Discord.</span></li><li><span>Everyone locks in a deck. Decks stay secret until the final standings.</span></li><li><span>Each round names your table and its voice channel. A 3-minute break runs before every round, then 50 minutes on the clock.</span></li><li><span>The Modern Table sends your result here; you both confirm it, and the next round is paired by standings.</span></li></ol>`;
+    $('#news').innerHTML=`<h4>How a night runs</h4><ol class="steps"><li><span>The host picks the event and shares a six-letter code in the Discord.</span></li><li><span>Everyone locks in a deck. Decks stay secret until the final standings.</span></li><li><span>Each round names your table. Voice is built into your match tab, with a Discord channel per table as a backup. A 3-minute break runs before every round, then 50 minutes on the clock.</span></li><li><span>The Modern Table sends your result here; you both confirm it, and the next round is paired by standings.</span></li></ol>`;
   } else {
     corner.textContent='← Game Night'; corner.href='../night/'; corner.classList.add('to-gn');
     if(VARIANT==='st'){ document.title='Sealed Table'; setH1('Sealed Table'); lede.textContent='Everyone opens six packs (for Reality Fracture, a prerelease kit with a foil promo), builds 40 cards from what they opened, then plays three rounds on the Modern Table.'; host.hidden=true; }

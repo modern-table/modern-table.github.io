@@ -787,7 +787,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.34';
+const VERSION = 'v5.35';
 /* Affiliation (v4.88, the maintainer): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -803,6 +803,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.35','Nov 24',"Game Night: your match tab is where you talk now. It offers to open the voice line once your opponent arrives; the Discord table channels stay as a backup."],
   ['v5.34','Nov 24',"Voice: once your friend has joined with the table code, the table asks whether you'd like to talk. One tap turns your microphone on; Not now leaves it off, and the microphone beside your name still turns it on any time."],
   ['v5.33','Nov 23',"Voice on iPhones: your friend's voice now plays without you having to turn your own microphone on first. If the phone still holds it back, a Tap to hear button appears beside their name, and any tap brings the sound in."],
   ['v5.32','Nov 23',"Talk to your friend at the table: a microphone button sits next to your name. Tap it and your friend hears you live until you tap it again (works on phones too). Prefer messages? Settings → Voice → Voice notes: tap to record, tap again to send, and they tap ▶ to listen. Nothing is recorded or stored anywhere."],
@@ -7414,7 +7415,7 @@ function nightResult(){ if(!nightOn() || !NBC) return; if(!matchDone() || G.go){
 function nightWait(){ let el=$('#nightWait'); const on = NIGHT && G.code && NIGHT.code===G.code && Date.now() < NIGHT.start;
   if(!on){ if(el) el.remove(); return; }
   if(!el){ el=document.createElement('div'); el.id='nightWait'; document.body.appendChild(el); }
-  el.innerHTML = `<div><span>${esc(NIGHT.title||'Game Night')} · Round ${NIGHT.round}</span><h2>Table ${NIGHT.table}: you play ${esc(NIGHT.opp||'your opponent')}</h2><b>${fmtMS(NIGHT.start-Date.now())}</b><p>The round starts when the break ends. Join the Table ${NIGHT.table} voice channel on the Discord in the meantime.${NIGHT.voice ? ` <a href="${esc(NIGHT.voice)}" target="_blank" rel="noopener">Open Table ${NIGHT.table} voice</a>` : ''}</p>${NIGHT.deckName ? `<i>Your deck: ${esc(NIGHT.deckName)}</i>` : ''}</div>`; }
+  el.innerHTML = `<div><span>${esc(NIGHT.title||'Game Night')} · Round ${NIGHT.round}</span><h2>Table ${NIGHT.table}: you play ${esc(NIGHT.opp||'your opponent')}</h2><b>${fmtMS(NIGHT.start-Date.now())}</b><p>The round starts when the break ends. Once ${esc(NIGHT.opp||'your opponent')} is here too, this table offers to open a voice line between you.${NIGHT.voice ? ` Backup: <a href="${esc(NIGHT.voice)}" target="_blank" rel="noopener">Table ${NIGHT.table} on Discord</a>.` : ''}</p>${NIGHT.deckName ? `<i>Your deck: ${esc(NIGHT.deckName)}</i>` : ''}</div>`; }
 const timedTable = () => vsReal();
 const isHostSide = () => G.myId==='p1';
 const mtFresh = () => ({end:null, frozen:null, called:false, ask:null, ext:null, draws:0, over:null, winq:false, untimed:false});
