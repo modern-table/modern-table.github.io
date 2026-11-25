@@ -796,7 +796,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.37';
+const VERSION = 'v5.38';
 /* Affiliation (v4.88, the maintainer): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -812,6 +812,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.38','Nov 24',"Fixed: a very big board (Kozilek's Command for 100 made 100 Eldrazi Spawn) could freeze your friend's view of the table, and after a reload it was as if you'd never sat down. Big updates now arrive in pieces, so the table keeps up however many tokens are out."],
   ['v5.37','Nov 24',"How the table works has two tabs now: How to play, and Keys. New on it: talking at the table, Game Night, the stack chime, choosing the order of your triggers, and why some hand cards are dimmed. The energy and poison counters in the player boxes now show only when a deck at the table uses them, so they can't be clicked by accident; right-click a player's box to add or remove them by hand."],
   ['v5.36','Nov 24',"Modal spells cast from your opponent's exile (Ragavan, Dauthi Voidwalker, Valgavoth and the like) now ask which modes you want before you pay, as they do from your hand. Atarka's Command had been cast with no choice at all."],
   ['v5.35','Nov 24',"Game Night: your match tab is where you talk now. It offers to open the voice line once your opponent arrives; the Discord table channels stay as a backup."],
@@ -1402,7 +1403,31 @@ function peerOpts(){
   return { host, port:+port || 443, path:q.get('peerpath') || '/', secure:q.get('peersecure') !== '0', config:RELAY_CFG };
 }
 function setNet(s){ G.net=s; if(s!=='connected') G.via=''; renderNet(); }
-function send(m){ if(DSW || (G.opp && G.opp.dummy)){ dummyRoute(m); return; }   /* DSW: Practice speaking, while the sides are swapped */ if(G.conn && G.conn.open){ try{ G.conn.send(m); }catch(e){} } }
+function send(m){ if(DSW || (G.opp && G.opp.dummy)){ dummyRoute(m); return; }   /* DSW: Practice speaking, while the sides are swapped */ if(G.conn && G.conn.open){ try{ pcSend(G.conn, m); }catch(e){} } }
+/* v5.38: long messages go in pieces. PeerJS's JSON channel refuses any message of 16,300 bytes or more: it raises "Message too big
+   for JSON channel" as an error event and sends nothing. A board state passes that at about 40 tokens (Kozilek's Command for 100
+   made 100 Eldrazi Spawn, a state of about 39 KB): the friend's page stopped hearing about that board, so it looked frozen, and
+   after a reload the state never arrived at all, as if no one had sat down. pcSend sends a short message as it is and a long one
+   as {t:'pc', q, i, n, d} pieces of the JSON text (each well under the limit); pcRecv puts them back together and hands the
+   message on. The channel is reliable and ordered, so one piece buffer per connection is enough. Same code in src/draft.src.html.
+   An older page ignores 'pc' (as it ignored the refused message before). */
+const PC_LIM = 15000, PC_ENC = typeof TextEncoder!=='undefined' ? new TextEncoder() : null;
+let PC_Q = 0;
+const pcBytes = s => PC_ENC ? PC_ENC.encode(s).length : s.length*3;
+function pcSend(c, m){
+  const s=JSON.stringify(m); if(s===undefined) return;
+  if(pcBytes(s) < PC_LIM){ c.send(m); return; }
+  const parts=[]; for(let at=0; at<s.length;){ let k=Math.min(4000, s.length-at); while(k>64 && pcBytes(JSON.stringify(s.slice(at, at+k))) > PC_LIM-200) k=Math.floor(k/2); parts.push(s.slice(at, at+k)); at+=k; }
+  const q=++PC_Q; parts.forEach((d,i)=>c.send({t:'pc', q, i, n:parts.length, d}));
+}
+function pcRecv(c, m, go){
+  if(!m || typeof m!=='object' || m.t!=='pc'){ go(m); return; }
+  if(typeof m.d!=='string' || !(m.n>0) || m.n>2000 || !(m.i>=0) || m.i>=m.n) return;
+  let b=c._pc; if(!b || b.q!==m.q || m.i===0){ if(m.i!==0){ c._pc=null; return; } b=c._pc={q:m.q, n:m.n, d:[]}; }
+  if(m.i!==b.d.length){ c._pc=null; return; }   /* a piece went missing: drop this message, the next state replaces it */
+  b.d.push(m.d); if(b.d.length<b.n) return; c._pc=null;
+  let x; try{ x=JSON.parse(b.d.join('')); }catch(e){ console.warn('pieced message did not parse', e); return; } go(x);
+}
 function connect(){
   if(G.solo){ setNet('solo'); return; }
   if(typeof Peer==='undefined'){ setNet('error'); return; }
@@ -1424,7 +1449,7 @@ function connect(){
   function dial(){ if(peer.destroyed || peer.disconnected) return; wire(peer.connect(PREFIX+G.code, {reliable:true, serialization:'json'})); }
   function wire(c){
     c.on('open', () => { G.conn=c; setNet('connected'); relayNote(c, k=>{ if(G.conn!==c) return; G.via=k; renderNet(); addLog(k==='relay' ? 'Connected through the relay (a direct connection wasn\'t possible on this network).' : 'Connected directly.', 's'); }); if(host) gcEvent('friend-joined', 'Friend joined a table (two-player game)', 'fj_'+G.code); send({t:'hello', n:G.turn.n, pv:PRI_PV, pri:isHostSide() ? priSet() : null}); send({t:'state', s:pub()}); if(host || G.turn.n>0) send({t:'turn', turn:G.turn, hello:true}); if(host) setTimeout(mtSend, 600); });
-    c.on('data', onMsg);
+    c.on('data', m => pcRecv(c, m, onMsg));
     c.on('close', () => { if(G.conn===c){ vcHang(); G.conn=null; G.oppHello=false; G.oppPv=0; setNet(host ? 'waiting' : 'joining'); if(!host) setTimeout(()=>{ if(peer===G.peer && !G.conn) dial(); }, 2000); } });
     c.on('error', e => console.warn('conn error', e));
   }

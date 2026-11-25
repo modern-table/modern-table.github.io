@@ -363,9 +363,10 @@ a.btnlink{text-decoration:none}
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v0.39';
+const VERSION = 'v0.40';
 /* What's new on the front page (v0.19, like the Modern Table's NEWS): newest first, written for players. Add a line with every version bump. */
 const DNEWS = [
+  ['v0.40','Nov 24',"Fixed: in a long event (lots of chat, a big sealed pool, the final standings with every deck), a player's page could stop updating. Big updates now arrive in pieces."],
   ['v0.39','Nov 24',"Game Night: voice is built into your match tab now (it offers to open the line once your opponent is there). The Discord table channels stay as a backup."],
   ['v0.38','Nov 22',"Players on the same wifi can now join each other's events. When a direct connection isn't possible (some home routers, store or guest wifi), the table connects through a relay server instead. The connection label shows Connected through the relay, and the host sees how many players come in that way."],
   ['v0.37','Nov 16',"Sealed: the Khans of Tarkir, Modern Horizons and Modern Horizons 2 pack wrappers are cleaned up. Every cover of a set is now the same size and shape, with clean edges (no white specks or see-through spots)."],
@@ -647,7 +648,7 @@ function view(i){
 function sync(){
   if(ROLE!=='host') return;
   store.set('dt_host', H);
-  H.seats.forEach((s,i)=>{ const c=conns.get(s.pid); if(!s.bot && c && c.open){ try{ c.send(view(i)); }catch(e){} } });
+  H.seats.forEach((s,i)=>{ const c=conns.get(s.pid); if(!s.bot && c && c.open){ try{ pcSend(c, view(i)); }catch(e){} } });
   const me=H.seats.findIndex(s=>s.pid===PID); gotView(view(me<0?0:me));
 }
 function nextRound(){
@@ -767,7 +768,7 @@ function handle(i, m){
   else if(m.t==='turns' && H.tour && H.seats[i].pid===PID){ const r=H.tour.rounds[H.tour.rounds.length-1]; if(!r || !r.called || r.turns) return; r.turns = m.v==='yes' ? 'yes' : 'no';
     sysMsg(r.turns==='yes' ? 'Host: time is enforced. Tables mid-game play this turn as turn 0, then five more; then say who won. Tables between games end on the score.' : 'Host: no end-of-round turns and no time limit. Tables still playing play their matches out.'); sync(); }
 }
-function act(m){ if(ROLE==='host') handle(H.seats.findIndex(s=>s.pid===PID), m); else if(conn && conn.open){ try{ conn.send(m); }catch(e){} } }
+function act(m){ if(ROLE==='host') handle(H.seats.findIndex(s=>s.pid===PID), m); else if(conn && conn.open){ try{ pcSend(conn, m); }catch(e){} } }
 setInterval(()=>{                    // host: pick for anyone whose clock ran out
   if(ROLE==='host' && H && H.phase==='draft' && H.timer){ let did=false; const now=Date.now();
     H.seats.forEach((s,i)=>{ if(!s.bot && s.queue.length && s.due && now>s.due){ doPick(i, choice(s).u); did=true; } });
@@ -809,6 +810,27 @@ function peerOpts(){
   const [host, port]=h.split(':'); return { host, port:+port||443, path:q.get('peerpath')||'/', secure:q.get('peersecure')!=='0', config:RELAY_CFG };
 }
 function setNet(s){ NET=s; if(s!=='connected') VIA=''; drawTop(); }
+/* v0.40: long messages go in pieces. PeerJS's JSON channel refuses any message of 16,300 bytes or more (it raises "Message too big
+   for JSON channel" and sends nothing), and a view with a long chat, a sealed pool or the final decks can pass that: that player's
+   page would stop updating. pcSend sends a long message as {t:'pc', q, i, n, d} pieces; pcRecv puts them back together.
+   Same code as the Modern Table's (src/app.src.html, v5.38). An older page ignores 'pc'. */
+const PC_LIM = 15000, PC_ENC = typeof TextEncoder!=='undefined' ? new TextEncoder() : null;
+let PC_Q = 0;
+const pcBytes = s => PC_ENC ? PC_ENC.encode(s).length : s.length*3;
+function pcSend(c, m){
+  const s=JSON.stringify(m); if(s===undefined) return;
+  if(pcBytes(s) < PC_LIM){ c.send(m); return; }
+  const parts=[]; for(let at=0; at<s.length;){ let k=Math.min(4000, s.length-at); while(k>64 && pcBytes(JSON.stringify(s.slice(at, at+k))) > PC_LIM-200) k=Math.floor(k/2); parts.push(s.slice(at, at+k)); at+=k; }
+  const q=++PC_Q; parts.forEach((d,i)=>c.send({t:'pc', q, i, n:parts.length, d}));
+}
+function pcRecv(c, m, go){
+  if(!m || typeof m!=='object' || m.t!=='pc'){ go(m); return; }
+  if(typeof m.d!=='string' || !(m.n>0) || m.n>2000 || !(m.i>=0) || m.i>=m.n) return;
+  let b=c._pc; if(!b || b.q!==m.q || m.i===0){ if(m.i!==0){ c._pc=null; return; } b=c._pc={q:m.q, n:m.n, d:[]}; }
+  if(m.i!==b.d.length){ c._pc=null; return; }
+  b.d.push(m.d); if(b.d.length<b.n) return; c._pc=null;
+  let x; try{ x=JSON.parse(b.d.join('')); }catch(e){ console.warn('pieced message did not parse', e); return; } go(x);
+}
 function hostPeer(){
   if(typeof Peer==='undefined'){ setNet('offline'); return; }
   if(peer){ try{ peer.destroy(); }catch(e){} }
@@ -816,7 +838,7 @@ function hostPeer(){
   p.on('open', ()=>setNet('open'));
   p.on('connection', c=>{
     c.on('open', ()=>relayNote(c, k=>{ c._via=k; drawTop(); }));   /* v0.38: which guests come through the relay */
-    c.on('data', m=>{
+    c.on('data', raw=>pcRecv(c, raw, m=>{
       if(!m || typeof m!=='object') return;
       if(m.t==='join'){
         const pid=String(m.pid||'').slice(0,24), name=String(m.name||'Player').slice(0,20); if(!pid) return;
@@ -829,7 +851,7 @@ function hostPeer(){
         const old=conns.get(pid); if(old && old!==c){ try{ old.close(); }catch(e){} }
         c._pid=pid; conns.set(pid, c); sync();
       } else if(c._pid) handle(H.seats.findIndex(x=>x.pid===c._pid && !x.bot), m);
-    });
+    }));
     c.on('close', ()=>{ if(c._pid && conns.get(c._pid)===c){ conns.delete(c._pid); sync(); } });
     c.on('error', e=>console.warn('conn error', e));
   });
@@ -846,9 +868,9 @@ function guestPeer(){
   const dial=()=>{ if(p!==peer || p.destroyed || p.disconnected) return;
     const c=p.connect(PREFIX+CODE, {reliable:true, serialization:'json'});
     c.on('open', ()=>{ conn=c; setNet('connected'); relayNote(c, k=>{ if(conn!==c) return; VIA=k; drawTop(); }); c.send({t:'join', pid:PID, name:SETTINGS.name||'Player'}); });
-    c.on('data', m=>{ if(!m || typeof m!=='object') return;
+    c.on('data', raw=>pcRecv(c, raw, m=>{ if(!m || typeof m!=='object') return;
       if(m.t==='v') gotView(m);
-      else if(m.t==='no'){ store.del('dt_guest'); try{ p.destroy(); }catch(e){} peer=null; showLobby(m.why==='full' ? 'That event is full.' : 'That event has already started.'); } });
+      else if(m.t==='no'){ store.del('dt_guest'); try{ p.destroy(); }catch(e){} peer=null; showLobby(m.why==='full' ? 'That event is full.' : 'That event has already started.'); } }));
     c.on('close', ()=>{ if(conn===c){ conn=null; setNet('joining'); setTimeout(dial, 2000); } });
     c.on('error', e=>console.warn('conn error', e)); };
   p.on('open', ()=>relayReady().then(dial));
