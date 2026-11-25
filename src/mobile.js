@@ -7,7 +7,7 @@
    - choosing targets has a strip that says what to tap, legal targets outlined in orange, and a Done button (m0.5)
    - blocking is guided: tap a blocker, then the attacker it blocks; blockers group under their attackers (m0.6) */
 'use strict';
-const MVERSION = 'm0.11';
+const MVERSION = 'm0.12';
 const M = {look:false, view:null, lands:null, autoLands:false, tap:null, swallow:0, lastTouch:0, stN:0};
 const HT = document.documentElement;
 
@@ -64,6 +64,7 @@ function mainMenu(){
     ['Your lands', ()=>openLands(true)],
     ['Hand actions…', ()=>handMenu(0, 0)],
     ['Token or any card…', ()=>tokenModal()],
+    ['Energy and poison counters…', ()=>ctrMenu(0, 0, G.myId)],   /* m0.12: the player-box chips show only when a deck uses them (v5.37); a phone has no right-click */
     ['Roll a die or flip a coin…', ()=>$('#diceBtn').onclick({currentTarget:$('#mMenu')})],
     dummy() && ["Practice's side…", ()=>practiceMenu(0, 0)],
     ['Turn menu: stops and pauses…', ()=>turnMenu()],
