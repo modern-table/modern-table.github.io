@@ -41,7 +41,7 @@ async def main():
     try:
         # a host on a phone, nobody joined yet
         p = await ctx(env)
-        await p.goto(env.url('/m/')); await p.wait_for_selector('#hostBtn'); await p.fill('#nameIn', 'Ben'); await p.click('#hostBtn')
+        await p.goto(env.url('/m/')); await p.wait_for_selector('#hostBtn'); await p.fill('#nameIn', 'Ann'); await p.click('#hostBtn')
         await PT.pick_deck(p, 0); await p.wait_for_timeout(1000)
         code = await p.evaluate('G.code'); cb = await p.evaluate(CODE)
         check('waiting for a friend: the table code shows in the opponent box', cb and cb['t'] == code and cb['vis'], cb)
@@ -77,10 +77,10 @@ async def main():
         check('its text is readable (12 px or more)', g['fs'] >= 12, g)
         check('the stack is empty: the log fills the column, the stack is just its header ("· empty")', g['log'] >= 120 and g['stackList'] == 0 and g['stack'] < 30 and 'empty' in g['headAfter'], g)
         check('card names in the log are marked', await p.evaluate("!!document.querySelector('#mLog .mlb .cn')"))
-        await p.evaluate("()=>{ const c=mk(keyOf('Lightning Bolt')); c.ts=Date.now(); G.me.st.push(c); const t=mk(null,{tok:true, ts:Date.now()+1, ab:{id:'x', tr:1}, cu:{n:'Test: trigger', t:'Triggered ability', o:'Untap it.', img:''}}); G.me.st.push(t); addLog('Ben casts Lightning Bolt.','m'); changed(); }")
+        await p.evaluate("()=>{ const c=mk(keyOf('Lightning Bolt')); c.ts=Date.now(); G.me.st.push(c); const t=mk(null,{tok:true, ts:Date.now()+1, ab:{id:'x', tr:1}, cu:{n:'Test: trigger', t:'Triggered ability', o:'Untap it.', img:''}}); G.me.st.push(t); addLog('Ann casts Lightning Bolt.','m'); changed(); }")
         await p.wait_for_timeout(400); g2 = await p.evaluate(GEO)
         check('two items on the stack: stack and log share the column, about half each', g2['stackList'] > 40 and g2['log'] > 60 and abs(g2['stack'] - g2['log']) < 20, g2)
-        check('the new line arrived at the bottom', g2['last'] == 'Ben casts Lightning Bolt.' and g2['bottom'], g2)
+        check('the new line arrived at the bottom', g2['last'] == 'Ann casts Lightning Bolt.' and g2['bottom'], g2)
         await p.evaluate("()=>{ G.me.st=[]; changed(); }"); await p.wait_for_timeout(300); g3 = await p.evaluate(GEO)
         check('the stack empties: the log fills the column again', g3['log'] >= 120 and g3['stackList'] == 0, g3)
         # a tap on the last stack card resolves it; the click that ends the tap must not open the log panel
@@ -88,7 +88,7 @@ async def main():
         await p.wait_for_timeout(400); await p.locator('#stack .card').first.tap(); await p.wait_for_timeout(700)
         check('tapping the last stack card resolves it without opening the log panel', await p.evaluate("G.me.st.length===0 && !document.documentElement.classList.contains('mlog')"))
         await p.tap('#mLog'); await p.wait_for_timeout(400)
-        check('a tap on the log opens the full log and chat panel', await p.evaluate("document.documentElement.classList.contains('mlog') && document.querySelector('#log').textContent.includes('Ben casts Lightning Bolt.')"))
+        check('a tap on the log opens the full log and chat panel', await p.evaluate("document.documentElement.classList.contains('mlog') && document.querySelector('#log').textContent.includes('Ann casts Lightning Bolt.')"))
         check('no page errors', not env.errors, env.errors[:3])
     finally:
         await env.stop()

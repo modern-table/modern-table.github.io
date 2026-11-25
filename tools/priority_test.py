@@ -305,6 +305,8 @@ async def settle(a, b, limit=12):
 def strip(t):
     """A turn object without priority's own marks, for comparing with v4.137."""
     t = dict(t); t.pop('okd', None)
+    for k in ('blkd', 'fsd'):                 # v5.39's combat records (which attackers were blocked); v4.137 kept none
+        t.pop(k, None)
     return t
 
 
@@ -1008,7 +1010,7 @@ async def t_match(env, A):
     ck('sideboarding: both get the window with its 3:00 timer, the win is recorded', off['sb'][0] == 'Sideboarding' and off['sb'][1] == 'Sideboarding' and off['sb'][2] and off['sb'][3] == 0 and off['sb'][4] == [0, 1] and off['sb'][5] == [1, 0], off['sb'])
     ck('sideboarding: the one who is done waits for the other', off['sb_wait'][0] == 'Sideboarding' and off['sb_wait'][1] == 'Sideboarding', off['sb_wait'])
     ck('the next game starts with the loser choosing', off['game2'] == {'active': 'p1', 'phase': 2, 'n': 1}, off['game2'])
-    ck('Priority off in game 2: a click resolves, nobody is asked', off['bolt'] == ['Next: Combat', "Opponent's turn"] and off['bolt_done'] == 17, (off['bolt'], off['bolt_done']))
+    ck('Priority off in game 2: a click resolves, nobody is asked', off['bolt'] == ['Resolve the stack first', "Opponent's turn"] and off['bolt_done'] == 17, (off['bolt'], off['bolt_done']))
     ck('Priority on in game 2: the spell waits for the OK', on['bolt'] == ["Waiting for Bob's OK", 'OK: Lightning Bolt resolves'] and on['bolt_done'] == 17, (on['bolt'], on['bolt_done']))
     ck('priority is not running while the game-over window is up', on['live_over'] is False and on['live2'] is True, (on['live_over'], on['live2']))
     ck('round clock at 0: both are asked about the end-of-round turns', off['time'] == ['Time', 'Time'], off['time'])
@@ -1046,7 +1048,7 @@ async def t_toggle(env, A):
     for p in (a, b):
         await ev(p, 'closeModal()')
     ia, ib = await info(a), await info(b)
-    ck('off during a stack wait: at once, the wait is gone on both pages', ia['text'] == "Opponent's turn" or ia['text'].startswith('Next'), ia['text'])
+    ck('off during a stack wait: at once, the wait is gone on both pages', ia['text'] in ("Opponent's turn", 'Resolve the stack first') or ia['text'].startswith('Next'), ia['text'])   # v5.40: the spell still on the stack
     ck('the table looks like v4.137 again: no band, no tags, no dashes, no hint', ia['bands'] == [] and ia['owns'] == [] and ib['owns'] == [] and ia['dash'] == [''] * 6 and ib['dash'] == [''] * 6 and ia['hint'] == '' and ib['hint'] == '' and ia['title'] == 'Modern Table', (ia, ib))
     ck('it is written to the log for both', any('Ann turned Priority off for this table.' in l for l in ia['log']) and any('Ann turned Priority off for this table.' in l for l in ib['log']), ib['log'])
     await b.click('#stack .card'); await b.wait_for_timeout(500)
@@ -1093,7 +1095,7 @@ async def t_oldpage(env, A):
     h = await ev(a, "document.querySelector('#setBody .setrow small').textContent"); await ev(a, 'closeModal()')
     ck('Settings says so too', "Not running right now: Bob's page is an older version." in h, h)
     await ev(a, "T.cast('Lightning Bolt','opp')"); await a.wait_for_timeout(500); ia, ib = await info(a), await info(b)
-    ck('a spell: no blue button, no band', ia['text'] == SKIP and ib['text'] == "Opponent's turn" and ia['bands'] == [] and ia['owns'] == [], (ia['text'], ib['text']))
+    ck('a spell: no blue button, no band (v5.40: the button reads Resolve the stack first)', ia['text'] == 'Resolve the stack first' and ib['text'] == "Opponent's turn" and ia['bands'] == [] and ia['owns'] == [], (ia['text'], ib['text']))
     await a.click('#stack .card'); await a.wait_for_timeout(500)
     ck('a click resolves it, as in v4.137', (await info(b))['life'] == 17)
     await press(a); await press(a); await press(a); await press(a); ia, ib = await info(a), await info(b)
@@ -1327,7 +1329,7 @@ async def t_practice(env, A):
     i = await info(p)
     ck('practice: priority is not running, no dashes, no hint', await ev(p, 'priLive()') is False and await ev(p, 'priTable()') is False and i['dash'] == [''] * 6 and i['hint'] == '', i)
     await ev(p, "T.cast('Lightning Bolt','opp')"); await p.wait_for_timeout(400); i = await info(p)
-    ck('a spell: the button is unchanged, no band', i['text'] == SKIP and i['bands'] == [] and i['owns'] == [], i)
+    ck('a spell: no band; the button reads Resolve the stack first (v5.40)', i['text'] == 'Resolve the stack first' and i['bands'] == [] and i['owns'] == [], i)
     await p.click('#stack .card'); await p.wait_for_timeout(400)
     ck('a click resolves it', (await info(p))['st'] == [] and (await info(p))['olife'] == 17)
     await ev(p, TRIGS_JS, PAIR); await p.wait_for_timeout(400)
