@@ -7,7 +7,7 @@
    - choosing targets has a strip that says what to tap, legal targets outlined in orange, and a Done button (m0.5)
    - blocking is guided: tap a blocker, then the attacker it blocks; blockers group under their attackers (m0.6) */
 'use strict';
-const MVERSION = 'm0.12';
+const MVERSION = 'm0.13';
 const M = {look:false, view:null, lands:null, autoLands:false, tap:null, swallow:0, lastTouch:0, stN:0};
 const HT = document.documentElement;
 
@@ -543,8 +543,38 @@ function mAfter(pre){ if($('#table').hidden) return;
     if(M.tg && G.mode){ M.tg.slot = G.mode.slot || 0; if(G.mode.tq) M.tg.tq = true; } }
     else if(M.tg){ const s = find(M.tg.from); if(!s || s.z !== 'st' || M.tg.done) M.tg = null; } }
   tgPaint(); prePaint(); blkPaint(); modebarPhone();
-  const se = $('#stack'), n = se.children.length; if(n !== M.stN){ se.scrollTop = se.scrollHeight; M.stN = n; } }
+  const se = $('#stack'), n = se.children.length; if(n !== M.stN){ se.scrollTop = se.scrollHeight; M.stN = n; }
+  waitPaint(); mLogPaint(); }
 addEventListener('resize', ()=>{ try{ render(); }catch(e){} });
+
+/* ---------- the table code while waiting (m0.13, the maintainer: the code must stay in view until you choose to practice alone) ----------
+   The desktop's waiting box says "Send them the code X" in its .dk line, which the phone hides with every deck name. While no one has joined
+   a table I opened (no G.opp, not practice), the box shows the code large; a tap copies it. "Skip the roll (practice alone)" makes Practice
+   the opponent, and the box becomes Practice's. */
+function waitPaint(){ const av = $('#oppAv'); if(!av) return; const on = !G.opp && !G.solo && !!G.code; av.classList.toggle('mwait', on);
+  if(!on || av.querySelector('.mcode')) return;
+  av.innerHTML = `<div class="nm">Waiting for your friend</div><button class="mcode" data-mcode title="Tap to copy the code">Table code<b>${esc(G.code)}</b><i>tap to copy</i></button><div class="chips"><span class="pill" id="netPill2"></span></div>`;
+  try{ renderNet(); }catch(e){} }
+document.addEventListener('click', e=>{ const b = e.target.closest && e.target.closest('[data-mcode]'); if(!b) return; e.preventDefault(); e.stopPropagation();
+  const c = G.code || ''; const ok = ()=>toast(`Table code ${c} copied: send it to your friend.`), no = ()=>toast(`Table code: ${c}`);
+  try{ navigator.clipboard.writeText(c).then(ok, no); }catch(err){ no(); } }, true);
+
+/* ---------- the log beside the stack (m0.13, the maintainer: the phone had no log in view) ----------
+   #mLog sits under #stackwrap in the right column: the last lines of the game log, card names in brass, newest at the bottom. A tap opens the
+   full log and chat panel. Sharing the space (the maintainer's pick of three prototypes, over always half and half and over the stack replacing
+   the log): while the stack is empty it shrinks to its header ("Stack · empty") and the log fills the column; while it holds something, the
+   two split the space half and half (CSS :has on #stackwrap). */
+const MLOG_N = 40;
+function mLogPaint(){ let el = $('#mLog'); if(!el){ const sw = $('#stackwrap'); if(!sw) return; el = document.createElement('div'); el.id = 'mLog';
+    el.innerHTML = '<h4>Log</h4><div class="mlb"></div>'; el.title = 'Tap for the whole log and chat'; sw.after(el);
+    /* only a touch that began on the log opens the panel: tapping the last stack card resolves it, the stack shrinks, and the click that
+       ends that tap lands on the log */
+    el.addEventListener('pointerdown', ()=>{ M.logDown = Date.now(); });
+    el.addEventListener('click', e=>{ e.preventDefault(); e.stopPropagation(); if(!(Date.now() - (M.logDown||0) < 1500)) return; M.logDown = 0; HT.classList.add('mlog'); try{ renderLog(); }catch(err){} }); }
+  const L = G.log || [], last = L[L.length-1], key = L.length + '|' + (last ? last.text : ''); if(key === M.logK) return; M.logK = key;
+  const b = el.querySelector('.mlb');
+  b.innerHTML = L.slice(-MLOG_N).map(l=>`<div class="${l.cls||''}">${(l.cls==='cm'||l.cls==='co') ? esc(l.text).replace(/^([^:]{1,40}:)/,'<b>$1</b>') : esc(l.text).replace(/\[\[([^|\]]*)\|[^\]]*\]\]/g,(_,n)=>`<span class="cn">${n}</span>`)}</div>`).join('');
+  b.scrollTop = b.scrollHeight; }
 
 /* ---------- the front page ---------- */
 (function(){ const lm = $('.lmain'); if(!lm) return; const n = document.createElement('p'); n.id = 'mNote';

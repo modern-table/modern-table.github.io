@@ -283,3 +283,23 @@ html.mob #vcOffer .vof{grid-column:2; grid-row:1; margin:0}
 html.mob #vcOffer p{grid-column:1 / -1; margin:4px 0 0; font-size:12px; line-height:1.3}
 html.mob #vcOffer p.sm{display:none}
 html.mob #vcOffer .vof button{min-height:40px; padding:8px 14px; font-size:14px}
+
+/* m0.13: the table code while waiting for a friend (waitPaint) */
+html.mob #oppAv.mwait .mcode{grid-column:1/-1; display:flex; flex-direction:column; align-items:center; gap:0; margin:3px 0; padding:4px 2px 3px; background:#0c181b; border:1px solid var(--brass); border-radius:4px; color:var(--dim); font:600 9.5px var(--ui); letter-spacing:.08em; text-transform:uppercase}
+html.mob #oppAv.mwait .mcode b{font:800 21px var(--ui); letter-spacing:.14em; color:var(--brass); text-transform:none; margin:1px 0; user-select:text; -webkit-user-select:text}
+html.mob #oppAv.mwait .mcode i{font-style:normal; font-size:8.5px; letter-spacing:.04em; text-transform:none; opacity:.8}
+html.mob #oppAv.mwait .chips .pill{font-size:10px; padding:0 5px; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+/* m0.13: the log under the stack (mLogPaint): the log fills the column while the stack is empty, half and half while it holds something */
+html.mob #mLog{display:flex; flex-direction:column; min-height:0; padding:3px 5px 2px; border-top:1px solid var(--line); cursor:pointer}
+html.mob #mLog h4{font-size:9px; margin:0 0 2px}
+html.mob #mLog .mlb{flex:1; min-height:0; overflow-y:auto; overflow-x:hidden; font:12.5px/1.28 var(--ui); color:#cfd9d6; overflow-wrap:anywhere}
+html.mob #mLog .mlb>div{padding:2px 0; border-bottom:1px solid #ffffff0d}
+html.mob #mLog .mlb>div:last-child{border-bottom:0; color:#eef4f2}
+html.mob #mLog .mlb .cn{color:var(--brass); font-weight:600}
+html.mob #mLog .mlb .s{color:var(--dim); font-style:italic}
+html.mob #mLog .mlb .o{color:#a9c6ff}
+html.mob #mLog{flex:1 1 0}
+html.mob #stackwrap:not(:has(#stack .card)){flex:none}
+html.mob #stackwrap:not(:has(#stack .card)) #stack{display:none}
+html.mob #stackwrap:not(:has(#stack .card)) h4::after{content:" · empty"; font-weight:400; opacity:.7}
+html.mob #stackwrap:has(#stack .card){flex:1 1 0}
