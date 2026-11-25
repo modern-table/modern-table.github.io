@@ -796,7 +796,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.38';
+const VERSION = 'v5.39';
 /* Affiliation (v4.88, the maintainer): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -812,6 +812,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.39','Nov 25',"Fixed: a blocked attacker stays blocked when its blocker leaves combat. If the blocker is sacrificed (Goblin Bombardment), killed or bounced before damage, the attacker deals no damage, unless it has trample, which sends it all to the player."],
   ['v5.38','Nov 24',"Fixed: a very big board (Kozilek's Command for 100 made 100 Eldrazi Spawn) could freeze your friend's view of the table, and after a reload it was as if you'd never sat down. Big updates now arrive in pieces, so the table keeps up however many tokens are out."],
   ['v5.37','Nov 24',"How the table works has two tabs now: How to play, and Keys. New on it: talking at the table, Game Night, the stack chime, choosing the order of your triggers, and why some hand cards are dimmed. The energy and poison counters in the player boxes now show only when a deck at the table uses them, so they can't be clicked by accident; right-click a player's box to add or remove them by hand."],
   ['v5.36','Nov 24',"Modal spells cast from your opponent's exile (Ragavan, Dauthi Voidwalker, Valgavoth and the like) now ask which modes you want before you pay, as they do from your hand. Atarka's Command had been cast with no choice at all."],
@@ -7033,8 +7034,8 @@ function combatStep(){ const t=G.turn, atk=G.me.bf.filter(c=>c.atk);
   if(t.cs==='dmg') return false;
   if((t.cs==='blkd' || t.cs==='fs') && vsAny()){ if(priDmgStop(t)) return true; applyCombat(t.cs==='fs' ? 'reg' : (combatHasFS() ? 'fs' : 'reg')); return true; }
   if(!t.cs){ if(!atk.length) return false; if(atkCountTrigs()){ changed(); toast('Attack triggers are on the stack: resolve them, then press Next for blocks.'); return true; }
-    if(dummy()){ const can=dummyBlockers().length; log(`${G.me.name} declares attackers: ${atk.map(cname).join(', ')}.${can?' Declare Practice\'s blockers.':' Practice has no creature to block with.'}`); G.opp.arrows=G.opp.arrows.filter(a=>!a.blk); setTurn(Object.assign({}, t, {cs: can ? 'blk' : 'blkd'})); changed(); return true; }
-    if(G.opp && !G.solo){ log(`${G.me.name} declares attackers: ${atk.map(cname).join(', ')}. ${G.opp.name} declares blockers.`); setTurn(Object.assign({}, t, {cs:'blk'})); changed(); return true; } }
+    if(dummy()){ const can=dummyBlockers().length; log(`${G.me.name} declares attackers: ${atk.map(cname).join(', ')}.${can?' Declare Practice\'s blockers.':' Practice has no creature to block with.'}`); G.opp.arrows=G.opp.arrows.filter(a=>!a.blk); setTurn(Object.assign({}, t, {cs: can ? 'blk' : 'blkd', blkd: can ? null : [], fsd:null})); changed(); return true; }
+    if(G.opp && !G.solo){ log(`${G.me.name} declares attackers: ${atk.map(cname).join(', ')}. ${G.opp.name} declares blockers.`); setTurn(Object.assign({}, t, {cs:'blk', blkd:null, fsd:null})); changed(); return true; } }
   combatDamage(); return true; }
 /* ---- v3.76 combat damage (CR 510): the active player's table works out a damage step and applies it.
    'fs' (first-strike damage: creatures with first strike or double strike) then 'reg' (the rest, and double strikers again), or just 'reg'.
@@ -7044,6 +7045,10 @@ function combatStep(){ const t=G.turn, atk=G.me.bf.filter(c=>c.atk);
    applies it (Deflecting Palm still asks). Then each side's creatures with lethal damage die together (deathtouch, indestructible, regeneration).
    G.turn.blkd: attackers that were blocked; G.turn.fsd: creatures that dealt first-strike damage. */
 const hasFS = c => kwOn(c, 'first strike'), hasDS = c => kwOn(c, 'double strike');
+/* v5.39: the attackers that were blocked, noted when blocks are declared (Done blocking, Practice's Done). An attacker stays blocked after
+   its blockers leave combat (CR 509.1h, 506.4): sacrificed to Goblin Bombardment, the token's arrow goes, but the Nacatl still deals no damage
+   (trample: all of it to the player). applyCombat used to read only the arrows left at damage time. */
+const blkdOf = arrows => [...new Set((arrows||[]).filter(a=>a.blk && a.b).map(a=>a.b))];
 function combatBlockers(aid){ return ((G.opp&&G.opp.arrows)||[]).filter(a=>a.blk && a.b===aid).map(a=>findAny(a.a)).filter(f=>f && f.z==='bf' && !f.mine && isCreature(f.c)).map(f=>f.c); }
 function combatHasFS(){ const atk=G.me.bf.filter(c=>c.atk); const bl=atk.flatMap(c=>combatBlockers(c.id)); return [...atk, ...bl].some(c=>hasFS(c) || hasDS(c)); }
 const lethalLeft = (c, mine, dt) => { if(dt) return 1; const T=toughNow(c, mine ? G.myId : oppId()); return T==null ? 1 : Math.max(1, T-(c.dmg||0)); };
@@ -7136,7 +7141,7 @@ function combatDamage(){ const t=G.turn, m=G.me, oa=(G.opp&&G.opp.arrows)||[], p
   setTurn(Object.assign({}, t, {cs:'dmg'})); log(`Combat damage: ${parts.join('; ') || 'no attackers'}. Adjust life and creatures by hand.`); for(const id of trig) cdmgTrig(id); changed(); }
 function doneBlocking(force){ if(!force){ const iss=blockSetIssues(); if(iss.length){ modal('These blocks may break the rules', `<ul style="margin:0;padding-left:18px;line-height:1.5">${iss.map(x=>`<li>${esc(unlink(x))}</li>`).join('')}</ul><span class="hint">The table can misread a card, so you decide.</span>`, [['Go back',()=>closeModal(),'ghost'],['Finish anyway',()=>{ closeModal(); log(`${G.me.name} keeps blocks the table flagged: ${iss.join('; ')}.`); doneBlocking(true); },'go']]); return; } }
   const bl=G.me.arrows.filter(a=>a.blk).map(a=>{ const f=find(a.a), g=findAny(a.b); return `${f?cname(f.c):'a creature'} blocks ${g?cname(g.c):'an attacker'}`; });
-  log(`${G.me.name} is done blocking${bl.length ? ': '+bl.join('; ') : ' (no blocks)'}.`); const nt=Object.assign({}, G.turn, {cs:'blkd'}); if(nt.okd){ nt.okd={...nt.okd}; delete nt.okd.dmg; delete nt.okd.dmg2; } setTurn(nt); changed(); }   /* v5.10: an additional combat's damage is asked about again */
+  log(`${G.me.name} is done blocking${bl.length ? ': '+bl.join('; ') : ' (no blocks)'}.`); const nt=Object.assign({}, G.turn, {cs:'blkd', blkd:blkdOf(G.me.arrows)}); if(nt.okd){ nt.okd={...nt.okd}; delete nt.okd.dmg; delete nt.okd.dmg2; } setTurn(nt); changed(); }   /* v5.10: an additional combat's damage is asked about again */
 /* ===== v5.0: the table passes priority =====
    A table setting, on by default, that only the host (p1, the player who opened the table) can change (priToggle; message 'pri'). It runs
    only at a real two-player table where both pages know it (hello carries pv), never in practice, never while a turn is controlled.
@@ -7750,7 +7755,7 @@ function pblockClick(md, target){ const d=G.opp; if(!dummy()) return;
 function pblockBtn(k){ if(!pblockStep()) return; const d=G.opp;
   if(k==='declare'){ G.mode={type:'pblock'}; toast("Click one of Practice's untapped creatures to block with."); render(); }
   else if(k==='reset'){ d.arrows=d.arrows.filter(a=>!a.blk); G.mode=null; log("Practice's blocks are reset."); changed(); }
-  else if(k==='done'){ G.mode=null; const bl=d.arrows.filter(a=>a.blk); log(bl.length ? `Practice blocks: ${bl.map(a=>{ const b=d.bf.find(x=>x.id===a.a), t=find(a.b); return `${b?cname(b):'a creature'} blocks ${t?cname(t.c):'an attacker'}`; }).join('; ')}.` : 'Practice declares no blockers.'); setTurn(Object.assign({}, G.turn, {cs:'blkd'})); changed(); } }
+  else if(k==='done'){ G.mode=null; const bl=d.arrows.filter(a=>a.blk); log(bl.length ? `Practice blocks: ${bl.map(a=>{ const b=d.bf.find(x=>x.id===a.a), t=find(a.b); return `${b?cname(b):'a creature'} blocks ${t?cname(t.c):'an attacker'}`; }).join('; ')}.` : 'Practice declares no blockers.'); setTurn(Object.assign({}, G.turn, {cs:'blkd', blkd:blkdOf(d.arrows)})); changed(); } }
 function pblockBarHTML(){ const d=G.opp, n=d.arrows.filter(a=>a.blk).length, can=dummyBlockers().length;
   return `<span>Practice blocks</span><span class="sub">You declare Practice's blocks: click its creature, then your attacker</span>${can ? `<button class="go" data-pbk="declare">${n?'Declare another blocker':'Declare a blocker'}</button>` : ''}${n ? '<button data-pbk="reset">Reset blockers</button><button class="go" data-pbk="done">Done blocking</button>' : '<button data-pbk="done">No blocks</button>'}`; }
 const alone = () => G.solo || G.me.skipRoll;
