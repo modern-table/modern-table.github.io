@@ -7,7 +7,7 @@
    - choosing targets has a strip that says what to tap, legal targets outlined in orange, and a Done button (m0.5)
    - blocking is guided: tap a blocker, then the attacker it blocks; blockers group under their attackers (m0.6) */
 'use strict';
-const MVERSION = 'm0.15';
+const MVERSION = 'm0.16';
 const M = {look:false, view:null, lands:null, autoLands:false, tap:null, swallow:0, lastTouch:0, stN:0};
 const HT = document.documentElement;
 
@@ -805,3 +805,19 @@ function mdInput(e){ const t = e.target;
   if(t.id === 'mdPT'){ mdCount(); return; }
   if(t.id === 'mdPN'){ if(MD.paste) MD.paste.name = t.value; return; }
   if(t.id === 'mdQ'){ clearTimeout(mdSearchT); const v = t.value.trim(); MD.hits = []; mdSug(); if(v.length >= 2) mdSearchT = setTimeout(()=>mdSearch(v), 300); } }
+
+/* ---------- ordering triggers (m0.16, the maintainer's design in claude/mobile-design.md: "Trigger ordering") ----------
+   The desktop's panel (#coPanel.sim, v5.02) drags with pointer events and capture, but on the phone a touch drag was cancelled (the
+   phone's cards have touch-action:pan-x pan-y, so the browser panned), its hint was a thin column and the cards were small and cut off. On the phone the panel fills the board beside the right
+   column; the cards are sized to the room (--ocw, 84–170 px), each with a black number for when it resolves (1 = the top, on the right)
+   and its trigger text under it; a card being dragged leaves its slot and a full card's gap opens where it will land. The same panel
+   in its Colossus form (lands from the hand) gets the same frame. */
+const ordPaint0 = ordPaint;
+ordPaint = function(force){ ordPaint0(force); mOrdDeco(); };
+function mOrdDeco(){ if(!CO || CO.kind !== 'sim' || !CO.el) return; const row = $('#coTr'); if(!row) return;
+  const cards = [...row.querySelectorAll('.card[data-id]')], n = cards.length; if(!n) return;
+  const W = row.clientWidth - 12, H = row.clientHeight - 62, w = Math.max(84, Math.min(170, (W - (n-1)*12)/n, H/1.396));
+  CO.el.style.setProperty('--ocw', Math.floor(w)+'px'); row.classList.toggle('mscroll', (w*n + (n-1)*12) > W + 1);
+  cards.forEach((c,i)=>{ if(c.querySelector('.mordn')) return; const x = CO.ord[i], t = x ? String(cdata(x).o || '').replace(/\s+/g,' ').trim() : '';
+    c.insertAdjacentHTML('beforeend', `<b class="mordn" title="Resolves ${n-i === 1 ? 'first' : 'number '+(n-i)}">${n-i}</b><span class="mocap">${esc(t)}</span>`); }); }
+addEventListener('resize', ()=>{ if(CO && CO.kind === 'sim') setTimeout(mOrdDeco, 0); });
