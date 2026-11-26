@@ -1,0 +1,15 @@
+# Open tables: deployed by .github/workflows/worker.yml (Cloudflare Workers, Free plan).
+# Address: https://tables.moderntable-app.workers.dev
+name = "tables"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+workers_dev = true
+
+[[durable_objects.bindings]]
+name = "LOBBY"
+class_name = "Lobby"
+
+# The Free plan allows only SQLite-backed Durable Objects.
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Lobby"]

@@ -67,6 +67,23 @@ h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
 .choices{display:grid;gap:10px}
 .choice{display:flex;gap:12px;align-items:center;justify-content:space-between;text-align:left;padding:14px 16px;background:#12262b}
 .choice b{display:block;font-size:16px}.choice span{color:var(--dim);font-size:13px}
+/* v5.43: Open tables (the maintainer's version C: a band per mode with tables, empty ones folded into one row) and the listing options under Open a table */
+#otab{display:flex;flex-direction:column;gap:8px;min-width:0}#otBands{display:flex;flex-direction:column;gap:8px;min-width:0}
+#otab .othd{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:12px;color:var(--dim)}#otab .othd b{font:800 11px var(--ui);letter-spacing:.12em;text-transform:uppercase}
+.otband{display:flex;height:46px;border:1px solid var(--obd,var(--line));border-radius:5px;overflow:hidden;background:#0c181b;min-width:0}
+.otlab{flex:none;width:170px;display:flex;flex-direction:column;justify-content:center;padding:0 14px;background:var(--obg);color:var(--ofg)}.otlab b{font:800 12px var(--ui);letter-spacing:.14em;text-transform:uppercase}.otlab span{font-size:11px;color:var(--osub)}
+.ottrk{flex:1;min-width:0;overflow:hidden;display:flex;align-items:center}
+.otrun{display:flex;width:max-content;animation:otscroll 40s linear infinite}.ottrk:hover .otrun,.ottrk:focus-within .otrun{animation-play-state:paused}
+@keyframes otscroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+body.nomo .otrun{animation:none}body.nomo .ottrk{overflow-x:auto}
+.otk{flex:none;display:inline-flex;align-items:baseline;gap:7px;margin-right:30px;padding:6px 10px;background:transparent;border:1px solid transparent;border-radius:4px;font:600 15px var(--ui);white-space:nowrap}
+.otk:hover,.otk:focus-visible{border-color:var(--brass);background:#13262b}.otk .cd{font:700 14px ui-monospace,Menlo,Consolas,monospace;letter-spacing:.16em;color:var(--brass)}.otk .dt{color:var(--dim)}
+.otquiet{display:flex;flex-wrap:wrap;align-items:center;gap:10px;min-height:40px;font-size:13px;color:var(--dim)}.otquiet .otqh{margin-left:auto;font-size:12px}
+.otq{display:inline-flex;align-items:center;gap:8px;padding:5px 10px;background:transparent;border:1px solid var(--obd,var(--line));border-radius:4px;font:700 12px var(--ui);letter-spacing:.1em;text-transform:uppercase}.otq i{width:10px;height:10px;border-radius:2px;background:var(--obg)}
+.hostopts{display:flex;flex-direction:column;gap:8px;margin-top:-4px;padding:10px 16px 12px;border:1px solid var(--line);border-top:0;border-radius:0 0 6px 6px;background:#0f2125}
+.tmseg{display:flex;gap:6px}.tmseg button{padding:6px 14px;border-radius:4px;background:transparent;font:700 13px var(--ui)}.tmseg button.on{background:var(--brass);border-color:var(--brass);color:#16100a}
+.lstchk{display:flex;gap:8px;align-items:center;cursor:pointer}.lstchk input{width:16px;height:16px;accent-color:var(--brass)}.lsthint{font-size:12px;color:var(--dim)}
+.flash{animation:otflash 1.2s ease-out 2}@keyframes otflash{0%{box-shadow:0 0 0 0 rgba(217,178,95,.8)}100%{box-shadow:0 0 0 12px rgba(217,178,95,0)}}
 /* the way to the Draft Table wears the Draft Table's colours */
 .corner{position:absolute;top:16px;right:20px;border:1px solid #e2bd6a;border-radius:99px;padding:6px 14px;text-decoration:none;font-weight:800;color:#e2bd6a;background:#1b2a4a;box-shadow:0 2px 8px #0006}
 .corner:hover{background:#273d6b;color:#f2d58f}
@@ -716,12 +733,14 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
     <div class="lhead"><h1>Modern Table <small id="verTag" style="font:600 13px var(--ui);color:var(--dim);letter-spacing:.08em"></small></h1>
     <p>A Magic table for two, in the browser. <b>Automatic first, by hand always:</b> the table plays your cards for you (triggers, targets, searches, combat damage), and anything it doesn't do, you can still do yourself, like paper.</p>
     <p id="phLine" style="color:var(--dim);font-size:.92em">On a phone? <a href="/m/?phone=1" style="color:var(--brass);font-weight:700">The phone table</a> (beta) is made for holding it sideways, and plays the same tables.</p>
-    <p id="tourLine" hidden><a href="#" id="tourLink" style="color:var(--brass);font-weight:700">Take the three-minute tour</a> <span style="color:var(--dim)">· new here? see how the table works</span><button id="tourX" class="ghost" title="No thanks (the tour stays in the ☰ menu at the table)" aria-label="Close">×</button></p></div>
+    <p id="tourLine" hidden><a href="#" id="tourLink" style="color:var(--brass);font-weight:700">Take the three-minute tour</a> <span style="color:var(--dim)">· new here? see how the table works</span><button id="tourX" class="ghost" title="No thanks (the tour stays in the ☰ menu at the table)" aria-label="Close">×</button></p>
+    <section id="otab" hidden aria-label="Open tables"><div class="othd"><b>Open tables</b><span>Click a name to join · hover a band to pause it</span></div><div id="otBands"></div></section></div>
     <div class="lmain">
     <div class="field"><label for="nameIn">Your name</label><input id="nameIn" maxlength="20" placeholder="Planeswalker"></div>
     <div class="field" id="lgsField" hidden><label for="lgsIn">Affiliation</label><div class="lgsrow"><span id="lgsPrev" class="lgsp"></span><select id="lgsIn"></select></div><span class="lgsh">Rep your local game store: its logo shows beside your name at the table.</span></div>
     <div class="choices">
       <button class="choice" id="hostBtn"><div><b>Open a table</b><span>Get a six-letter code to send to your friend.</span></div><span>→</span></button>
+      <div class="hostopts" id="hostOpts"><div class="tmseg" role="group" aria-label="How serious is the table?"><button type="button" data-tm="playtest" title="Take-backs welcome">Playtest</button><button type="button" data-tm="casual" title="Relaxed games">Casual</button><button type="button" data-tm="match" title="Playing for keeps">Match</button></div><label class="lstchk"><input type="checkbox" id="lstChk"> List my table in Open tables (and on Discord)</label><span class="lsthint">Off unless you tick it: your name and code are shown to everyone. To play a friend, just send them the code.</span></div>
       <div class="choice" style="border:1px solid var(--line);border-radius:6px">
         <div style="flex:1;min-width:0"><b>Join a table</b><div class="joinrow" style="margin-top:6px"><input id="codeIn" maxlength="6" placeholder="CODE" aria-label="Table code"><button id="joinBtn" class="go">Join</button></div></div>
       </div>
@@ -798,7 +817,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.42';
+const VERSION = 'v5.43';
 /* Affiliation (v4.88, the maintainer): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -814,6 +833,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.43','Nov 25',"Open tables: when you open a table you can now choose how serious it is (Playtest, Casual or Match) and tick \"List my table\" to show your name and code on the front page and in the Discord's #looking-for-game. The front page shows a band for each kind of table that's waiting for an opponent: click a name to join. Game Night hosts can list their event the same way. Listing is always your choice; to play a friend, just send the code as before."],
   ['v5.42','Nov 25',"Pasting a deck list is more forgiving: headings copied from deck sites (like \"Creatures (16)\" or \"Sideboard (15)\"), Moxfield's foil marks, curly apostrophes and MTGO .dek files all read correctly, and lines that aren't cards are left out. On the phone table, the deck screen is rebuilt for phones: this week's decks and your own side by side, card pictures with counts, quick edits, and a paste box that counts as you type and checks the card names."],
   ['v5.41','Nov 25',"Modern Table on your phone (beta): open modern-table.github.io on a phone and you get the phone table, made for holding your phone sideways. Phones and computers play each other at the same tables, with the same table codes. It's brand new, so please use Send feedback when something feels off. (Want the computer layout on a phone? The phone table's front page links to it.)"],
   ['v5.40','Nov 25',"The turn no longer moves on while something is on the stack. Ragavan's Treasure-and-exile trigger (or any spell or trigger) has to resolve first: Next and the phase bar wait, and the button reads Resolve the stack first. This holds in practice games and with Priority off too. A trigger that shouldn't be there can be taken off with its right-click menu."],
@@ -1468,7 +1488,7 @@ function connect(){
   });
   function dial(){ if(peer.destroyed || peer.disconnected) return; wire(peer.connect(PREFIX+G.code, {reliable:true, serialization:'json'})); }
   function wire(c){
-    c.on('open', () => { G.conn=c; setNet('connected'); relayNote(c, k=>{ if(G.conn!==c) return; G.via=k; renderNet(); addLog(k==='relay' ? 'Connected through the relay (a direct connection wasn\'t possible on this network).' : 'Connected directly.', 's'); }); if(host) gcEvent('friend-joined', 'Friend joined a table (two-player game)', 'fj_'+G.code); send({t:'hello', n:G.turn.n, pv:PRI_PV, pri:isHostSide() ? priSet() : null}); send({t:'state', s:pub()}); if(host || G.turn.n>0) send({t:'turn', turn:G.turn, hello:true}); if(host) setTimeout(mtSend, 600); });
+    c.on('open', () => { G.conn=c; setNet('connected'); relayNote(c, k=>{ if(G.conn!==c) return; G.via=k; renderNet(); addLog(k==='relay' ? 'Connected through the relay (a direct connection wasn\'t possible on this network).' : 'Connected directly.', 's'); }); if(host) gcEvent('friend-joined', 'Friend joined a table (two-player game)', 'fj_'+G.code); if(host) lstTick(); send({t:'hello', n:G.turn.n, pv:PRI_PV, pri:isHostSide() ? priSet() : null}); send({t:'state', s:pub()}); if(host || G.turn.n>0) send({t:'turn', turn:G.turn, hello:true}); if(host) setTimeout(mtSend, 600); });
     c.on('data', m => pcRecv(c, m, onMsg));
     c.on('close', () => { if(G.conn===c){ vcHang(); G.conn=null; G.oppHello=false; G.oppPv=0; setNet(host ? 'waiting' : 'joining'); if(!host) setTimeout(()=>{ if(peer===G.peer && !G.conn) dial(); }, 2000); } });
     c.on('error', e => console.warn('conn error', e));
@@ -9488,7 +9508,68 @@ function begin(role, code){
   connect(); save(); showDecks();
   if(role==='solo') gcEvent('practice-started', 'Practice game started'); else if(role==='host') gcEvent('table-opened', 'Table opened');
 }
-$('#hostBtn').onclick=()=>{ const A='ABCDEFGHJKLMNPQRSTUVWXYZ'; let c=''; for(let i=0;i<6;i++) c+=A[Math.floor(Math.random()*A.length)]; begin('host', c); };
+/* v5.43: Open tables (the maintainer's design, 2026-11-25; Project doc claude/matchmaking-design.md).
+   The front page shows a band per mode that has listed tables (Playtest, Casual, Match, and Game Night events with seats open:
+   Modern Night, Draft, Sealed, Cube), each entry "Name · CODE", scrolling; modes with none are folded into one "Quiet right now"
+   row (version C). The list lives in a Cloudflare Worker (worker/, TABLES_URL), which also posts each listing to #looking-for-game
+   and edits the post when it closes. Listing is opt-in (#lstChk, never remembered); the mode (S.tmode) is remembered. A listed
+   host beats every minute (lstTick) and closes the listing when a friend joins (filled), or on leaving that table, skipping the
+   roll or a new table (left). The Worker drops a listing after 3 minutes without a beat or 30 minutes in all. If the Worker
+   can't be reached the section stays hidden. */
+const TABLES_URL = 'https://tables.moderntable-app.workers.dev';
+const OT_MODES = [
+  {k:'playtest', n:'Playtest', s:'take-backs welcome', bg:'#1f6f66', fg:'#effffb', sub:'#d6f2ec'},
+  {k:'casual', n:'Casual', s:'relaxed games', bg:'#d9a24a', fg:'#1c1305', sub:'#3a2a0c'},
+  {k:'match', n:'Match', s:'playing for keeps', bg:'#a3304a', fg:'#ffffff', sub:'#f6d9df'},
+  {k:'night', n:'Modern Night', s:'Game Night · seats open', bg:'#1b2a4a', fg:'#e2bd6a', sub:'#c8d2e8', bd:'#34497a', path:'/night/'},
+  {k:'draft', n:'Draft', s:'Game Night · seats open', bg:'#5e3a2e', fg:'#f0c08e', sub:'#f1dccf', bd:'#8a5d4c', path:'/draft/'},
+  {k:'sealed', n:'Sealed', s:'Game Night · seats open', bg:'#4a2a4e', fg:'#f0c4e8', sub:'#e6d3e8', bd:'#7a5480', path:'/sealed/'},
+  {k:'cube', n:'Cube', s:'Game Night · seats open', bg:'#3c4428', fg:'#e4df8c', sub:'#dfe2cc', bd:'#69744b', path:'/cube/'}];
+const OT = {list:null};
+let LST = store.get('mt_lst', null);   // my listing: {c, t, m}
+const otMode = k => OT_MODES.find(x=>x.k===k);
+async function otPost(p, o){ try{ const r=await fetch(TABLES_URL+p, {method:'POST', body:JSON.stringify(o)}); return await r.json(); }catch(e){ return null; } }
+async function otLoad(){ if($('#lobby').hidden || document.hidden) return;
+  try{ const r=await fetch(TABLES_URL+'/list', {cache:'no-store'}); const d=await r.json(); OT.list = Array.isArray(d.tables) ? d.tables.filter(x=>x && otMode(x.m) && /^[A-Z]{6}$/.test(x.c)) : []; }catch(e){ OT.list=null; }
+  otPaint(); }
+function otVars(o){ return `--obg:${o.bg};--ofg:${o.fg};--osub:${o.sub};--obd:${o.bd||'var(--line)'}`; }
+function otPaint(){ const box=$('#otab'); if(!box) return; if(!OT.list){ box.hidden=true; return; } box.hidden=false;
+  if(document.documentElement.classList.contains('mob')) $('#otab .othd span').textContent='Tap a name to join';
+  let h='', quiet=[];
+  for(const o of OT_MODES){ const es=OT.list.filter(x=>x.m===o.k); if(!es.length){ quiet.push(o); continue; }
+    let seq=es.slice(); while(seq.length<6) seq=seq.concat(es);
+    const item = (x, dup) => `<button type="button" class="otk" data-otc="${x.c}" data-otm="${o.k}" data-otn="${esc(x.n)}"${dup?' aria-hidden="true" tabindex="-1"':''}><b>${esc(x.n)}</b><span class="dt">·</span><span class="cd">${x.c}</span></button>`;
+    h+=`<div class="otband" data-otb="${o.k}" style="${otVars(o)}"><div class="otlab"><b>${o.n}</b><span>${o.s}</span></div><div class="ottrk"><div class="otrun" style="animation-duration:${Math.max(24, seq.length*6)}s">${seq.map(x=>item(x)).join('')}${seq.map(x=>item(x, 1)).join('')}</div></div></div>`; }
+  if(quiet.length) h+=`<div class="otquiet"><span>${quiet.length===OT_MODES.length ? 'No open tables right now. Quiet:' : 'Quiet right now:'}</span>${quiet.map(o=>`<button type="button" class="otq" data-otq="${o.k}" style="${otVars(o)}" title="${o.path ? 'Host one at Game Night' : 'Open a '+o.n+' table and list it'}"><i aria-hidden="true"></i>${o.n}</button>`).join('')}<span class="otqh">Click one to start it</span></div>`;
+  if(h!==OT.h){ OT.h=h; $('#otBands').innerHTML=h; } }   /* only when the list changed, so a band doesn't jump back to its start every 30 s */
+function tmPaint(){ $$('#hostOpts [data-tm]').forEach(b=>b.classList.toggle('on', b.dataset.tm===(S.tmode||'casual'))); }
+$('#hostOpts').addEventListener('click', e=>{ const b=e.target.closest('[data-tm]'); if(!b) return; S.tmode=b.dataset.tm; store.set('mt_settings', S); tmPaint(); });
+$('#otab').addEventListener('click', e=>{
+  const k=e.target.closest('.otk');
+  if(k){ const o=otMode(k.dataset.otm); if(o.path){ location.href=o.path+'?join='+k.dataset.otc; return; }
+    $('#codeIn').value=k.dataset.otc; $('#lobbyMsg').textContent=`${k.dataset.otn}'s ${o.n} table · press Join to sit down.`; $('#joinBtn').focus(); return; }
+  const q=e.target.closest('[data-otq]');
+  if(q){ const o=otMode(q.dataset.otq); if(o.path){ location.href=o.path+'?host=1&list=1'; return; }
+    S.tmode=o.k; store.set('mt_settings', S); tmPaint(); $('#lstChk').checked=true; $('#lobbyMsg').textContent=`${o.n} is chosen and your table will be listed. Press Open a table.`;
+    const hb=$('#hostBtn'); hb.classList.remove('flash'); void hb.offsetWidth; hb.classList.add('flash'); hb.focus(); }
+});
+function lstSet(v){ LST=v; if(v) store.set('mt_lst', v); else store.del('mt_lst'); }
+async function lstOpen(code){ const m=S.tmode||'casual', r=await otPost('/open', {c:code, n:S.name, m});
+  if(r && r.ok && G.code===code){ lstSet({c:code, t:r.t, m}); addLog(`Your table is listed in Open tables as ${otMode(m).n}, and posted in the Discord's #looking-for-game.`, 's'); }
+  else if(r && r.ok) otPost('/close', {c:code, t:r.t, why:'left'});
+  else toast('Your table could not be listed right now. Send the code to a friend, or post it in #looking-for-game on Discord.'); }
+function lstClose(why){ if(!LST) return; const o={c:LST.c, t:LST.t, why}; lstSet(null); otPost('/close', o); }
+async function lstTick(){ if(!LST) return;
+  const here = G.code===LST.c && G.myId==='p1' && !G.solo && !(G.opp && G.opp.dummy);
+  if(!here){ lstClose('left'); return; }
+  if(G.conn && G.conn.open){ lstClose('filled'); addLog('Your friend has arrived, so your table is no longer listed.', 's'); return; }
+  const l=LST, r=await otPost('/beat', {c:l.c, t:l.t});
+  if(r && r.gone && LST===l){ lstSet(null); toast('Your listing in Open tables has ended. Your code still works: send it to a friend.'); } }
+setInterval(lstTick, 60000);
+setInterval(otLoad, 30000);
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) otLoad(); });
+tmPaint(); otLoad();
+$('#hostBtn').onclick=()=>{ const A='ABCDEFGHJKLMNPQRSTUVWXYZ'; let c=''; for(let i=0;i<6;i++) c+=A[Math.floor(Math.random()*A.length)]; const list=$('#lstChk').checked; lstClose('left'); begin('host', c); if(list) lstOpen(c); };
 $('#joinBtn').onclick=()=>{ const c=$('#codeIn').value.trim().toUpperCase(); if(c.length<4){ $('#lobbyMsg').textContent='Type the code your friend sent you.'; return; } begin('guest', c); };
 $('#codeIn').onkeydown=e=>{ if(e.key==='Enter') $('#joinBtn').click(); };
 $('#soloBtn').onclick=()=>begin('solo');

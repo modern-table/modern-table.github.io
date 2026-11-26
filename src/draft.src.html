@@ -363,9 +363,10 @@ a.btnlink{text-decoration:none}
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v0.40';
+const VERSION = 'v0.41';
 /* What's new on the front page (v0.19, like the Modern Table's NEWS): newest first, written for players. Add a line with every version bump. */
 const DNEWS = [
+  ['v0.41','Nov 25',"Hosts can list their event in Open tables: tick \"List this event\" while players are joining, and your name and code show on the Modern Table's front page and in the Discord's #looking-for-game until the event starts or fills up."],
   ['v0.40','Nov 24',"Fixed: in a long event (lots of chat, a big sealed pool, the final standings with every deck), a player's page could stop updating. Big updates now arrive in pieces."],
   ['v0.39','Nov 24',"Game Night: voice is built into your match tab now (it offers to open the line once your opponent is there). The Discord table channels stay as a backup."],
   ['v0.38','Nov 22',"Players on the same wifi can now join each other's events. When a direct connection isn't possible (some home routers, store or guest wifi), the table connects through a relay server instead. The connection label shows Connected through the relay, and the host sees how many players come in that way."],
@@ -929,6 +930,7 @@ function tickClock(){
 }
 function render(){
   if(!V) return;
+  dlstCheck();
   applyTheme(themeFor(V));
   drawTop();
   const host=ROLE==='host', me=V.seats[V.me];
@@ -965,6 +967,7 @@ function render(){
         <button class="go" id="startBtn"${V.busy?' disabled':''}>${sealed ? (isPre(V.set) ? 'Start the prerelease' : 'Start the event') : 'Start the draft'}</button></div><p class="hint" id="busyMsg" style="margin:0">${esc(V.busy)}</p>`;
     else h+=`<p class="hint" style="margin:0">${esc(V.busy || (sealed ? `${isPre(V.set) ? 'Prerelease' : 'Sealed'} · ${setName(V.set)} · up to ${V.pod} players` : `${setName(V.set)} · ${V.pod} seats · ${V.timer ? V.timer+' second pick timer' : 'no pick timer'}`))}</p>`;
     h+=clanPickHTML();
+    h+=lstHTML();
     h+=lobbyGuideHTML();
   }
   else if(V.phase==='draft'){
@@ -978,7 +981,7 @@ function render(){
     h+=`<div class="pane" data-zone="deck"><div class="bar"><h3>Your picks: deck <b style="color:var(--brass)">${deck.length}</b></h3><span class="hint">new picks land here · click a card to move it to the sideboard</span></div>${regionsHTML(deck, 0) || '<p class="hint">Your picks will show up here, sorted by type and mana value.</p>'}</div>
       ${side.length ? `<div class="pane" data-zone="side"><div class="bar"><h3>Sideboard <b style="color:var(--brass)">${side.length}</b></h3><span class="hint">click a card to put it back in your deck</span></div>${regionsHTML(side, 0)}</div>` : ''}`;
   }
-  else if(V.mode==='modern') h+= V.tour ? roomHTML(host) : lockHTML(host);
+  else if(V.mode==='modern') h+= V.tour ? roomHTML(host) : lockHTML(host) + lstHTML();
   else h+=buildHTML(host, me);
   setHTML($('#main'), h);
   /* chat sits beside everything except the draft itself and the deck builder */
@@ -1630,8 +1633,36 @@ function frontPage(){
   }
   /* straight to setup: night/ sends Draft, Sealed and Cube here with ?host=1 */
   const q=new URLSearchParams(location.search);
-  if(q.get('host')){ q.delete('host'); history.replaceState(null, '', location.pathname+(q.toString()?'?'+q:'')); beginHost(null, VARIANT==='st' ? 'sealed' : 'draft'); }
+  /* v0.41: Game Night's own page hosts a Modern night (the Modern Table's Open tables links come here with ?host=1&list=1); ?join=CODE fills the code */
+  const listIt = q.get('list'), jc=(q.get('join')||'').toUpperCase().replace(/[^A-Z]/g,'').slice(0,6);
+  if(q.get('host')){ q.delete('host'); q.delete('list'); history.replaceState(null, '', location.pathname+(q.toString()?'?'+q:'')); beginHost(null, VARIANT==='gn' ? 'modern' : VARIANT==='st' ? 'sealed' : 'draft'); if(listIt) dlstOpen(); }
+  else if(jc){ q.delete('join'); history.replaceState(null, '', location.pathname+(q.toString()?'?'+q:'')); $('#codeIn').value=jc; $('#lobbyMsg').textContent='Code '+jc+' is filled in: check your name, then press Join.'; }
 }
+/* v0.41: Open tables (the Modern Table's v5.43; Project doc claude/matchmaking-design.md). The host may list an event while players
+   can still join (a draft, sealed or cube lobby; a Modern night before round 1 is paired) and seats are open: the Worker at
+   TABLES_URL shows "Name · CODE" in the Modern Table front page's band for the event kind and posts it to #looking-for-game. Opt-in
+   (#dlstChk, never remembered). dlstCheck (from render) closes the listing once the event starts or fills; dlstTick beats every
+   minute. Same Worker and messages as the Modern Table's lstOpen / lstTick. */
+const TABLES_URL = 'https://tables.moderntable-app.workers.dev';
+let DLST = store.get('dt_lst', null);   // {c, t, k}
+const dlstKind = () => H.mode==='modern' ? 'night' : H.mode==='sealed' ? 'sealed' : isCubeSet(H.set) ? 'cube' : 'draft';
+const dlstOpenNow = () => !!H && (H.phase==='lobby' || (H.mode==='modern' && !H.tour));
+const dlstFull = () => !!H && H.seats.filter(x=>!x.bot).length >= (H.pod||8);
+async function dlstPost(p, o){ try{ const r=await fetch(TABLES_URL+p, {method:'POST', body:JSON.stringify(o)}); return await r.json(); }catch(e){ return null; } }
+function dlstSet(v){ DLST=v; if(v) store.set('dt_lst', v); else store.del('dt_lst'); }
+function lstHTML(){ if(ROLE!=='host' || !dlstOpenNow()) return '';
+  return `<label class="hint" style="display:flex;gap:8px;align-items:center;margin:10px 0 0;cursor:pointer;color:var(--ink)"><input type="checkbox" id="dlstChk"${DLST && DLST.c===H.code ? ' checked' : ''} style="width:16px;height:16px;accent-color:var(--brass)"> List this event in Open tables (and on Discord)</label>
+    <p class="hint" style="margin:4px 0 0">Off unless you tick it: your name and code show on the Modern Table's front page until the event starts or fills.</p>`; }
+async function dlstOpen(){ if(!H) return; const c=H.code, k=dlstKind(), r=await dlstPost('/open', {c, n:SETTINGS.name||'Player', m:k});
+  if(r && r.ok && H && H.code===c && dlstOpenNow()){ dlstSet({c, t:r.t, k}); sysMsg('This event is listed in Open tables and posted in the Discord\'s #looking-for-game.'); }
+  else if(r && r.ok) dlstPost('/close', {c, t:r.t, why:'left'});
+  else toast('The event could not be listed right now. Send the code to your friends, or post it in #looking-for-game on Discord.');
+  render(); }
+function dlstClose(why){ if(!DLST) return; const o={c:DLST.c, t:DLST.t, why}; dlstSet(null); dlstPost('/close', o); }
+function dlstCheck(){ if(!DLST) return; if(!H || H.code!==DLST.c || ROLE!=='host') return dlstClose('left'); if(!dlstOpenNow()) return dlstClose('started'); if(dlstFull()) return dlstClose('full'); }
+async function dlstTick(){ dlstCheck(); if(!DLST) return; const l=DLST, r=await dlstPost('/beat', {c:l.c, t:l.t}); if(r && r.gone && DLST===l){ dlstSet(null); render(); } }
+setInterval(dlstTick, 60000);
+document.addEventListener('change', e=>{ if(e.target && e.target.id==='dlstChk'){ if(e.target.checked) dlstOpen(); else { dlstClose('left'); render(); } } });
 $('#joinBtn').onclick=()=>{ const c=$('#codeIn').value.trim().toUpperCase(); if(c.length<4){ $('#lobbyMsg').textContent='Type the code your host sent you.'; return; } beginGuest(c); };
 $('#codeIn').onkeydown=e=>{ if(e.key==='Enter') $('#joinBtn').click(); };
 { const h=store.get('dt_host', null), g=store.get('dt_guest', null);

@@ -1,0 +1,43 @@
+name: Deploy the open-tables Worker
+
+# Deploys worker/ (the list behind the front page's Open tables bands and the #looking-for-game posts) to
+# Cloudflare Workers, Free plan: https://tables.moderntable-app.workers.dev
+# Runs when worker/ changes on main, and on "Run workflow".
+# Repository secrets: CLOUDFLARE_API_TOKEN ("Edit Cloudflare Workers" template), CLOUDFLARE_ACCOUNT_ID, and
+# DISCORD_WEBHOOK_URL (the #looking-for-game webhook; not DISCORD_WEBHOOK, which is #announcements). The webhook
+# is handed to the Worker as a secret, so it never appears in the repo or the pages.
+
+on:
+  push:
+    branches: [main]
+    paths: ['worker/**', '.github/workflows/worker.yml']
+  workflow_dispatch:
+
+concurrency:
+  group: worker-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Deploy to Cloudflare
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: worker
+          secrets: |
+            DISCORD_WEBHOOK_URL
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+      - name: Check it answers
+        run: |
+          sleep 10
+          curl -sS --max-time 20 -H 'Origin: https://modern-table.github.io' https://tables.moderntable-app.workers.dev/list
+          echo
