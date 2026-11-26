@@ -4,7 +4,22 @@ html.mob{--sl:0px; --sr:0px; --sb:0px; --rr:calc(var(--rcol) + var(--sr)); --rco
 html.mob body{box-sizing:border-box; padding:0 var(--sr) var(--sb) var(--sl); font-size:13px; overscroll-behavior:none; -webkit-tap-highlight-color:transparent}
 html.mob button{padding:6px 10px}
 html.mob .card{touch-action:pan-x pan-y}
-@media (orientation:portrait){ html.mob body::after{content:"Turn your phone sideways to play."; position:fixed; inset:0; z-index:200; display:grid; place-items:center; padding:30px; text-align:center; background:var(--rail); color:var(--brass); font:22px var(--display)} }
+html.mob #mTurn{display:none}
+html.mob #phLine{display:none}
+@media (orientation:portrait){ html.mob #mTurn{display:grid; position:fixed; inset:0; z-index:2147483100; place-items:center; padding:30px; text-align:center; background:radial-gradient(120% 90% at 50% 0%,#1d353a,var(--rail) 70%)} }
+/* m0.14: the held-upright screen, the splash's look without its motion */
+html.mob #mTurn .mt-in{display:flex; flex-direction:column; align-items:center; gap:16px; --sh:min(26vw,120px)}
+html.mob #mTurn .mt-cards{position:relative; width:calc(var(--sh)*1.5); height:calc(var(--sh)*1.2)}
+html.mob #mTurn .mt-c{position:absolute; top:50%; left:50%; width:calc(var(--sh)*.71); height:var(--sh); border-radius:calc(var(--sh)*.09)}
+html.mob #mTurn .mt-b{background:var(--felt); border:calc(var(--sh)*.05) solid var(--opp); transform:translate(-80%,-48%) rotate(-17deg)}
+html.mob #mTurn .mt-g{background:linear-gradient(160deg,#f0d28c,#a8803a); box-shadow:0 14px 34px #000a; transform:translate(-24%,-55%) rotate(11deg)}
+html.mob #mTurn .mt-g::after{content:""; position:absolute; left:50%; top:50%; width:24%; aspect-ratio:1; background:var(--rail); transform:translate(-50%,-50%) rotate(45deg) scale(.9,1.1)}
+html.mob #mTurn .mt-t{font:400 min(12vw,52px)/1 var(--display); color:var(--ink); letter-spacing:.04em}
+html.mob #mTurn .mt-r{display:block; width:min(60vw,240px); height:1px; background:linear-gradient(90deg,transparent,var(--brass) 25%,var(--brass) 75%,transparent)}
+html.mob #mTurn .mt-s{display:flex; flex-direction:column; align-items:center; gap:14px; font:600 17px/1.35 var(--ui); color:var(--brass); letter-spacing:.02em}
+html.mob #mTurn .mt-ph{width:26px; height:44px; border:2px solid var(--brass); border-radius:5px; animation:mtRot 2.4s ease-in-out infinite}
+@keyframes mtRot{0%,25%{transform:rotate(0)} 55%,85%{transform:rotate(-90deg)} 100%{transform:rotate(0)}}
+html.mob body.nomo #mTurn .mt-ph{animation:none; transform:rotate(-90deg)}
 
 /* ---- the table ---- */
 html.mob #table{grid-template-columns:var(--lcol) 1fr var(--rcol); height:calc(100dvh - var(--sb))}

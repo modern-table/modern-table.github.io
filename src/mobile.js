@@ -7,7 +7,7 @@
    - choosing targets has a strip that says what to tap, legal targets outlined in orange, and a Done button (m0.5)
    - blocking is guided: tap a blocker, then the attacker it blocks; blockers group under their attackers (m0.6) */
 'use strict';
-const MVERSION = 'm0.13';
+const MVERSION = 'm0.14';
 const M = {look:false, view:null, lands:null, autoLands:false, tap:null, swallow:0, lastTouch:0, stN:0};
 const HT = document.documentElement;
 
@@ -576,9 +576,15 @@ function mLogPaint(){ let el = $('#mLog'); if(!el){ const sw = $('#stackwrap'); 
   b.innerHTML = L.slice(-MLOG_N).map(l=>`<div class="${l.cls||''}">${(l.cls==='cm'||l.cls==='co') ? esc(l.text).replace(/^([^:]{1,40}:)/,'<b>$1</b>') : esc(l.text).replace(/\[\[([^|\]]*)\|[^\]]*\]\]/g,(_,n)=>`<span class="cn">${n}</span>`)}</div>`).join('');
   b.scrollTop = b.scrollHeight; }
 
+/* ---------- held upright (m0.14, the maintainer: the plain "turn sideways" line felt empty): the splash's cards, name and rule, still ---------- */
+(function(){ const d = document.createElement('div'); d.id = 'mTurn'; d.setAttribute('aria-live', 'polite');
+  d.innerHTML = '<div class="mt-in"><div class="mt-cards"><i class="mt-c mt-b"></i><i class="mt-c mt-g"></i></div><div class="mt-t">Modern Table</div><i class="mt-r"></i>'
+    + '<div class="mt-s"><span class="mt-ph" aria-hidden="true"></span>Turn your phone sideways to play.</div></div>';
+  document.body.prepend(d); })();
+
 /* ---------- the front page ---------- */
 (function(){ const lm = $('.lmain'); if(!lm) return; const n = document.createElement('p'); n.id = 'mNote';
-  n.innerHTML = `<b>The phone table, an early test</b> (${MVERSION}). Hold your phone sideways. Practice alone is ready to try; playing a friend from a phone hasn't been tried yet. <a href="../">The desktop table</a> <button class="mnav" data-mnav="reload" title="Load the page again (picks up the newest version)">↻ Reload</button>`;
+  n.innerHTML = `<b>The phone table · beta</b> (${MVERSION}). Hold your phone sideways. You can play friends on phones or computers with the same table code. Something feel off? <a href="${esc(feedbackUrl('Phone table'))}" target="_blank" rel="noopener">Send feedback</a> · <a href="../?desk=1" title="The computer layout, on this phone (remembered; the phone table link on that page brings you back)">The desktop table</a> <button class="mnav" data-mnav="reload" title="Load the page again (picks up the newest version)">↻ Reload</button>`;
   lm.prepend(n); })();
 
 /* ---------- home and reload (m0.9, the maintainer: added to the home screen, the phone page has no browser bar, so no back or refresh) ----------

@@ -3,6 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<script>/* v5.41 (the maintainer): a phone opening the table goes to the phone table (m/), with the address's ?t= table link and the rest kept.
+   A phone = a touch-first screen whose short side is 500 px or less (tablets and laptops stay here). ?desk=1 (the phone page's "The desktop
+   table" link) remembers a choice to stay here (localStorage mt_where), ?phone=1 forgets it. The phone page itself sets html.mob first. */
+(function(){ try{ var q=new URLSearchParams(location.search), ls=window.localStorage; if(q.has('phone')) ls.removeItem('mt_where');
+  if(document.documentElement.classList.contains('mob')) return;
+  if(q.has('desk')){ ls.setItem('mt_where','desk'); return; } if(!q.has('phone') && ls.getItem('mt_where')==='desk') return;
+  var touch=window.matchMedia && matchMedia('(pointer:coarse)').matches, small=Math.min(screen.width||9999, screen.height||9999)<=500;
+  if(touch && small){ q.delete('phone'); var qs=q.toString(); location.replace(new URL('m/', location.href).pathname + (qs ? '?'+qs : '') + location.hash); }
+}catch(e){} })();</script>
 <title>Modern Table</title>
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="icon" href="icon-32.png" type="image/png" sizes="32x32">
@@ -706,6 +715,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
   <div class="lobbybox">
     <div class="lhead"><h1>Modern Table <small id="verTag" style="font:600 13px var(--ui);color:var(--dim);letter-spacing:.08em"></small></h1>
     <p>A Magic table for two, in the browser. <b>Automatic first, by hand always:</b> the table plays your cards for you (triggers, targets, searches, combat damage), and anything it doesn't do, you can still do yourself, like paper.</p>
+    <p id="phLine" style="color:var(--dim);font-size:.92em">On a phone? <a href="/m/?phone=1" style="color:var(--brass);font-weight:700">The phone table</a> (beta) is made for holding it sideways, and plays the same tables.</p>
     <p id="tourLine" hidden><a href="#" id="tourLink" style="color:var(--brass);font-weight:700">Take the three-minute tour</a> <span style="color:var(--dim)">· new here? see how the table works</span><button id="tourX" class="ghost" title="No thanks (the tour stays in the ☰ menu at the table)" aria-label="Close">×</button></p></div>
     <div class="lmain">
     <div class="field"><label for="nameIn">Your name</label><input id="nameIn" maxlength="20" placeholder="Planeswalker"></div>
@@ -796,7 +806,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.40';
+const VERSION = 'v5.41';
 /* Affiliation (v4.88, the maintainer): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -812,6 +822,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.41','Nov 25',"Modern Table on your phone (beta): open modern-table.github.io on a phone and you get the phone table, made for holding your phone sideways. Phones and computers play each other at the same tables, with the same table codes. It's brand new, so please use Send feedback when something feels off. (Want the computer layout on a phone? The phone table's front page links to it.)"],
   ['v5.40','Nov 25',"The turn no longer moves on while something is on the stack. Ragavan's Treasure-and-exile trigger (or any spell or trigger) has to resolve first: Next and the phase bar wait, and the button reads Resolve the stack first. This holds in practice games and with Priority off too. A trigger that shouldn't be there can be taken off with its right-click menu."],
   ['v5.39','Nov 25',"Fixed: a blocked attacker stays blocked when its blocker leaves combat. If the blocker is sacrificed (Goblin Bombardment), killed or bounced before damage, the attacker deals no damage, unless it has trample, which sends it all to the player."],
   ['v5.38','Nov 24',"Fixed: a very big board (Kozilek's Command for 100 made 100 Eldrazi Spawn) could freeze your friend's view of the table, and after a reload it was as if you'd never sat down. Big updates now arrive in pieces, so the table keeps up however many tokens are out."],
