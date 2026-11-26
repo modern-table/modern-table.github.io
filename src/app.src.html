@@ -798,7 +798,7 @@ body.spl-rise .lobbybox{animation:splRise .8s .15s cubic-bezier(.2,.7,.2,1) both
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.41';
+const VERSION = 'v5.42';
 /* Affiliation (v4.88, the maintainer): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -814,6 +814,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.42','Nov 25',"Pasting a deck list is more forgiving: headings copied from deck sites (like \"Creatures (16)\" or \"Sideboard (15)\"), Moxfield's foil marks, curly apostrophes and MTGO .dek files all read correctly, and lines that aren't cards are left out. On the phone table, the deck screen is rebuilt for phones: this week's decks and your own side by side, card pictures with counts, quick edits, and a paste box that counts as you type and checks the card names."],
   ['v5.41','Nov 25',"Modern Table on your phone (beta): open modern-table.github.io on a phone and you get the phone table, made for holding your phone sideways. Phones and computers play each other at the same tables, with the same table codes. It's brand new, so please use Send feedback when something feels off. (Want the computer layout on a phone? The phone table's front page links to it.)"],
   ['v5.40','Nov 25',"The turn no longer moves on while something is on the stack. Ragavan's Treasure-and-exile trigger (or any spell or trigger) has to resolve first: Next and the phase bar wait, and the button reads Resolve the stack first. This holds in practice games and with Priority off too. A trigger that shouldn't be there can be taken off with its right-click menu."],
   ['v5.39','Nov 25',"Fixed: a blocked attacker stays blocked when its blocker leaves combat. If the blocker is sacrificed (Goblin Bombardment), killed or bounced before damage, the attacker deals no damage, unless it has trample, which sends it all to the player."],
@@ -1282,24 +1283,38 @@ const isLand = c => /\bLand\b/.test(faceType(c)), isCreature = c => ((/\bCreatur
 const isSpell = c => /\b(Instant|Sorcery)\b/.test(c.adv ? faceTypeOf(c,1) : faceType(c));
 
 /* ================= deck text ================= */
+/* v5.42 (the maintainer: pasting a list must be smooth, above all on the phone): headers copied from deck sites ("Creatures (16)", "Sideboard (15)",
+   "// Lands"), Moxfield's foil marks (*F*), Arena's set and number, smart quotes, "SB:" lines and MTGO's .dek XML are read; anything else that
+   isn't a card line is left out and listed in d.skip, so the paste box can say so. A line with no count is still read as one card. */
+const DK_HEAD = /^(?:creatures?|lands?|instants?|sorcer(?:y|ies)|artifacts?|enchantments?|planeswalkers?|battles?|spells?|other(?: spells)?|non-?creature(?: spells)?|tokens?|commander|companions?|cards?)$/;
 function parseDeck(text){
-  const main=new Map(), side=new Map(), art={}; let sec='main', seenCard=false;
+  const main=new Map(), side=new Map(), art={}, skip=[]; let sec='main', seenCard=false;
+  text = String(text||'').replace(/\u00a0/g,' ').replace(/[\u2018\u2019\u02bc]/g,"'").replace(/[\u201c\u201d]/g,'"');
+  if(/<Cards\s/i.test(text)){   // MTGO .dek
+    for(const m of text.matchAll(/<Cards\b([^>]*)>/gi)){ const a=m[1], q=(a.match(/Quantity="(\d+)"/i)||[])[1], nm=(a.match(/Name="([^"]+)"/i)||[])[1]; if(!q || !nm) continue;
+      const name=nm.replace(/&amp;/g,'&').replace(/&#39;|&apos;/g,"'").replace(/\s*\/{1,2}\s*/g,' // ').trim(), tgt=/Sideboard="true"/i.test(a) ? side : main; tgt.set(name, (tgt.get(name)||0) + (+q)); }
+    return { main:[...main], side:[...side], art, skip }; }
+  const heads = text.split(/\r?\n/).some(l=>DK_HEAD.test(l.trim().toLowerCase().replace(/^\/\/\s*/,'').replace(/^\d+\s+/,'').replace(/\(\d+\)|\[\d+\]|[:]/g,'').trim()));   // headed lists use blank lines between sections, not before the sideboard
   for(let raw of text.split(/\r?\n/)){
     let line = raw.trim().replace(/^[*•-]\s*/,'');
-    if(!line){ if(seenCard && sec==='main' && /\n\s*\n/.test(text.replace(/\r/g,'')) && !/^\s*(sideboard|deck|main)/im.test(text)) sec='side'; continue; }
-    const low = line.toLowerCase().replace(/[:#/]/g,'').trim();
+    if(!line){ if(seenCard && sec==='main' && !heads && /\n\s*\n/.test(text.replace(/\r/g,'')) && !/^\s*(sideboard|deck|main)/im.test(text)) sec='side'; continue; }
+    const low = line.toLowerCase().replace(/^\/\/\s*/,'').replace(/\(\d+\)|\[\d+\]/g,'').replace(/[:#/]/g,'').trim();
     if(/^(deck|main|mainboard|maindeck|main deck)$/.test(low)){ sec='main'; continue; }
-    if(/^(sideboard|side|sb)$/.test(low)){ sec='side'; continue; }
+    if(/^(sideboard|side|sb|side board)$/.test(low)){ sec='side'; continue; }
+    if(/^(maybeboard|maybe|considering|wishboard|tokens & extras)$/.test(low)){ sec='skip'; continue; }
     if(/^(companion|commander|about|name .*)$/.test(low)){ sec = low.startsWith('comp') ? 'skip' : sec; continue; }
-    let m = line.match(/^(?:sb:\s*)?(\d+)\s*x?\s+(.+)$/i); if(!m) m = [0,'1',line];
+    if(/^\/\//.test(line) || /^#/.test(line)){ continue; }   // comments in .dec files and our own deck files
+    let m = line.match(/^(?:sb:\s*)?(\d+)\s*x?\s+(.+)$/i);
+    if(!m){ if(DK_HEAD.test(low) || /https?:|www\.|\$\s*\d|^total\b|^price\b|:$|^\d+\s*cards?$/i.test(line) || !/[a-z]/i.test(line)){ skip.push(raw.trim()); continue; } m = [0,'1',line]; }
+    if(DK_HEAD.test(m[2].toLowerCase().replace(/\(\d+\)|[:]/g,'').trim())){ skip.push(raw.trim()); continue; }   // "16 Creatures", "60 cards"
     if(/^sb:/i.test(line)) sec='side';
-    let name = m[2].replace(/\s+\([A-Z0-9]{2,6}\)\s*[\w★-]*\s*$/,'').replace(/\s+\[[^\]]*\]\s*$/,'').replace(/\s*\/{1,2}\s*/g, ' // ').trim();
+    let name = m[2].replace(/\s+\*[A-Z]+\*\s*$/i,'').replace(/\s+\([A-Z0-9]{2,6}\)\s*[\w★-]*\s*$/,'').replace(/\s+\[[^\]]*\]\s*$/,'').replace(/\s+\*[A-Z]+\*\s*$/i,'').replace(/\s*\/{1,2}\s*/g, ' // ').trim();
     if(!name || sec==='skip'){ continue; }
     const am = m[2].match(/\[id:([0-9a-f-]{36})\]\s*$/i); if(am) art[keyOf(name)] = 'id:'+am[1].toLowerCase();   // exact printing, as saved by the Draft Table
     seenCard = true;
     const tgt = sec==='side' ? side : main; tgt.set(name, (tgt.get(name)||0) + (+m[1]));
   }
-  return { main:[...main], side:[...side], art };
+  return { main:[...main], side:[...side], art, skip };
 }
 const deckCount = l => l.reduce((a,[,c]) => a+c, 0);
 const deckText = d => d.main.map(([n,c])=>c+' '+n).join('\n') + (d.side.length ? '\n\nSideboard\n'+d.side.map(([n,c])=>c+' '+n).join('\n') : '');

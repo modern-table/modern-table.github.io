@@ -995,6 +995,92 @@ html.mob #stackwrap:not(:has(#stack .card)){flex:none}
 html.mob #stackwrap:not(:has(#stack .card)) #stack{display:none}
 html.mob #stackwrap:not(:has(#stack .card)) h4::after{content:" · empty"; font-weight:400; opacity:.7}
 html.mob #stackwrap:has(#stack .card){flex:1 1 0}
+
+/* ---------- the deck screen (m0.15) ---------- */
+#mDeck{display:none}
+html.mob #decks .deckwrap{display:none!important}
+html.mob #mDeck{display:grid; flex:1; min-height:0; grid-template-columns:minmax(220px, 32%) 1fr; font-family:var(--ui)}
+html.mob #mDeck button{border-radius:3px}
+html.mob .mdl{display:flex; flex-direction:column; min-height:0; border-right:1px solid var(--line); background:#0f1f23; padding:6px 6px 0}
+html.mob .mdseg{display:flex; flex:none}
+html.mob .mdseg button{flex:1; padding:7px 4px; font:700 12.5px var(--ui); color:var(--dim); background:#0c181b; border:1px solid var(--line); border-radius:0!important; white-space:nowrap}
+html.mob .mdseg button + button{border-left:0}
+html.mob .mdseg button.on{color:#1b1205; background:var(--brass); border-color:var(--brass)}
+html.mob .mdseg button i{font-style:normal; opacity:.75; font-weight:600}
+html.mob .mdseg.sm button{flex:none; padding:5px 9px; font-size:12px}
+html.mob .mdfilt{margin:6px 0 2px; padding:6px 8px; font-size:13px; width:100%}
+html.mob .mdrows{flex:1; min-height:0; overflow-y:auto; margin:4px -6px 0; padding:0 6px; overscroll-behavior:contain}
+html.mob .drow.mdr{display:flex; flex-direction:column; gap:1px; align-items:stretch; width:100%; padding:7px 8px; border:0; border-bottom:1px solid #ffffff10; border-left:3px solid transparent; border-radius:0!important; background:none; text-align:left}
+html.mob .drow.mdr b{font:700 17px/1.2 var(--ui); color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+html.mob .drow.mdr small{font-size:11.5px; color:var(--dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+html.mob .drow.mdr.on{background:#d9b25f1f; border-left-color:var(--brass)}
+html.mob .drow.mdr.on b{color:var(--brass)}
+html.mob .mdpaste{flex:none; margin:6px -6px 0; padding:10px; border:0; border-top:1px solid var(--line); border-radius:0!important; background:#0c181b; color:var(--brass); font:700 14px var(--ui); text-align:left}
+html.mob .mdpaste.on{background:#d9b25f26}
+html.mob .mdhint{color:var(--dim); font-size:13px; padding:8px 4px}
+html.mob .mdv{display:flex; flex-direction:column; min-width:0; min-height:0; padding:6px 10px 0}
+html.mob .mdempty{padding:12px 8px; color:var(--dim); font-size:14px; line-height:1.45}
+html.mob .mdempty h3{font:400 24px var(--display); color:var(--ink); margin:0 0 6px}
+html.mob .mdempty b{color:var(--ink)}
+html.mob .mdhd{display:flex; gap:10px; align-items:flex-start; justify-content:space-between; flex:none}
+html.mob .mdti{min-width:0; display:flex; flex-direction:column}
+html.mob .mdti h3{font:400 21px/1.15 var(--display); margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+html.mob .mdsub{font-size:11.5px; color:var(--dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+html.mob .mdcnt{font-size:12.5px; color:var(--ink)}
+html.mob .mdcnt.bad{color:#ffb26b}
+html.mob .mdbt{display:flex; gap:6px; align-items:center; flex:none; flex-wrap:wrap; justify-content:flex-end}
+html.mob .mdbt button{padding:8px 12px; font-size:13.5px}
+html.mob .mdmsg{flex-basis:100%; text-align:right; font-size:11.5px; color:var(--dim)}
+html.mob .mdmsg:empty{display:none}
+html.mob .mdnote{flex:none; margin:5px 0 0; padding:5px 8px; border-left:3px solid var(--brass); background:#d9b25f14; font-size:12.5px; color:var(--dim)}
+html.mob .mdnote b{color:var(--ink)}
+html.mob .mdbar{display:flex; gap:8px; align-items:center; flex:none; margin:6px 0 4px; flex-wrap:wrap}
+html.mob .mdtip{font-size:11.5px; color:var(--dim); margin-left:auto}
+html.mob .mdbody{flex:1; min-height:0; overflow:auto; padding:4px 9px 10px 2px; overscroll-behavior:contain; -webkit-overflow-scrolling:touch}
+html.mob .mdpics{display:grid; grid-template-columns:repeat(auto-fill, minmax(74px, 1fr)); gap:9px 7px}
+html.mob .mdpic{position:relative; display:block; width:100%; padding:0; border:0; background:none}
+html.mob .mdim{position:relative; display:block; aspect-ratio:488/680; border-radius:5%/3.6%; overflow:hidden; background:#243b40; box-shadow:0 2px 6px #0008}
+html.mob .mdim img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1}
+html.mob .mdtx{position:absolute; inset:0; padding:6px 5px; display:flex; flex-direction:column; gap:3px; text-align:left; font-size:10px; line-height:1.15; color:var(--ink)}
+html.mob .mdtx b{font-size:10.5px}
+html.mob .mdtx i{color:var(--dim)}
+html.mob .mdim .unlr{z-index:2}
+html.mob .mdn{position:absolute; right:-5px; bottom:-5px; z-index:3; min-width:24px; height:24px; padding:0 5px; display:grid; place-items:center; border-radius:50%; background:#000; color:#fff; font:800 13px var(--ui); box-shadow:0 0 0 2px #ffffff30, 0 2px 4px #000}
+html.mob .mdcols{display:flex; gap:9px; align-items:flex-start; width:max-content}
+html.mob .mdcol{width:76px; flex:none; display:flex; flex-direction:column}
+html.mob .mdch{font:700 11.5px var(--ui); color:var(--dim); text-align:center; margin-bottom:3px}
+html.mob .mdch i{font-style:normal; color:var(--brass)}
+html.mob .mdpic.st + .mdpic.st{margin-top:-82px}
+html.mob .mdpic.st .mdn{top:3px; right:-5px; bottom:auto; width:20px; min-width:20px; height:20px; font-size:11.5px}
+html.mob .mdlist{columns:2; column-gap:18px}
+html.mob .mdlg{break-inside:avoid; margin-bottom:8px}
+html.mob .mdlg h5{margin:0 0 2px; font:700 11px var(--ui); letter-spacing:.08em; text-transform:uppercase; color:var(--dim)}
+html.mob .mdlg h5 i{font-style:normal; color:var(--brass)}
+html.mob .mdli{display:grid; grid-template-columns:22px 1fr auto; gap:4px; align-items:center; width:100%; padding:4px 2px; border:0; border-bottom:1px solid #ffffff0c; background:none; text-align:left; font-size:14px; color:var(--ink)}
+html.mob .mdli b{color:var(--brass); text-align:right; padding-right:3px}
+html.mob .mdli em{font-style:normal; white-space:nowrap}
+html.mob .mdaddw{position:relative; flex:none; margin-top:6px}
+html.mob #mdQ{width:100%; padding:8px 10px; font-size:15px}
+html.mob #mdSug{position:absolute; left:0; right:0; top:100%; z-index:30; display:flex; flex-direction:column; background:#0c181b; border:1px solid var(--brass); box-shadow:0 8px 20px #000a; max-height:46dvh; overflow-y:auto}
+html.mob #mdSug[hidden]{display:none}
+html.mob #mdSug button{border:0; border-bottom:1px solid var(--line); border-radius:0!important; background:none; text-align:left; padding:9px 12px; font-size:15px}
+html.mob .mdpaste2{display:flex; flex-direction:column; gap:6px; flex:1; min-height:0; padding-bottom:6px}
+html.mob .mdpaste2 .mdsub{white-space:normal}
+html.mob .mdpf{display:flex; gap:6px; flex:none}
+html.mob .mdpf input{flex:1; min-width:0; font-size:15px; padding:7px 9px}
+html.mob .mdpf button{padding:7px 10px; font-size:12.5px; white-space:nowrap}
+html.mob #mdPT{flex:1; min-height:70px; width:100%; resize:none; font:13.5px/1.35 ui-monospace,Menlo,Consolas,monospace}
+html.mob .mdpb{display:flex; gap:6px; align-items:center; flex:none}
+html.mob .mdpb .mdcnt{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+html.mob .mdskip{color:var(--dim)}
+html.mob .mdpb button{padding:8px 14px; font-size:14px}
+html.mob #mView.mdsheet{right:var(--sr)}
+html.mob #mView .mded{display:flex; flex-direction:column; gap:6px; margin:8px 0}
+html.mob #mView .mdrow{display:grid; grid-template-columns:1fr 44px 34px 44px; align-items:center; gap:6px; font-size:14px}
+html.mob #mView .mdrow button{height:40px; padding:0; font:800 22px var(--ui); border-radius:3px}
+html.mob #mView .mdrow b{text-align:center; font-size:18px}
+html.mob .mdpic.st .mdtx{padding-right:22px}
+html.mob .mdpic.st .mdtx b{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 </style>
 </head>
 <body>
@@ -1127,7 +1213,7 @@ html.mob #stackwrap:has(#stack .card){flex:1 1 0}
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.41';
+const VERSION = 'v5.42';
 /* Affiliation (v4.88, the maintainer): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -1143,6 +1229,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.42','Nov 25',"Pasting a deck list is more forgiving: headings copied from deck sites (like \"Creatures (16)\" or \"Sideboard (15)\"), Moxfield's foil marks, curly apostrophes and MTGO .dek files all read correctly, and lines that aren't cards are left out. On the phone table, the deck screen is rebuilt for phones: this week's decks and your own side by side, card pictures with counts, quick edits, and a paste box that counts as you type and checks the card names."],
   ['v5.41','Nov 25',"Modern Table on your phone (beta): open modern-table.github.io on a phone and you get the phone table, made for holding your phone sideways. Phones and computers play each other at the same tables, with the same table codes. It's brand new, so please use Send feedback when something feels off. (Want the computer layout on a phone? The phone table's front page links to it.)"],
   ['v5.40','Nov 25',"The turn no longer moves on while something is on the stack. Ragavan's Treasure-and-exile trigger (or any spell or trigger) has to resolve first: Next and the phase bar wait, and the button reads Resolve the stack first. This holds in practice games and with Priority off too. A trigger that shouldn't be there can be taken off with its right-click menu."],
   ['v5.39','Nov 25',"Fixed: a blocked attacker stays blocked when its blocker leaves combat. If the blocker is sacrificed (Goblin Bombardment), killed or bounced before damage, the attacker deals no damage, unless it has trample, which sends it all to the player."],
@@ -1611,24 +1698,38 @@ const isLand = c => /\bLand\b/.test(faceType(c)), isCreature = c => ((/\bCreatur
 const isSpell = c => /\b(Instant|Sorcery)\b/.test(c.adv ? faceTypeOf(c,1) : faceType(c));
 
 /* ================= deck text ================= */
+/* v5.42 (the maintainer: pasting a list must be smooth, above all on the phone): headers copied from deck sites ("Creatures (16)", "Sideboard (15)",
+   "// Lands"), Moxfield's foil marks (*F*), Arena's set and number, smart quotes, "SB:" lines and MTGO's .dek XML are read; anything else that
+   isn't a card line is left out and listed in d.skip, so the paste box can say so. A line with no count is still read as one card. */
+const DK_HEAD = /^(?:creatures?|lands?|instants?|sorcer(?:y|ies)|artifacts?|enchantments?|planeswalkers?|battles?|spells?|other(?: spells)?|non-?creature(?: spells)?|tokens?|commander|companions?|cards?)$/;
 function parseDeck(text){
-  const main=new Map(), side=new Map(), art={}; let sec='main', seenCard=false;
+  const main=new Map(), side=new Map(), art={}, skip=[]; let sec='main', seenCard=false;
+  text = String(text||'').replace(/\u00a0/g,' ').replace(/[\u2018\u2019\u02bc]/g,"'").replace(/[\u201c\u201d]/g,'"');
+  if(/<Cards\s/i.test(text)){   // MTGO .dek
+    for(const m of text.matchAll(/<Cards\b([^>]*)>/gi)){ const a=m[1], q=(a.match(/Quantity="(\d+)"/i)||[])[1], nm=(a.match(/Name="([^"]+)"/i)||[])[1]; if(!q || !nm) continue;
+      const name=nm.replace(/&amp;/g,'&').replace(/&#39;|&apos;/g,"'").replace(/\s*\/{1,2}\s*/g,' // ').trim(), tgt=/Sideboard="true"/i.test(a) ? side : main; tgt.set(name, (tgt.get(name)||0) + (+q)); }
+    return { main:[...main], side:[...side], art, skip }; }
+  const heads = text.split(/\r?\n/).some(l=>DK_HEAD.test(l.trim().toLowerCase().replace(/^\/\/\s*/,'').replace(/^\d+\s+/,'').replace(/\(\d+\)|\[\d+\]|[:]/g,'').trim()));   // headed lists use blank lines between sections, not before the sideboard
   for(let raw of text.split(/\r?\n/)){
     let line = raw.trim().replace(/^[*•-]\s*/,'');
-    if(!line){ if(seenCard && sec==='main' && /\n\s*\n/.test(text.replace(/\r/g,'')) && !/^\s*(sideboard|deck|main)/im.test(text)) sec='side'; continue; }
-    const low = line.toLowerCase().replace(/[:#/]/g,'').trim();
+    if(!line){ if(seenCard && sec==='main' && !heads && /\n\s*\n/.test(text.replace(/\r/g,'')) && !/^\s*(sideboard|deck|main)/im.test(text)) sec='side'; continue; }
+    const low = line.toLowerCase().replace(/^\/\/\s*/,'').replace(/\(\d+\)|\[\d+\]/g,'').replace(/[:#/]/g,'').trim();
     if(/^(deck|main|mainboard|maindeck|main deck)$/.test(low)){ sec='main'; continue; }
-    if(/^(sideboard|side|sb)$/.test(low)){ sec='side'; continue; }
+    if(/^(sideboard|side|sb|side board)$/.test(low)){ sec='side'; continue; }
+    if(/^(maybeboard|maybe|considering|wishboard|tokens & extras)$/.test(low)){ sec='skip'; continue; }
     if(/^(companion|commander|about|name .*)$/.test(low)){ sec = low.startsWith('comp') ? 'skip' : sec; continue; }
-    let m = line.match(/^(?:sb:\s*)?(\d+)\s*x?\s+(.+)$/i); if(!m) m = [0,'1',line];
+    if(/^\/\//.test(line) || /^#/.test(line)){ continue; }   // comments in .dec files and our own deck files
+    let m = line.match(/^(?:sb:\s*)?(\d+)\s*x?\s+(.+)$/i);
+    if(!m){ if(DK_HEAD.test(low) || /https?:|www\.|\$\s*\d|^total\b|^price\b|:$|^\d+\s*cards?$/i.test(line) || !/[a-z]/i.test(line)){ skip.push(raw.trim()); continue; } m = [0,'1',line]; }
+    if(DK_HEAD.test(m[2].toLowerCase().replace(/\(\d+\)|[:]/g,'').trim())){ skip.push(raw.trim()); continue; }   // "16 Creatures", "60 cards"
     if(/^sb:/i.test(line)) sec='side';
-    let name = m[2].replace(/\s+\([A-Z0-9]{2,6}\)\s*[\w★-]*\s*$/,'').replace(/\s+\[[^\]]*\]\s*$/,'').replace(/\s*\/{1,2}\s*/g, ' // ').trim();
+    let name = m[2].replace(/\s+\*[A-Z]+\*\s*$/i,'').replace(/\s+\([A-Z0-9]{2,6}\)\s*[\w★-]*\s*$/,'').replace(/\s+\[[^\]]*\]\s*$/,'').replace(/\s+\*[A-Z]+\*\s*$/i,'').replace(/\s*\/{1,2}\s*/g, ' // ').trim();
     if(!name || sec==='skip'){ continue; }
     const am = m[2].match(/\[id:([0-9a-f-]{36})\]\s*$/i); if(am) art[keyOf(name)] = 'id:'+am[1].toLowerCase();   // exact printing, as saved by the Draft Table
     seenCard = true;
     const tgt = sec==='side' ? side : main; tgt.set(name, (tgt.get(name)||0) + (+m[1]));
   }
-  return { main:[...main], side:[...side], art };
+  return { main:[...main], side:[...side], art, skip };
 }
 const deckCount = l => l.reduce((a,[,c]) => a+c, 0);
 const deckText = d => d.main.map(([n,c])=>c+' '+n).join('\n') + (d.side.length ? '\n\nSideboard\n'+d.side.map(([n,c])=>c+' '+n).join('\n') : '');
@@ -9835,7 +9936,7 @@ window.__G = G;
    - choosing targets has a strip that says what to tap, legal targets outlined in orange, and a Done button (m0.5)
    - blocking is guided: tap a blocker, then the attacker it blocks; blockers group under their attackers (m0.6) */
 'use strict';
-const MVERSION = 'm0.14';
+const MVERSION = 'm0.15';
 const M = {look:false, view:null, lands:null, autoLands:false, tap:null, swallow:0, lastTouch:0, stN:0};
 const HT = document.documentElement;
 
@@ -10428,6 +10529,211 @@ function mReload(){ if(mOpen()){ try{ save(); }catch(e){} try{ sessionStorage.se
   document.addEventListener('click', e=>{ const b = e.target.closest && e.target.closest('[data-mnav]'); if(!b) return; e.preventDefault(); e.stopPropagation(); b.dataset.mnav === 'home' ? mHome() : mReload(); }, true);
   let r = null; try{ r = sessionStorage.getItem('mt_mresume'); sessionStorage.removeItem('mt_mresume'); }catch(e){}
   if(r){ const rb = $('#resumeBtn'); if(rb && !rb.hidden) setTimeout(()=>rb.click(), 0); } })();
+
+/* ---------- the deck screen (m0.15, the maintainer's design in claude/mobile-design.md: "Deck screen", the Design canvas prototype) ----------
+   The desktop's deck screen (tabs, land art, the editor) is hidden; #mDeck takes its place inside #decks. Left: This week's decks / My decks
+   (17 px bold names, finish, event and date under each), a filter, and Paste a deck list at the bottom. Right: the chosen deck (name, counts with
+   a warning under 60 or over 15 in the sideboard, Play this deck, Edit, Delete for my own), Main / Sideboard, and three views: Pictures (the
+   default), Columns, List. A tap on a card reads it; while editing, the same sheet has − / + for the main deck and the sideboard, and a bar adds
+   a card by name. Editing a weekly deck makes my copy, "<name> (edited)", in My decks at the first change; every change is saved at once (Undo
+   takes the last one back). Paste: a name, the list, a running count (and the lines left out), Paste from clipboard, Open a file, Add deck; once
+   added, the names are checked with Scryfall: a misspelling it recognizes is corrected in the saved list, one it doesn't is named.
+   renderTab and viewDeck (function declarations in the page) are reassigned, so the page's own paths (a table's deck change, Game Night's
+   newest deck, the saved list after a delete) all land here. Build from scratch and the land art are desktop only. */
+const MD = { src: store.get('mt_mdsrc', 'tour') === 'saved' ? 'saved' : 'tour', sel:null, part:'main', view: ['pics','cols','list'].includes(store.get('mt_mdview','pics')) ? store.get('mt_mdview','pics') : 'pics',
+  q:'', ed:null, paste:null, note:null, tok:0, sq:0, hits:[], tried:{} };
+const mdSaved = () => store.get('mt_decks', []);
+const mdK = (art, n) => (art && art[keyOf(n)]) || keyOf(n);
+const mdP = k => ({id:'s:'+k, k});
+function mdCur(){ const s = MD.sel; if(!s) return null;
+  if(MD.ed) return {d:{main:[...MD.ed.main].filter(x=>x[1]>0), side:[...MD.ed.side].filter(x=>x[1]>0), art:MD.ed.art}, name:MD.ed.name, sub:'Editing', mine:true};
+  if(s.kind === 'tour'){ const d = DECKS[s.i]; if(!d) return null; return {d:{main:d.main, side:d.side, art:{}}, name:d.arch, sub:`${d.place} · ${d.pilot} · ${d.ev}, ${mdShort(d.date)}`, link:deckLink(d)}; }
+  if(s.kind === 'saved'){ const sv = mdSaved()[s.i]; if(!sv) return null; const d = parseDeck(sv.text); return {d, name:sv.name, sub: isLimited(d) ? 'Draft deck' : 'My deck', mine:true}; }
+  return {d:s.d, name:s.name, sub:s.sub||''}; }
+const mdLine = (art, [n,c]) => `${c} ${n}${art && art[keyOf(n)] ? ' ['+art[keyOf(n)]+']' : ''}`;
+const mdText = d => d.main.map(x=>mdLine(d.art, x)).join('\n') + (d.side.length ? '\n\nSideboard\n'+d.side.map(x=>mdLine(d.art, x)).join('\n') : '');
+function mdCap(n, art){ if(Object.keys(art||{}).length || BASIC_RE.test(n)) return Infinity; const e = DB[keyOf(n)], o = (e && e.o) || '';
+  if(/A deck can have any number of cards named/i.test(o)) return Infinity; const m = o.match(/A deck can have up to (\w+) cards named/i); return m ? (NUMW2[m[1].toLowerCase()] || +m[1] || 4) : 4; }
+function mdShort(date){ const m = String(date||'').match(/^(\d{4})-(\d\d)-(\d\d)$/); return m ? ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m[2]-1]+' '+(+m[3]) : String(date||''); }
+
+(function(){ const dk = $('#decks'); if(!dk) return; const w = document.createElement('div'); w.id = 'mDeck'; dk.appendChild(w);
+  w.addEventListener('click', mdClick); w.addEventListener('input', mdInput);
+  const f = document.createElement('input'); f.type = 'file'; f.id = 'mdFile'; f.accept = '.txt,.dek,.dec,text/plain'; f.hidden = true; dk.appendChild(f);
+  f.onchange = async ()=>{ const x = f.files[0]; f.value = ''; if(!x) return; const t = await x.text(); if(!MD.paste) MD.paste = {}; MD.paste.text = t; if(!MD.paste.name) MD.paste.name = x.name.replace(/\.\w+$/, ''); mdPaint(); };
+  const v = $('#mView'); if(v) v.addEventListener('click', mdViewClick); })();
+renderTab = function(){ const tb = $('#tabBody'); if(tb) tb.innerHTML = ''; mdPaint(); };
+viewDeck = function(d, name, sub, link, canSave, savedIdx){ MD.paste = null; MD.ed = null;
+  if(savedIdx != null){ MD.src = 'saved'; MD.sel = {kind:'saved', i:savedIdx}; }
+  else { const i = DECKS.findIndex(x=>x.main === d.main); MD.sel = i >= 0 ? {kind:'tour', i} : {kind:'temp', d, name, sub}; if(i >= 0) MD.src = 'tour'; }
+  mdPaint(); };
+
+function mdRows(){ if(MD.src === 'tour'){ const q = MD.q.toLowerCase(); let s = '';
+    DECKS.forEach((d,i)=>{ if(q && !(d.arch+' '+d.pilot+' '+d.ev+' '+d.main.map(x=>x[0]).join(' ')).toLowerCase().includes(q)) return;
+      const on = !MD.paste && MD.sel && MD.sel.kind === 'tour' && MD.sel.i === i;
+      s += `<button class="drow mdr${on?' on':''}" data-md="t${i}"><b class="an">${esc(d.arch)}</b><small>${esc(d.place)} · ${esc(d.ev)} · ${esc(mdShort(d.date))}</small></button>`; });
+    return s || '<p class="mdhint">No decks match.</p>'; }
+  const sv = mdSaved(); if(!sv.length) return '<p class="mdhint">Decks you paste or edit show up here, on this phone only.</p>';
+  return sv.map((x,i)=>{ const d = parseDeck(x.text), on = !MD.paste && MD.sel && MD.sel.kind === 'saved' && MD.sel.i === i;
+    return `<button class="drow mdr${on?' on':''}" data-md="s${i}"><b class="an">${esc(x.name)}</b><small>${deckCount(d.main)} main · ${deckCount(d.side)} sideboard${isLimited(d)?' · draft':''}</small></button>`; }).join(''); }
+
+function mdPaint(){ const w = $('#mDeck'); if(!w) return; const tb = $('#tabBody'); if(tb && tb.innerHTML) tb.innerHTML = '';
+  const nS = mdSaved().length, act = document.activeElement, keepQ = act && act.id === 'mdQ', keepF = act && act.id === 'mdFilt';
+  const sc = (sel => { const x = w.querySelector(sel); return x ? x.scrollTop : 0; }), st0 = sc('.mdrows'), st1 = sc('.mdbody'), same = MD.lastSel === JSON.stringify([MD.src, MD.sel && MD.sel.kind, MD.sel && MD.sel.i, MD.part, MD.view]);
+  w.innerHTML = `<div class="mdl"><div class="mdseg"><button data-mds="tour" class="${MD.src==='tour'?'on':''}">This week's decks</button><button data-mds="saved" class="${MD.src==='saved'?'on':''}">My decks${nS?` <i>${nS}</i>`:''}</button></div>
+      ${MD.src==='tour' ? `<input id="mdFilt" class="mdfilt" placeholder="Filter: deck, player, event or card" value="${esc(MD.q)}" autocomplete="off" aria-label="Filter decks">` : ''}
+      <div class="mdrows">${mdRows()}</div><button class="mdpaste${MD.paste?' on':''}" data-mdp>+ Paste a deck list</button></div>
+    <div class="mdv">${MD.paste ? mdPasteHTML() : mdViewHTML()}</div>`;
+  if(keepF){ const f = $('#mdFilt'); if(f){ f.focus(); f.setSelectionRange(f.value.length, f.value.length); } }
+  if(keepQ){ const q = $('#mdQ'); if(q){ q.focus(); } }
+  const rw = w.querySelector('.mdrows'); if(rw) rw.scrollTop = st0; const bd = w.querySelector('.mdbody'); if(bd && same) bd.scrollTop = st1;
+  MD.lastSel = JSON.stringify([MD.src, MD.sel && MD.sel.kind, MD.sel && MD.sel.i, MD.part, MD.view]);
+  const on = w.querySelector('.mdr.on'); if(on && !MD.keepScroll) on.scrollIntoView({block:'nearest'}); MD.keepScroll = false;
+  if(MD.paste) mdCount(); else mdLoad(); }
+
+function mdViewHTML(){ const cur = mdCur();
+  if(!cur) return `<div class="mdempty"><h3>Pick a deck</h3><p>This week's decks are Modern tournament lists from the last two weeks. Tap one to see all 75 cards, then <b>Play this deck</b>.</p><p>Got your own list? <b>Paste a deck list</b> at the bottom left: any usual text format works, from MTGGoldfish, MTGTop8, Moxfield, Arena or MTGO.</p></div>`;
+  const d = cur.d, nm = deckCount(d.main), ns = deckCount(d.side), w = deckIssues(d), ed = MD.ed;
+  const note = MD.note && MD.sel && MD.note.i === MD.sel.i && MD.sel.kind === 'saved' ? `<div class="mdnote">${MD.note.html}</div>` : '';
+  return `<div class="mdhd"><div class="mdti"><h3>${esc(cur.name)}</h3><span class="mdsub">${esc(ed ? 'Editing: every change is saved to My decks' : cur.sub)}</span>
+      <span class="mdcnt${w.length?' bad':''}">${nm} main · ${ns} sideboard${w.length ? ' · '+esc(w.map(x=>/main/.test(x)?(isLimited(d)?'a draft deck needs 40':'needs 60'):'15 at most').join(', ')) : ''}</span></div>
+    <div class="mdbt">${ed ? `<button data-mde="undo"${ed.hist.length?'':' disabled'}>Undo</button><button class="go" data-mde="done">Done</button>`
+      : `<button class="go" id="mdPlay" data-mde="play">Play this deck</button><button data-mde="edit">Edit</button>${cur.mine && MD.sel.kind==='saved' ? '<button data-mde="del">Delete</button>' : ''}`}<span class="mdmsg" id="mdMsg"></span></div></div>${note}
+  ${ed ? `<div class="mdaddw"><input id="mdQ" placeholder="Add a card to the ${MD.part==='main'?'main deck':'sideboard'}: type its name" autocomplete="off" autocapitalize="words" aria-label="Add a card"><div id="mdSug" hidden></div></div>` : ''}
+  <div class="mdbar"><div class="mdseg sm"><button data-mdpt="main" class="${MD.part==='main'?'on':''}">Main <i>${nm}</i></button><button data-mdpt="side" class="${MD.part==='side'?'on':''}">Sideboard <i>${ns}</i></button></div>
+    <div class="mdseg sm"><button data-mdw="pics" class="${MD.view==='pics'?'on':''}">Pictures</button><button data-mdw="cols" class="${MD.view==='cols'?'on':''}">Columns</button><button data-mdw="list" class="${MD.view==='list'?'on':''}">List</button></div>
+    ${ed ? '<span class="mdtip">Tap a card for − / +</span>' : '<span class="mdtip">Tap a card to read it</span>'}</div>
+  <div class="mdbody" id="mdBody">${mdBodyHTML(d)}</div>`; }
+
+const mdOrd = c => isLand(c) ? 3 : isCreature(c) ? 0 : /\b(Instant|Sorcery)\b/.test(faceType(c)) ? 1 : 2;
+function mdItems(d){ const list = MD.part === 'main' ? d.main : d.side;
+  return list.filter(x=>x[1]>0).map(([n,c])=>({n, c, k:mdK(d.art, n)})).sort((a,b)=>{ const A = mdP(a.k), B = mdP(b.k);
+    return (isLand(A)?1:0)-(isLand(B)?1:0) || (isLand(A)?0:manaValue(A))-(isLand(B)?0:manaValue(B)) || a.n.localeCompare(b.n); }); }
+function mdTile(it, cls=''){ const e = DB[it.k], img = e && !e.tmp && e.img, ring = unlearned(mdP(it.k)) ? '<span class="unlr"></span>' : '';
+  return `<button class="mdpic${cls}" data-mk="${esc(it.k)}" data-mn="${esc(it.n)}"><span class="mdim">${img ? `<img src="${esc(img)}" alt="${esc(it.n)}" loading="lazy" draggable="false" onerror="this.remove()">` : ''}<span class="mdtx"><b>${esc(e && !e.tmp ? e.n : it.n)}</b><i>${esc((e && e.t) || '')}</i></span>${ring}</span><b class="mdn">${it.c}</b></button>`; }
+function mdBodyHTML(d){ const items = mdItems(d);
+  if(!items.length) return `<p class="mdhint">${MD.part==='side' ? 'No sideboard.' : 'No cards yet.'}${MD.ed ? ' Add one with the bar above.' : ''}</p>`;
+  if(MD.view === 'pics') return `<div class="mdpics">${items.map(it=>mdTile(it)).join('')}</div>`;
+  if(MD.view === 'cols'){ const cols = new Map(); for(const it of items){ const c = mdP(it.k), key = isLand(c) ? 'L' : Math.min(7, manaValue(c)); if(!cols.has(key)) cols.set(key, []); cols.get(key).push(it); }
+    const keys = [...cols.keys()].sort((a,b)=>(a==='L')-(b==='L') || a-b);
+    return `<div class="mdcols">${keys.map(k=>{ const l = cols.get(k); return `<div class="mdcol"><div class="mdch">${k==='L' ? 'Lands' : (k>=7 ? '7+' : k)+' mana'} · <i>${l.reduce((a,x)=>a+x.c,0)}</i></div>${l.map(it=>mdTile(it, ' st')).join('')}</div>`; }).join('')}</div>`; }
+  const groups = [['Creatures',0],['Instants and sorceries',1],['Other spells',2],['Lands',3]].map(([t,o])=>[t, items.filter(it=>mdOrd(mdP(it.k))===o)]).filter(g=>g[1].length);
+  return `<div class="mdlist">${groups.map(([t,l])=>`<div class="mdlg"><h5>${t} <i>${l.reduce((a,x)=>a+x.c,0)}</i></h5>${l.map(it=>{ const e = DB[it.k];
+    return `<button class="mdli" data-mk="${esc(it.k)}" data-mn="${esc(it.n)}"><b>${it.c}</b><span>${esc(e && !e.tmp ? e.n : it.n)}${unlearned(mdP(it.k)) ? ' <span class="unlr inl"></span>' : ''}</span><em>${e && e.mc ? mcHTML(e.mc) : ''}</em></button>`; }).join('')}</div>`).join('')}</div>`; }
+function mdBody(){ const b = $('#mdBody'), cur = mdCur(); if(b && cur){ const st = b.scrollTop; b.innerHTML = mdBodyHTML(cur.d); b.scrollTop = st; } }
+async function mdLoad(){ const cur = mdCur(); if(!cur) return; const my = ++MD.tok, ks = [...cur.d.main, ...cur.d.side].map(x=>mdK(cur.d.art, x[0]));
+  const now = Date.now(), want = ks.filter(k=>!(DB[k] && !DB[k].tmp) && !(MD.tried[k] > now - 120000));   // a name Scryfall didn't know is asked again after 2 minutes, not at every repaint
+  if(!want.length) return; want.forEach(k=>MD.tried[k] = now); const m = $('#mdMsg'); if(m) m.textContent = 'Loading card pictures…';
+  try{ await ensureCards(want); }catch(e){}
+  if(my !== MD.tok) return; const m2 = $('#mdMsg'); if(m2) m2.textContent = ks.some(k=>DB[k] && DB[k].tmp) && SCRY_DOWN ? 'Scryfall is not answering: cards show as text for now.' : ''; mdBody(); }
+
+/* editing */
+function mdEditStart(){ const cur = mdCur(); if(!cur || MD.ed) return;
+  MD.ed = {main:new Map(cur.d.main), side:new Map(cur.d.side), art:Object.assign({}, cur.d.art||{}), name: MD.sel.kind === 'saved' ? cur.name : cur.name+' (edited)', idx: MD.sel.kind === 'saved' ? MD.sel.i : null, hist:[]};
+  mdPaint(); }
+function mdSnap(){ return {main:new Map(MD.ed.main), side:new Map(MD.ed.side)}; }
+function mdStore(){ const e = MD.ed; if(!e) return; const d = {main:[...e.main].filter(x=>x[1]>0), side:[...e.side].filter(x=>x[1]>0), art:e.art}, text = mdText(d), sv = mdSaved();
+  if(e.idx == null || !sv[e.idx]){ sv.unshift({name:e.name, text}); e.idx = 0; toast(`Saved to My decks as “${e.name}”.`); } else sv[e.idx] = {name:e.name, text};
+  store.set('mt_decks', sv); MD.src = 'saved'; store.set('mt_mdsrc', 'saved'); MD.sel = {kind:'saved', i:e.idx}; }
+function mdChange(n, part, by){ const e = MD.ed; if(!e) return false; const m = part === 'main' ? e.main : e.side, have = m.get(n)||0, tot = (e.main.get(n)||0)+(e.side.get(n)||0);
+  if(by < 0 && !have) return false;
+  if(by > 0 && tot >= mdCap(n, e.art)){ toast(`${n}: ${mdCap(n, e.art)} copies at most across the main deck and sideboard.`); return false; }
+  e.hist.push(mdSnap()); if(e.hist.length > 60) e.hist.shift();
+  const v = have + by; if(v > 0) m.set(n, v); else m.delete(n);
+  mdStore(); return true; }
+function mdUndo(){ const e = MD.ed; if(!e || !e.hist.length) return; const h = e.hist.pop(); e.main = h.main; e.side = h.side; mdStore(); mdPaint(); }
+
+/* the card sheet: read it, or − / + while editing */
+function mdCard(k, n){ const v = $('#mView'); if(!v) return; closeMenu(); const c = mdP(k), d = cdata(c), e = MD.ed;
+  M.view = {id:null, deck:1}; v.classList.add('mdsheet');
+  const row = (part, lbl)=>{ const m = part === 'main' ? e.main : e.side, x = m.get(n)||0;
+    return `<div class="mdrow"><span>${lbl}</span><button data-mdv="${part}-" aria-label="One fewer"${x?'':' disabled'}>−</button><b>${x}</b><button data-mdv="${part}+" aria-label="One more">+</button></div>`; };
+  const cap = e ? mdCap(n, e.art) : 4;
+  const img = DB[k] && !DB[k].tmp && DB[k].img;
+  v.innerHTML = `<div class="mpic"><div class="txt"><b>${esc(d.n || n)}</b><span>${esc(d.mc||'')}</span><i>${esc(d.t||'')}</i><span>${esc(d.o||'')}</span></div>${img ? `<img src="${esc(img)}" alt="${esc(d.n||n)}" draggable="false" onerror="this.remove()" style="position:relative;z-index:1">` : ''}</div>` + `<div class="mside"><button class="ghost mx" data-mdv="x">Close</button><h3>${esc(d.n || n)}</h3>
+    <div class="mty">${esc([d.mc, d.t, d.pt, d.loy ? 'loyalty '+d.loy : ''].filter(Boolean).join(' · '))}</div>
+    ${e ? `<div class="mded" data-mdn="${esc(n)}">${row('main','Main deck')}${row('side','Sideboard')}<div class="mhint">${cap===Infinity ? 'Any number of copies.' : `Up to ${cap} copies across both.`}</div></div>` : ''}
+    <div class="mox">${esc(d.o || (DB[k] && DB[k].tmp ? 'The table hasn’t found this card on Scryfall yet: check its spelling.' : ''))}</div></div>`;
+  v.hidden = false; }
+function mdViewClick(e){ if(!M.view || !M.view.deck) return; const b = e.target.closest('[data-mdv]'); if(!b) return; e.stopPropagation();
+  const k = b.dataset.mdv; if(k === 'x'){ closeView(); $('#mView').classList.remove('mdsheet'); return; }
+  const box = b.closest('[data-mdn]'), n = box && box.dataset.mdn; if(!n) return;
+  const [part, op] = [k.slice(0,-1), k.slice(-1)];
+  if(mdChange(n, part, op === '+' ? 1 : -1)){ const kk = mdK(MD.ed.art, n); mdPaint(); mdCard(kk, n); } }
+const mdCloseView0 = closeView;
+closeView = function(){ const v = $('#mView'); if(v) v.classList.remove('mdsheet'); mdCloseView0(); };
+
+/* adding a card by name */
+async function mdSearch(q){ const my = ++MD.sq; let names = [];
+  try{ const r = await sfetch('https://api.scryfall.com/cards/autocomplete?q='+encodeURIComponent(q)); if(r.ok){ const j = await r.json(); names = (j.data||[]).filter(Boolean); } }catch(e){}
+  if(my !== MD.sq) return;
+  if(!names.length){ const pq = plainName(q); names = [...new Set(Object.values(DB).filter(e=>e && !e.tmp && e.n && !/\bToken\b/.test(e.t||'') && plainName(e.n).includes(pq)).map(e=>e.n))]
+    .sort((a,b)=>(plainName(a).startsWith(pq)?0:1)-(plainName(b).startsWith(pq)?0:1) || a.localeCompare(b)); }
+  MD.hits = names.slice(0, 6); mdSug(); }
+function mdSug(){ const el = $('#mdSug'), q = $('#mdQ'); if(!el || !q) return; const show = q.value.trim().length >= 2; el.hidden = !show; if(!show) return;
+  el.innerHTML = MD.hits.length ? MD.hits.map(n=>`<button data-mda="${esc(n)}">${esc(n)}</button>`).join('') : '<span class="mdhint">Looking…</span>'; }
+async function mdAdd(n){ if(!MD.ed) return; const q = $('#mdQ'); if(q){ q.value = ''; q.blur(); } MD.hits = [];
+  try{ await ensureCards([n]); }catch(e){}
+  if(mdChange(n, MD.part, 1)){ mdPaint(); mdCard(mdK(MD.ed.art, n), n); } else mdPaint(); }
+
+/* pasting */
+function mdPasteHTML(){ const p = MD.paste;
+  return `<div class="mdpaste2"><div class="mdhd"><div class="mdti"><h3>Paste a deck list</h3><span class="mdsub">One card per line, like <b>4 Lightning Bolt</b>, then a line that says <b>Sideboard</b>. Lists from MTGGoldfish, MTGTop8, Moxfield, Arena and MTGO all work.</span></div></div>
+    <div class="mdpf"><input id="mdPN" placeholder="Deck name" value="${esc(p.name||'')}" autocomplete="off" autocapitalize="words" aria-label="Deck name"><button data-mdpb="clip">Paste from clipboard</button><button data-mdpb="file">Open a file</button></div>
+    <textarea id="mdPT" placeholder="4 Ragavan, Nimble Pilferer&#10;4 Lightning Bolt&#10;…&#10;&#10;Sideboard&#10;2 Blood Moon" aria-label="Deck list" autocapitalize="off" autocorrect="off" spellcheck="false">${esc(p.text||'')}</textarea>
+    <div class="mdpb"><span id="mdPC" class="mdcnt"></span><button data-mdpb="x">Cancel</button><button class="go" data-mdpb="add" id="mdPAdd">Add deck</button></div></div>`; }
+function mdCount(){ const el = $('#mdPC'), t = $('#mdPT'); if(!el || !t) return; MD.paste.text = t.value; const d = parseDeck(t.value), nm = deckCount(d.main), ns = deckCount(d.side), w = deckIssues(d);
+  const add = $('#mdPAdd'); if(add) add.disabled = !nm;
+  el.className = 'mdcnt' + (nm && w.length ? ' bad' : '');
+  el.innerHTML = !t.value.trim() ? 'Paste or type the list.' : !nm ? 'No card lines found yet.'
+    : `${nm} main · ${ns} sideboard${w.length ? ' · '+esc(w.map(x=>/main/.test(x)?'a deck needs 60':'15 at most in the sideboard').join(', ')) : ' ✓'}${d.skip.length ? ` <span class="mdskip" title="${esc(d.skip.join('\n'))}">· left out ${d.skip.length} line${d.skip.length>1?'s':''}: ${esc(d.skip.slice(0,2).join(', '))}${d.skip.length>2?', …':''}</span>` : ''}`; }
+async function mdPasteAdd(){ const t = $('#mdPT'), nmEl = $('#mdPN'); if(!t) return; const d = parseDeck(t.value); if(!d.main.length){ toast('No card lines found in that text.'); return; }
+  const name = (nmEl && nmEl.value.trim()) || 'My deck', sv = mdSaved(); sv.unshift({name, text:mdText(d)}); store.set('mt_decks', sv);
+  MD.paste = null; MD.ed = null; MD.src = 'saved'; store.set('mt_mdsrc', 'saved'); MD.sel = {kind:'saved', i:0}; MD.part = 'main';
+  MD.note = {i:0, html:'Checking the card names…'}; mdPaint(); mdCheck(name); }
+async function mdCheck(name){ const sv0 = mdSaved(), i = sv0.findIndex(x=>x.name === name); if(i < 0) return; const d = parseDeck(sv0[i].text), names = [...d.main, ...d.side].map(x=>x[0]);
+  const now = Date.now(); names.forEach(n=>MD.tried[mdK(d.art, n)] = now);
+  try{ await ensureCards(names.map(n=>mdK(d.art, n))); }catch(e){}
+  const fix = [], miss = []; let down = false;
+  for(const n of new Set(names)){ const e = DB[mdK(d.art, n)]; if(!e || e.tmp){ if(SCRY_DOWN) down = true; else miss.push(n); continue; }
+    if(!d.art[keyOf(n)] && plainName(e.n.split(' // ')[0]) !== plainName(n.split(' // ')[0]) && plainName(e.n) !== plainName(n)) fix.push([n, e.n]); }
+  const sv = mdSaved(), j = sv.findIndex(x=>x.name === name); if(j < 0) return;
+  if(fix.length){ const ren = new Map(fix), mv = l => { const m = new Map(); for(const [n,c] of l){ const t = ren.get(n) || n; m.set(t, (m.get(t)||0)+c); } return [...m]; };
+    const d2 = {main:mv(d.main), side:mv(d.side), art:d.art}; sv[j] = {name, text:mdText(d2)}; store.set('mt_decks', sv);
+    for(const [a,b] of fix){ const e = DB[keyOf(a)]; if(e && !DB[keyOf(b)]) DB[keyOf(b)] = e; } }
+  const bits = [];
+  if(fix.length) bits.push(`Corrected the spelling: ${fix.map(([a,b])=>`${esc(a)} → <b>${esc(b)}</b>`).join(', ')}.`);
+  if(miss.length) bits.push(`Not found on Scryfall: <b>${miss.map(esc).join('</b>, <b>')}</b>. Check the spelling with <b>Edit</b>; until then ${miss.length>1?'they play':'it plays'} as text, by hand.`);
+  if(down) bits.push('Scryfall is not answering, so the names could not be checked yet: cards show as text until it answers.');
+  if(!bits.length) bits.push('All card names found ✓');
+  MD.note = {i:j, html:bits.join(' ')}; if(MD.sel && MD.sel.kind === 'saved' && MD.sel.i === j && !MD.ed && !MD.paste) mdPaint(); }
+async function mdClip(){ try{ const t = await navigator.clipboard.readText(); if(!t || !t.trim()){ toast('The clipboard is empty.'); return; }
+    if(!MD.paste) MD.paste = {}; const nm = $('#mdPN'); MD.paste.name = nm ? nm.value : MD.paste.name; MD.paste.text = t; mdPaint(); }
+  catch(e){ toast('This browser won’t share the clipboard: tap and hold in the box, then Paste.'); const t = $('#mdPT'); if(t) t.focus(); } }
+
+function mdClick(e){ const t = e.target, q = s => t.closest(s);
+  let b;
+  if((b = q('[data-mds]'))){ MD.src = b.dataset.mds; store.set('mt_mdsrc', MD.src); mdPaint(); return; }
+  if((b = q('[data-md]'))){ const k = b.dataset.md, i = +k.slice(1); if(MD.ed && !(k[0]==='s' && MD.ed.idx===i)) MD.ed = null; MD.paste = null; MD.part = 'main';
+    MD.sel = {kind: k[0] === 't' ? 'tour' : 'saved', i}; MD.keepScroll = true; mdPaint(); return; }
+  if(q('[data-mdp]')){ if(!MD.paste){ MD.paste = {}; MD.ed = null; } mdPaint(); const ta = $('#mdPT'); if(ta && !ta.value) ta.focus(); return; }
+  if((b = q('[data-mdpb]'))){ const k = b.dataset.mdpb; if(k === 'x'){ MD.paste = null; mdPaint(); } else if(k === 'add') mdPasteAdd(); else if(k === 'clip') mdClip(); else if(k === 'file') $('#mdFile').click(); return; }
+  if((b = q('[data-mdpt]'))){ MD.part = b.dataset.mdpt; mdPaint(); return; }
+  if((b = q('[data-mdw]'))){ MD.view = b.dataset.mdw; store.set('mt_mdview', MD.view); mdPaint(); return; }
+  if((b = q('[data-mda]'))){ mdAdd(b.dataset.mda); return; }
+  if((b = q('[data-mk]'))){ mdCard(b.dataset.mk, b.dataset.mn); return; }
+  if((b = q('[data-mde]'))){ const k = b.dataset.mde, cur = mdCur(); if(!cur) return;
+    if(k === 'play') playDeck(cur.d, cur.name, b, $('#mdMsg'), mdEditStart);
+    else if(k === 'edit') mdEditStart();
+    else if(k === 'undo') mdUndo();
+    else if(k === 'done'){ MD.ed = null; mdPaint(); }
+    else if(k === 'del'){ const i = MD.sel.i; confirmBox(`Delete “${cur.name}”?`, 'It is removed from My decks on this phone.', ()=>{ closeModal(); const sv = mdSaved(); sv.splice(i, 1); store.set('mt_decks', sv); MD.sel = null; MD.note = null; mdPaint(); }); }
+    return; } }
+let mdSearchT = null;
+function mdInput(e){ const t = e.target;
+  if(t.id === 'mdFilt'){ MD.q = t.value; const r = $('#mDeck .mdrows'); if(r) r.innerHTML = mdRows(); return; }
+  if(t.id === 'mdPT'){ mdCount(); return; }
+  if(t.id === 'mdPN'){ if(MD.paste) MD.paste.name = t.value; return; }
+  if(t.id === 'mdQ'){ clearTimeout(mdSearchT); const v = t.value.trim(); MD.hits = []; mdSug(); if(v.length >= 2) mdSearchT = setTimeout(()=>mdSearch(v), 300); } }
 </script>
 </body>
 </html>

@@ -318,3 +318,89 @@ html.mob #stackwrap:not(:has(#stack .card)){flex:none}
 html.mob #stackwrap:not(:has(#stack .card)) #stack{display:none}
 html.mob #stackwrap:not(:has(#stack .card)) h4::after{content:" · empty"; font-weight:400; opacity:.7}
 html.mob #stackwrap:has(#stack .card){flex:1 1 0}
+
+/* ---------- the deck screen (m0.15) ---------- */
+#mDeck{display:none}
+html.mob #decks .deckwrap{display:none!important}
+html.mob #mDeck{display:grid; flex:1; min-height:0; grid-template-columns:minmax(220px, 32%) 1fr; font-family:var(--ui)}
+html.mob #mDeck button{border-radius:3px}
+html.mob .mdl{display:flex; flex-direction:column; min-height:0; border-right:1px solid var(--line); background:#0f1f23; padding:6px 6px 0}
+html.mob .mdseg{display:flex; flex:none}
+html.mob .mdseg button{flex:1; padding:7px 4px; font:700 12.5px var(--ui); color:var(--dim); background:#0c181b; border:1px solid var(--line); border-radius:0!important; white-space:nowrap}
+html.mob .mdseg button + button{border-left:0}
+html.mob .mdseg button.on{color:#1b1205; background:var(--brass); border-color:var(--brass)}
+html.mob .mdseg button i{font-style:normal; opacity:.75; font-weight:600}
+html.mob .mdseg.sm button{flex:none; padding:5px 9px; font-size:12px}
+html.mob .mdfilt{margin:6px 0 2px; padding:6px 8px; font-size:13px; width:100%}
+html.mob .mdrows{flex:1; min-height:0; overflow-y:auto; margin:4px -6px 0; padding:0 6px; overscroll-behavior:contain}
+html.mob .drow.mdr{display:flex; flex-direction:column; gap:1px; align-items:stretch; width:100%; padding:7px 8px; border:0; border-bottom:1px solid #ffffff10; border-left:3px solid transparent; border-radius:0!important; background:none; text-align:left}
+html.mob .drow.mdr b{font:700 17px/1.2 var(--ui); color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+html.mob .drow.mdr small{font-size:11.5px; color:var(--dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+html.mob .drow.mdr.on{background:#d9b25f1f; border-left-color:var(--brass)}
+html.mob .drow.mdr.on b{color:var(--brass)}
+html.mob .mdpaste{flex:none; margin:6px -6px 0; padding:10px; border:0; border-top:1px solid var(--line); border-radius:0!important; background:#0c181b; color:var(--brass); font:700 14px var(--ui); text-align:left}
+html.mob .mdpaste.on{background:#d9b25f26}
+html.mob .mdhint{color:var(--dim); font-size:13px; padding:8px 4px}
+html.mob .mdv{display:flex; flex-direction:column; min-width:0; min-height:0; padding:6px 10px 0}
+html.mob .mdempty{padding:12px 8px; color:var(--dim); font-size:14px; line-height:1.45}
+html.mob .mdempty h3{font:400 24px var(--display); color:var(--ink); margin:0 0 6px}
+html.mob .mdempty b{color:var(--ink)}
+html.mob .mdhd{display:flex; gap:10px; align-items:flex-start; justify-content:space-between; flex:none}
+html.mob .mdti{min-width:0; display:flex; flex-direction:column}
+html.mob .mdti h3{font:400 21px/1.15 var(--display); margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+html.mob .mdsub{font-size:11.5px; color:var(--dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+html.mob .mdcnt{font-size:12.5px; color:var(--ink)}
+html.mob .mdcnt.bad{color:#ffb26b}
+html.mob .mdbt{display:flex; gap:6px; align-items:center; flex:none; flex-wrap:wrap; justify-content:flex-end}
+html.mob .mdbt button{padding:8px 12px; font-size:13.5px}
+html.mob .mdmsg{flex-basis:100%; text-align:right; font-size:11.5px; color:var(--dim)}
+html.mob .mdmsg:empty{display:none}
+html.mob .mdnote{flex:none; margin:5px 0 0; padding:5px 8px; border-left:3px solid var(--brass); background:#d9b25f14; font-size:12.5px; color:var(--dim)}
+html.mob .mdnote b{color:var(--ink)}
+html.mob .mdbar{display:flex; gap:8px; align-items:center; flex:none; margin:6px 0 4px; flex-wrap:wrap}
+html.mob .mdtip{font-size:11.5px; color:var(--dim); margin-left:auto}
+html.mob .mdbody{flex:1; min-height:0; overflow:auto; padding:4px 9px 10px 2px; overscroll-behavior:contain; -webkit-overflow-scrolling:touch}
+html.mob .mdpics{display:grid; grid-template-columns:repeat(auto-fill, minmax(74px, 1fr)); gap:9px 7px}
+html.mob .mdpic{position:relative; display:block; width:100%; padding:0; border:0; background:none}
+html.mob .mdim{position:relative; display:block; aspect-ratio:488/680; border-radius:5%/3.6%; overflow:hidden; background:#243b40; box-shadow:0 2px 6px #0008}
+html.mob .mdim img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1}
+html.mob .mdtx{position:absolute; inset:0; padding:6px 5px; display:flex; flex-direction:column; gap:3px; text-align:left; font-size:10px; line-height:1.15; color:var(--ink)}
+html.mob .mdtx b{font-size:10.5px}
+html.mob .mdtx i{color:var(--dim)}
+html.mob .mdim .unlr{z-index:2}
+html.mob .mdn{position:absolute; right:-5px; bottom:-5px; z-index:3; min-width:24px; height:24px; padding:0 5px; display:grid; place-items:center; border-radius:50%; background:#000; color:#fff; font:800 13px var(--ui); box-shadow:0 0 0 2px #ffffff30, 0 2px 4px #000}
+html.mob .mdcols{display:flex; gap:9px; align-items:flex-start; width:max-content}
+html.mob .mdcol{width:76px; flex:none; display:flex; flex-direction:column}
+html.mob .mdch{font:700 11.5px var(--ui); color:var(--dim); text-align:center; margin-bottom:3px}
+html.mob .mdch i{font-style:normal; color:var(--brass)}
+html.mob .mdpic.st + .mdpic.st{margin-top:-82px}
+html.mob .mdpic.st .mdn{top:3px; right:-5px; bottom:auto; width:20px; min-width:20px; height:20px; font-size:11.5px}
+html.mob .mdlist{columns:2; column-gap:18px}
+html.mob .mdlg{break-inside:avoid; margin-bottom:8px}
+html.mob .mdlg h5{margin:0 0 2px; font:700 11px var(--ui); letter-spacing:.08em; text-transform:uppercase; color:var(--dim)}
+html.mob .mdlg h5 i{font-style:normal; color:var(--brass)}
+html.mob .mdli{display:grid; grid-template-columns:22px 1fr auto; gap:4px; align-items:center; width:100%; padding:4px 2px; border:0; border-bottom:1px solid #ffffff0c; background:none; text-align:left; font-size:14px; color:var(--ink)}
+html.mob .mdli b{color:var(--brass); text-align:right; padding-right:3px}
+html.mob .mdli em{font-style:normal; white-space:nowrap}
+html.mob .mdaddw{position:relative; flex:none; margin-top:6px}
+html.mob #mdQ{width:100%; padding:8px 10px; font-size:15px}
+html.mob #mdSug{position:absolute; left:0; right:0; top:100%; z-index:30; display:flex; flex-direction:column; background:#0c181b; border:1px solid var(--brass); box-shadow:0 8px 20px #000a; max-height:46dvh; overflow-y:auto}
+html.mob #mdSug[hidden]{display:none}
+html.mob #mdSug button{border:0; border-bottom:1px solid var(--line); border-radius:0!important; background:none; text-align:left; padding:9px 12px; font-size:15px}
+html.mob .mdpaste2{display:flex; flex-direction:column; gap:6px; flex:1; min-height:0; padding-bottom:6px}
+html.mob .mdpaste2 .mdsub{white-space:normal}
+html.mob .mdpf{display:flex; gap:6px; flex:none}
+html.mob .mdpf input{flex:1; min-width:0; font-size:15px; padding:7px 9px}
+html.mob .mdpf button{padding:7px 10px; font-size:12.5px; white-space:nowrap}
+html.mob #mdPT{flex:1; min-height:70px; width:100%; resize:none; font:13.5px/1.35 ui-monospace,Menlo,Consolas,monospace}
+html.mob .mdpb{display:flex; gap:6px; align-items:center; flex:none}
+html.mob .mdpb .mdcnt{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+html.mob .mdskip{color:var(--dim)}
+html.mob .mdpb button{padding:8px 14px; font-size:14px}
+html.mob #mView.mdsheet{right:var(--sr)}
+html.mob #mView .mded{display:flex; flex-direction:column; gap:6px; margin:8px 0}
+html.mob #mView .mdrow{display:grid; grid-template-columns:1fr 44px 34px 44px; align-items:center; gap:6px; font-size:14px}
+html.mob #mView .mdrow button{height:40px; padding:0; font:800 22px var(--ui); border-radius:3px}
+html.mob #mView .mdrow b{text-align:center; font-size:18px}
+html.mob .mdpic.st .mdtx{padding-right:22px}
+html.mob .mdpic.st .mdtx b{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}

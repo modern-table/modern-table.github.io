@@ -7,7 +7,7 @@
    - choosing targets has a strip that says what to tap, legal targets outlined in orange, and a Done button (m0.5)
    - blocking is guided: tap a blocker, then the attacker it blocks; blockers group under their attackers (m0.6) */
 'use strict';
-const MVERSION = 'm0.14';
+const MVERSION = 'm0.15';
 const M = {look:false, view:null, lands:null, autoLands:false, tap:null, swallow:0, lastTouch:0, stN:0};
 const HT = document.documentElement;
 
@@ -600,3 +600,208 @@ function mReload(){ if(mOpen()){ try{ save(); }catch(e){} try{ sessionStorage.se
   document.addEventListener('click', e=>{ const b = e.target.closest && e.target.closest('[data-mnav]'); if(!b) return; e.preventDefault(); e.stopPropagation(); b.dataset.mnav === 'home' ? mHome() : mReload(); }, true);
   let r = null; try{ r = sessionStorage.getItem('mt_mresume'); sessionStorage.removeItem('mt_mresume'); }catch(e){}
   if(r){ const rb = $('#resumeBtn'); if(rb && !rb.hidden) setTimeout(()=>rb.click(), 0); } })();
+
+/* ---------- the deck screen (m0.15, the maintainer's design in claude/mobile-design.md: "Deck screen", the Design canvas prototype) ----------
+   The desktop's deck screen (tabs, land art, the editor) is hidden; #mDeck takes its place inside #decks. Left: This week's decks / My decks
+   (17 px bold names, finish, event and date under each), a filter, and Paste a deck list at the bottom. Right: the chosen deck (name, counts with
+   a warning under 60 or over 15 in the sideboard, Play this deck, Edit, Delete for my own), Main / Sideboard, and three views: Pictures (the
+   default), Columns, List. A tap on a card reads it; while editing, the same sheet has − / + for the main deck and the sideboard, and a bar adds
+   a card by name. Editing a weekly deck makes my copy, "<name> (edited)", in My decks at the first change; every change is saved at once (Undo
+   takes the last one back). Paste: a name, the list, a running count (and the lines left out), Paste from clipboard, Open a file, Add deck; once
+   added, the names are checked with Scryfall: a misspelling it recognizes is corrected in the saved list, one it doesn't is named.
+   renderTab and viewDeck (function declarations in the page) are reassigned, so the page's own paths (a table's deck change, Game Night's
+   newest deck, the saved list after a delete) all land here. Build from scratch and the land art are desktop only. */
+const MD = { src: store.get('mt_mdsrc', 'tour') === 'saved' ? 'saved' : 'tour', sel:null, part:'main', view: ['pics','cols','list'].includes(store.get('mt_mdview','pics')) ? store.get('mt_mdview','pics') : 'pics',
+  q:'', ed:null, paste:null, note:null, tok:0, sq:0, hits:[], tried:{} };
+const mdSaved = () => store.get('mt_decks', []);
+const mdK = (art, n) => (art && art[keyOf(n)]) || keyOf(n);
+const mdP = k => ({id:'s:'+k, k});
+function mdCur(){ const s = MD.sel; if(!s) return null;
+  if(MD.ed) return {d:{main:[...MD.ed.main].filter(x=>x[1]>0), side:[...MD.ed.side].filter(x=>x[1]>0), art:MD.ed.art}, name:MD.ed.name, sub:'Editing', mine:true};
+  if(s.kind === 'tour'){ const d = DECKS[s.i]; if(!d) return null; return {d:{main:d.main, side:d.side, art:{}}, name:d.arch, sub:`${d.place} · ${d.pilot} · ${d.ev}, ${mdShort(d.date)}`, link:deckLink(d)}; }
+  if(s.kind === 'saved'){ const sv = mdSaved()[s.i]; if(!sv) return null; const d = parseDeck(sv.text); return {d, name:sv.name, sub: isLimited(d) ? 'Draft deck' : 'My deck', mine:true}; }
+  return {d:s.d, name:s.name, sub:s.sub||''}; }
+const mdLine = (art, [n,c]) => `${c} ${n}${art && art[keyOf(n)] ? ' ['+art[keyOf(n)]+']' : ''}`;
+const mdText = d => d.main.map(x=>mdLine(d.art, x)).join('\n') + (d.side.length ? '\n\nSideboard\n'+d.side.map(x=>mdLine(d.art, x)).join('\n') : '');
+function mdCap(n, art){ if(Object.keys(art||{}).length || BASIC_RE.test(n)) return Infinity; const e = DB[keyOf(n)], o = (e && e.o) || '';
+  if(/A deck can have any number of cards named/i.test(o)) return Infinity; const m = o.match(/A deck can have up to (\w+) cards named/i); return m ? (NUMW2[m[1].toLowerCase()] || +m[1] || 4) : 4; }
+function mdShort(date){ const m = String(date||'').match(/^(\d{4})-(\d\d)-(\d\d)$/); return m ? ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m[2]-1]+' '+(+m[3]) : String(date||''); }
+
+(function(){ const dk = $('#decks'); if(!dk) return; const w = document.createElement('div'); w.id = 'mDeck'; dk.appendChild(w);
+  w.addEventListener('click', mdClick); w.addEventListener('input', mdInput);
+  const f = document.createElement('input'); f.type = 'file'; f.id = 'mdFile'; f.accept = '.txt,.dek,.dec,text/plain'; f.hidden = true; dk.appendChild(f);
+  f.onchange = async ()=>{ const x = f.files[0]; f.value = ''; if(!x) return; const t = await x.text(); if(!MD.paste) MD.paste = {}; MD.paste.text = t; if(!MD.paste.name) MD.paste.name = x.name.replace(/\.\w+$/, ''); mdPaint(); };
+  const v = $('#mView'); if(v) v.addEventListener('click', mdViewClick); })();
+renderTab = function(){ const tb = $('#tabBody'); if(tb) tb.innerHTML = ''; mdPaint(); };
+viewDeck = function(d, name, sub, link, canSave, savedIdx){ MD.paste = null; MD.ed = null;
+  if(savedIdx != null){ MD.src = 'saved'; MD.sel = {kind:'saved', i:savedIdx}; }
+  else { const i = DECKS.findIndex(x=>x.main === d.main); MD.sel = i >= 0 ? {kind:'tour', i} : {kind:'temp', d, name, sub}; if(i >= 0) MD.src = 'tour'; }
+  mdPaint(); };
+
+function mdRows(){ if(MD.src === 'tour'){ const q = MD.q.toLowerCase(); let s = '';
+    DECKS.forEach((d,i)=>{ if(q && !(d.arch+' '+d.pilot+' '+d.ev+' '+d.main.map(x=>x[0]).join(' ')).toLowerCase().includes(q)) return;
+      const on = !MD.paste && MD.sel && MD.sel.kind === 'tour' && MD.sel.i === i;
+      s += `<button class="drow mdr${on?' on':''}" data-md="t${i}"><b class="an">${esc(d.arch)}</b><small>${esc(d.place)} · ${esc(d.ev)} · ${esc(mdShort(d.date))}</small></button>`; });
+    return s || '<p class="mdhint">No decks match.</p>'; }
+  const sv = mdSaved(); if(!sv.length) return '<p class="mdhint">Decks you paste or edit show up here, on this phone only.</p>';
+  return sv.map((x,i)=>{ const d = parseDeck(x.text), on = !MD.paste && MD.sel && MD.sel.kind === 'saved' && MD.sel.i === i;
+    return `<button class="drow mdr${on?' on':''}" data-md="s${i}"><b class="an">${esc(x.name)}</b><small>${deckCount(d.main)} main · ${deckCount(d.side)} sideboard${isLimited(d)?' · draft':''}</small></button>`; }).join(''); }
+
+function mdPaint(){ const w = $('#mDeck'); if(!w) return; const tb = $('#tabBody'); if(tb && tb.innerHTML) tb.innerHTML = '';
+  const nS = mdSaved().length, act = document.activeElement, keepQ = act && act.id === 'mdQ', keepF = act && act.id === 'mdFilt';
+  const sc = (sel => { const x = w.querySelector(sel); return x ? x.scrollTop : 0; }), st0 = sc('.mdrows'), st1 = sc('.mdbody'), same = MD.lastSel === JSON.stringify([MD.src, MD.sel && MD.sel.kind, MD.sel && MD.sel.i, MD.part, MD.view]);
+  w.innerHTML = `<div class="mdl"><div class="mdseg"><button data-mds="tour" class="${MD.src==='tour'?'on':''}">This week's decks</button><button data-mds="saved" class="${MD.src==='saved'?'on':''}">My decks${nS?` <i>${nS}</i>`:''}</button></div>
+      ${MD.src==='tour' ? `<input id="mdFilt" class="mdfilt" placeholder="Filter: deck, player, event or card" value="${esc(MD.q)}" autocomplete="off" aria-label="Filter decks">` : ''}
+      <div class="mdrows">${mdRows()}</div><button class="mdpaste${MD.paste?' on':''}" data-mdp>+ Paste a deck list</button></div>
+    <div class="mdv">${MD.paste ? mdPasteHTML() : mdViewHTML()}</div>`;
+  if(keepF){ const f = $('#mdFilt'); if(f){ f.focus(); f.setSelectionRange(f.value.length, f.value.length); } }
+  if(keepQ){ const q = $('#mdQ'); if(q){ q.focus(); } }
+  const rw = w.querySelector('.mdrows'); if(rw) rw.scrollTop = st0; const bd = w.querySelector('.mdbody'); if(bd && same) bd.scrollTop = st1;
+  MD.lastSel = JSON.stringify([MD.src, MD.sel && MD.sel.kind, MD.sel && MD.sel.i, MD.part, MD.view]);
+  const on = w.querySelector('.mdr.on'); if(on && !MD.keepScroll) on.scrollIntoView({block:'nearest'}); MD.keepScroll = false;
+  if(MD.paste) mdCount(); else mdLoad(); }
+
+function mdViewHTML(){ const cur = mdCur();
+  if(!cur) return `<div class="mdempty"><h3>Pick a deck</h3><p>This week's decks are Modern tournament lists from the last two weeks. Tap one to see all 75 cards, then <b>Play this deck</b>.</p><p>Got your own list? <b>Paste a deck list</b> at the bottom left: any usual text format works, from MTGGoldfish, MTGTop8, Moxfield, Arena or MTGO.</p></div>`;
+  const d = cur.d, nm = deckCount(d.main), ns = deckCount(d.side), w = deckIssues(d), ed = MD.ed;
+  const note = MD.note && MD.sel && MD.note.i === MD.sel.i && MD.sel.kind === 'saved' ? `<div class="mdnote">${MD.note.html}</div>` : '';
+  return `<div class="mdhd"><div class="mdti"><h3>${esc(cur.name)}</h3><span class="mdsub">${esc(ed ? 'Editing: every change is saved to My decks' : cur.sub)}</span>
+      <span class="mdcnt${w.length?' bad':''}">${nm} main · ${ns} sideboard${w.length ? ' · '+esc(w.map(x=>/main/.test(x)?(isLimited(d)?'a draft deck needs 40':'needs 60'):'15 at most').join(', ')) : ''}</span></div>
+    <div class="mdbt">${ed ? `<button data-mde="undo"${ed.hist.length?'':' disabled'}>Undo</button><button class="go" data-mde="done">Done</button>`
+      : `<button class="go" id="mdPlay" data-mde="play">Play this deck</button><button data-mde="edit">Edit</button>${cur.mine && MD.sel.kind==='saved' ? '<button data-mde="del">Delete</button>' : ''}`}<span class="mdmsg" id="mdMsg"></span></div></div>${note}
+  ${ed ? `<div class="mdaddw"><input id="mdQ" placeholder="Add a card to the ${MD.part==='main'?'main deck':'sideboard'}: type its name" autocomplete="off" autocapitalize="words" aria-label="Add a card"><div id="mdSug" hidden></div></div>` : ''}
+  <div class="mdbar"><div class="mdseg sm"><button data-mdpt="main" class="${MD.part==='main'?'on':''}">Main <i>${nm}</i></button><button data-mdpt="side" class="${MD.part==='side'?'on':''}">Sideboard <i>${ns}</i></button></div>
+    <div class="mdseg sm"><button data-mdw="pics" class="${MD.view==='pics'?'on':''}">Pictures</button><button data-mdw="cols" class="${MD.view==='cols'?'on':''}">Columns</button><button data-mdw="list" class="${MD.view==='list'?'on':''}">List</button></div>
+    ${ed ? '<span class="mdtip">Tap a card for − / +</span>' : '<span class="mdtip">Tap a card to read it</span>'}</div>
+  <div class="mdbody" id="mdBody">${mdBodyHTML(d)}</div>`; }
+
+const mdOrd = c => isLand(c) ? 3 : isCreature(c) ? 0 : /\b(Instant|Sorcery)\b/.test(faceType(c)) ? 1 : 2;
+function mdItems(d){ const list = MD.part === 'main' ? d.main : d.side;
+  return list.filter(x=>x[1]>0).map(([n,c])=>({n, c, k:mdK(d.art, n)})).sort((a,b)=>{ const A = mdP(a.k), B = mdP(b.k);
+    return (isLand(A)?1:0)-(isLand(B)?1:0) || (isLand(A)?0:manaValue(A))-(isLand(B)?0:manaValue(B)) || a.n.localeCompare(b.n); }); }
+function mdTile(it, cls=''){ const e = DB[it.k], img = e && !e.tmp && e.img, ring = unlearned(mdP(it.k)) ? '<span class="unlr"></span>' : '';
+  return `<button class="mdpic${cls}" data-mk="${esc(it.k)}" data-mn="${esc(it.n)}"><span class="mdim">${img ? `<img src="${esc(img)}" alt="${esc(it.n)}" loading="lazy" draggable="false" onerror="this.remove()">` : ''}<span class="mdtx"><b>${esc(e && !e.tmp ? e.n : it.n)}</b><i>${esc((e && e.t) || '')}</i></span>${ring}</span><b class="mdn">${it.c}</b></button>`; }
+function mdBodyHTML(d){ const items = mdItems(d);
+  if(!items.length) return `<p class="mdhint">${MD.part==='side' ? 'No sideboard.' : 'No cards yet.'}${MD.ed ? ' Add one with the bar above.' : ''}</p>`;
+  if(MD.view === 'pics') return `<div class="mdpics">${items.map(it=>mdTile(it)).join('')}</div>`;
+  if(MD.view === 'cols'){ const cols = new Map(); for(const it of items){ const c = mdP(it.k), key = isLand(c) ? 'L' : Math.min(7, manaValue(c)); if(!cols.has(key)) cols.set(key, []); cols.get(key).push(it); }
+    const keys = [...cols.keys()].sort((a,b)=>(a==='L')-(b==='L') || a-b);
+    return `<div class="mdcols">${keys.map(k=>{ const l = cols.get(k); return `<div class="mdcol"><div class="mdch">${k==='L' ? 'Lands' : (k>=7 ? '7+' : k)+' mana'} · <i>${l.reduce((a,x)=>a+x.c,0)}</i></div>${l.map(it=>mdTile(it, ' st')).join('')}</div>`; }).join('')}</div>`; }
+  const groups = [['Creatures',0],['Instants and sorceries',1],['Other spells',2],['Lands',3]].map(([t,o])=>[t, items.filter(it=>mdOrd(mdP(it.k))===o)]).filter(g=>g[1].length);
+  return `<div class="mdlist">${groups.map(([t,l])=>`<div class="mdlg"><h5>${t} <i>${l.reduce((a,x)=>a+x.c,0)}</i></h5>${l.map(it=>{ const e = DB[it.k];
+    return `<button class="mdli" data-mk="${esc(it.k)}" data-mn="${esc(it.n)}"><b>${it.c}</b><span>${esc(e && !e.tmp ? e.n : it.n)}${unlearned(mdP(it.k)) ? ' <span class="unlr inl"></span>' : ''}</span><em>${e && e.mc ? mcHTML(e.mc) : ''}</em></button>`; }).join('')}</div>`).join('')}</div>`; }
+function mdBody(){ const b = $('#mdBody'), cur = mdCur(); if(b && cur){ const st = b.scrollTop; b.innerHTML = mdBodyHTML(cur.d); b.scrollTop = st; } }
+async function mdLoad(){ const cur = mdCur(); if(!cur) return; const my = ++MD.tok, ks = [...cur.d.main, ...cur.d.side].map(x=>mdK(cur.d.art, x[0]));
+  const now = Date.now(), want = ks.filter(k=>!(DB[k] && !DB[k].tmp) && !(MD.tried[k] > now - 120000));   // a name Scryfall didn't know is asked again after 2 minutes, not at every repaint
+  if(!want.length) return; want.forEach(k=>MD.tried[k] = now); const m = $('#mdMsg'); if(m) m.textContent = 'Loading card pictures…';
+  try{ await ensureCards(want); }catch(e){}
+  if(my !== MD.tok) return; const m2 = $('#mdMsg'); if(m2) m2.textContent = ks.some(k=>DB[k] && DB[k].tmp) && SCRY_DOWN ? 'Scryfall is not answering: cards show as text for now.' : ''; mdBody(); }
+
+/* editing */
+function mdEditStart(){ const cur = mdCur(); if(!cur || MD.ed) return;
+  MD.ed = {main:new Map(cur.d.main), side:new Map(cur.d.side), art:Object.assign({}, cur.d.art||{}), name: MD.sel.kind === 'saved' ? cur.name : cur.name+' (edited)', idx: MD.sel.kind === 'saved' ? MD.sel.i : null, hist:[]};
+  mdPaint(); }
+function mdSnap(){ return {main:new Map(MD.ed.main), side:new Map(MD.ed.side)}; }
+function mdStore(){ const e = MD.ed; if(!e) return; const d = {main:[...e.main].filter(x=>x[1]>0), side:[...e.side].filter(x=>x[1]>0), art:e.art}, text = mdText(d), sv = mdSaved();
+  if(e.idx == null || !sv[e.idx]){ sv.unshift({name:e.name, text}); e.idx = 0; toast(`Saved to My decks as “${e.name}”.`); } else sv[e.idx] = {name:e.name, text};
+  store.set('mt_decks', sv); MD.src = 'saved'; store.set('mt_mdsrc', 'saved'); MD.sel = {kind:'saved', i:e.idx}; }
+function mdChange(n, part, by){ const e = MD.ed; if(!e) return false; const m = part === 'main' ? e.main : e.side, have = m.get(n)||0, tot = (e.main.get(n)||0)+(e.side.get(n)||0);
+  if(by < 0 && !have) return false;
+  if(by > 0 && tot >= mdCap(n, e.art)){ toast(`${n}: ${mdCap(n, e.art)} copies at most across the main deck and sideboard.`); return false; }
+  e.hist.push(mdSnap()); if(e.hist.length > 60) e.hist.shift();
+  const v = have + by; if(v > 0) m.set(n, v); else m.delete(n);
+  mdStore(); return true; }
+function mdUndo(){ const e = MD.ed; if(!e || !e.hist.length) return; const h = e.hist.pop(); e.main = h.main; e.side = h.side; mdStore(); mdPaint(); }
+
+/* the card sheet: read it, or − / + while editing */
+function mdCard(k, n){ const v = $('#mView'); if(!v) return; closeMenu(); const c = mdP(k), d = cdata(c), e = MD.ed;
+  M.view = {id:null, deck:1}; v.classList.add('mdsheet');
+  const row = (part, lbl)=>{ const m = part === 'main' ? e.main : e.side, x = m.get(n)||0;
+    return `<div class="mdrow"><span>${lbl}</span><button data-mdv="${part}-" aria-label="One fewer"${x?'':' disabled'}>−</button><b>${x}</b><button data-mdv="${part}+" aria-label="One more">+</button></div>`; };
+  const cap = e ? mdCap(n, e.art) : 4;
+  const img = DB[k] && !DB[k].tmp && DB[k].img;
+  v.innerHTML = `<div class="mpic"><div class="txt"><b>${esc(d.n || n)}</b><span>${esc(d.mc||'')}</span><i>${esc(d.t||'')}</i><span>${esc(d.o||'')}</span></div>${img ? `<img src="${esc(img)}" alt="${esc(d.n||n)}" draggable="false" onerror="this.remove()" style="position:relative;z-index:1">` : ''}</div>` + `<div class="mside"><button class="ghost mx" data-mdv="x">Close</button><h3>${esc(d.n || n)}</h3>
+    <div class="mty">${esc([d.mc, d.t, d.pt, d.loy ? 'loyalty '+d.loy : ''].filter(Boolean).join(' · '))}</div>
+    ${e ? `<div class="mded" data-mdn="${esc(n)}">${row('main','Main deck')}${row('side','Sideboard')}<div class="mhint">${cap===Infinity ? 'Any number of copies.' : `Up to ${cap} copies across both.`}</div></div>` : ''}
+    <div class="mox">${esc(d.o || (DB[k] && DB[k].tmp ? 'The table hasn’t found this card on Scryfall yet: check its spelling.' : ''))}</div></div>`;
+  v.hidden = false; }
+function mdViewClick(e){ if(!M.view || !M.view.deck) return; const b = e.target.closest('[data-mdv]'); if(!b) return; e.stopPropagation();
+  const k = b.dataset.mdv; if(k === 'x'){ closeView(); $('#mView').classList.remove('mdsheet'); return; }
+  const box = b.closest('[data-mdn]'), n = box && box.dataset.mdn; if(!n) return;
+  const [part, op] = [k.slice(0,-1), k.slice(-1)];
+  if(mdChange(n, part, op === '+' ? 1 : -1)){ const kk = mdK(MD.ed.art, n); mdPaint(); mdCard(kk, n); } }
+const mdCloseView0 = closeView;
+closeView = function(){ const v = $('#mView'); if(v) v.classList.remove('mdsheet'); mdCloseView0(); };
+
+/* adding a card by name */
+async function mdSearch(q){ const my = ++MD.sq; let names = [];
+  try{ const r = await sfetch('https://api.scryfall.com/cards/autocomplete?q='+encodeURIComponent(q)); if(r.ok){ const j = await r.json(); names = (j.data||[]).filter(Boolean); } }catch(e){}
+  if(my !== MD.sq) return;
+  if(!names.length){ const pq = plainName(q); names = [...new Set(Object.values(DB).filter(e=>e && !e.tmp && e.n && !/\bToken\b/.test(e.t||'') && plainName(e.n).includes(pq)).map(e=>e.n))]
+    .sort((a,b)=>(plainName(a).startsWith(pq)?0:1)-(plainName(b).startsWith(pq)?0:1) || a.localeCompare(b)); }
+  MD.hits = names.slice(0, 6); mdSug(); }
+function mdSug(){ const el = $('#mdSug'), q = $('#mdQ'); if(!el || !q) return; const show = q.value.trim().length >= 2; el.hidden = !show; if(!show) return;
+  el.innerHTML = MD.hits.length ? MD.hits.map(n=>`<button data-mda="${esc(n)}">${esc(n)}</button>`).join('') : '<span class="mdhint">Looking…</span>'; }
+async function mdAdd(n){ if(!MD.ed) return; const q = $('#mdQ'); if(q){ q.value = ''; q.blur(); } MD.hits = [];
+  try{ await ensureCards([n]); }catch(e){}
+  if(mdChange(n, MD.part, 1)){ mdPaint(); mdCard(mdK(MD.ed.art, n), n); } else mdPaint(); }
+
+/* pasting */
+function mdPasteHTML(){ const p = MD.paste;
+  return `<div class="mdpaste2"><div class="mdhd"><div class="mdti"><h3>Paste a deck list</h3><span class="mdsub">One card per line, like <b>4 Lightning Bolt</b>, then a line that says <b>Sideboard</b>. Lists from MTGGoldfish, MTGTop8, Moxfield, Arena and MTGO all work.</span></div></div>
+    <div class="mdpf"><input id="mdPN" placeholder="Deck name" value="${esc(p.name||'')}" autocomplete="off" autocapitalize="words" aria-label="Deck name"><button data-mdpb="clip">Paste from clipboard</button><button data-mdpb="file">Open a file</button></div>
+    <textarea id="mdPT" placeholder="4 Ragavan, Nimble Pilferer&#10;4 Lightning Bolt&#10;…&#10;&#10;Sideboard&#10;2 Blood Moon" aria-label="Deck list" autocapitalize="off" autocorrect="off" spellcheck="false">${esc(p.text||'')}</textarea>
+    <div class="mdpb"><span id="mdPC" class="mdcnt"></span><button data-mdpb="x">Cancel</button><button class="go" data-mdpb="add" id="mdPAdd">Add deck</button></div></div>`; }
+function mdCount(){ const el = $('#mdPC'), t = $('#mdPT'); if(!el || !t) return; MD.paste.text = t.value; const d = parseDeck(t.value), nm = deckCount(d.main), ns = deckCount(d.side), w = deckIssues(d);
+  const add = $('#mdPAdd'); if(add) add.disabled = !nm;
+  el.className = 'mdcnt' + (nm && w.length ? ' bad' : '');
+  el.innerHTML = !t.value.trim() ? 'Paste or type the list.' : !nm ? 'No card lines found yet.'
+    : `${nm} main · ${ns} sideboard${w.length ? ' · '+esc(w.map(x=>/main/.test(x)?'a deck needs 60':'15 at most in the sideboard').join(', ')) : ' ✓'}${d.skip.length ? ` <span class="mdskip" title="${esc(d.skip.join('\n'))}">· left out ${d.skip.length} line${d.skip.length>1?'s':''}: ${esc(d.skip.slice(0,2).join(', '))}${d.skip.length>2?', …':''}</span>` : ''}`; }
+async function mdPasteAdd(){ const t = $('#mdPT'), nmEl = $('#mdPN'); if(!t) return; const d = parseDeck(t.value); if(!d.main.length){ toast('No card lines found in that text.'); return; }
+  const name = (nmEl && nmEl.value.trim()) || 'My deck', sv = mdSaved(); sv.unshift({name, text:mdText(d)}); store.set('mt_decks', sv);
+  MD.paste = null; MD.ed = null; MD.src = 'saved'; store.set('mt_mdsrc', 'saved'); MD.sel = {kind:'saved', i:0}; MD.part = 'main';
+  MD.note = {i:0, html:'Checking the card names…'}; mdPaint(); mdCheck(name); }
+async function mdCheck(name){ const sv0 = mdSaved(), i = sv0.findIndex(x=>x.name === name); if(i < 0) return; const d = parseDeck(sv0[i].text), names = [...d.main, ...d.side].map(x=>x[0]);
+  const now = Date.now(); names.forEach(n=>MD.tried[mdK(d.art, n)] = now);
+  try{ await ensureCards(names.map(n=>mdK(d.art, n))); }catch(e){}
+  const fix = [], miss = []; let down = false;
+  for(const n of new Set(names)){ const e = DB[mdK(d.art, n)]; if(!e || e.tmp){ if(SCRY_DOWN) down = true; else miss.push(n); continue; }
+    if(!d.art[keyOf(n)] && plainName(e.n.split(' // ')[0]) !== plainName(n.split(' // ')[0]) && plainName(e.n) !== plainName(n)) fix.push([n, e.n]); }
+  const sv = mdSaved(), j = sv.findIndex(x=>x.name === name); if(j < 0) return;
+  if(fix.length){ const ren = new Map(fix), mv = l => { const m = new Map(); for(const [n,c] of l){ const t = ren.get(n) || n; m.set(t, (m.get(t)||0)+c); } return [...m]; };
+    const d2 = {main:mv(d.main), side:mv(d.side), art:d.art}; sv[j] = {name, text:mdText(d2)}; store.set('mt_decks', sv);
+    for(const [a,b] of fix){ const e = DB[keyOf(a)]; if(e && !DB[keyOf(b)]) DB[keyOf(b)] = e; } }
+  const bits = [];
+  if(fix.length) bits.push(`Corrected the spelling: ${fix.map(([a,b])=>`${esc(a)} → <b>${esc(b)}</b>`).join(', ')}.`);
+  if(miss.length) bits.push(`Not found on Scryfall: <b>${miss.map(esc).join('</b>, <b>')}</b>. Check the spelling with <b>Edit</b>; until then ${miss.length>1?'they play':'it plays'} as text, by hand.`);
+  if(down) bits.push('Scryfall is not answering, so the names could not be checked yet: cards show as text until it answers.');
+  if(!bits.length) bits.push('All card names found ✓');
+  MD.note = {i:j, html:bits.join(' ')}; if(MD.sel && MD.sel.kind === 'saved' && MD.sel.i === j && !MD.ed && !MD.paste) mdPaint(); }
+async function mdClip(){ try{ const t = await navigator.clipboard.readText(); if(!t || !t.trim()){ toast('The clipboard is empty.'); return; }
+    if(!MD.paste) MD.paste = {}; const nm = $('#mdPN'); MD.paste.name = nm ? nm.value : MD.paste.name; MD.paste.text = t; mdPaint(); }
+  catch(e){ toast('This browser won’t share the clipboard: tap and hold in the box, then Paste.'); const t = $('#mdPT'); if(t) t.focus(); } }
+
+function mdClick(e){ const t = e.target, q = s => t.closest(s);
+  let b;
+  if((b = q('[data-mds]'))){ MD.src = b.dataset.mds; store.set('mt_mdsrc', MD.src); mdPaint(); return; }
+  if((b = q('[data-md]'))){ const k = b.dataset.md, i = +k.slice(1); if(MD.ed && !(k[0]==='s' && MD.ed.idx===i)) MD.ed = null; MD.paste = null; MD.part = 'main';
+    MD.sel = {kind: k[0] === 't' ? 'tour' : 'saved', i}; MD.keepScroll = true; mdPaint(); return; }
+  if(q('[data-mdp]')){ if(!MD.paste){ MD.paste = {}; MD.ed = null; } mdPaint(); const ta = $('#mdPT'); if(ta && !ta.value) ta.focus(); return; }
+  if((b = q('[data-mdpb]'))){ const k = b.dataset.mdpb; if(k === 'x'){ MD.paste = null; mdPaint(); } else if(k === 'add') mdPasteAdd(); else if(k === 'clip') mdClip(); else if(k === 'file') $('#mdFile').click(); return; }
+  if((b = q('[data-mdpt]'))){ MD.part = b.dataset.mdpt; mdPaint(); return; }
+  if((b = q('[data-mdw]'))){ MD.view = b.dataset.mdw; store.set('mt_mdview', MD.view); mdPaint(); return; }
+  if((b = q('[data-mda]'))){ mdAdd(b.dataset.mda); return; }
+  if((b = q('[data-mk]'))){ mdCard(b.dataset.mk, b.dataset.mn); return; }
+  if((b = q('[data-mde]'))){ const k = b.dataset.mde, cur = mdCur(); if(!cur) return;
+    if(k === 'play') playDeck(cur.d, cur.name, b, $('#mdMsg'), mdEditStart);
+    else if(k === 'edit') mdEditStart();
+    else if(k === 'undo') mdUndo();
+    else if(k === 'done'){ MD.ed = null; mdPaint(); }
+    else if(k === 'del'){ const i = MD.sel.i; confirmBox(`Delete “${cur.name}”?`, 'It is removed from My decks on this phone.', ()=>{ closeModal(); const sv = mdSaved(); sv.splice(i, 1); store.set('mt_decks', sv); MD.sel = null; MD.note = null; mdPaint(); }); }
+    return; } }
+let mdSearchT = null;
+function mdInput(e){ const t = e.target;
+  if(t.id === 'mdFilt'){ MD.q = t.value; const r = $('#mDeck .mdrows'); if(r) r.innerHTML = mdRows(); return; }
+  if(t.id === 'mdPT'){ mdCount(); return; }
+  if(t.id === 'mdPN'){ if(MD.paste) MD.paste.name = t.value; return; }
+  if(t.id === 'mdQ'){ clearTimeout(mdSearchT); const v = t.value.trim(); MD.hits = []; mdSug(); if(v.length >= 2) mdSearchT = setTimeout(()=>mdSearch(v), 300); } }
