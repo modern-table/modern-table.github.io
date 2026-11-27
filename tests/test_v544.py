@@ -64,7 +64,7 @@ try:
         J(p, "() => { S.lands.fetch='orig'; store.set('mt_settings', S); paintBasics(); }"); p.wait_for_timeout(1500)
         b = J(p, BOX); got = {n: im for n, im in b['imgs']}
         check("Originals still take Onslaught's five (ons before ktk)", all(f'ons-{cn}' in got[n] for n, cn in ONS.items()) and all(f'zen-{cn}' in got[n] for n, cn in ZEN.items()), got)
-        check('NEWS has the line', J(p, "() => NEWS[0][0]===VERSION && /Bear's Choice/.test(NEWS[0][2])"))
+        check('NEWS has the line', J(p, "() => NEWS.some(n=>n[0]==='v5.44' && /Bear's Choice/.test(n[2]))"))
         check('no page errors', not errs, errs)
         br.close()
 finally:

@@ -1160,7 +1160,7 @@ html.mob #coPanel .codrag .mocap{display:none}
     <div class="lhead"><h1>Modern Table <small id="verTag" style="font:600 13px var(--ui);color:var(--dim);letter-spacing:.08em"></small></h1>
     <p>A Magic table for two, in the browser. <b>Automatic first, by hand always:</b> the table plays your cards for you (triggers, targets, searches, combat damage), and anything it doesn't do, you can still do yourself, like paper.</p>
     <p id="phLine" style="color:var(--dim);font-size:.92em">On a phone? <a href="/m/?phone=1" style="color:var(--brass);font-weight:700">The phone table</a> (beta) is made for holding it sideways, and plays the same tables.</p>
-    <p id="tourLine" hidden><a href="#" id="tourLink" style="color:var(--brass);font-weight:700">Take the three-minute tour</a> <span style="color:var(--dim)">· new here? see how the table works</span><button id="tourX" class="ghost" title="No thanks (the tour stays in the ☰ menu at the table)" aria-label="Close">×</button></p>
+    <p id="tourLine" hidden><span>New here? <a href="#" id="tourLink" style="color:var(--brass);font-weight:700">Getting started</a> <span style="color:var(--dim)">(1 minute)</span> · <a href="#" id="tourPlayLink" style="color:var(--brass);font-weight:700">How to play</a> <span style="color:var(--dim)">(3 minutes)</span></span><button id="tourX" class="ghost" title="No thanks (the tour stays in the ☰ menu at the table)" aria-label="Close">×</button></p>
     <section id="otab" hidden aria-label="Open tables"><div class="othd"><b>Open tables</b><span>Click a name to join · hover a band to pause it</span></div><div id="otBands"></div></section></div>
     <div class="lmain">
     <div class="field"><label for="nameIn">Your name</label><input id="nameIn" maxlength="20" placeholder="Planeswalker"></div>
@@ -1252,7 +1252,7 @@ html.mob #coPanel .codrag .mocap{display:none}
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.44';
+const VERSION = 'v5.45';
 /* Affiliation (v4.88, the maintainer): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -1268,6 +1268,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.45','Nov 26',"The tour is now three tours. Getting started (about a minute) shows the front page and the decks and sits you down at a practice table. How to play (about three minutes) sets up a game in progress, Boros Aggro against Practice's UR Aggro, and plays part of a turn with you: a land, paying for a spell, a trigger, your friend's OK, an attack and a block. And Tour the deck editor, beside Modify this deck on the deck screen, shows how to change a list. Both new-player tours are on the front page; ☰ → Take the tour opens How to play."],
   ['v5.44','Nov 26',"New fetch land art: Bear's Choice, half Zendikar and half Khans of Tarkir, in the Fetch tab of the land art box on the deck screen."],
   ['v5.43','Nov 25',"Open tables: when you open a table you can now choose how serious it is (Playtest, Casual or Match) and tick \"List my table\" to show your name and code on the front page and in the Discord's #looking-for-game. The front page shows a band for each kind of table that's waiting for an opponent: click a name to join. Game Night hosts can list their event the same way. Listing is always your choice; to play a friend, just send the code as before."],
   ['v5.42','Nov 25',"Pasting a deck list is more forgiving: headings copied from deck sites (like \"Creatures (16)\" or \"Sideboard (15)\"), Moxfield's foil marks, curly apostrophes and MTGO .dek files all read correctly, and lines that aren't cards are left out. On the phone table, the deck screen is rebuilt for phones: this week's decks and your own side by side, card pictures with counts, quick edits, and a paste box that counts as you type and checks the card names."],
@@ -7688,7 +7689,8 @@ function priWait(){ const t=G.turn;
 function priElapsed(w){ const s = w ? w.kind+(w.top ? w.top.id : w.at)+(w.me?1:0) : ''; if(s!==PRI.sig){ PRI.sig=s; PRI.since=Date.now(); } return Date.now()-PRI.since; }
 const priSentNow = id => !!PRI.sent[id] && Date.now()-PRI.sent[id] < PRI_SENT_MS;
 /* what the big button says while something is waiting: {text, dis, cls, hint}, or null for the button's usual text */
-function priLabel(){ const w=priWait(), el=priElapsed(w), on=priOn(); if(!w) return null;
+function priLabel(){ if(G.okDemo && TOUR) return {text:`OK: ${G.okDemo} resolves`, cls:'ok', hint:'With a friend, Space works too. To respond instead, cast a spell from your hand.'};   /* v5.45: How to play shows a friend's OK on its staged board */
+  const w=priWait(), el=priElapsed(w), on=priOn(); if(!w) return null;
   if(w.kind==='ord') return w.mine ? {text:'Order your triggers', dis:true, hint:`Drag them into order in the panel, then add them to the stack. ${on} waits until you do.`} : {text:`${on} is ordering triggers`, dis:true, hint:`${on}'s triggers happened at the same time; they choose the order they go on the stack.`};
   if(w.kind==='aim') return w.mine ? {text:'Choose its target first', dis:true, hint:`${on} is asked for an OK once the target is chosen (Esc: no target).`} : {text:`${on} is choosing a target`, dis:true, hint:''};
   if(w.kind==='okd') return w.me ? {text:`Resolve ${priName(w.top)}`, hint:`${on} OK'd it. You have priority back: cast something first if you want to.`} : {text:`Waiting for ${on}`, dis:true, hint:`You OK'd it. ${on} resolves it.`};
@@ -9096,7 +9098,7 @@ function tableMenu(x,y){   /* v4.86 (the maintainer's layout B): this game · vi
     ['Concede this game',()=>concede(),'','bad'], '-',
     fsCan() && [fsEl() ? 'Exit full screen' : 'Full screen', ()=>fsEl() ? fsExit() : fsEnter()],
     ['Settings…',()=>settingsModal()], '-',
-    ['How the table works',()=>helpModal()], ['Take the tour',()=>tourStart('table')], ["What's new",()=>newsModal()], ['Send feedback',()=>openFeedback()], '-',
+    ['How the table works',()=>helpModal()], ['Take the tour',()=>tourPlay()], ["What's new",()=>newsModal()], ['Send feedback',()=>openFeedback()], '-',
     ['Leave the table',()=>confirmBox('Leave this table?','Your seat is kept on this computer, so you can come back from the front page.',()=>{ save(); location.href=location.pathname+location.search; })] ]);
 }
 /* v4.86: every table setting in one window. Each row writes S and runs the same apply step its old single window did (those windows stay for the ⚙ on the camera box and anything else that calls them). */
@@ -9134,65 +9136,160 @@ function confirmBox(title, text, yes){ modal(title, `<span class="hint">${esc(te
    table. Content follows what the maintainer shows friends in person. Seen once → mt_toured (the front-page link stops glowing). Keys: → / Enter next,
    ← back, Esc ends; the game's own keys are held off while it runs. */
 let TOUR=null;
+/* v5.45 (the maintainer, 2026-11-24 and 11-26): three tours instead of one.
+   - Getting started (tourStart('start'), the front page's first link; 'lobby' is the old name): the front page and the deck screen, then a
+     practice game with the deck chosen; its last card offers How to play.
+   - How to play (tourStart('play'): the front page's second link, ☰ Take the tour, the help page): a staged board (tourStage), turn 3, the
+     tour-only Boros Aggro (TOUR_DECKS.me) against Practice's UR Aggro (TOUR_DECKS.opp), frozen here so the Monday refresh can't break it (their
+     cards are listed in src/extra.txt so they stay built in). Steps with `go` are live beats run when the step is first shown: a land played,
+     Ocelot Pride paid for through the payment window, Guide of Souls' trigger, Practice's Lightning Bolt with the blue OK (staged: Practice never
+     casts, so TOUR.okDemo makes priLabel show what a friend's spell looks like, and the tour resolves it), an attack, Practice's block, Ragavan's
+     damage trigger and the Exiled by cards box. At a friend's table (or when a practice game is under way and the player doesn't want it
+     replaced) it walks the same table without staging: tourStart('table'), TOUR_STEPS.table, which Explore also reads.
+   - The deck editor (tourStart('edit')): the "Tour the deck editor" link on the deck screen.
+   A step's `btns` adds buttons to its card ([label, key]); key 'play' starts How to play, 'decks' the deck screen. */
+const TOUR_DECKS = {
+  me: {name:'Boros Aggro', txt:`4 Ragavan, Nimble Pilferer\n4 Guide of Souls\n4 Ocelot Pride\n4 Voice of Victory\n4 Seasoned Pyromancer\n4 Ajani, Nacatl Pariah\n3 Captain James T. Kirk\n4 Galvanic Discharge\n4 Goblin Bombardment\n2 Thraben Charm\n3 Sacred Foundry\n3 Arena of Glory\n2 Elegant Parlor\n1 Dalkovan Encampment\n1 Plains\n1 Snow-Covered Plains\n1 Snow-Covered Mountain\n4 Flooded Strand\n4 Arid Mesa\n3 Marsh Flats\nSideboard\n1 Celestial Purge\n2 Rest in Peace\n3 High Noon\n2 Meltdown\n3 Obsidian Charmaw\n1 Prismatic Ending\n1 Wrath of the Skies\n1 The Legend of Roku\n1 Blood Moon`},
+  opp: {name:'UR Aggro', txt:`4 Monastery Swiftspear\n4 Dragon's Rage Channeler\n4 Slickshot Show-Off\n4 Cori-Steel Cutter\n4 Lightning Bolt\n4 Lava Dart\n4 Preordain\n4 Expressive Iteration\n4 Mishra's Bauble\n2 Violent Urge\n2 Mutagenic Growth\n1 Unholy Heat\n1 Tormod's Crypt\n2 Mountain\n3 Steam Vents\n1 Stomping Ground\n1 Thundering Falls\n1 Fiery Islet\n4 Scalding Tarn\n3 Wooded Foothills\n3 Bloodstained Mire\nSideboard\n3 Unholy Heat\n2 Obsidian Charmaw\n1 Pick Your Poison\n3 Consign to Memory\n1 Meltdown\n1 Heritage Reclamation\n1 Mystical Dispute\n2 Spell Pierce\n1 Surgical Extraction`}
+};
 const TOUR_STEPS = {
   lobby: [
-    {t:'Welcome to Modern Table', p:['A Magic table for you and a friend, in the browser. This tour shows you around in about three minutes.','<b>Automatic first, by hand always:</b> the table plays your cards for you wherever it can, and anything it doesn\'t do, you can still do yourself.']},
+    {t:'Getting started', p:['A Magic table for you and a friend, in the browser. This tour shows you around the front page and the decks in about a minute, then sits you down at a practice table.','<b>Automatic first, by hand always:</b> the table plays your cards for you wherever it can, and anything it doesn\'t do, you can still do yourself.']},
     {sel:'#nameIn', t:'Your name', p:['This is what your opponent sees, in the log and on the table.']},
     ...(AFF_ON ? [{sel:'#lgsField', t:'Rep your LGS', p:['Pros sit down with their team logo beside their name. Why should you sit down unbranded? Pick your local game store and its logo goes beside your name at the table, and on the banner before every game, so your opponent knows exactly who\'s about to beat them.','Flying solo? <b>No affiliation</b> is right at the top of the list. No hard feelings (your store might have a few).']}] : []),
-    {sel:'#hostBtn', t:'Open a table', p:['You get a <b>six-letter code</b>. Send it to your friend (text, Discord, anything) and they join with it. The code stays on your screen until they arrive.']},
-    {sel:'#codeIn', up:2, t:'Join a table', p:['Got a code from a friend? Type it here and press Join.']},
-    {sel:'#soloBtn', t:'Practice alone', p:['Try a deck by yourself. You get an opponent called <b>Practice</b> to attack, and it can bring a deck of its own and take turns.','We\'ll open a practice game now so you can see the table.']},
+    {sel:'#hostBtn', t:'Open a table', p:['You get a <b>six-letter code</b>. Send it to your friend (text, Discord, anything) and they join with it. The code stays on your screen until they arrive.','Under it you choose how serious the table is (<b>Playtest</b>, <b>Casual</b> or <b>Match</b>) and can tick <b>List my table</b> to show your name and code on the front page and in the Discord\'s #looking-for-game.']},
+    {sel:'#codeIn', up:2, t:'Join a table', p:['Got a code from a friend? Type it here and press Join. Open tables waiting for an opponent show in the bands on this page: click a name to fill in its code.']},
+    {sel:'#soloBtn', t:'Practice alone', p:['Try a deck by yourself. You get an opponent called <b>Practice</b> to attack, and it can bring a deck of its own and take turns.','We\'ll open a practice game now.']},
     {sel:'.corner', t:'Game Night', p:['A night for up to eight players: three rounds of Modern, or a draft, sealed event or cube. Game Night pairs the rounds, runs the clock and keeps the standings; your matches are played here.']},
     {sel:'#news', t:"What's new", p:['Every change to the table is listed here, newest first.']} ],
   decks: [
-    {sel:'.decklist', t:'Choose your deck', p:['<b>Tournament decks</b> are this week\'s top finishers, refreshed every Monday. <b>Paste or upload</b> takes any decklist (Arena, MTGO or plain text). <b>Saved</b> keeps your own decks, including the ones you draft.']},
-    {sel:'#deckView', pre:'view', t:'Look before you play', p:['Pick a deck to see its cards, then press <b>Play this deck</b>.']},
-    {sel:'#modDeck', pre:'view', t:'Make it yours', p:['<b>Modify this deck</b> opens the deck editor, so you can change a list before you play it. Let\'s open it.']},
+    {sel:'.decklist', t:'Choose your deck', p:['<b>Tournament decks</b> are this week\'s top finishers, refreshed every Monday. <b>Paste or upload</b> takes any decklist (Arena, MTGO, Moxfield or plain text). <b>Saved</b> keeps your own decks, including the ones you draft. <b>From scratch</b> builds a new one.']},
+    {sel:'#deckView', pre:'view', t:'Look before you play', p:['Pick a deck to see its cards, then press <b>Play this deck</b>. <b>Modify this deck</b> changes a list before you play it; <b>Tour the deck editor</b> beside it shows you how.']} ],
+  start: [
+    {t:"You're at the table", p:['This is a practice game with the deck we picked. When the tour ends, choose a deck for Practice, then play a land, cast something and attack it.','<b>How to play</b> (about three minutes) sets up a game in progress and walks you through a turn: playing a land, paying for a spell, triggers, your friend\'s OK, attacking and blocking.'], btns:[['How to play', 'play']]} ],
+  edit: [
+    {sel:'#modDeck', pre:'view', t:'The deck editor', p:['<b>Modify this deck</b> opens the deck editor on the deck you\'re looking at, so you can change a list before you play it. Let\'s open it.']},
     {sel:'.edbar', pre:'edit', t:'Add a card', p:['Type a card name in this bar; matching Modern cards drop down as you type. Click one (or press Enter) and a copy goes into the deck.','<b>To main deck / To sideboard</b> chooses where it goes. <b>Cards / List</b> switches how the deck is shown.']},
     {sel:'#edBody', pre:'edit', t:'Change the counts', p:['Every card has <b>−</b> and <b>+</b> (four copies at most, basic lands excepted) and <b>side</b> to move one copy between the main deck and the sideboard. Point at a card to see it enlarged.','A card with a <b>violet ring</b> is one the table hasn\'t learned yet: it plays, but by hand through the right-click menu. A note under the game log lets you ask for it.']},
     {sel:'.edacts', pre:'edit', t:'Save and play', p:['A tournament list is never changed: <b>Save</b> keeps your version as a new deck under <b>Saved</b>.','If a deck isn\'t tournament legal (fewer than 60 cards, more than 15 in the sideboard), <b>Play</b> asks first. You can fix it, or play it anyway for testing, with a note in your box that your opponent sees.']},
-    {sel:'.tabs [data-tab="new"]', pre:'view', t:'From scratch', p:['Builds a new deck from nothing in the same editor: name it, add cards, save it. We\'ll take the tournament deck to the table now.']} ],
+    {sel:'.tabs [data-tab="new"]', pre:'view', t:'From scratch', p:['Builds a new deck from nothing in the same editor: name it, add cards, save it.']} ],
+  play: [
+    {t:'How to play', go:'stage', p:['Here\'s a game in progress: turn 3, your main phase. You\'re on <b>Boros Aggro</b>; Practice is on <b>UR Aggro</b>.','We\'ll play part of this turn together. Press Next (or →) to go on, Back to look again, Esc to stop.']},
+    {sel:'#myFront', t:'Your battlefield', p:['Creatures go in the front row: <b>Ragavan</b> and <b>Guide of Souls</b> are ready to attack. Lands and your other permanents go in the back row, where identical lands stack.','Click a card to tap it. Right-click any card for everything else it can do; point at one to see it enlarged.']},
+    {sel:'#myHand', t:'Your hand', p:['Click a card to play it: lands go onto the battlefield, spells go to the stack. Right-click for other ways to cast it (evoke, cycling, the other side of a card).','A card shown <b>dimmed</b> can\'t be played at this moment (a sorcery during your opponent\'s turn, say). Click it anyway and the table tells you why, and lets you play it if you both agree.']},
+    {sel:'#myBack', go:'land', t:'Playing a land', p:['We clicked <b>Snow-Covered Mountain</b> in your hand and it went onto the battlefield.','The circle at the bottom left of your hand is your land for the turn: filled once it\'s used. Cards that give extra land plays add circles.']},
+    {sel:'#payPanel', go:'cast', t:'Paying for a spell', p:['Next we clicked <b>Ocelot Pride</b>. It costs {W} and your mana pool is empty, so the payment window waits for mana.','Click a land to tap it: its mana goes into your pool, and the cost lights up as it\'s covered. Then <b>Pay {W} and cast</b>. When the pool already has the mana, the spell pays by itself (auto-pay, in Settings).']},
+    {sel:'#stackwrap', go:'pay', t:'The stack', p:['We tapped Plains and pressed Pay {W} and cast, so Ocelot Pride waits on the stack, where both players can respond.','In a practice game you click the top card of the stack to resolve it. With a friend, yours resolves once they OK it.']},
+    {sel:'#stackwrap', go:'resolve', t:'Triggers', p:['Ocelot Pride resolved and entered, so <b>Guide of Souls</b> triggered: its ability went on the stack by itself, with no clicking from you.','When two or more of your triggers happen at once, a panel opens so you can choose the order they go on the stack.']},
+    {sel:'#myAv', go:'resolve', t:'You', p:['The trigger resolved: 1 life and an energy, both in your box. <b>−</b> and <b>+</b> change your life (Shift-click for 5); right-click your box to add or remove energy and poison by hand.','At a friend\'s table, the <b>microphone</b> beside your name opens a voice line: your friend hears you until you tap it again.']},
+    {sel:'#oppAv', t:'Your opponent', p:['Their life, mana and counters. At a real table, the code to send your friend waits here until they join.']},
+    {sel:'#next', go:'bolt', t:'Your OK', p:['Practice answers with <b>Lightning Bolt</b> at you. With a friend, this is what you\'d see: their spell waits on the stack, a chime plays, and your big button turns <b>blue</b>. <b>OK</b> lets it resolve; to respond, cast a spell of your own instead.','(Practice doesn\'t really cast spells: this one is here to show you. In a practice game nothing waits for an OK.)']},
+    {sel:'#logwrap', go:'boltDone', t:'Game log and chat', p:['The Bolt resolved: 3 damage to you. Everything either player does is written here, so when something surprises you, look here first. Chat is at the bottom.']},
+    {sel:'#myFront', go:'attack', t:'Attacking', p:['On to combat. The attack bar lets you choose your attackers; we attacked with Ragavan and Guide of Souls.','Their attack triggers go on the stack as they attack.']},
+    {sel:'#oppFront', go:'block', t:'Blocking', p:['Your opponent declares blocks on their own screen: here <b>Monastery Swiftspear</b> blocks Guide of Souls, and Ragavan is unblocked.','In a practice game you declare Practice\'s blocks yourself, with the bar on its side.']},
+    {sel:'#stackwrap', go:'damage', t:'Combat damage', p:['Damage is dealt: Ragavan hit Practice for 2, so its trigger is on the stack. The turn doesn\'t move on while anything is on the stack.']},
+    {sel:'#offerwrap', go:'resolve', t:'Exiled by cards', p:['Ragavan\'s trigger made a <b>Treasure</b> and exiled the top card of Practice\'s library. Until the end of the turn you may cast it from this box, paying for it as usual.']},
+    {sel:'#turnlbl', t:'The turn menu', p:['Whose turn it is. Click it for the turn menu: with a friend, <b>Stops</b> choose where the turn waits for your OK; <b>Pause</b> stops your opponent\'s next turn in their upkeep or draw step so you can act; <b>Give control</b> hands your turn to your opponent (Mindslaver, Emrakul); <b>Take the turn</b> fixes a mix-up over whose turn it is.']},
+    {sel:'#phases', t:'The turn', p:['The steps of the turn. The table untaps and draws for you; click a step to go straight to it.','With a friend, small dashes mark your stops: blue above a step for your opponent\'s turn, gold below for your own.']},
+    {sel:'#next', t:'The big button', p:['Moves the turn along: next step, combat damage, end of turn. Space does the same. While something is on the stack it waits for that first.']},
+    {sel:'#mid .tools', t:'Tools', p:['<b>Undo</b> your last action · <b>Token / card</b> makes tokens or adds any card · <b>Roll</b> dice and coins · <b>Hand</b> discard, reveal, mulligan · <b>Practice</b> sets up your practice opponent.']},
+    {sel:'#undoBtn', t:'Nothing is final', p:['Undo steps back your own last action (Ctrl+Z).','Beyond that, anything can be put back by hand: drag cards, change life, add or remove counters, until the table matches what you both agree happened.']},
+    {sel:'#menuBtn', t:'The table menu', p:['A new game, change deck, concede, full screen, <b>Settings</b> (auto-draw, auto-pay, sound, voice, how tapped cards turn …), and help: <b>How the table works</b>, where <b>Explore the table</b> names any part of the screen you point at, this tour, What\'s new and Send feedback.','If a card doesn\'t do what it should, <b>Send feedback</b> says what you did and what you expected; that\'s how it gets fixed.']},
+    {t:'Your turn', p:['The board is yours: it\'s still your combat, then Main 2. Play on against Practice, or start a practice game with a deck of your own.','When you\'re ready for a friend, go back to the front page (☰ → Leave the table) and open a table.'], btns:[['Practice with my own deck', 'decks']]} ],
   table: [
     {sel:'#banner', t:'Before the game', p:['This box walks both players through the start: the roll, play or draw, and mulligans. In a practice game you just start.']},
     {sel:'#myFront', t:'Your battlefield', p:['Creatures go in the front row. Lands and your other permanents go in the back row, where identical lands stack.','Click a card to tap it. Right-click any card for everything else it can do.']},
-    {sel:'#myHand', t:'Your hand', p:['Click a card to play it: lands go onto the battlefield, spells go to the stack. Right-click for other ways to cast it.']},
+    {sel:'#myHand', t:'Your hand', p:['Click a card to play it: lands go onto the battlefield, spells go to the stack. Right-click for other ways to cast it.','A card shown dimmed can\'t be played at this moment; click it anyway and the table tells you why.']},
     {sel:'#myPiles', t:'Your library, graveyard and exile', p:['Click your library to draw; right-click it to search, scry, mill or shuffle. Click a graveyard or exile pile to look through it.','Your opponent\'s piles are at the top of this column.']},
     {sel:'#midRail', t:'Wins and the clock', p:['Games won this match. At a two-player table a 50-minute round clock runs here too, with end-of-round turns, like a tournament.']},
     {sel:'#oppAv', t:'Your opponent', p:['Their life, mana and counters. At a real table, the code to send your friend waits here until they join.']},
-    {sel:'#myAv', t:'You', p:['Your life: − and + change it (Shift-click for 5). Tapping lands fills your mana pool, and spells pay from it by themselves.']},
-    {sel:'#stackwrap', t:'The stack', p:['Spells and abilities wait here so both players can respond. In a practice game, click the top one to resolve it. With a friend, yours resolves once they OK it.']},
+    {sel:'#myAv', t:'You', p:['Your life: − and + change it (Shift-click for 5); right-click your box for energy and poison. Tapping lands fills your mana pool, and spells pay from it by themselves.','At a friend\'s table, the microphone beside your name opens a voice line.']},
+    {sel:'#stackwrap', t:'The stack', p:['Spells and abilities wait here so both players can respond. In a practice game, click the top one to resolve it. With a friend, yours resolves once they OK it.','When two or more of your triggers happen at once, a panel lets you choose their order.']},
     {sel:'#logwrap', t:'Game log and chat', p:['Everything either player does is written here. When something surprises you, look here first. Chat at the bottom.']},
     {sel:'#turnlbl', t:'The turn menu', p:['Whose turn it is. Click it for the turn menu: with a friend, <b>Stops</b> choose where the turn waits for your OK; <b>Pause</b> stops your opponent\'s next turn in their upkeep or draw step so you can act, <b>Give control</b> hands your turn to your opponent (Mindslaver, Emrakul), and <b>Take the turn</b> fixes a mix-up over whose turn it is.']},
     {sel:'#phases', t:'The turn', p:['The steps of the turn. The table untaps and draws for you. In combat, a bar helps you choose attackers, and your opponent declares blocks with theirs.','With a friend, small dashes mark your stops: blue above a step for your opponent\'s turn, gold below for your own.']},
     {sel:'#next', t:'The big button', p:['Moves the turn along: next step, combat damage, end of turn. Space does the same.']},
-    {sel:'#next', t:'Passing priority', p:['With a friend at the table, nothing resolves until the other player has had their say. When their spell or ability is on top of the stack, this button turns <b>blue</b>: <b>OK</b> lets it resolve. To respond, cast your own spell instead; it then waits for their OK.','The same blue OK comes up at your <b>stops</b>: before your opponent attacks and before their end step, unless you change them in the turn menu. Practice games skip all of this.']},
+    {sel:'#next', t:'Passing priority', p:['With a friend at the table, nothing resolves until the other player has had their say. When their spell or ability is on top of the stack, this button turns <b>blue</b> and a chime plays: <b>OK</b> lets it resolve. To respond, cast your own spell instead; it then waits for their OK.','The same blue OK comes up at your <b>stops</b>: before your opponent attacks and before their end step, unless you change them in the turn menu. Practice games skip all of this.']},
     {sel:'#mid .tools', t:'Tools', p:['<b>Undo</b> your last action · <b>Token / card</b> makes tokens or adds any card · <b>Roll</b> dice and coins · <b>Hand</b> discard, reveal, mulligan · <b>Practice</b> sets up your practice opponent.']},
     {sel:'#undoBtn', t:'Nothing is final', p:['Undo steps back your own last action (Ctrl+Z).','Beyond that, anything can be put back by hand: drag cards, change life, add or remove counters, until the table matches what you both agree happened.']},
     {t:'Automatic first, by hand always', p:['Your cards should work by themselves: triggers go on the stack, targets are asked for, searches open, damage is dealt.','If a card doesn\'t do what it should, use <b>Send feedback</b> (in the ☰ menu) to say what you did and what you expected; that\'s how it gets fixed. Meanwhile you can always make it happen yourself with right-click and drag.']},
-    {sel:'#menuBtn', t:'The table menu', p:['A new game, change deck, concede, full screen, <b>Settings</b> (auto-draw, auto-pay, how tapped cards turn …), and help: <b>How the table works</b>, where <b>Explore the table</b> names any part of the screen you point at, this tour, What\'s new and Send feedback.']},
-    {t:"You're all set", p:["You're in a practice game now: play a land, cast something, attack Practice.","When you're ready for a friend, go back to the front page (☰ → Leave the table) and open a table."]} ]
+    {sel:'#menuBtn', t:'The table menu', p:['A new game, change deck, concede, full screen, <b>Settings</b> (auto-draw, auto-pay, how tapped cards turn …), and help: <b>How the table works</b>, where <b>Explore the table</b> names any part of the screen you point at, this tour, What\'s new and Send feedback.']} ]
 };
-function tourStart(from){ if(TOUR) tourEnd(); TOUR={from, list:[], i:0};
-  if(from==='lobby') TOUR.list=[...TOUR_STEPS.lobby.map(x=>({...x, scr:'lobby'})), ...TOUR_STEPS.decks.map(x=>({...x, scr:'decks'})), ...TOUR_STEPS.table.map(x=>({...x, scr:'table'}))];
-  else TOUR.list=TOUR_STEPS.table.filter(x=>x.t!=="You're all set").map(x=>({...x, scr:'table'}));
+const tourWait = ms => new Promise(r=>setTimeout(r, ms));
+/* How to play from wherever the player is: the staged board in a practice game (asking before it replaces one under way), or the plain
+   table walk at a friend's table, where staging would wreck the game. */
+function tourPlay(){ if(TOUR) tourEnd();
+  if(G.me && G.me.deck && !G.solo && !$('#table').hidden){ tourStart('table'); return; }
+  if(G.solo && G.me && G.me.deck && G.turn && G.turn.n && !G.tourBoard && !$('#table').hidden){
+    modal('How to play', `<span class="hint">How to play sets up a game in progress (turn 3, Boros Aggro against Practice's UR Aggro) in place of this practice game.</span>`, [['Walk this table instead',()=>{ closeModal(); tourStart('table'); },'ghost'], ['Set it up',()=>{ closeModal(); tourStart('play'); },'go']]); return; }
+  tourStart('play'); }
+function tourStart(from){ if(TOUR) tourEnd(); if(from==='lobby') from='start';
+  if(from==='play' && G.me && G.me.deck && !G.solo && !$('#table').hidden) from='table';   // a friend's table: walk it, never stage
+  TOUR={from, list:[], i:0, done:{}, stage:from==='play'};
+  if(from==='start') TOUR.list=[...TOUR_STEPS.lobby.map(x=>({...x, scr:'lobby'})), ...TOUR_STEPS.decks.map(x=>({...x, scr:'decks'})), ...TOUR_STEPS.start.map(x=>({...x, scr:'table'}))];
+  else if(from==='play') TOUR.list=TOUR_STEPS.play.map(x=>({...x, scr:'stage'}));
+  else if(from==='edit') TOUR.list=TOUR_STEPS.edit.map(x=>({...x, scr:'here'}));
+  else TOUR.list=TOUR_STEPS.table.map(x=>({...x, scr:'table'}));
   const blk=document.createElement('div'); blk.id='tourBlock'; const hole=document.createElement('div'); hole.id='tourHole'; const card=document.createElement('div'); card.id='tourCard';
-  document.body.append(blk, hole, card); card.onclick=e=>{ const b=e.target.closest('[data-tr]'); if(!b) return; const k=b.dataset.tr; if(k==='next') tourGo(1); else if(k==='back') tourGo(-1); else tourEnd(); };
+  document.body.append(blk, hole, card); card.onclick=e=>{ const b=e.target.closest('[data-tr]'); if(!b || b.disabled) return; const k=b.dataset.tr; if(k==='next') tourGo(1); else if(k==='back') tourGo(-1); else if(k==='play'){ tourEnd(true); tourStart('play'); } else if(k==='decks'){ tourEnd(true); tourOwnDeck(); } else tourEnd(); };
   blk.onclick=()=>{}; addEventListener('resize', tourPlace); store.set('mt_toured', true); const tl=$('#tourLine'); if(tl) tl.hidden=true; tourShow(); }
-function tourEnd(){ if(!TOUR) return; const wasLobby=TOUR.from==='lobby' && TOUR.i>=TOUR.list.length-1; TOUR=null; for(const id of ['tourBlock','tourHole','tourCard']){ const e=document.getElementById(id); if(e) e.remove(); } removeEventListener('resize', tourPlace); if(wasLobby) setTimeout(practiceDeckOffer, 200); }
+function tourEnd(quiet){ if(!TOUR) return; const wasStart=TOUR.from==='start' && TOUR.i>=TOUR.list.length-1; TOUR=null; G.okDemo=null; for(const id of ['tourBlock','tourHole','tourCard']){ const e=document.getElementById(id); if(e) e.remove(); } removeEventListener('resize', tourPlace); if(wasStart && !quiet) setTimeout(practiceDeckOffer, 200); if(!$('#table').hidden) render(); }
+function tourOwnDeck(){ G.tourBoard=false; begin('solo'); }
 async function tourScreen(scr){ // the tour moves between screens itself: front page → a practice game's deck screen → the table with a random tournament deck
-  if(scr==='decks' && $('#decks').hidden){ if(!$('#table').hidden) return; begin('solo'); await new Promise(r=>setTimeout(r, 150)); }
-  if(scr==='decks' && !$('#deckView .card, #deckView #useDeck')){ const rows=$$('#tabBody [data-d]'); if(rows.length){ rows[Math.floor(Math.random()*Math.min(rows.length, 12))].click(); await new Promise(r=>setTimeout(r, 400)); } }
-  if(scr==='table' && $('#table').hidden){ const b=$('#useDeck'); if(b){ b.click(); for(let k=0;k<40 && $('#table').hidden;k++) await new Promise(r=>setTimeout(r, 150)); } else if(G.me.deck) showTable(); await new Promise(r=>setTimeout(r, 250)); } }
-async function tourShow(){ if(!TOUR) return; const st=TOUR.list[TOUR.i]; if(!st){ tourEnd(); return; } await tourScreen(st.scr); if(!TOUR) return;
-  if(st.pre==='edit' && !$('#edQ')){ const b=$('#modDeck'); if(b){ b.click(); await new Promise(r=>setTimeout(r, 350)); } }   // v4.47: the deck-building steps open the editor on the tour's deck and close it again
-  else if(st.pre==='view' && $('#edDone')){ $('#edDone').click(); await new Promise(r=>setTimeout(r, 300)); }
+  if(scr==='stage'){ if(TOUR.stage){ TOUR.stage=false; await tourStage(); } return; }
+  if(scr==='here') return;
+  if(scr==='decks' && $('#decks').hidden){ if(!$('#table').hidden) return; begin('solo'); await tourWait(150); }
+  if(scr==='decks' && !$('#deckView .card, #deckView #useDeck')){ const rows=$$('#tabBody [data-d]'); if(rows.length){ rows[Math.floor(Math.random()*Math.min(rows.length, 12))].click(); await tourWait(400); } }
+  if(scr==='table' && $('#table').hidden){ const b=$('#useDeck'); if(b){ b.click(); for(let k=0;k<40 && $('#table').hidden;k++) await tourWait(150); } else if(G.me && G.me.deck) showTable(); await tourWait(250); }
+  if(scr==='table' && TOUR && TOUR.from==='start' && G.solo && G.me.deck && !G.turn.n){ closeModal(); if(!G.me.dealt) drawOpening(); G.me.kept=true; takeFirst(G.myId); await tourWait(200); } }
+/* the staged board for How to play: a practice game with the two tour decks, turn 3, my Main 1 */
+async function tourStage(){
+  if(!G.me || !G.solo){ begin('solo'); await tourWait(150); }
+  closeModal(); G.tourBoard=true; G.okDemo=null;
+  const pd=t=>{ const d=parseDeck(t); return {main:d.main, side:d.side, art:{}}; };
+  await loadDeck(pd(TOUR_DECKS.me.txt), TOUR_DECKS.me.name); if(!TOUR) return;
+  G.opp.deckAsked=1; await dummyDeck(pd(TOUR_DECKS.opp.txt), TOUR_DECKS.opp.name); if(!TOUR) return;
+  showTable(); closeModal();
+  const m=G.me, o=G.opp, take=(p, zone, name, extra)=>{ let i=p.lib.findIndex(c=>cdata(c).n===name), c; if(i<0){ i=p.hand.findIndex(c=>cdata(c).n===name); if(i<0) return null; c=p.hand.splice(i,1)[0]; } else c=p.lib.splice(i,1)[0]; Object.assign(c, extra||{}); p[zone].push(c); return c; };
+  for(const z of ['hand','bf','gy','ex','st']){ m.lib.push(...m[z]); m[z]=[]; } o.lib.push(...o.hand, ...o.bf, ...o.gy); o.hand=[]; o.bf=[]; o.gy=[]; o.ex=[]; o.st=[]; o.arrows=[]; m.arrows=[];
+  for(const n of ['Sacred Foundry','Plains']) take(m, 'bf', n);
+  take(m, 'bf', 'Ragavan, Nimble Pilferer', {sick:false}); take(m, 'bf', 'Guide of Souls', {sick:false});
+  for(const n of ['Snow-Covered Mountain','Ocelot Pride','Galvanic Discharge','Seasoned Pyromancer','Thraben Charm']) take(m, 'hand', n);
+  for(const n of ['Arid Mesa','Galvanic Discharge']) take(m, 'gy', n);
+  for(const n of ['Steam Vents','Mountain']) take(o, 'bf', n);
+  take(o, 'bf', 'Monastery Swiftspear', {sick:false}); take(o, 'bf', "Dragon's Rage Channeler", {sick:false});
+  for(const n of ['Preordain',"Mishra's Bauble",'Scalding Tarn']) take(o, 'gy', n);
+  shuffle(m.lib); shuffle(o.lib); o.hand=o.lib.splice(0,4); for(const c of o.bf) c.o=oppId();
+  m.life=18; o.life=16; m.mull=0; m.kept=m.dealt=true; m.compDone=true; delete m.btm; m.lp=null; m.lpx=null; m.mana=noMana(); m.ctr={poison:0, energy:0};
+  G.turn={active:G.myId, phase:2, n:3}; dummySync(); log('How to play: a game in progress, turn 3. Boros Aggro against Practice\'s UR Aggro.'); changed(); await tourWait(250); }
+const tourCard = (p, name) => p.hand.find(c=>cdata(c).n===name) || p.bf.find(c=>cdata(c).n===name);
+const tourTop = () => { const s=G.me.st; return s.length ? s.reduce((a,b)=>(b.ts||0)>=(a.ts||0)?b:a) : null; };
+const TOUR_BEATS = {
+  stage: async()=>{},
+  land: async()=>{ const c=tourCard(G.me, 'Snow-Covered Mountain'); if(c && G.me.hand.includes(c)) playFromHand(c.id); await tourWait(400); },
+  cast: async()=>{ const c=tourCard(G.me, 'Ocelot Pride'); if(c && G.me.hand.includes(c)) playFromHand(c.id); for(let k=0;k<15 && $('#payPanel').hidden;k++) await tourWait(100); },
+  pay: async()=>{ const pl=G.me.bf.find(c=>cdata(c).n==='Plains'); if(pl && !pl.tap && !$('#payPanel').hidden) toggleTap(pl.id); await tourWait(300); const pb=[...$$('#payPanel button')].find(b=>/^Pay /.test(b.textContent)); if(pb) pb.click(); for(let k=0;k<15 && !G.me.st.length;k++) await tourWait(100); },
+  resolve: async()=>{ const c=tourTop(); if(c) resolve(c.id); for(let k=0;k<20;k++){ await tourWait(100); if(!$('#modal').hidden) closeModal(); if(k>4 && !G.mode) break; } },
+  bolt: async()=>{ const o=G.opp; let b=o.hand.find(c=>cdata(c).n==='Lightning Bolt'); if(b) o.hand.splice(o.hand.indexOf(b),1); else { const i=o.lib.findIndex(c=>cdata(c).n==='Lightning Bolt'); b = i>=0 ? o.lib.splice(i,1)[0] : mk(keyOf('Lightning Bolt'), {o:oppId()}); }
+    b.ts=Date.now(); o.st.push(b); o.arrows=(o.arrows||[]).concat([{a:b.id, b:G.myId}]); G.okDemo='Lightning Bolt'; dummySync(); log('Practice casts Lightning Bolt targeting you (shown by the tour).'); changed(); try{ stackChime(1); }catch(e){} await tourWait(300); },
+  boltDone: async()=>{ const o=G.opp, b=o.st.find(c=>cdata(c).n==='Lightning Bolt'); G.okDemo=null; if(b){ o.st.splice(o.st.indexOf(b),1); o.gy.push(b); o.arrows=(o.arrows||[]).filter(a=>a.a!==b.id); G.me.life-=3; log(`Practice's Lightning Bolt deals 3 damage to ${G.me.name} (now ${G.me.life}).`); } dummySync(); changed(); await tourWait(300); },
+  attack: async()=>{ const ids=G.me.bf.filter(c=>/^(Ragavan, Nimble Pilferer|Guide of Souls)$/.test(cdata(c).n)).map(c=>c.id); G.turn.phase=3; delete G.turn.cs; render(); G.atkSel=new Set(ids); atkCommit(); for(let k=0;k<20;k++){ await tourWait(100); if(!$('#modal').hidden) closeModal(); if(k>4 && !G.mode && pblockStep()) break; } },
+  block: async()=>{ const sw=G.opp.bf.find(c=>cdata(c).n==='Monastery Swiftspear'), gd=G.me.bf.find(c=>cdata(c).n==='Guide of Souls' && c.atk); if(pblockStep()){ if(sw && gd) G.opp.arrows.push({a:sw.id, b:gd.id, blk:1}); pblockBtn('done'); } await tourWait(400); },
+  damage: async()=>{ for(let k=0;k<4 && !G.me.st.length;k++){ combatStep(); await tourWait(450); if(!$('#modal').hidden) closeModal(); } }
+};
+async function tourShow(){ if(!TOUR) return; const st=TOUR.list[TOUR.i]; if(!st){ tourEnd(); return; } const card=$('#tourCard');
+  if(card && st.go && !TOUR.done[TOUR.i]) card.querySelectorAll('button').forEach(b=>b.disabled=true);
+  await tourScreen(st.scr); if(!TOUR) return;
+  if(st.go && !TOUR.done[TOUR.i]){ TOUR.done[TOUR.i]=1; try{ await TOUR_BEATS[st.go](); }catch(e){ console.warn('tour beat', st.go, e); } if(!TOUR) return; }
+  if(st.pre==='edit' && !$('#edQ')){ const b=$('#modDeck'); if(b){ b.click(); await tourWait(350); } }   // v4.47: the deck-building steps open the editor on the tour's deck and close it again
+  else if(st.pre==='view' && $('#edDone')){ $('#edDone').click(); await tourWait(300); }
   if(!TOUR) return;
   let el=st.sel ? $(st.sel) : null; if(el && st.up) for(let k=0;k<st.up && el.parentElement;k++) el=el.parentElement;
-  if(st.sel && (!el || el.hidden || !el.offsetParent || !el.getBoundingClientRect().width)){ TOUR.i += TOUR.dir<0 ? -1 : 1; if(TOUR.i<0){ TOUR.i=0; } tourShow(); return; }
-  TOUR.el=el; const n=TOUR.list.length, last=TOUR.i===n-1;
-  $('#tourCard').innerHTML = `<h4>${st.t}</h4>${st.p.map(x=>`<p>${x}</p>`).join('')}<div class="tfoot"><span class="n">${TOUR.i+1} of ${n}</span>${TOUR.i ? '<button class="ghost" data-tr="back">Back</button>' : ''}${last ? '' : '<button class="ghost" data-tr="end">Skip tour</button>'}<button class="go" data-tr="next">${last ? 'Done' : 'Next'}</button></div>`;
+  if(st.sel && (!el || el.hidden || (!el.offsetParent && getComputedStyle(el).position!=='fixed') || !el.getBoundingClientRect().width)){ if(st.go){ el=null; } else { TOUR.i += TOUR.dir<0 ? -1 : 1; if(TOUR.i<0){ TOUR.i=0; } tourShow(); return; } }
+  TOUR.el=el; const n=TOUR.list.length, last=TOUR.i===n-1, extra=(st.btns||[]).map(([l,k])=>`<button class="go" data-tr="${k}">${l}</button>`).join('');
+  $('#tourCard').innerHTML = `<h4>${st.t}</h4>${st.p.map(x=>`<p>${x}</p>`).join('')}<div class="tfoot"><span class="n">${TOUR.i+1} of ${n}</span>${TOUR.i ? '<button class="ghost" data-tr="back">Back</button>' : ''}${last ? '' : '<button class="ghost" data-tr="end">Skip tour</button>'}${extra}<button class="${extra?'ghost':'go'}" data-tr="next">${last ? 'Done' : 'Next'}</button></div>`;
   if(el) el.scrollIntoView({block:'nearest'}); tourPlace(); }
-function tourGo(d){ if(!TOUR) return; TOUR.dir=d; TOUR.i+=d; if(TOUR.i<0) TOUR.i=0; if(TOUR.i>=TOUR.list.length){ tourEnd(); return; } tourShow(); }
+function tourGo(d){ if(!TOUR) return; if($('#tourCard') && $('#tourCard').querySelector('button[disabled]')) return; TOUR.dir=d; TOUR.i+=d; if(TOUR.i<0) TOUR.i=0; if(TOUR.i>=TOUR.list.length){ tourEnd(); return; } tourShow(); }
 function tourPlace(){ if(!TOUR) return; const hole=$('#tourHole'), card=$('#tourCard'); if(!hole || !card) return; const W=innerWidth, H=innerHeight, cw=card.offsetWidth, ch=card.offsetHeight, g=14;
   if(!TOUR.el){ Object.assign(hole.style, {left:W/2+'px', top:H/2+'px', width:'0px', height:'0px'}); card.style.left=Math.max(16,(W-cw)/2)+'px'; card.style.top=Math.max(16,(H-ch)/2)+'px'; return; }
   const r=TOUR.el.getBoundingClientRect(), pad=6, x=Math.max(4,r.left-pad), y=Math.max(4,r.top-pad), w=Math.min(W-8,r.width+2*pad), h=Math.min(H-8,r.height+2*pad);
@@ -9284,7 +9381,7 @@ function helpModal(){
   <div class="two help"><div>${g('Playing cards','Click a card in your hand: lands enter play, spells go to the stack (Shift-click: land tapped). A dimmed card can\'t be played right now; click it to see why, or play it anyway (the log notes it).','Right-click it for other ways to cast it (evoke, cycling, warp, its other side). Drag cards between zones. Right-click a permanent for its abilities.')}${g('The stack','With a friend, a spell waits for their OK: your button turns blue and a chime plays when the OK is yours. To respond, cast something. Two or more of your triggers at once: you choose their order. In practice, click a spell to resolve it.')}${g('Targets','Right-drag from a card to its target to draw an arrow. Right-click either end to clear it.')}${g('Library and graveyard','Click your library to draw, right-click it to search, scry, mill or shuffle. Click a graveyard or exile pile to look through it.')}${g('Mana','Tap lands for mana. Spells and abilities pay from the pool; a window waits if it is short (auto-pay is in ☰ Settings).')}</div>
   <div>${g('Turns and combat','The big button moves to the next step. In combat, choose attackers on the attack bar; your opponent blocks with theirs; then apply damage. Your opponent clicks Start my turn when you pass. Click the turn for stops, pauses, give control or take the turn.')}${g('Life and the match','− and + beside a player (Shift-click for 5); right-click a player\'s box for energy and poison counters. The table notices a lost game and records the win. Two-player tables have a 50-minute round clock.')}${g('Mistakes','Undo steps back your own last action (not past a shuffle or the end of a turn). Anything else can be put back by hand.')}${g('Voice','At a table with a friend, tap the microphone beside your name: they hear you live until you tap it again. Settings → Voice switches to voice notes. Nothing is recorded or stored.')}${g('Practice','Practice alone gives you an opponent called Practice. The ⚑ Practice button gives it a deck, puts creatures and planeswalkers on its side, and lets it take turns.')}${g('Game Night','Up to eight players: three rounds of Modern, or a draft, sealed event or cube, with pairings, a round clock and standings. Start one from the front page (Game Night, top right).')}</div></div></div>
   <div class="hpane" data-hp="keys" hidden><div class="two help"><div><h4>With the pointer over your card</h4>${k('T','tap or untap')}${k('A','attack: taps and gets a gold border')}${k('V','attack with vigilance: gold border, stays untapped')}${k('B','block: then click the attacker')}${k('R','target: then click a card or player')}${k('C','add a counter')}${k('X','remove a counter')}${k('−','mark 1 damage (works on your opponent\'s creatures too)')}${k('=','remove 1 damage')}${k('F','transform')}${k('G','graveyard')}${k('E','exile')}${k('H','hand')}</div>
-  <div><h4>Anywhere</h4>${k('D','draw a card')}${k('S','shuffle')}${k('Ctrl+Z','undo your last action')}${k('Space','next phase, or OK')}${k('Esc','cancel')}</div></div></div></div>`, [...($('#table').hidden ? [] : [['Explore the table',()=>exploreStart(),'ghost']]), ['Take the tour',()=>{ closeModal(); tourStart('table'); },'ghost'], ["What's new",()=>{ closeModal(); newsModal(); },'ghost'], ['Send feedback',()=>{ closeModal(); openFeedback(); },'ghost'], ['Got it',()=>closeModal(),'go']]);
+  <div><h4>Anywhere</h4>${k('D','draw a card')}${k('S','shuffle')}${k('Ctrl+Z','undo your last action')}${k('Space','next phase, or OK')}${k('Esc','cancel')}</div></div></div></div>`, [...($('#table').hidden ? [] : [['Explore the table',()=>exploreStart(),'ghost']]), ['Take the tour',()=>{ closeModal(); tourPlay(); },'ghost'], ["What's new",()=>{ closeModal(); newsModal(); },'ghost'], ['Send feedback',()=>{ closeModal(); openFeedback(); },'ghost'], ['Got it',()=>closeModal(),'go']]);
   const tabs=document.querySelector('#modal .htabs');
   if(tabs) tabs.onclick=e=>{ const b=e.target.closest('[data-ht]'); if(!b) return; for(const x of tabs.querySelectorAll('[data-ht]')){ const on=x===b; x.classList.toggle('on', on); x.setAttribute('aria-selected', String(on)); } for(const p of document.querySelectorAll('#modal .hpane')) p.hidden = p.dataset.hp!==b.dataset.ht; };
 }
@@ -9698,7 +9795,7 @@ function viewDeck(d, name, sub, link, canSave, savedIdx){
   const art=d.art||{}, kk=n=>art[keyOf(n)]||keyOf(n), limited=Object.keys(art).length>0;
   const line=([n,c])=>`<div data-kk="${esc(kk(n))}"><span class="n">${c}</span>${esc(n)}</div>`;
   v.innerHTML = `<div><h3>${esc(name)}</h3><span class="hint">${esc(sub)} · ${nm} main, ${ns} sideboard${nm<60 && !limited?' · fewer than 60 cards':''}</span></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="go" id="useDeck">Play this deck</button>${savedIdx==null?'<button id="saveDeck">Save to my decks</button>':'<button id="delDeck">Delete</button>'}<button id="modDeck">Modify this deck</button>${link?`<a href="${link}" target="_blank" rel="noopener" style="color:var(--brass)">View on ${/mtgtop8\.com/.test(link)?'MTGTop8':'MTGGoldfish'}</a>`:''}<span class="hint" id="deckMsg"></span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="go" id="useDeck">Play this deck</button>${savedIdx==null?'<button id="saveDeck">Save to my decks</button>':'<button id="delDeck">Delete</button>'}<button id="modDeck">Modify this deck</button><a href="#" id="edTourLink" style="color:var(--brass)">Tour the deck editor</a>${link?`<a href="${link}" target="_blank" rel="noopener" style="color:var(--brass)">View on ${/mtgtop8\.com/.test(link)?'MTGTop8':'MTGGoldfish'}</a>`:''}<span class="hint" id="deckMsg"></span></div>
     <div class="dvtabs"><button data-dv="cards" class="${dvMode()==='cards'?'on':''}">Cards</button><button data-dv="list" class="${dvMode()==='list'?'on':''}">List</button><span class="hint" id="dvMsg"></span></div><div id="dvBody"></div>`;
   const listHTML=`<div class="cols"><div class="sec">Main deck</div>${d.main.map(line).join('')}<div class="sec">Sideboard</div>${d.side.map(line).join('')||'<div class="hint">None</div>'}</div>`;
   const pseudo=list=>list.flatMap(([n,c])=>Array.from({length:c}, ()=>({id:'s:'+kk(n), k:kk(n)})));
@@ -9714,7 +9811,7 @@ function viewDeck(d, name, sub, link, canSave, savedIdx){
   const load=()=>{ loading=true; paint(); ensureCards([...d.main,...d.side].map(x=>kk(x[0]))).finally(()=>{ loading=false; paint(); }); }; load();
   const edit=()=>editDeck({d, name, sub, link, kind: savedIdx!=null ? 'saved' : canSave ? 'paste' : 'tour', savedIdx});
   $('#useDeck').onclick=()=>playDeck(d, name, $('#useDeck'), $('#deckMsg'), edit);
-  $('#modDeck').onclick=edit;
+  $('#modDeck').onclick=edit; $('#edTourLink').onclick=e=>{ e.preventDefault(); tourStart('edit'); };
   const sb=$('#saveDeck'); if(sb) sb.onclick=()=>{ const sv=store.get('mt_decks',[]); sv.unshift({name, text:deckText(d)}); store.set('mt_decks',sv); toast('Saved'); };
   const db=$('#delDeck'); if(db) db.onclick=()=>{ const sv=store.get('mt_decks',[]); sv.splice(savedIdx,1); store.set('mt_decks',sv); renderTab(); };
 }
@@ -9937,11 +10034,11 @@ $('#lgsField').hidden=!AFF_ON; $('#lglStore').hidden=!AFF_ON;
 { const sel=$('#lgsIn'), srt=n=>n.replace(/^The /,''); sel.innerHTML = '<option value="">No affiliation</option>' + [...LGS].sort((a,b)=>srt(a.n).localeCompare(srt(b.n))).map(L=>`<option value="${L.k}">${esc(L.n)}</option>`).join('');
   if(!lgsOf(S.lgs)) S.lgs=''; sel.value=S.lgs||'';
   const paint=()=>{ const pv=$('#lgsPrev'); pv.innerHTML=lgsImg(S.lgs,''); pv.classList.toggle('on', !!lgsOf(S.lgs)); };
-  sel.onchange=()=>{ S.lgs = lgsOf(sel.value) ? sel.value : ''; store.set('mt_settings',S); if(G.me){ G.me.lgs=S.lgs; } paint(); }; paint(); } $('#verTag').textContent=VERSION; $('#fbLink').onclick=e=>{ e.preventDefault(); openFeedback(); }; $('#tourLink').onclick=e=>{ e.preventDefault(); tourStart('lobby'); }; $('#tourX').onclick=()=>{ store.set('mt_toured', true); $('#tourLine').hidden=true; }; $('#tourLine').hidden=!!store.get('mt_toured', false);
+  sel.onchange=()=>{ S.lgs = lgsOf(sel.value) ? sel.value : ''; store.set('mt_settings',S); if(G.me){ G.me.lgs=S.lgs; } paint(); }; paint(); } $('#verTag').textContent=VERSION; $('#fbLink').onclick=e=>{ e.preventDefault(); openFeedback(); }; $('#tourLink').onclick=e=>{ e.preventDefault(); tourStart('start'); }; $('#tourPlayLink').onclick=e=>{ e.preventDefault(); tourStart('play'); }; $('#tourX').onclick=()=>{ store.set('mt_toured', true); $('#tourLine').hidden=true; }; $('#tourLine').hidden=!!store.get('mt_toured', false);
 $('#news').innerHTML = `<h4>What's new</h4>${NEWS.slice(0,6).map(newsRow).join('')}<a href="#" id="newsAll">See all changes</a>`; $('#newsAll').onclick=e=>{ e.preventDefault(); newsModal(); };
 function begin(role, code){
   S.name=(nameIn.value.trim()||'Player').slice(0,20); S.lgs = lgsOf($('#lgsIn').value) ? $('#lgsIn').value : ''; store.set('mt_settings',S);
-  G.solo = role==='solo'; G.myId = role==='guest' ? 'p2' : 'p1'; G.code=code||''; G.me=newPlayer(); G.opp = G.solo ? newDummy() : null; G.gid=gameId(); G.turn={active:null,phase:2,n:0}; G.idc=0; priReset();
+  G.solo = role==='solo'; G.tourBoard=false; G.okDemo=null; G.myId = role==='guest' ? 'p2' : 'p1'; G.code=code||''; G.me=newPlayer(); G.opp = G.solo ? newDummy() : null; G.gid=gameId(); G.turn={active:null,phase:2,n:0}; G.idc=0; priReset();
   connect(); save(); showDecks();
   if(role==='solo') gcEvent('practice-started', 'Practice game started'); else if(role==='host') gcEvent('table-opened', 'Table opened');
 }

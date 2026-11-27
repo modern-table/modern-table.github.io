@@ -184,3 +184,61 @@ Sideboard
 1 Street Wraith
 1 Thought-Knot Seer
 1 Valgavoth, Terror Eater
+
+# The tours' decks (v5.45): How to play stages Boros Aggro against Practice's UR Aggro (TOUR_DECKS in src/app.src.html), so their cards stay built in after the weekly decks move on
+1 Ajani, Nacatl Pariah
+1 Arena of Glory
+1 Arid Mesa
+1 Blood Moon
+1 Bloodstained Mire
+1 Captain James T. Kirk
+1 Celestial Purge
+1 Consign to Memory
+1 Cori-Steel Cutter
+1 Dalkovan Encampment
+1 Dragon's Rage Channeler
+1 Elegant Parlor
+1 Expressive Iteration
+1 Fiery Islet
+1 Flooded Strand
+1 Galvanic Discharge
+1 Goblin Bombardment
+1 Guide of Souls
+1 Heritage Reclamation
+1 High Noon
+1 Lava Dart
+1 Lightning Bolt
+1 Marsh Flats
+1 Meltdown
+1 Mishra's Bauble
+1 Monastery Swiftspear
+1 Mountain
+1 Mutagenic Growth
+1 Mystical Dispute
+1 Obsidian Charmaw
+1 Ocelot Pride
+1 Pick Your Poison
+1 Plains
+1 Preordain
+1 Prismatic Ending
+1 Ragavan, Nimble Pilferer
+1 Rest in Peace
+1 Sacred Foundry
+1 Scalding Tarn
+1 Seasoned Pyromancer
+1 Slickshot Show-Off
+1 Snow-Covered Mountain
+1 Snow-Covered Plains
+1 Spell Pierce
+1 Steam Vents
+1 Stomping Ground
+1 Surgical Extraction
+1 The Legend of Roku
+1 Thraben Charm
+1 Thundering Falls
+1 Tormod's Crypt
+1 Unholy Heat
+1 Violent Urge
+1 Voice of Victory
+1 Wooded Foothills
+1 Wrath of the Skies
