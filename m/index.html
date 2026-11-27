@@ -1252,7 +1252,7 @@ html.mob #coPanel .codrag .mocap{display:none}
 "use strict";
 /* GoatCounter event (anonymous count, see the head). Waits up to 20 s for count.js; never throws; once=key counts a thing only once per browser tab. */
 function gcEvent(path, title, once){ try{ if(once){ const k='mt_gc_'+once; if(sessionStorage.getItem(k)) return; sessionStorage.setItem(k,'1'); } }catch(e){} let n=0; const go=()=>{ try{ const g=window.goatcounter; if(g && g.count) g.count({path, title:title||path, event:true}); else if(++n<40) setTimeout(go, 500); }catch(e){} }; go(); }
-const VERSION = 'v5.43';
+const VERSION = 'v5.44';
 /* Affiliation (v4.88, the maintainer): a player may rep one local game store. k = file name in lgs/ (256 px squares), n = name shown. Only keys in this
    list are ever drawn, so an opponent's published value can't put anything else on the page. Add a store: add its png to lgs/ and a line here. */
 const LGS = [
@@ -1268,6 +1268,7 @@ const lgsImg = (k, cls) => { const L=lgsOf(k); return L ? `<img class="${cls}" s
 const FEEDBACK_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLSfWjXj8Wji7HalFEDIxLy-DnbObd7MZAdvnej28uY-0zENqdw/viewform', FB_VERSION = 'entry.1748196319', FB_DETAILS = 'entry.754482021';
 /* What's new: newest first, one plain-language line per version for players. Add a line here with every version bump. */
 const NEWS = [
+  ['v5.44','Nov 26',"New fetch land art: Bear's Choice, half Zendikar and half Khans of Tarkir, in the Fetch tab of the land art box on the deck screen."],
   ['v5.43','Nov 25',"Open tables: when you open a table you can now choose how serious it is (Playtest, Casual or Match) and tick \"List my table\" to show your name and code on the front page and in the Discord's #looking-for-game. The front page shows a band for each kind of table that's waiting for an opponent: click a name to join. Game Night hosts can list their event the same way. Listing is always your choice; to play a friend, just send the code as before."],
   ['v5.42','Nov 25',"Pasting a deck list is more forgiving: headings copied from deck sites (like \"Creatures (16)\" or \"Sideboard (15)\"), Moxfield's foil marks, curly apostrophes and MTGO .dek files all read correctly, and lines that aren't cards are left out. On the phone table, the deck screen is rebuilt for phones: this week's decks and your own side by side, card pictures with counts, quick edits, and a paste box that counts as you type and checks the card names."],
   ['v5.41','Nov 25',"Modern Table on your phone (beta): open modern-table.github.io on a phone and you get the phone table, made for holding your phone sideways. Phones and computers play each other at the same tables, with the same table codes. It's brand new, so please use Send feedback when something feels off. (Want the computer layout on a phone? The phone table's front page links to it.)"],
@@ -8319,7 +8320,8 @@ const LAND_FAMS=[
     {k:'orig', n:'Originals (Onslaught + Zendikar)', sets:['ons','zen'], pick:'low'},
     {k:'mod', n:'Modern (MH2 + MH3)', sets:['mh2','mh3'], pick:'low'},
     {k:'fancy', n:'Fancy (Special Guests + MH3)', sets:['spg','mh3'], pick:'high', cn:{mh3:[340,370]}, ver:2},
-    {k:'zne', n:'Expeditions (Zendikar Rising)', ids:[['zne','1'],['zne','2'],['zne','3'],['zne','4'],['zne','5'],['zne','6'],['zne','7'],['zne','8'],['zne','9'],['zne','10']]}]},   // v4.83 (the maintainer): ZNE #1–10 are the ten fetches, one printing each   // v4.72 (the maintainer): MH3's are the ones around #353 (Flooded Strand), not #464
+    {k:'zne', n:'Expeditions (Zendikar Rising)', ids:[['zne','1'],['zne','2'],['zne','3'],['zne','4'],['zne','5'],['zne','6'],['zne','7'],['zne','8'],['zne','9'],['zne','10']]},
+    {k:'bear', n:"Bear's Choice (Zendikar + Khans of Tarkir)", sets:['zen','ktk'], pick:'low'}]},   /* v5.44 (the maintainer's name for it): half and half, Zendikar's five enemy-colour fetches and Khans' five allied ones; the two sets share none, so each land has one printing */   // v4.83 (the maintainer): ZNE #1–10 are the ten fetches, one printing each   // v4.72 (the maintainer): MH3's are the ones around #353 (Flooded Strand), not #464
   {k:'surveil', n:'Surveil', names:SURV10, styles:[{k:'std', n:'As your deck lists them'}, {k:'alt', n:'Alternate art (Karlov Manor)', sets:['mkm'], pick:'low', cn:{mkm:[315,345]}}]}];   // v4.73 (the maintainer): MKM's other run, Commercial District is #324
 const BASICS_C=store.get('mt_basics', {});
 for(const x of BASIC_SETS) if(x.ids && BASICS_C[x.k] && Object.values(BASICS_C[x.k]).flat().length!==x.ids.length) delete BASICS_C[x.k];   // v4.70: a list saved before a set was pinned to exact numbers (Unsanctioned in v4.68) is forgotten, so the box and the deck both look it up again
