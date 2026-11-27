@@ -7,9 +7,12 @@
    - choosing targets has a strip that says what to tap, legal targets outlined in orange, and a Done button (m0.5)
    - blocking is guided: tap a blocker, then the attacker it blocks; blockers group under their attackers (m0.6) */
 'use strict';
-const MVERSION = 'm0.16';
+const MVERSION = 'm0.17';
 const M = {look:false, view:null, lands:null, autoLands:false, tap:null, swallow:0, lastTouch:0, stN:0};
 const HT = document.documentElement;
+/* m0.17: during the phone tour's steps the player does, only what the step outlines takes a tap (registered first, so it runs before the
+   phone's own tap listeners below); the code is with the tour at the end of this file */
+for(const ev of ['pointerdown','pointerup','click']) addEventListener(ev, e=>{ try{ mtrGate(e); }catch(_){} }, true);
 
 /* ---------- no hover enlargement: LOOK replaces it ---------- */
 showZoom = function(){};
@@ -69,6 +72,7 @@ function mainMenu(){
     dummy() && ["Practice's side…", ()=>practiceMenu(0, 0)],
     ['Turn menu: stops and pauses…', ()=>turnMenu()],
     ['Game log and chat', ()=>HT.classList.add('mlog')],
+    !vsReal() && ['How to play (a 3-minute tour)', ()=>mtrOffer()],   /* m0.17: the phone tour; not at a friend's table, where it would set up a new board */
     '-', ...tm ], 'Menu');
 }
 
@@ -584,7 +588,7 @@ function mLogPaint(){ let el = $('#mLog'); if(!el){ const sw = $('#stackwrap'); 
 
 /* ---------- the front page ---------- */
 (function(){ const lm = $('.lmain'); if(!lm) return; const n = document.createElement('p'); n.id = 'mNote';
-  n.innerHTML = `<b>The phone table · beta</b> (${MVERSION}). Hold your phone sideways. You can play friends on phones or computers with the same table code. Something feel off? <a href="${esc(feedbackUrl('Phone table'))}" target="_blank" rel="noopener">Send feedback</a> · <a href="../?desk=1" title="The computer layout, on this phone (remembered; the phone table link on that page brings you back)">The desktop table</a> <button class="mnav" data-mnav="reload" title="Load the page again (picks up the newest version)">↻ Reload</button>`;
+  n.innerHTML = `<b>The phone table · beta</b> (${MVERSION}). Hold your phone sideways. You can play friends on phones or computers with the same table code. Something feel off? <a href="${esc(feedbackUrl('Phone table'))}" target="_blank" rel="noopener">Send feedback</a> · <a href="../?desk=1" title="The computer layout, on this phone (remembered; the phone table link on that page brings you back)">The desktop table</a> <button class="mnav" data-mnav="reload" title="Load the page again (picks up the newest version)">↻ Reload</button><br><button class="mnav mtrgo" data-mnav="tour" title="A game in progress where you play a turn yourself, step by step">▶ How to play (a 3-minute tour)</button>`;
   lm.prepend(n); })();
 
 /* ---------- home and reload (m0.9, the maintainer: added to the home screen, the phone page has no browser bar, so no back or refresh) ----------
@@ -597,7 +601,7 @@ function mHome(){ if(!$('#lobby').hidden) return; const go = ()=>{ try{ save(); 
 function mReload(){ if(mOpen()){ try{ save(); }catch(e){} try{ sessionStorage.setItem('mt_mresume', '1'); }catch(e){} } location.reload(); }
 (function(){ const tb = $('#decks .topbar'); if(tb){ const w = document.createElement('span'); w.className = 'mnavs';
     w.innerHTML = '<button class="mnav" data-mnav="home" title="The front page">⌂ Home</button><button class="mnav" data-mnav="reload" title="Load the page again">↻</button>'; tb.appendChild(w); }
-  document.addEventListener('click', e=>{ const b = e.target.closest && e.target.closest('[data-mnav]'); if(!b) return; e.preventDefault(); e.stopPropagation(); b.dataset.mnav === 'home' ? mHome() : mReload(); }, true);
+  document.addEventListener('click', e=>{ const b = e.target.closest && e.target.closest('[data-mnav]'); if(!b) return; e.preventDefault(); e.stopPropagation(); const k = b.dataset.mnav; if(k === 'tour'){ tourStart('play'); return; } k === 'home' ? mHome() : mReload(); }, true);
   let r = null; try{ r = sessionStorage.getItem('mt_mresume'); sessionStorage.removeItem('mt_mresume'); }catch(e){}
   if(r){ const rb = $('#resumeBtn'); if(rb && !rb.hidden) setTimeout(()=>rb.click(), 0); } })();
 
@@ -821,3 +825,125 @@ function mOrdDeco(){ if(!CO || CO.kind !== 'sim' || !CO.el) return; const row = 
   cards.forEach((c,i)=>{ if(c.querySelector('.mordn')) return; const x = CO.ord[i], t = x ? String(cdata(x).o || '').replace(/\s+/g,' ').trim() : '';
     c.insertAdjacentHTML('beforeend', `<b class="mordn" title="Resolves ${n-i === 1 ? 'first' : 'number '+(n-i)}">${n-i}</b><span class="mocap">${esc(t)}</span>`); }); }
 addEventListener('resize', ()=>{ if(CO && CO.kind === 'sim') setTimeout(mOrdDeco, 0); });
+
+
+/* ---------- the phone tour (m0.17, the maintainer: on the phone, make sure the steps to play are understood; the player does the taps) ----------
+   How to play on the phone: the desktop's staged board (turn 3, Boros Aggro against Practice's UR Aggro, `tourStage`), but each step says what to
+   tap, outlines it in gold (`#mtrRings`, redrawn every 250 ms because `render` rebuilds the rows) and waits until the player has done it (`ok`), then
+   goes on by itself. Only the outlined parts take a tap (`mtrGate`, plus open windows and menus); anything else nudges the card. Do it for me runs
+   the step (mostly the desktop's own `TOUR_BEATS`). Steps that only explain (`do` unset) use the desktop's spotlight and Next. The card finds the
+   spot on screen that covers the least of what the step needs (`mtrPlace`). `TOUR_STEPS.play` is replaced here, so the desktop page is unchanged. */
+const mtrHand = () => HT.classList.contains('mhand');
+const mtrIn = (z, n) => G.me[z].some(c=>cdata(c).n === n);
+const mtrSt = n => G.me.st.find(c=>cdata(c).n.startsWith(n));
+const mtrStEl = n => { const c = mtrSt(n); return c ? $(`#stack .card[data-id="${c.id}"]`) : null; };
+const mtrHandEl = n => { if(!mtrHand()) return $('#mHandBtn'); const c = G.me.hand.find(x=>cdata(x).n === n); return c ? $(`#myHand .card[data-id="${c.id}"]`) : null; };
+const mtrBf = (side, n) => (side.bf || []).find(c=>cdata(c).n.startsWith(n));
+const mtrBfEl = (side, n) => { const c = mtrBf(side, n); return c ? $(`${ROWS.split(',').map(r=>`${r} .card[data-id="${c.id}"]`).join(',')}`) : null; };
+const mtrPayOpen = () => !$('#payPanel').hidden;
+const MTR_HAND = ['#mHandBtn','#myHand','#mHandBack','#mHandHint'];
+const MTR_STEPS = [
+  {t:'How to play', scr:'stage', p:'A game in progress: turn 3, your main phase. You\'re on <b>Boros Aggro</b>, Practice is on <b>UR Aggro</b>. You play this turn yourself: tap whatever is outlined in gold. Stuck? <b>Do it for me</b> does that step.'},
+  {do:1, t:'Your hand', p:'Your hand is the fan of cards at the bottom. Tap it to open it.', ok:()=>mtrHand() || mtrIn('bf','Snow-Covered Mountain'), ring:()=>[$('#mHandBtn')], allow:MTR_HAND, doit:async()=>tray(true)},
+  {do:1, t:'Play a land', p:()=>mtrHand() ? 'Tap <b>Snow-Covered Mountain</b> to play it. You can play one land each turn.' : 'Tap your hand, then <b>Snow-Covered Mountain</b>.', ok:()=>mtrIn('bf','Snow-Covered Mountain'), ring:()=>[mtrHandEl('Snow-Covered Mountain')], allow:MTR_HAND, doit:async()=>{ tray(false); await TOUR_BEATS.land(); }},
+  {do:1, t:'Cast a spell', p:()=>mtrHand() ? 'Tap <b>Ocelot Pride</b> to cast it. It costs {W}: one white mana.' : 'Open your hand again and tap <b>Ocelot Pride</b>.', ok:()=>mtrPayOpen() || !!mtrSt('Ocelot') || mtrIn('bf','Ocelot Pride'), ring:()=>[mtrHandEl('Ocelot Pride')], allow:MTR_HAND, doit:async()=>{ tray(false); await TOUR_BEATS.cast(); }},
+  {do:1, t:'Pay for it', p:()=>!mtrPayOpen() ? 'Tap your hand, then <b>Ocelot Pride</b>.' : mtrNeed() ? 'Your lands opened on the left. Tap <b>Plains</b> to add {W} to your pool.' : 'The {W} is in your pool. Tap <b>Pay {W} and cast</b>.',
+    ok:()=>!!mtrSt('Ocelot') || mtrIn('bf','Ocelot Pride'), see:()=>[$('#payPanel'), $('#mLands')],
+    ring:()=>{ if(!mtrPayOpen()) return [mtrHandEl('Ocelot Pride')]; if(mtrNeed()){ const pl = G.me.bf.find(c=>cdata(c).n === 'Plains' && !c.tap) || G.me.bf.find(c=>cdata(c).n === 'Sacred Foundry' && !c.tap); return [pl && $(`#mLands .card[data-id="${pl.id}"]`)]; } return [mtrPayBtn()]; },
+    allow:['#mLands','#payPanel',...MTR_HAND], doit:async()=>{ if(!mtrPayOpen()){ tray(false); await TOUR_BEATS.cast(); } await TOUR_BEATS.pay(); }},
+  {do:1, t:'The stack', p:'Ocelot Pride waits on the stack (in the right column) so your opponent can answer it. In practice you tap it to resolve it; with a friend, it resolves once they OK it.', ok:()=>mtrIn('bf','Ocelot Pride'), ring:()=>[mtrStEl('Ocelot')], allow:['#stack'], doit:()=>TOUR_BEATS.resolve()},
+  {do:1, t:'A trigger', p:'Ocelot Pride entered, so <b>Guide of Souls</b> triggered: its ability went on the stack by itself. Tap it to resolve it.', skip:()=>!mtrSt('Guide') && !G.me.st.length, ok:()=>!G.me.st.length, ring:()=>[mtrStEl('Guide') || mtrStEl('')], allow:['#stack'], doit:()=>TOUR_BEATS.resolve()},
+  {do:1, t:'Your friend\'s OK', go:'bolt', p:'With a friend, their spells wait for you. Practice (only pretending here) casts <b>Lightning Bolt</b> at you: a chime plays and the big button turns blue. Tap <b>OK</b> to let it resolve. To answer it instead, you\'d cast a spell.', ok:()=>!!TOUR.boltDone, ring:()=>[$('#next')], allow:['#next'], doit:()=>mtrBolt()},
+  {do:1, t:'To combat', p:'The big button moves the turn along. Tap it to go to combat.', ok:()=>G.turn.phase >= 3, ring:()=>[$('#next')], allow:['#next'], doit:async()=>{ nextPhase(); }},
+  {do:1, t:'Attack', p:()=>!G.atkSel ? 'Tap <b>Choose attackers</b>.' : 'Tap <b>Ragavan</b> and <b>Guide of Souls</b>, then <b>Attack</b>.', ok:()=>mtrAttacked() || !!G.turn.cs, see:()=>[$('#atkBar'), $('#myFront')],
+    ring:()=>{ if(!G.atkSel) return [$('#atkBar [data-ak="choose"]')]; const r = ['Ragavan','Guide of Souls'].map(n=>mtrBf(G.me, n)).filter(c=>c && !G.atkSel.has(c.id)).map(c=>mtrBfEl(G.me, cdata(c).n)); return r.length ? r : [$('#atkBar [data-ak="go"]')]; },
+    allow:['#atkBar','#myFront'], doit:()=>TOUR_BEATS.attack()},
+  {do:1, t:'Blocking', p:()=>(M.blk && M.blk.sel) ? 'Now tap <b>Guide of Souls</b>, the attacker it blocks. Then <b>Done blocking</b>.' : mtrBlocks() ? 'Tap <b>Done blocking</b>.' : 'In practice you block for Practice too, the same way you block when a friend attacks you. Tap <b>Monastery Swiftspear</b>, then <b>Guide of Souls</b>.',
+    skip:()=>!pblockStep() && !mtrAttacked(), ok:()=>!pblockStep(), see:()=>[$('#oppFront'), $('#myFront'), $('#mBlk')],
+    ring:()=>{ if(M.blk && M.blk.sel){ const g = G.me.bf.find(c=>c.atk && cdata(c).n === 'Guide of Souls'); return (g ? [g] : G.me.bf.filter(c=>c.atk)).map(c=>$(`#myFront .card[data-id="${c.id}"]`)); } if(mtrBlocks()) return [$('#mBlkGo')]; return [mtrBfEl(G.opp, 'Monastery Swiftspear')]; },
+    allow:['#oppFront','#myFront','#mBlkGo','#mBlk'], doit:()=>TOUR_BEATS.block()},
+  {do:1, t:'Combat damage', p:'Tap the big button to deal combat damage.', skip:()=>!mtrAttacked(), ok:()=>G.turn.cs === 'dmg' || G.turn.phase !== 3 || !!G.me.st.length, ring:()=>[$('#next')], allow:['#next'], doit:async()=>{ combatStep(); await tourWait(450); }},
+  {do:1, t:'Ragavan\'s trigger', p:'Ragavan hit Practice, so it triggered. Tap it: it makes a <b>Treasure</b> and exiles the top card of Practice\'s library, which you may cast this turn.', skip:()=>!mtrSt('Ragavan'), ok:()=>!mtrSt('Ragavan'), ring:()=>[mtrStEl('Ragavan')], allow:['#stack'], doit:()=>TOUR_BEATS.resolve()},
+  {sel:'#mLook', t:'Reading cards', p:'Tap <b>LOOK</b>, then any card, to read it (tap LOOK again to stop). With LOOK off, tapping one of your permanents shows what it can do: tap it, use its abilities, or anything else by hand.'},
+  {sel:'#mMenu', t:'The menu', p:'☰ has Undo, your lands, hand actions, the turn menu (stops and pauses), the log and chat, and Send feedback. Nothing is final: anything can be put right by hand.'},
+  {t:'Your turn', p:'The rest of this turn is yours: Main 2 is next. Play on against Practice, or start a practice game with a deck of your own. To play a friend: ☰ → Home, then Open a table.', btns:[['Practice with my own deck','decks']]} ];
+TOUR_STEPS.play = MTR_STEPS;
+/* Ragavan's step says the exiled card may be cast: Practice's library is shuffled, so put a spell (not the Bolt the tour shows) on top of it */
+const deskTourStage = tourStage;
+tourStage = async function(){ await deskTourStage(); if(!mtrOn()) return; try{ const L = G.opp.lib, i = L.findIndex(c=>!isLand(c) && cdata(c).n !== 'Lightning Bolt'); if(i > 0) L.unshift(L.splice(i, 1)[0]); dummySync(); }catch(e){} };
+const MTR = {iv:0, key:'', pk:'', go:0};
+function mtrNeed(){ const t = $('#payPanel').innerText || ''; return /not covered|more mana/i.test(t); }
+function mtrPayBtn(){ return [...$$('#payPanel button')].find(b=>/^Pay /.test(b.textContent)) || null; }
+function mtrAttacked(){ return G.me.bf.some(c=>c.atk); }
+function mtrBlocks(){ return (G.opp.arrows || []).some(a=>a.blk); }
+async function mtrBolt(){ if(TOUR.boltDone) return; TOUR.boltDone = 1; await TOUR_BEATS.boltDone(); }
+function mtrOn(){ return !!(TOUR && TOUR.from === 'play'); }
+function mtrStep(){ return mtrOn() ? TOUR.list[TOUR.i] : null; }
+function mtrOffer(){ if(G.solo && G.me && G.me.deck && G.turn && G.turn.n && !G.tourBoard){
+    modal('How to play', '<span class="hint">How to play sets up a game in progress (turn 3, Boros Aggro against Practice\'s UR Aggro) in place of this practice game.</span>', [['Not now', closeModal, 'ghost'], ['Set it up', ()=>{ closeModal(); tourStart('play'); }, 'go']]); return; }
+  tourStart('play'); }
+/* taps during a step the player does: the tour card, open windows and menus, and what the step allows; the blue OK of the staged Bolt is the tour's */
+function mtrGate(e){ const st = mtrStep(); if(!st || !st.do || !e.target || !e.target.closest) return;
+  const t = e.target;
+  if(t.closest('#tourCard,#modal,#ctx,#ctx2,#mBackdrop,#mView')) return;
+  if(G.okDemo && t.closest('#next')){ e.stopImmediatePropagation(); e.preventDefault(); if(e.type === 'click') mtrBolt(); return; }
+  const ok = (st.allow || []).some(s=>t.closest(s)) || mtrRingEls(st).some(el=>el.contains(t));
+  if(ok) return;
+  e.stopImmediatePropagation(); e.preventDefault();
+  if(e.type === 'pointerdown'){ const c = $('#tourCard'); if(c){ c.classList.remove('mtrnudge'); void c.offsetWidth; c.classList.add('mtrnudge'); } } }
+function mtrRingEls(st){ let r = []; try{ r = (st.ring ? st.ring() : []) || []; }catch(e){} return r.filter(el=>el && el.getBoundingClientRect().width > 0); }
+/* the help page's Take the tour on the phone: the phone tour (the desktop's walk of the table points at parts the phone doesn't have) */
+tourPlay = function(){ if(TOUR) tourEnd(true); if(vsReal()){ toast('The tour sets up a practice game: open it from the front page (☰ → Home).'); return; } mtrOffer(); };
+function mtrText(st){ try{ return typeof st.p === 'function' ? st.p() : st.p; }catch(e){ return ''; } }
+const deskTourShow = tourShow, deskTourPlace = tourPlace, deskTourEnd = tourEnd;
+tourShow = async function(){ if(!mtrOn()) return deskTourShow();
+  const st = TOUR.list[TOUR.i]; if(!st){ tourEnd(); return; } const card = $('#tourCard'); clearInterval(MTR.iv); MTR.go = 0;
+  if(card) card.querySelectorAll('button').forEach(b=>b.disabled = true);
+  await tourScreen(st.scr); if(!TOUR) return;
+  if(st.go && !TOUR.done[TOUR.i]){ TOUR.done[TOUR.i] = 1; try{ await TOUR_BEATS[st.go](); }catch(e){ console.warn('tour beat', st.go, e); } if(!mtrOn()) return; }
+  if(st.skip && st.skip()){ if(TOUR.i >= TOUR.list.length-1){ tourEnd(); return; } TOUR.i++; return tourShow(); }
+  MTR.key = ''; MTR.pk = ''; TOUR.el = st.sel ? $(st.sel) : null;
+  const blk = $('#tourBlock'); if(blk) blk.style.display = st.do ? 'none' : '';
+  const hole = $('#tourHole'); if(hole) hole.style.display = st.do ? 'none' : '';
+  mtrTick(); MTR.iv = setInterval(mtrTick, 250); };
+tourPlace = function(){ if(!mtrOn()) return deskTourPlace(); MTR.pk = ''; mtrPlace(); };
+tourEnd = function(quiet){ clearInterval(MTR.iv); MTR.go = 0; const r = $('#mtrRings'); if(r) r.remove(); const wasPlay = mtrOn(); deskTourEnd(quiet); if(wasPlay) tray(false); };
+function mtrTick(){ const st = mtrStep(); if(!st){ clearInterval(MTR.iv); return; }
+  const done = st.do && (()=>{ try{ return !!st.ok(); }catch(e){ return false; } })();
+  if(done && !MTR.go){ MTR.go = 1; const i = TOUR.i; setTimeout(()=>{ if(mtrOn() && TOUR.i === i && !TOUR.list[i+1]){ tourEnd(); return; } if(mtrOn() && TOUR.i === i){ TOUR.dir = 1; TOUR.i++; tourShow(); } }, 700); }
+  mtrPaint(st, done); mtrRings(st, done); mtrPlace(); }
+function mtrPaint(st, done){ const card = $('#tourCard'); if(!card) return; const n = TOUR.list.length, last = TOUR.i === n-1, prev = TOUR.list[TOUR.i-1];
+  const extra = (st.btns || []).map(([l,k])=>`<button class="go" data-tr="${k}">${l}</button>`).join('');
+  const back = TOUR.i > 1 && !st.do && prev && !prev.do ? '<button class="ghost" data-tr="back">Back</button>' : '';
+  const foot = st.do ? (done ? '<span class="mtrok">✓ Done</span>' : `<button class="ghost" data-tr="end">Skip tour</button><button class="go" data-mtrdo>Do it for me</button>`)
+    : `${back}${last ? '' : '<button class="ghost" data-tr="end">Skip tour</button>'}${extra}<button class="${extra?'ghost':'go'}" data-tr="next">${last ? 'Done' : 'Next'}</button>`;
+  const html = `<h4>${st.t}</h4><p>${mtrText(st)}</p><div class="tfoot"><span class="n">${TOUR.i+1} of ${n}</span>${foot}</div>`;
+  if(html === MTR.key) return; MTR.key = html; card.innerHTML = html; card.classList.toggle('mtrdo', !!st.do);
+  const d = card.querySelector('[data-mtrdo]'); if(d) d.onclick = async e=>{ e.stopPropagation(); d.disabled = true; try{ await st.doit(); }catch(err){ console.warn('tour do', err); } }; MTR.pk = ''; }
+/* a card in the stack column overlaps the one above it: the outline keeps to the part of it that shows, inside the stack */
+function mtrRect(el){ const r = el.getBoundingClientRect(), sw = el.closest('#stack'); if(!sw) return r; const w = sw.getBoundingClientRect();
+  const top = Math.max(r.top, w.top), bottom = Math.min(r.bottom, w.bottom); return {left:r.left, top, width:r.width, height:Math.max(0, bottom-top), right:r.right, bottom}; }
+function mtrRings(st, done){ let box = $('#mtrRings'); const els = st.do && !done ? mtrRingEls(st) : [];
+  if(!els.length){ if(box) box.hidden = true; return; }
+  if(!box){ box = document.createElement('div'); box.id = 'mtrRings'; document.body.appendChild(box); } box.hidden = false;
+  box.innerHTML = els.map(el=>{ const r = mtrRect(el); return `<i style="left:${r.left-4}px;top:${r.top-4}px;width:${r.width+8}px;height:${r.height+8}px"></i>`; }).join(''); }
+/* the card goes where it covers the least of what the step needs (its outlined parts, the windows it names, an open question), near the first of them */
+function mtrPlace(){ const card = $('#tourCard'), st = mtrStep(); if(!card || !st) return;
+  const vis = el=>el && !el.hidden && el.getBoundingClientRect().width > 0;
+  let keep = st.do ? mtrRingEls(st) : (TOUR.el && vis(TOUR.el) ? [TOUR.el] : []);
+  const nRing = keep.length;
+  if(st.do && st.see){ try{ keep = keep.concat(st.see().filter(vis)); }catch(e){} }
+  for(const s of ['#modal .sheet','#ctx']){ const el = $(s); if(el && vis(el) && !el.closest('[hidden]')) keep.push(el); }
+  const R = keep.map(el=>mtrRect(el)), W = innerWidth, H = innerHeight, cw = card.offsetWidth, ch = card.offsetHeight;
+  const sig = [W, H, cw, ch, ...R.map(r=>[r.left, r.top, r.width, r.height].map(Math.round).join(','))].join('|'); if(sig === MTR.pk) return; MTR.pk = sig;
+  const hole = $('#tourHole');
+  if(!st.do && hole){ if(R.length){ const r = R[0], pad = 5; Object.assign(hole.style, {left:Math.max(2, r.left-pad)+'px', top:Math.max(2, r.top-pad)+'px', width:Math.min(W-4, r.width+2*pad)+'px', height:Math.min(H-4, r.height+2*pad)+'px'}); }
+    else Object.assign(hole.style, {left:W/2+'px', top:H/2+'px', width:'0px', height:'0px'}); }
+  if(!R.length || (!st.do && !TOUR.el)){ card.style.left = Math.max(8, (W-cw)/2)+'px'; card.style.top = Math.max(8, (H-ch)/2)+'px'; return; }
+  const ov = (x, y, r)=>Math.max(0, Math.min(x+cw, r.right+6) - Math.max(x, r.left-6)) * Math.max(0, Math.min(y+ch, r.bottom+6) - Math.max(y, r.top-6));
+  const f = R[0], fx = f.left + f.width/2, fy = f.top + f.height/2; let best = null;
+  for(let x = 6; x <= W-cw-6; x += 16) for(let y = 6; y <= H-ch-6; y += 12){
+    let s = 0; R.forEach((r, i)=>{ s += ov(x, y, r) * (i < nRing ? 6 : 1); });
+    s += Math.hypot(x + cw/2 - fx, y + ch/2 - fy) * 3;
+    if(!best || s < best.s) best = {x, y, s}; }
+  if(best){ card.style.left = best.x+'px'; card.style.top = best.y+'px'; } }

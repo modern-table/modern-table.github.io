@@ -140,7 +140,7 @@ try:
     # the menu
     p.tap('#mMenu'); p.wait_for_timeout(300)
     mt = J(p, "() => document.querySelector('#ctx').hidden ? null : [...document.querySelectorAll('#ctx button')].map(b=>b.innerText)")
-    check('☰ opens the menu sheet: phone items and the table menu, no tour', mt and 'Undo' in mt and 'Game log and chat' in mt and any('Concede' in x for x in mt) and not any('tour' in x.lower() for x in mt), mt)
+    check('☰ opens the menu sheet: phone items and the table menu; the phone\'s own tour (m0.17), not the desktop\'s Take the tour or Explore', mt and 'Undo' in mt and 'Game log and chat' in mt and any('Concede' in x for x in mt) and [x for x in mt if 'tour' in x.lower()] == ['How to play (a 3-minute tour)'] and not any('Take the tour' in x or 'Explore' in x for x in mt), mt)
     p.tap('#mBackdrop', position={'x': 20, 'y': 20}); p.wait_for_timeout(200)
     check('tapping beside it closes it', J(p, "() => document.querySelector('#ctx').hidden && document.querySelector('#mBackdrop').hidden"))
     p.tap('#mMenu'); p.wait_for_timeout(200); p.locator('#ctx button:has-text("Game log and chat")').tap(); p.wait_for_timeout(200)

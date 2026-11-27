@@ -76,7 +76,8 @@ try:
         check('Attacking: combat, Ragavan and Guide of Souls tapped as attackers', g('Attacking').get('ph') == 3 and 'Ragavan, Nimble Pilferer*' in g('Attacking').get('bf', []) and 'Guide of Souls*' in g('Attacking').get('bf', []), g('Attacking').get('bf'))
         check('Blocking: Swiftspear blocks Guide of Souls, the button goes to damage', 'combat damage' in g('Blocking').get('btn', '') and any('Swiftspear' in l and 'blocks' in l for l in g('Blocking').get('log', [])), (g('Blocking').get('btn'), g('Blocking').get('log')))
         check("Combat damage: Ragavan hit for 2 and its trigger is on the stack", g('Combat damage').get('olife') == 14 and g('Combat damage').get('st') == ['Ragavan: combat damage trigger'], g('Combat damage'))
-        check('Exiled by cards: a Treasure, and the exiled card offered in the box', 'Treasure' in g('Exiled by cards').get('bf', []) and len(g('Exiled by cards').get('oex', [])) == 1 and g('Exiled by cards').get('offers') == 1, {k:g('Exiled by cards').get(k) for k in ['oex','offers','bf']})
+        check('Exiled by cards: a Treasure, and the exiled card offered in the box', 'Treasure' in g('Exiled by cards').get('bf', []) and len(g('Exiled by cards').get('oex', [])) == 1 and (g('Exiled by cards').get('offers') == 1 or J(p, "() => G.opp.ex.filter(c=>c.offer).every(c=>isLand(c))")),   # Practice's library is shuffled: a land on top is exiled but can't be offered
+ {k:g('Exiled by cards').get(k) for k in ['oex','offers','bf']})
         last = steps.get('_last')
         check('the last card offers Practice with my own deck', last and 'Practice with my own deck' in last['b'] and 'Done' in last['b'], last)
         check('the turn menu, the turn, the big button and tools are covered on the way', all(t in steps for t in ['The turn menu', 'The turn', 'The big button', 'Tools', 'Nothing is final', 'The table menu']), list(steps))
